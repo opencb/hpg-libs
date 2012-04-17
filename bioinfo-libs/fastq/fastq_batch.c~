@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "fastq_batch.h"
+#include "../../commons/string_utils.h"
+// #include "prepro_batch.h"
+
+#define MAX_HEADER_LENGTH	128
+
+// 70 = 2 * 35
+// size is splited in sequence and quality, so divided 2
+// minimum expected sequence length is 35
+#define MIN_READ_SIZE	(2*35)
+//#define MIN_READ_SIZE	1/70
+
+fastq_batch_t* fastq_batch_init(fastq_batch_t* fastq_batch_p, unsigned long size) {
+
+	fastq_batch_p->num_reads = 0;
+// 	fastq_batch_p->size_in_bytes = size;
+	fastq_batch_p->data_size = size;
+	fastq_batch_p->data_indices_size = sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE;
+
+//	printf("sizeof(int): %i\n", sizeof(int));
+//	printf("fastq_batch_p->data_size: %i\n", fastq_batch_p->data_size);
+//	printf("MIN_READ_SIZE: %i\n", MIN_READ_SIZE);
+
+	//printf("Allocating space for header_indices (int): %i\n", sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE);
+	//fastq_batch_p->header_indices = (int*) malloc(sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE);
+	fastq_batch_p->header_indices = (int*) malloc(fastq_batch_p->data_indices_size);
+
+	//printf("Allocating space for header (char): %i, is null header ? %i\n", MAX_HEADER_LENGTH * fastq_batch_p->data_size / MIN_READ_SIZE, fastq_batch_p->header);
+	fastq_batch_p->header = (char*) malloc(MAX_HEADER_LENGTH * fastq_batch_p->data_size / MIN_READ_SIZE);
+
+	//printf("Allocating space for data_indices (int): %i\n", fastq_batch_p->data_indices_size);
+	fastq_batch_p->data_indices = (int*) malloc(fastq_batch_p->data_indices_size);
+
+	//printf("Allocating space for data (char): %i\n", fastq_batch_p->data_size);
+	fastq_batch_p->data = (char*) malloc(fastq_batch_p->data_size);
+
+	memset(fastq_batch_p->header_indices, 0, sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE);
+	memset(fastq_batch_p->header, 0, MAX_HEADER_LENGTH * fastq_batch_p->data_size / MIN_READ_SIZE);
+	memset(fastq_batch_p->data_indices, 0, sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE);
+	memset(fastq_batch_p->data, 0, fastq_batch_p->data_size);
+
+	return fastq_batch_p;
+}
+
+void fastq_batch_free(fastq_batch_t* fastq_batch_p) {
+	if (fastq_batch_p->header_indices != NULL) {
+		free(fastq_batch_p->header_indices);
+	}
+	if (fastq_batch_p->header != NULL) {
+		free(fastq_batch_p->header);
+	}
+	if (fastq_batch_p->data_indices != NULL) {
+		free(fastq_batch_p->data_indices);
+	}
+	if (fastq_batch_p->data != NULL) {
+		free(fastq_batch_p->data);
+	}
+}
+
+void fastq_batch_print(fastq_batch_t* fastq_batch_p, FILE* fd) {
+	for(int i=0; i<fastq_batch_p->num_reads; i++) {
+		fprintf(fd, "%s\n", &(fastq_batch_p->header[fastq_batch_p->header_indices[i]]));
+		fprintf(fd, "%s\n", &(fastq_batch_p->data[fastq_batch_p->data_indices[i]]));
+		fprintf(fd, "+\n");
+		fprintf(fd, "%s\n", &(fastq_batch_p->data[(fastq_batch_p->data_indices[i]+fastq_batch_p->data_indices[i+1])/2]));
+	}
+}
+
+void fprintf_read(FILE* fd, fastq_batch_t* batch_p, int index) {
+    fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
+    fprintf(fd, "%s\n", &(batch_p->data[batch_p->data_indices[index]]));
+    fprintf(fd, "+\n");
+    fprintf(fd, "%s\n", &(batch_p->data[(batch_p->data_indices[index]+batch_p->data_indices[index+1])/2]));
+}
+
+void fprintf_rtrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length) {
+    fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
+    fprintf(fd, "%s\n", rtrim(&(batch_p->data[batch_p->data_indices[index]]), rtrim_length));
+    fprintf(fd, "+\n");
+    fprintf(fd, "%s\n", rtrim(&(batch_p->data[(batch_p->data_indices[index]+batch_p->data_indices[index+1])/2]), rtrim_length));
+}
+
+void fprintf_ltrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int ltrim_length) {
+    fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
+    fprintf(fd, "%s\n", ltrim(&(batch_p->data[batch_p->data_indices[index]]), ltrim_length));
+    fprintf(fd, "+\n");
+    fprintf(fd, "%s\n", ltrim(&(batch_p->data[(batch_p->data_indices[index]+batch_p->data_indices[index+1])/2]), ltrim_length));
+}
+
+void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length, int ltrim_length) {
+    char* str;
+    fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
+    //fprintf(fd, "%s\n", cut_last_nts(&(batch_p->data[batch_p->data_indices[index]]), trim_length));
+    str = &(batch_p->data[batch_p->data_indices[index]]);
+    if (rtrim_length > 0) {  str = rtrim(str, rtrim_length); }
+    if (ltrim_length > 0) {  str = ltrim(str, ltrim_length); }
+    fprintf(fd, "%s\n", str);
+    fprintf(fd, "+\n");
+    //fprintf(fd, "%s\n", cut_last_nts(&(batch_p->data[(batch_p->data_indices[index]+batch_p->data_indices[index+1])/2]), trim_length));
+    str = &(batch_p->data[(batch_p->data_indices[index]+batch_p->data_indices[index+1])/2]);
+    if (rtrim_length > 0) {  str = rtrim(str, rtrim_length); }
+    if (ltrim_length > 0) {  str = ltrim(str, ltrim_length); }
+    fprintf(fd, "%s\n", str);
+}
+

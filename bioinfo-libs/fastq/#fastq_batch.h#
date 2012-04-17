@@ -1,0 +1,33 @@
+
+#ifndef FASTQ_BATCH_H
+#define FASTQ_BATCH_H
+
+#include <stdio.h>
+
+typedef struct fastq_batch {
+	int source_id; 
+	unsigned long num_reads;
+	unsigned long data_indices_size;
+	unsigned long data_size;
+	int *header_indices;
+	char *header;
+	int *data_indices;
+	char *data;
+} fastq_batch_t;
+
+
+fastq_batch_t* fastq_batch_init(fastq_batch_t *fastq_batch_p, unsigned long size);
+
+void fastq_batch_free(fastq_batch_t* fastq_batch_p);
+
+void fastq_batch_print(fastq_batch_t* fastq_batch_p, FILE* fd);
+
+void fprintf_read(FILE* fd, fastq_batch_t* batch_p, int index);
+
+void fprintf_rtrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length);
+
+void fprintf_ltrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int ltrim_length);
+
+void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length, int ltrim_length);
+
+#endif  /* FASTQ_BATCH_H */ 
