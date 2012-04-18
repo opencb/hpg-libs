@@ -2,9 +2,9 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
 
-ROOT = ~/appl/bioinfo-c
+LIBS_ROOT = ../../..
 SRC_DIR = .
-COMMONS_DIR = $(ROOT)/commons
+COMMONS_DIR = $(LIBS_ROOT)/commons
 
 INCLUDES = -I $(SRC_DIR) -I $(COMMONS_DIR)
 LIBS = -lcheck -lcprops 

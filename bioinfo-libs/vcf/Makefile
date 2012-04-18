@@ -2,11 +2,10 @@ CC = gcc
 CFLAGS = -std=c99 -O3
 CFLAGS_DEBUG = -std=c99 -g
 
-ROOT = ~/appl/bioinfo-c
-
-CONTAINERS_DIR = $(ROOT)/containers
-COMMONS_DIR = $(ROOT)/commons
-REGION_DIR = $(ROOT)/bioinfo-data/features/region
+LIBS_ROOT = ../..
+CONTAINERS_DIR = $(LIBS_ROOT)/containers
+COMMONS_DIR = $(LIBS_ROOT)/commons
+REGION_DIR = $(LIBS_ROOT)/bioformats/features/region
 
 INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR)
 LIBS = -lcprops -fopenmp
