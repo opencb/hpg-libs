@@ -2,7 +2,9 @@
 #define FILE_UTILS_H
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -15,9 +17,12 @@
 
 
 typedef struct launch_option {
-	char option_name[MAX_LENGTH_CONFIG_LINE+2];
-	char option_value[MAX_LENGTH_CONFIG_LINE];
+    char option_name[MAX_LENGTH_CONFIG_LINE+2];
+    char option_value[MAX_LENGTH_CONFIG_LINE];
 } launch_option_t;
+
+
+void *mmap_file(size_t *len, const char *filename);
 
 
 char* fgets_no_ln(char *s, int n, FILE *f);

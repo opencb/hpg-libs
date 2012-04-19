@@ -5,6 +5,37 @@
 #include "file_utils.h"
 #include "string_utils.h"
 
+
+void *mmap_file(size_t *len, const char *filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        fprintf(stderr, "Error opening file: %s\n", filename);
+        exit(1);
+    }
+    
+    struct stat st[1];
+    if (fstat(fd, st)) {
+        fprintf(stderr, "Error while getting file information: %s\n", filename);
+        exit(1);    
+    }
+    *len = (size_t) st->st_size;
+
+    if (!*len) {
+        close(fd);
+        return NULL;
+    }
+
+    void *map = mmap(NULL, *len, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (MAP_FAILED == map) {
+        fprintf(stderr, "mmap failed for %s\n", filename);
+        exit(1);
+    }
+    close(fd);
+    
+    return map;
+}
+
+
 char *fgets_no_ln(char *s, int n, FILE *f) {
 	int c = 0;
 	char *cs;
