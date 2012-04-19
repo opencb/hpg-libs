@@ -40,5 +40,5 @@ void gff_batch_print(FILE *fd, gff_batch_t *gff_batch)
     gff_record_t *first_record = gff_batch->first_p->data_p;
     fprintf(fd, "Batch with %zu/%zu records - %s in %ld\n", 
         gff_batch->length, gff_batch->max_length, 
-        first_record->chromosome, first_record->position);
+        first_record->sequence, first_record->start);
 }

@@ -15,9 +15,8 @@
 #include <file_utils.h>
 
 #include "gff_file_structure.h"
-// #include "gff_reader.h"
+#include "gff_reader.h"
 #include "gff_write.h"
-// #include "list.h"
 
 #define INIT_RECORD_SIZE    100
 
@@ -68,7 +67,7 @@ void gff_record_free(gff_record_t *gff_record);
  */
 int gff_read(gff_file_t *gff_file);
 
-int gff_read_batches(list_t *batches_list, size_t batch_size, gff_file_t *gff_file, int read_samples);
+int gff_read_batches(list_t *batches_list, size_t batch_size, gff_file_t *gff_file);
 
 /**
  * Write the contents of the gff_file_t given as argument to the given path.

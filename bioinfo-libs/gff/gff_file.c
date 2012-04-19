@@ -20,15 +20,15 @@ gff_file_t *gff_open(char *filename)
     gff_file->filename = filename;
     gff_file->data = data;
     gff_file->data_len = len;
-    gff_file->header_entries = cp_list_create_list(COLLECTION_MODE_DEEP,
+    gff_file->header_entries = cp_list_create_list(COLLECTION_MODE_MULTIPLE_VALUES | COLLECTION_MODE_DEEP,
                                                    NULL,
                                                    NULL,
-                                                   gff_header_entry_free
+                                                   (cp_destructor_fn) gff_header_entry_free
                                                   );
-    gff_file->records = cp_list_create(COLLECTION_MODE_DEEP,
+    gff_file->records = cp_list_create(COLLECTION_MODE_MULTIPLE_VALUES | COLLECTION_MODE_DEEP,
                                        NULL,
                                        NULL,
-                                       gff_header_entry_free
+                                       (cp_destructor_fn) gff_record_free
                                       );
     return gff_file;
 }
@@ -42,10 +42,11 @@ void gff_close(gff_file_t *gff_file, int free_records)
 {
     // Free string members
     free(gff_file->filename);
-    free(gff_file->mode);
    
     // Free header entries
-    cp_list_destroy(gff_file->header_entries);
+    if (!cp_list_is_empty(gff_file->header_entries)) {
+        cp_list_destroy(gff_file->header_entries);
+    }
     
     // Free records list if asked to
     if (free_records) {
@@ -77,11 +78,11 @@ void gff_record_free(gff_record_t *gff_record)
 //-----------------------------------------------------
 
 int gff_read(gff_file_t *gff_file)  {
-    return gff_ragel_read(NULL, 1, gff_file, 0);
+    return gff_ragel_read(NULL, 1, gff_file);
 }
 
-int gff_read_batches(list_t *batches_list, size_t batch_size, gff_file_t *gff_file, int read_samples) {
-    return gff_ragel_read(batches_list, batch_size, gff_file, read_samples);
+int gff_read_batches(list_t *batches_list, size_t batch_size, gff_file_t *gff_file) {
+    return gff_ragel_read(batches_list, batch_size, gff_file);
 }
 
 int gff_write(gff_file_t *gff_file, char *filename) {
@@ -107,23 +108,23 @@ int gff_write(gff_file_t *gff_file, char *filename) {
 
 int add_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file)
 {
-    int result = cp_list_insert(gff_file->header_entries, header_entry) != NULL;
-    if (result) {
+    void *result = cp_list_append(gff_file->header_entries, header_entry);
+    if (result != NULL) {
         dprintf("header entry %zu\n", cp_list_item_count(gff_file->header_entries));
     } else {
         dprintf("header entry %zu not inserted\n", cp_list_item_count(gff_file->header_entries));
     }
-    return result;
+    return result != NULL;
 }
 
 int add_record(gff_record_t* record, gff_file_t *gff_file)
 {
-    int result = cp_list_insert(gff_file->records, header_entry) != NULL;
-    if (result) {
+    void *result = cp_list_append(gff_file->records, record);
+    if (result != NULL) {
         dprintf("record %zu\n", cp_list_item_count(gff_file->records));
     } else {
         dprintf("record %zu not inserted\n", cp_list_item_count(gff_file->records));
     }
-    return result;
+    return result != NULL;
 }
 

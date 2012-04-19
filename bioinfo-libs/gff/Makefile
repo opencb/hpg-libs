@@ -7,38 +7,29 @@ CONTAINERS_DIR = $(LIBS_ROOT)/containers
 COMMONS_DIR = $(LIBS_ROOT)/commons
 REGION_DIR = $(LIBS_ROOT)/bioformats/features/region
 
-INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR)
+INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/vcf/
 LIBS = -lcprops -fopenmp
 
-MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c $(CONTAINERS_DIR)/list.o
-VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS)
-VCF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS)
-
+MAIN_OBJECTS = gff_file.c gff_read.c gff_reader.c gff_write.c gff_batch.c
+MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(LIBS_ROOT)/bioformats/vcf/util.c
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(REGION_DIR)/region.o $(COMMONS_DIR)/string_utils.o
-VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) vcf_filters.c util.c $(REGION_TABLE_OBJECTS)
+GFF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS)
 
 
-
-all: list.o string_utils.o region.o region_table.o ragel main_batch main_filter
+all: file_utils.o list.o string_utils.o region.o region_table.o ragel main_batch
 
 ragel:
-	ragel -o vcf_reader.c -C -G2 vcf.ragel
+	ragel -o gff_reader.c -C -G2 gff.ragel
 
 ragel_graphviz:
-	ragel -o vcf_ragel.dot -V -C -G2 vcf.ragel
+	ragel -o gff_ragel.dot -V -C -G2 gff.ragel
 
-main_batch: $(VCF_BATCH_OBJECTS)
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+main_batch: $(GFF_BATCH_OBJECTS)
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(GFF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(GFF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
-main_filter: $(VCF_FILTER_OBJECTS)
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
-# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
-
-main_basic: $(VCF_BASIC_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $(VCF_BASIC_OBJECTS) $(INCLUDES) $(LIBS)
-
-main_sizeof: main_sizeof_structs.c
-	$(CC) $(CFLAGS) -o $@ main_sizeof_structs.c $(INCLUDES)
+file_utils.o:
+	cd $(COMMONS_DIR) && make file_utils.o
 
 list.o:
 	cd $(CONTAINERS_DIR) && make list.o
@@ -55,5 +46,3 @@ string_utils.o:
 
 clean:
 	rm main_batch
-	rm main_filter
-

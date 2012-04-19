@@ -1,0 +1,237 @@
+#include "gff_reader.h"
+
+static size_t records = 0;
+
+static gff_record_t *current_record;
+static gff_header_entry_t *current_header_entry;
+static gff_batch_t *current_batch;
+
+enum Field current_field = SEQUENCE;
+
+%%{
+    machine gff;
+    write data;
+
+    number		= (digit)+ ("." (digit)+)? ;
+    bases		= ("A" | "C" | "G" | "T" | "N")+ ;
+    identifier	= (alnum)+ ;
+
+
+    #########################################
+    #                 Header                #
+    #########################################
+
+    # Header rules
+    header_text     = (print | space - "\n")+ ;
+    header		= ("##" @{ fcall header_scan; })+ ;
+
+    # Header scanner
+    header_scan	:= |*
+        header_text @ 5 => {
+            char *text = get_token(ts, te);
+            set_header_entry_text(text, current_header_entry);
+        };
+        
+        "\n"		=> {
+            add_header_entry(current_header_entry, file);
+            current_header_entry = create_header_entry();
+            dprintf("\n");
+            fret;
+        };
+
+    *|;
+
+
+    #########################################
+    #                Records                #
+    #########################################
+
+    # Records rules
+    record_seqid    = (alnum | "_")+ ;
+    record_source   = (alnum | "_")+ ;
+    record_feature  = (alnum | "_")+ ;
+    record_start    = number ;
+    record_end      = number ;
+    record_score    = number | "." ;
+    record_strand   = "+" | "-" | "." ;
+    record_frame    = number | "." ;
+
+    attr_id     = (alnum | "_")+ ;
+    attr_value  = (print - space)+ ;
+    attr_value_list = attr_value ("," attr_value)* ;
+    attr_entry  = attr_id | attr_id "=" attr_value_list ;
+    record_attr = attr_entry (";" attr_entry)* ;
+
+    record		= record_seqid "\t" record_source "\t" record_feature "\t" record_start "\t" record_end "\t" record_score "\t" record_strand "\t" record_attr ;
+    records		= record ("\n" record)* ("\n")? ;
+
+    # Records scanner
+    record_scan	:= |*
+        record_seqid  	=> {
+            set_field(ts, te);
+        };
+        
+        record_source	=> {
+            set_field(ts, te);
+        };
+        
+        record_feature 	=> {
+            set_field(ts, te);
+        };
+        
+        record_start 	=> {
+            set_field(ts, te);
+        };
+        
+        record_end 	    => {
+            set_field(ts, te);
+        };
+        
+        record_score 	=> {
+            set_field(ts, te);
+        };
+        
+        record_strand	=> {
+            set_field(ts, te);
+        };
+        
+        record_frame	=> {
+            set_field(ts, te);
+        };
+        
+        record_attr 	=> {
+            set_field(ts, te);
+        };
+        
+        
+        "\n"		=> {
+            // If batch is full, add to the list of batches and create a new, empty one
+            if (batch_is_full(current_batch))
+            {
+                list_item_t *item = list_item_new(records, 1, current_batch); 
+                list_insert_item(item, batches_list);
+                dprintf("Batch added - %zu records\n", current_batch->length);
+                current_batch = gff_batch_new(batch_size);
+            }
+            // Add record to current_batch
+            add_record_to_batch(current_record, current_batch);
+            
+            current_field = SEQUENCE;
+            records++;
+            dprintf("\n");
+        };
+        
+        space;
+    *|;
+
+
+    #########################################
+    #                Machine                #
+    #########################################
+
+    main		:= header records >{ fhold; fcall record_scan; } ;
+
+}%%
+
+
+char* get_token(char *ts, char *te)
+{
+    char *field = (char*) malloc ((te-ts+1) * sizeof(char));
+    strncpy(field, ts, (te-ts));
+    field[te-ts] = '\0';
+    return field;
+}
+
+void set_field(char* ts, char *te)
+{
+    char *field = get_token(ts, te);
+    float float_val = -1.0f;
+
+    switch (current_field)
+    {
+        case SEQUENCE:
+            current_record = create_record();
+            set_record_sequence(field, current_record);
+        break;
+        case SOURCE:
+            set_record_source(field, current_record);
+        break;
+        case FEATURE:
+            set_record_feature(field, current_record);
+        break;
+        case START:
+            set_record_start(atol(field), current_record);
+            free(field);    // Not set as gff_record_t variable -> not freed later
+        break;
+        case END:
+            set_record_end(atol(field), current_record);
+            free(field);    // Not set as gff_record_t variable -> not freed later
+        break;
+        case SCORE:
+            if (strncmp(".", field, 1) != 0)
+            {
+                float_val = atof(field);
+            }
+            set_record_score(float_val, current_record);
+            free(field);	// Not set as gff_record_t variable -> not freed later
+        break;
+        case STRAND:
+            if (field != NULL && strlen(field) > 0) {
+                set_record_strand(field[0], current_record);
+            }
+        break;
+        case FRAME:
+            if (strncmp(".", field, 1) != 0)
+            {
+                float_val = atof(field);
+            }
+            set_record_frame(float_val, current_record);
+            free(field);    // Not set as gff_record_t variable -> not freed later
+        break;
+        case ATTRIBUTE:
+            set_record_attribute(field, current_record);
+        break;
+    }
+
+    current_field++;
+}
+
+int gff_ragel_read(list_t *batches_list, size_t batch_size, gff_file_t *file)
+{
+    int cs;
+    char *p = file->data;
+    char *pe = p + file->data_len;
+    char *eof = pe;
+    char *ts, *te;
+    int stack[4];
+    int top, act;
+
+    current_header_entry = create_header_entry();
+    current_batch = gff_batch_new(batch_size);
+
+    %%{
+        write init;
+        write exec;
+    }%% 
+
+    // Insert the last batch
+    if (!batch_is_empty(current_batch))
+    {
+        list_item_t *item = list_item_new(records, 1, current_batch); 
+        list_insert_item(item, batches_list);
+        dprintf("Batch added - %zu records (last)\n", current_batch->length);
+    }
+
+    if ( cs < %%{ write first_final; }%% ) 
+    {
+        printf("Last state is %d, but %d was expected\n", 
+                cs, %%{ write first_final; }%%);
+    } 
+
+    printf("Records read = %zu\n", records);
+
+    // Free current_xxx pointers if not needed in another module
+    gff_header_entry_free(current_header_entry);
+
+    return cs < %%{ write first_final; }%%;
+}
