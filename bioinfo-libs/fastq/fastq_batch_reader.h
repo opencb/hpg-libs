@@ -21,22 +21,22 @@
 * Structure for implementing a fastq batch reader server
 */
 typedef struct fastq_batch_reader {
-  int alive;				/**< Alive indicator of the server. */
-  pthread_mutex_t alive_lock;		/**< Alive variable lock. */
+    int alive;				/**< Alive indicator of the server. */
+    pthread_mutex_t alive_lock;		/**< Alive variable lock. */
 
-  int eof;				/**< End Of File indicator. */
-  pthread_mutex_t eof_lock;		/**< End Of File indicator lock. */
+    int eof;				/**< End Of File indicator. */
+    pthread_mutex_t eof_lock;		/**< End Of File indicator lock. */
 
-  size_t batch_size;			/**< Fastq batch size (in bytes). */
-  int batch_list_max_length;		/**< Fastq batch list maximum length. */
+    size_t batch_size;			/**< Fastq batch size (in bytes). */
+    int batch_list_max_length;		/**< Fastq batch list maximum length. */
 
-  pthread_t thread;			/**< pthread element. */
+    pthread_t thread;			/**< pthread element. */
 
-  int source_id;			/**< Source id of the fastq file (pair1 or pair2). */
+    int source_id;			/**< Source id of the fastq file (pair1 or pair2). */
 
-  fastq_file_t* fastq_file_p;		/**< Pointer to the fastq file object. */
-  fastq_batch_list_t* batch_list_p;	/**< Pointer to the fastq batch list. */
-  list_t* qc_batch_list_p;		/**< Pointer to the qc batch list. */
+    fastq_file_t* fastq_file_p;		/**< Pointer to the fastq file object. */
+    fastq_batch_list_t* batch_list_p;	/**< Pointer to the fastq batch list. */
+    list_t* qc_batch_list_p;		/**< Pointer to the qc batch list. */
 } fastq_batch_reader_t;
 
 /* **************************************
@@ -139,6 +139,5 @@ void fastq_batch_reader_set_alive(fastq_batch_reader_t* reader_p, int alive);
 *  Function with pthread implementation of the fastq batch reader
 */
 void* fastq_batch_reader_thread_function(void* param_p);
-
 
 #endif	/*  FASTQ_BATCH_READER_H  */

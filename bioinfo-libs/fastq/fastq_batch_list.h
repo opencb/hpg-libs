@@ -1,6 +1,6 @@
 
-#ifndef _FASTQ_BATCH_LIST_H
-#define _FASTQ_BATCH_LIST_H
+#ifndef FASTQ_BATCH_LIST_H
+#define FASTQ_BATCH_LIST_H
 
 #include <stdio.h>
 #include <pthread.h>
@@ -18,10 +18,10 @@
 * List item that contains a fastq batch
 */
 typedef struct fastq_batch_list_item {
-	int id;						/**< Batch id. */
-	fastq_batch_t *batch_p;				/**< Pointer to the fastq_batch element. */
-	struct fastq_batch_list_item *prev_p;		/**< Pointer to the previous fastq_batch_list_item. */
-	struct fastq_batch_list_item *next_p;		/**< Pointer to the next fastq_batch_list_item. */
+    int id;					/**< Batch id. */
+    fastq_batch_t *batch_p;			/**< Pointer to the fastq_batch element. */
+    struct fastq_batch_list_item *prev_p;	/**< Pointer to the previous fastq_batch_list_item. */
+    struct fastq_batch_list_item *next_p;	/**< Pointer to the next fastq_batch_list_item. */
 } fastq_batch_list_item_t;
 
 /**
@@ -30,12 +30,12 @@ typedef struct fastq_batch_list_item {
 * List containing and linking fastq_batch_list_item elements
 */
 typedef struct fastq_batch_list {
-	int length;					/**< Total length of the list. */
-	int length_by_source_id[MAX_NUM_PRODUCERS];	/**< Length of list by source id (pair 1 and pair2). */
-	int producers;					/**< Number of threads inserting in the list. */
-	fastq_batch_list_item_t *first_p;		/**< Pointer to the first item in the list. */
-	fastq_batch_list_item_t *last_p;		/**< Pointer to the last item in the list. */
-	pthread_mutex_t lock;				/**< Lock. */
+    int length;					/**< Total length of the list. */
+    int length_by_source_id[MAX_NUM_PRODUCERS];	/**< Length of list by source id (pair 1 and pair2). */
+    int producers;				/**< Number of threads inserting in the list. */
+    fastq_batch_list_item_t *first_p;		/**< Pointer to the first item in the list. */
+    fastq_batch_list_item_t *last_p;		/**< Pointer to the last item in the list. */
+    pthread_mutex_t lock;			/**< Lock. */
 } fastq_batch_list_t;
 
 /* **************************************

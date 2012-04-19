@@ -1,6 +1,6 @@
 
-#ifndef FASTQ_BATCH_READER_H
-#define FASTQ_BATCH_READER_H
+#ifndef FASTQ_BATCH_READER_OMP_H
+#define FASTQ_BATCH_READER_OMP_H
 
 #include <stdio.h>
 #include <stdio.h>
@@ -40,4 +40,4 @@ void fastq_batch_reader_free(fastq_batch_reader_t* reader_p);
 // thread function
 void* fastq_batch_reader_thread_function(void* param_p);
 
-#endif
+#endif	/*  FASTQ_BATCH_READER_OMP_H  */

@@ -30,13 +30,13 @@
 * Structure for handling fastq files 
 */
 typedef struct fastq_file {
-	char* filename;			/**< Fastq file name. */
-	//int source_id;
-	char* mode;			/**< Opening mode ("r", "w"). */
-	FILE* fd;			/**< File descriptor. */
-	unsigned long num_reads;	/**< Number of reads in the fastq file. */
-	unsigned long num_lines;	/**< Number of lines in the fastq file. */
-	char* quality_encoding;		/**< Quality encoding (Illumina v1.5, Solid, ...). */
+    char* filename;		/**< Fastq file name. */
+    //int source_id;
+    char* mode;			/**< Opening mode ("r", "w"). */
+    FILE* fd;			/**< File descriptor. */
+    unsigned long num_reads;	/**< Number of reads in the fastq file. */
+    unsigned long num_lines;	/**< Number of lines in the fastq file. */
+    char* quality_encoding;	/**< Quality encoding (Illumina v1.5, Solid, ...). */
 } fastq_file_t;
 
 /**
@@ -45,8 +45,8 @@ typedef struct fastq_file {
 * Source structure containing id and filename
 */
 typedef struct source {
-	int id;						/**< Id of the source. */
-	char filename[MAX_FASTQ_FILENAME_LENGTH];	/**< File name. */
+    int id;					/**< Id of the source. */
+    char filename[MAX_FASTQ_FILENAME_LENGTH];	/**< File name. */
 } source_t;
 
 /**
@@ -165,4 +165,4 @@ void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_p
 */
 void fastq_fclose(fastq_file_t *fq_file);
 
-#endif    // FASTQ_FILE_H
+#endif	/*  FASTQ_FILE_H  */

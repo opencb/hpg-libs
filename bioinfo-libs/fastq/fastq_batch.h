@@ -21,7 +21,6 @@ typedef struct fastq_batch {
     int* header_indices;			/**< Header indices for header indexation. */
     char* header;				/**< Header with read headers. */
     int* data_indices;				/**< Data indices for quality and sequence indexation. */
-    //char* data;
     char *seq;					/**< Pointer to sequences vector. */
     char *quality;				/**< Pointer to qualities vector. */
 } fastq_batch_t;
