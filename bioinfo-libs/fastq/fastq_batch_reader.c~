@@ -4,13 +4,17 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "../../commons/commons.h"
-#include "../../commons/log.h"
-#include "../../commons/system_utils.h"
+#include "commons.h"
+#include "log.h"
+#include "system_utils.h"
 
 #include "fastq_batch.h"
-#include "fastq_batch_reader.h"
 #include "fastq_batch_list.h"
+#include "fastq_batch_reader.h"
+
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
 //=====================================================
 // functions to manage fastq read batch server
@@ -21,26 +25,26 @@
 // fastq batch reader new
 //--------------------------------------------
 
-fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, fastq_batch_list_t* fastq_batch_list_p, unsigned long batch_size, int batch_list_max_length) {
+fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, fastq_batch_list_t* fastq_batch_list_p, size_t batch_size, list_t* qc_batch_list_p, int batch_list_max_length) {
+  fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) calloc(1, sizeof(fastq_batch_reader_t));
 
-  fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) malloc(sizeof(fastq_batch_reader_t));
-
-  // open the input file....
-  //
-  fastq_batch_reader_p->fastq_file_p = fastq_open(filename, "r");
+  // open the input file
+  fastq_batch_reader_p->fastq_file_p = fastq_fopen_mode(filename, "r");
   fastq_batch_reader_p->source_id = source_id;
 
   fastq_batch_reader_p->batch_size = batch_size;
   fastq_batch_reader_p->batch_list_max_length = batch_list_max_length;
 
   fastq_batch_reader_p->eof = 0;
-  fastq_batch_reader_p->eof_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_init(&(fastq_batch_reader_p->eof_lock), NULL);
 
   fastq_batch_reader_p->alive = 1;
-  fastq_batch_reader_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_init(&(fastq_batch_reader_p->alive_lock), NULL);
 
   fastq_batch_reader_p->batch_list_p = fastq_batch_list_p;
   fastq_batch_list_incr_producers(fastq_batch_list_p);
+  
+  fastq_batch_reader_p->qc_batch_list_p = qc_batch_list_p;
 
   return fastq_batch_reader_p;
 }
@@ -50,10 +54,9 @@ fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, fast
 //--------------------------------------------
 
 void fastq_batch_reader_free(fastq_batch_reader_t* fastq_batch_reader_p) {
-
-  // close the input file and exiting....
-  //
-  fastq_close(fastq_batch_reader_p->fastq_file_p);
+  // close the input file and exit
+  fastq_fclose(fastq_batch_reader_p->fastq_file_p);
+  free(fastq_batch_reader_p);
 }
 
 //----------------------------------------------
@@ -61,21 +64,16 @@ void fastq_batch_reader_free(fastq_batch_reader_t* fastq_batch_reader_p) {
 //--------------------------------------------
 
 void fastq_batch_reader_start(fastq_batch_reader_t* fastq_batch_reader_p) {
-
-  // create and launch pthread....
-  //
-  //printf("launching batch server thread....\n");
-
+  // create and launch pthread
   pthread_create(&(fastq_batch_reader_p->thread), NULL, fastq_batch_reader_thread_function, (void*) fastq_batch_reader_p);
 }
 
 //----------------------------------------------
 
 unsigned int fastq_batch_reader_join(fastq_batch_reader_t* fastq_batch_reader_p) {
-
-  // create and launch pthread....
-  //
-  //printf("THREAD-READ: waiting for batch server thread....\n");
+  char log_message[50];  
+  sprintf(log_message, "THREAD-READ: waiting for batch server thread....\n");
+  LOG_DEBUG(log_message);
 
   void* r;
   pthread_join(fastq_batch_reader_p->thread, &r);
@@ -135,20 +133,17 @@ int fastq_batch_reader_get_alive(fastq_batch_reader_t* fastq_batch_reader_p) {
 //-----------------------------------------------------
 void* fastq_batch_reader_thread_function(void* param_p) {
 	unsigned int total_reads = 0;
+	char log_message[100];
 
-	// micro seconds to wait
-	unsigned int usecs = 1000;	// 1ms
+	unsigned int usecs = 1000;	// micro seconds to wait (1 ms.)
 
 	timevars();
-// 	struct timespec ts;
-// 	ts.tv_sec = 1;
-// 	ts.tv_nsec = 0;
 
-	// Cast param_p to 'fastq_batch_reader_t'
-	//
+	// Cast void* param_p to fastq_batch_reader_t
 	fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) param_p;
 
-	printf("Thread-READ: START, for file %s\n", fastq_batch_reader_p->fastq_file_p->filename);
+	sprintf(log_message, "Thread-READ: START, for file %s\n", fastq_batch_reader_p->fastq_file_p->filename);
+	LOG_DEBUG(log_message);
 
 	fastq_batch_reader_set_eof(fastq_batch_reader_p, 0);
 	fastq_batch_reader_set_alive(fastq_batch_reader_p, 1);
@@ -157,60 +152,51 @@ void* fastq_batch_reader_thread_function(void* param_p) {
 	fastq_batch_t* fastq_batch_p;
 	fastq_batch_list_item_t *item_p = NULL;
 
-//  if (time_on) { start_timer(t1_read); }
-	while (true) {
-		// printf("---> begin fastq extraction... ");
+	while (1) {
 
 		// allocationg memory for the current fastq batch
 		LOG_DEBUG("Thread-READ: Before allocating memory for fastq_batch_p...");
-		fastq_batch_p = (fastq_batch_t*) malloc(sizeof(fastq_batch_t));
-		memset(fastq_batch_p, 0, sizeof(fastq_batch_t));
+		fastq_batch_p = fastq_batch_new();
+		//fastq_batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));
+		//memset(fastq_batch_p, 0, sizeof(fastq_batch_t));
 
 		fastq_batch_init(fastq_batch_p, fastq_batch_reader_p->batch_size);
 		fastq_batch_p->source_id = fastq_batch_reader_p->source_id;
 
 		// debugging the list
 		while ((fastq_batch_list_length(fastq_batch_reader_p->batch_list_p) >= fastq_batch_reader_p->batch_list_max_length) ||
-(fastq_batch_reader_p->batch_list_p->length_by_source_id[fastq_batch_reader_p->source_id] >	(fastq_batch_reader_p->batch_list_max_length/2)))  {
-			// Delay for a bit
-			//printf("Thread-READ: go to sleep for a while...\n");
+			(fastq_batch_reader_p->batch_list_p->length_by_source_id[fastq_batch_reader_p->source_id] > (fastq_batch_reader_p->batch_list_max_length/2)) ||
+			(fastq_batch_reader_p->qc_batch_list_p->length > (fastq_batch_reader_p->batch_list_max_length))) {
+
+		        // Delay for a bit
 			sched_yield();
-// 			nanosleep (&ts, NULL);
 			usleep(usecs);
 		}
 
-		if (time_flag) {
-			start_timer(t1_read);
-		}
+		if (time_flag) { start_timer(t1_read); }
 
 		// read reads from file
-		num_reads = fastq_read_batch_max_size(fastq_batch_p, fastq_batch_reader_p->batch_size, fastq_batch_reader_p->fastq_file_p);
+		num_reads = fastq_fread_batch_max_size(fastq_batch_p, fastq_batch_reader_p->batch_size, fastq_batch_reader_p->fastq_file_p);
 		total_reads += num_reads;
 
-		// if no reads exit....
-		if(num_reads == 0) {
+		// if there is no reads exit the loop
+		if (num_reads == 0) {
 			fastq_batch_free(fastq_batch_p);
-			free(fastq_batch_p);
 			break;
 		}
 
-		// otherwise, create a new batch object..
+		// otherwise, create a new batch object
 		item_p = (fastq_batch_list_item_t*) malloc(sizeof(fastq_batch_list_item_t));
 		item_p->batch_p = fastq_batch_p;
 		item_p->id = num_batchs;
 
 		// fastq_batch_print(fastq_batch_p, reader_fd);
-		// and insert this batch to the list
-		// don't forget to SYNCHRONIZE in order to
-		// access to the read_batch_list structure !!!!
+		
+		// insert this batch to the list (synchronization is implemented in the structure, see list.c)
 		fastq_batch_list_insert(item_p, fastq_batch_reader_p->batch_list_p);
 
-		// printf("---> after fastq batch insertion... ");
-		// get_free_memory();
-		// printf("++++++ inserting in read list (source, batch) = (%i, %i), (batchs, total reads) = (%i, %i), from file %s\n", item_p->batch_p->source_id, item_p->id, num_batchs, total_reads,
-		fastq_batch_reader_p->fastq_file_p->filename);
-
-		printf("Thread-READ: ....reading batch %i (%i reads), done !!!!\n", num_batchs, num_reads);
+		sprintf(log_message, "Thread-READ: ....reading batch %i (%i reads), done !!!!\n", num_batchs, num_reads);
+		LOG_DEBUG(log_message);
 
 		num_batchs++;
 
@@ -220,20 +206,12 @@ void* fastq_batch_reader_thread_function(void* param_p) {
 
 	} // end of batch loop
 
-	//printf("Number of read batchs: %i\n", num_batchs);
-
 	fastq_batch_reader_set_eof(fastq_batch_reader_p, 1);
 	fastq_batch_reader_set_alive(fastq_batch_reader_p, 0);
 	fastq_batch_list_decr_producers(fastq_batch_reader_p->batch_list_p);
 
-	//  if (time_on) { stop_timer(t1_read, t2_read, read_time); }
-	printf("Thread-READ: END (%i reads)\n", total_reads);
-
-	// debugging the list
-	//
-	//printf("batch_list_length: %i\n", fastq_batch_list_length(&(fastq_batch_reader_p->batch_list)));
-	//printf("items:\n");
-	//fastq_batch_list_print(fastq_batch_reader_p->batch_list_p);
+	sprintf(log_message, "Thread-READ: END (%i reads)\n", total_reads);
+	LOG_DEBUG(log_message);
 
 	pthread_exit((void*)total_reads);
 }

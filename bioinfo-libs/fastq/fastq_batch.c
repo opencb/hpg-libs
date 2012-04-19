@@ -10,6 +10,10 @@
 #define MIN_READ_SIZE	(2*35) 		// 70 = 2 * 35
 					// size is splitted in sequence and quality, so divided 2
 					// minimum expected sequence length is 35
+					
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
 fastq_batch_t* fastq_batch_new() {
     fastq_batch_t* batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));

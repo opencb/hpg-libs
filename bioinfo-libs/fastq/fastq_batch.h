@@ -4,23 +4,31 @@
 
 #include <stdio.h>
 
+/* **************************************
+ *  		Structures		*
+ * *************************************/
+
 /**
 * @brief Fastq batch
 * 
 * Structure containing fastq reads information to perform future processes over the data
 */
 typedef struct fastq_batch {
-    unsigned long num_reads;			/**< Number of reads in the batch */
-    unsigned long data_indices_size;		/**< Data indices size in bytes */
-    unsigned long data_size;			/**< Data size in bytes */
-    int source_id;				/**< Source id (pair1 or pair2) */
-    int* header_indices;			/**< Header indices for header indexation */
-    char* header;				/**< Header with read headers */
-    int* data_indices;				/**< Data indices for quality and sequence indexation */
+    unsigned long num_reads;			/**< Number of reads in the batch. */
+    unsigned long data_indices_size;		/**< Data indices size in bytes. */
+    unsigned long data_size;			/**< Data size in bytes. */
+    int source_id;				/**< Source id (pair1 or pair2). */
+    int* header_indices;			/**< Header indices for header indexation. */
+    char* header;				/**< Header with read headers. */
+    int* data_indices;				/**< Data indices for quality and sequence indexation. */
     //char* data;
-    char *seq;					/**< Pointer to sequences vector */
-    char *quality;				/**< Pointer to qualities vector */
+    char *seq;					/**< Pointer to sequences vector. */
+    char *quality;				/**< Pointer to qualities vector. */
 } fastq_batch_t;
+
+/* **************************************
+ *  		Functions		*
+ * *************************************/
 
 /**
 *  @brief Creates a fastq_batch_t structure

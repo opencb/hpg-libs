@@ -5,53 +5,59 @@
 #include "fastq_batch.h"
 #include "fastq_file.h"
 
-#include "../../commons/commons.h"
-#include "../../commons/file_utils.h"
-#include "../../commons/string_utils.h"
+#include "commons.h"
+#include "file_utils.h"
+#include "string_utils.h"
 
-//====================================================================================
-//  fastq.c
-//  fastq methods
-//====================================================================================
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
-fastq_file_t *fastq_open(char *filename) {
-	return fastq_open(filename, (char*)"r");
+//-----------------------------------------------------
+// fastq_fopen
+//-----------------------------------------------------
+
+fastq_file_t *fastq_fopen(char *filename) {
+	return fastq_fopen_mode(filename, (char*)"r");
 }
 
 
 //-----------------------------------------------------
-// fastq_open
+// fastq_fopen_mode
 //-----------------------------------------------------
-fastq_file_t *fastq_open(char *filename, char *mode) {
 
+fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
 	FILE *fd = fopen(filename, mode);
+	char log_message[50];
+	
 	if (fd == NULL) {
-		printf("Error opening file: %s, mode (%s) !!!!!\n", filename, mode);
+		sprintf(log_message, "Error opening file: %s, mode (%s) !!!!!\n", filename, mode);
+		LOG_ERROR(log_message);
 		return NULL;
 	}
 
-	fastq_file_t *fq_file = (fastq_file_t *) malloc(sizeof(fastq_file_t));
+	fastq_file_t* fq_file = (fastq_file_t*) malloc(sizeof(fastq_file_t));
 
 	fq_file->filename = filename;
 	fq_file->mode = mode;
 	fq_file->fd = fd;
-	//fq_file->num_reads = fastq_countlines(filename, 512)/4;
 
 	return fq_file;
 }
 
 //-----------------------------------------------------
-// fastq_read (1 read)
+// fastq_fread (1 read)
 //-----------------------------------------------------
-int fastq_read(fastq_read_t *read, fastq_file_t *fq_file) {
-	return fastq_read(read, 1, fq_file);
+
+int fastq_fread(fastq_read_t *read, fastq_file_t *fq_file) {
+	return fastq_fread_num_reads(read, 1, fq_file);
 }
 
 //-----------------------------------------------------
-// fastq_read (num_reads)
+// fastq_fread_num_reads (num_reads)
 //-----------------------------------------------------
-int fastq_read(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_file) {
 
+int fastq_fread_num_reads(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_file) {
 	int count = 0;
 	char header1[MAX_READ_ID_LENGTH];
 	char sequence[MAX_READ_SEQUENCE_LENGTH];
@@ -59,8 +65,6 @@ int fastq_read(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_fi
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
 
-// 	buffer_fq_reads = (fastq_read_t*)malloc(sizeof(fastq_read_t) * num_reads);
-// 	buffer_fq_reads = (fastq_read_t*)malloc(sizeof(fastq_read_t) * num_reads);
 	while(count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
 
 		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
@@ -71,9 +75,9 @@ int fastq_read(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_fi
 		sequence_length = strlen(sequence);
 		quality_length = strlen(qualities);
 
-		chomp(header1, header_length-1);
-		chomp(sequence, sequence_length-1);
-		chomp(qualities, quality_length-1);
+		chomp_at(header1, header_length-1);
+		chomp_at(sequence, sequence_length-1);
+		chomp_at(qualities, quality_length-1);
 
 		buffer_fq_reads[count].id = (char*)malloc(sizeof(char) * header_length);
 		buffer_fq_reads[count].sequence = (char*)malloc(sizeof(char) * sequence_length);
@@ -82,7 +86,6 @@ int fastq_read(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_fi
 		strcpy(buffer_fq_reads[count].id, header1);
 		strcpy(buffer_fq_reads[count].sequence, sequence);
 		strcpy(buffer_fq_reads[count].quality, qualities);
-// 		strcpy(buffer_fq_reads[count].size, header_length+sequence_length+quality_length);
 
 		count++;
 	}
@@ -91,10 +94,10 @@ int fastq_read(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_fi
 }
 
 //-----------------------------------------------------
-// fastq_read_max_size (max_size)
+// fastq_fread_max_size (max_size)
 //-----------------------------------------------------
-int fastq_read_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, fastq_file_t *fq_file) {
 
+int fastq_fread_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, fastq_file_t *fq_file) {
 	int count = 0;
 	unsigned long accumulated_size = 0;
 	char header1[MAX_READ_ID_LENGTH];
@@ -103,8 +106,6 @@ int fastq_read_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, f
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
 
-// 	buffer_fq_reads = (fastq_read_t*)malloc(sizeof(fastq_read_t) * num_reads);
-// 	buffer_fq_reads = (fastq_read_t*)malloc(sizeof(fastq_read_t) * num_reads);
 	while(accumulated_size <= max_size && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
 
 		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
@@ -115,9 +116,9 @@ int fastq_read_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, f
 		sequence_length = strlen(sequence);
 		quality_length = strlen(qualities);
 
-		chomp(header1, header_length-1);
-		chomp(sequence, sequence_length-1);
-		chomp(qualities, quality_length-1);
+		chomp_at(header1, header_length-1);
+		chomp_at(sequence, sequence_length-1);
+		chomp_at(qualities, quality_length-1);
 
 		buffer_fq_reads[count].id = (char*)malloc(sizeof(char) * header_length);
 		buffer_fq_reads[count].sequence = (char*)malloc(sizeof(char) * sequence_length);
@@ -126,7 +127,6 @@ int fastq_read_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, f
 		strcpy(buffer_fq_reads[count].id, header1);
 		strcpy(buffer_fq_reads[count].sequence, sequence);
 		strcpy(buffer_fq_reads[count].quality, qualities);
- 		//strcpy(buffer_fq_reads[count].size, header_length + sequence_length + quality_length);
 		accumulated_size += header_length + sequence_length + quality_length;
 
 		count++;
@@ -135,8 +135,7 @@ int fastq_read_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, f
 	return count;
 }
 
-int fastq_read_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, fastq_file_t *fq_file) {
-
+int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, fastq_file_t *fq_file) {
 	unsigned long accumulated_size = 0;
 
 	char header1[MAX_READ_ID_LENGTH];
@@ -149,10 +148,7 @@ int fastq_read_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long
 	buffer_fq_read_batch->header_indices[count] = 0;
 	buffer_fq_read_batch->data_indices[count] = 0;
 
-	//CUDA_LOG_INFO("fastq_read_batch_max_size: before while");
-	//(count*sizeof(int) <= buffer_fq_read_batch->data_indices_size-1024) &&
 	while(accumulated_size <= (max_size-1024) && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-
 		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
 		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
@@ -163,28 +159,22 @@ int fastq_read_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long
 
 		if(sequence_length == quality_length) {
 			// remove '\n' character, now length includes '\0' character
-			remove_trailing_newline(header1, header_length-1);
-			remove_trailing_newline(sequence, sequence_length-1);
-			remove_trailing_newline(qualities, quality_length-1);
+			chomp(header1);
+			chomp(sequence);
+			chomp(qualities);
 
 			count++;
 
 			strcpy(&(buffer_fq_read_batch->header[buffer_fq_read_batch->header_indices[count-1]]), header1);
-
- 			strcpy(&(buffer_fq_read_batch->data[buffer_fq_read_batch->data_indices[count-1]]), sequence);
-			strcpy(&(buffer_fq_read_batch->data[buffer_fq_read_batch->data_indices[count-1] + sequence_length]), qualities);
+			strcpy(&(buffer_fq_read_batch->seq[buffer_fq_read_batch->data_indices[count-1]]), sequence);
+			strcpy(&(buffer_fq_read_batch->quality[buffer_fq_read_batch->data_indices[count-1]]), qualities);
 
 			if (count*sizeof(int) >= buffer_fq_read_batch->data_indices_size) {
 
-			  // maybe we MUST USE the realloc function
-			  //
+			  // maybe realloc function can be used here
 			  int size = (count + 100) * sizeof(int);
-			  //printf("****************************************************************************************** %s\n", header1);
-			  //printf("Too many reads (%i) for data indices, allocated memory = %i, necessary memory = %i, resizing to %i bytes\n", count, buffer_fq_read_batch->data_indices_size, count*sizeof(int), size);
-			  //printf("****************************************************************************************** %s\n", header1);
-
-			  // that's for data indices...
-			  //
+	
+			  // copying data indices
 			  int* p = (int*) malloc(size);
 			  memset((void *) p, 0, size);
 			  memcpy((void*) p, (void*) buffer_fq_read_batch->data_indices, count * sizeof(int));
@@ -193,8 +183,7 @@ int fastq_read_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long
 
 			  buffer_fq_read_batch->data_indices = p;
 
-			  // and now for header indices...
-			  //
+			  // copying header indices
 			  p = (int*) malloc(size);
 			  memset((void *) p, 0, size);
 			  memcpy((void*) p, (void*) buffer_fq_read_batch->header_indices, count * sizeof(int));
@@ -202,47 +191,29 @@ int fastq_read_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long
 			  free(buffer_fq_read_batch->header_indices);
 
 			  buffer_fq_read_batch->header_indices = p;
-
-  			  buffer_fq_read_batch->data_indices_size = size;
-
-			  //buffer_fq_read_batch->data_indices_size = size;
-
-			  //fprintf(reader_fd, "%s\n", header1);
-			  //fprintf(reader_fd, "%s\n", sequence);
-			  //fprintf(reader_fd, "+\n");
-			  //fprintf(reader_fd, "%s\n", qualities);
-
+			  buffer_fq_read_batch->data_indices_size = size;
 			}
-			buffer_fq_read_batch->data_indices[count] = buffer_fq_read_batch->data_indices[count-1] + sequence_length + quality_length;
+
+			buffer_fq_read_batch->data_indices[count] = buffer_fq_read_batch->data_indices[count-1] + sequence_length;
 			buffer_fq_read_batch->header_indices[count] = buffer_fq_read_batch->header_indices[count-1] + header_length;
 
-			//printf("data_indices_size = %i: data_indices[%i] = %i\n", buffer_fq_read_batch->data_indices_size, count, buffer_fq_read_batch->data_indices[count]);
-
-			// header_length
 			accumulated_size += sequence_length + quality_length;
-
-			  //printf("buffer_fq_read_batch->data_indices[%i]: %i\n", count-1, buffer_fq_read_batch->data_indices[count-1]);
-			  //printf("buffer_fq_read_batch->data: %s\n", buffer_fq_read_batch->data);
-
-
 		}else {
-			CUDA_LOG_DEBUG("Read  has different length in sequence and quality");
+			LOG_DEBUG("Read has different length in sequence and quality");
 		}
 
 	}
 
 	buffer_fq_read_batch->num_reads = count;
-	//printf("accumulated_size: %d\n", accumulated_size);
-
-	//fastq_batch_print(buffer_fq_read_batch, before_reader_fd);
 
 	return buffer_fq_read_batch->num_reads;
 }
 
 //-----------------------------------------------------
-// fastq_read (reads indicated in index_positions)
+// fastq_fread_index_positions (reads indicated in index_positions)
 //-----------------------------------------------------
-int fastq_read(fastq_read_t* buffer_reads, int *index_positions, fastq_file_t *fq_file) {
+
+int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions, fastq_file_t *fq_file) {
 	const int max_length = 512;
 
 	int count = 0;
@@ -259,10 +230,6 @@ int fastq_read(fastq_read_t* buffer_reads, int *index_positions, fastq_file_t *f
 		fgets(quality, max_length, fq_file->fd);
 
 		if (count == index_positions[index]) {
-// 			buffer_reads[index].id = (char*)malloc(sizeof(char[strlen(trim(header))]));
-// 			buffer_reads[index].sequence = (char*)malloc(sizeof(char[strlen(trim(sequence))]));
-// 			buffer_reads[index].quality = (char*)malloc(sizeof(char[strlen(trim(quality))]));
-
 			strcpy(buffer_reads[index].id, trim(header));
 			strcpy(buffer_reads[index].sequence, trim(sequence));
 			strcpy(buffer_reads[index].quality, trim(quality));
@@ -277,14 +244,13 @@ int fastq_read(fastq_read_t* buffer_reads, int *index_positions, fastq_file_t *f
 }
 
 //-----------------------------------------------------
-// fastq_write
+// fastq_fwrite
 //-----------------------------------------------------
-int fastq_write(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file) {
 
+int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file) {
 	int count = 0;
 
 	while (count<num_writes) {
-
 		fprintf(fq_file->fd, "%s\n", buffer_reads->id);
 		fprintf(fq_file->fd, "%s\n", buffer_reads->sequence);
 		fprintf(fq_file->fd, "+\n");
@@ -298,38 +264,18 @@ int fastq_write(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_fil
 }
 
 //-----------------------------------------------------
-// fastq_count
+// fastq_fcount
 //-----------------------------------------------------
-unsigned int fastq_count(fastq_file_t *fq_file) {
-// 	if (fq_file->num_reads != -1) {
-// 		return fq_file->num_reads;
-// 	}
 
+unsigned int fastq_fcount(fastq_file_t *fq_file) {
 	return fq_file->num_reads;
 }
 
 //-----------------------------------------------------
-// fastq_set_source_id
-//-----------------------------------------------------
-
-//void fastq_set_source_id(int source_id, fastq_file_t *fq_file) {
-//    fq_file->source_id = source_id;
-//}
-
-//-----------------------------------------------------
-// fastq_get_source_id
-//-----------------------------------------------------
-
-//int fastq_get_source_id(fastq_file_t *fq_file) {
-//    return fq_file->source_id;
-//}
-
-
-//-----------------------------------------------------
 // fastq_remove_Ns
 //-----------------------------------------------------
-void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read) {
 
+void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read) {
 	int count = 0;
 	int index = 0;
 
@@ -343,17 +289,15 @@ void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_p
 	}
 
 	while (index <= count) {
-// 		buffer_reads[index].id = NULL;
-// 		buffer_reads[index].sequence = NULL;
-// 		buffer_reads[index].quality = NULL;
 		index++;
 	}
 }
 
 //-----------------------------------------------------
-// fastq_close
+// fastq_fclose
 //-----------------------------------------------------
-void fastq_close(fastq_file_t *fq_file) {
-	fclose(fq_file->fd);
-}
 
+void fastq_fclose(fastq_file_t* fq_file) {
+	fclose(fq_file->fd);
+	free(fq_file);
+}

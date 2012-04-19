@@ -12,17 +12,16 @@
 #include "list.h"
 #include "fastq_batch_reader_omp.h"
 #include "fastq_file.h"
-//=====================================================
-// functions to manage fastq read batch server
-//
-//=====================================================
+
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
 //----------------------------------------------
 // fastq batch reader new
 //--------------------------------------------
 
 fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, list_t* list_p, size_t batch_size, int batch_list_max_length) {
-
   fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) malloc(sizeof(fastq_batch_reader_t));
 
   // open the input file

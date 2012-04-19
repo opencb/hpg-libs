@@ -5,6 +5,9 @@
 
 #include "fastq_batch_list.h"
 
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
 //=====================================================
 // functions to manage fastq batch list item
@@ -55,7 +58,6 @@ void fastq_batch_list_init(fastq_batch_list_t* list_p, int producers) {
 //-----------------------------------------------------
 
 void fastq_batch_list_insert(fastq_batch_list_item_t* item_p, fastq_batch_list_t* list_p) {
-
   if (list_p==NULL) return;
 
   pthread_mutex_lock(&list_p->lock);
@@ -87,7 +89,6 @@ void fastq_batch_list_insert(fastq_batch_list_item_t* item_p, fastq_batch_list_t
 //-----------------------------------------------------
 
 fastq_batch_list_item_t* fastq_batch_list_remove(fastq_batch_list_t* list_p) {
-
   if (list_p==NULL) return NULL;
 
   pthread_mutex_lock(&list_p->lock);
@@ -111,7 +112,6 @@ fastq_batch_list_item_t* fastq_batch_list_remove(fastq_batch_list_t* list_p) {
 //-----------------------------------------------------
 
 int fastq_batch_list_length(fastq_batch_list_t* list_p) {
-
   int length = 0;
 
   if (list_p==NULL) return length;
@@ -130,7 +130,6 @@ int fastq_batch_list_length(fastq_batch_list_t* list_p) {
 //-----------------------------------------------------
 
 int fastq_batch_list_length_by_source_id(fastq_batch_list_t* list_p, int source_id) {
-
   int length = 0;
 
   if (list_p==NULL) return length;
@@ -150,7 +149,6 @@ int fastq_batch_list_length_by_source_id(fastq_batch_list_t* list_p, int source_
 //-----------------------------------------------------
 
 int fastq_batch_list_get_producers(fastq_batch_list_t* list_p) {
-
   int producers = 0;
 
   if (list_p==NULL) return producers;
@@ -170,7 +168,6 @@ int fastq_batch_list_get_producers(fastq_batch_list_t* list_p) {
 //-----------------------------------------------------
 
 int fastq_batch_list_incr_producers(fastq_batch_list_t* fastq_batch_list_p) {
-
   if (fastq_batch_list_p==NULL) return 0;
 
   pthread_mutex_lock(&fastq_batch_list_p->lock);
@@ -188,7 +185,6 @@ int fastq_batch_list_incr_producers(fastq_batch_list_t* fastq_batch_list_p) {
 //-----------------------------------------------------
 
 int fastq_batch_list_decr_producers(fastq_batch_list_t* fastq_batch_list_p) {
-
   if (fastq_batch_list_p==NULL) return 0;
 
   pthread_mutex_lock(&fastq_batch_list_p->lock);

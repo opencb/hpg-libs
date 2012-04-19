@@ -9,10 +9,9 @@
 #include "file_utils.h"
 #include "string_utils.h"
 
-//====================================================================================
-//  fastq.c
-//  fastq methods
-//====================================================================================
+/* ******************************************************
+ *  		Function implementations		*
+ * ******************************************************/
 
 //-----------------------------------------------------
 // fastq_fopen
@@ -28,7 +27,6 @@ fastq_file_t *fastq_fopen(char *filename) {
 //-----------------------------------------------------
 
 fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
-
 	FILE *fd = fopen(filename, mode);
 	char log_message[50];
 	
@@ -60,7 +58,6 @@ int fastq_fread(fastq_read_t *read, fastq_file_t *fq_file) {
 //-----------------------------------------------------
 
 int fastq_fread_num_reads(fastq_read_t *buffer_fq_reads, int num_reads, fastq_file_t *fq_file) {
-
 	int count = 0;
 	char header1[MAX_READ_ID_LENGTH];
 	char sequence[MAX_READ_SEQUENCE_LENGTH];
@@ -101,7 +98,6 @@ int fastq_fread_num_reads(fastq_read_t *buffer_fq_reads, int num_reads, fastq_fi
 //-----------------------------------------------------
 
 int fastq_fread_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, fastq_file_t *fq_file) {
-
 	int count = 0;
 	unsigned long accumulated_size = 0;
 	char header1[MAX_READ_ID_LENGTH];
@@ -140,7 +136,6 @@ int fastq_fread_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, 
 }
 
 int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, fastq_file_t *fq_file) {
-
 	unsigned long accumulated_size = 0;
 
 	char header1[MAX_READ_ID_LENGTH];
@@ -253,7 +248,6 @@ int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions
 //-----------------------------------------------------
 
 int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file) {
-
 	int count = 0;
 
 	while (count<num_writes) {
