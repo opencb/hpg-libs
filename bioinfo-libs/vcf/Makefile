@@ -11,14 +11,14 @@ REGION_DIR = $(BIOFORMATS_DIR)/features/region
 INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
 LIBS = -lcprops -fopenmp
 
-MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c
+MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
 
 VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
 VCF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
-VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS) vcf_filters.c 
+VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
 
 
 all: list.o string_utils.o region.o region_table.o region_table_utils.o gff-reader ragel main_batch main_filter
