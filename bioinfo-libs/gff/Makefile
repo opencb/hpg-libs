@@ -16,7 +16,10 @@ REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(REGION_DIR)/region.o
 GFF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS)
 
 
-all: log.o file_utils.o list.o string_utils.o region.o region_table.o ragel main_batch
+all: log.o file_utils.o list.o string_utils.o region.o region_table.o ragel compile main_batch
+
+compile:
+	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 ragel:
 	ragel -o gff_reader.c -C -G2 gff.ragel

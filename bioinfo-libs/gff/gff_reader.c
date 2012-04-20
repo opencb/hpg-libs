@@ -8,7 +8,7 @@ static gff_record_t *current_record;
 static gff_header_entry_t *current_header_entry;
 static gff_batch_t *current_batch;
 
-enum GFF_Field current_field = SEQUENCE;
+static enum GFF_Field current_field = SEQUENCE;
 
 
 #line 15 "gff_reader.c"
