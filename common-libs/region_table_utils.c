@@ -1,0 +1,116 @@
+#include "region_table_utils.h"
+
+
+region_table_t *parse_regions(char *input_regions) {
+    region_table_t *regions_table = create_table(NULL);
+
+    char *str_1 = input_regions;
+    char *str_2 = (char*) malloc (64 * sizeof(char));
+    char *saveptr1, *saveptr2;
+    char *token, *subtoken;
+    size_t token_len, subtoken_len;
+
+    int i = 0;
+    while ((token = strtok_r(str_1, ",", &saveptr1)) != NULL) {
+        region_t *region = (region_t*) malloc (sizeof(region_t));
+        token_len = strlen(token);
+        
+//         dprintf("token = %s, len = %zu\n", token, token_len);
+        
+        strncpy(str_2, token, 63);
+        str_2[token_len] = '\0';
+        
+        // Set chromosome
+        subtoken = strtok_r(str_2, ":", &saveptr2);
+        subtoken_len = strlen(subtoken);
+        region->chromosome = (char*) malloc ((subtoken_len+1) * sizeof(char));
+        strncpy(region->chromosome, subtoken, subtoken_len);
+        region->chromosome[subtoken_len] = '\0';
+        
+//         dprintf("region %s", region->chromosome);
+        
+        // Set start position
+        subtoken = strtok_r(NULL, "-", &saveptr2);
+        region->start_position = (subtoken != NULL) ? atol(subtoken) : 1;
+        
+//         dprintf(":%u", region->start_position);
+        
+        // Set end position
+        subtoken = strtok_r(NULL, "-", &saveptr2);
+        region->end_position = (subtoken != NULL) ? atol(subtoken) : UINT_MAX;
+        
+//         dprintf("-%u\n", region->end_position);
+        
+        insert_region(region, regions_table);
+        
+        str_1 = NULL;
+        
+        i++;
+    }
+
+    free(str_1); 
+    free(str_2);
+
+    return regions_table;
+}
+
+region_table_t *parse_regions_from_gff_file(char *filename) {
+    gff_file_t *file = gff_open(filename);
+    if (file == NULL) {
+        return NULL;
+    } 
+    
+    region_table_t *regions_table = create_table(NULL);
+    
+    int ret_code = 0;
+    size_t max_batches = 20;
+    size_t batch_size = 2000;
+    list_t *read_list = (list_t*) malloc (sizeof(list_t));
+    list_init("batches", 1, max_batches, read_list);
+    
+    #pragma omp parallel sections
+    {
+        // The producer reads the GFF file
+        #pragma omp section
+        {
+//             dprintf("Thread %d reads the GFF file\n", omp_get_thread_num());
+            ret_code = gff_read_batches(read_list, batch_size, file);
+            list_decr_writers(read_list);
+            
+            if (ret_code) {
+                fprintf(stderr, "Error while reading GFF file %s (%d)\n", filename, ret_code);
+            }
+        }
+        
+        // The consumer inserts regions in the structure 
+        #pragma omp section
+        {    
+            list_item_t *item = NULL, *batch_item = NULL;
+            gff_batch_t *batch;
+            gff_record_t *record;
+            while ( (item = list_remove_item(read_list)) != NULL ) {
+                batch = item->data_p;
+                // For each record in the batch, generate a new region
+                for (batch_item = batch->first_p; batch_item != NULL; batch_item = batch_item->next_p) {
+                    record = batch_item->data_p;
+                    
+                    region_t *region = (region_t*) malloc (sizeof(region_t));
+                    region->chromosome = (char*) malloc ((strlen(record->sequence)+1) * sizeof(char));
+                    strncat(region->chromosome, record->sequence, strlen(record->sequence));
+                    region->start_position = record->start;
+                    region->end_position = record->end;
+//                     dprintf("region %s:%u-%u", region->chromosome, region->start_position, region->end_position);
+                    
+                    insert_region(region, regions_table);
+                }
+               
+                gff_batch_free(item->data_p);
+                list_item_free(item);
+            }
+        }
+    }
+    
+    gff_close(file, 0);
+    
+    return regions_table;
+}
