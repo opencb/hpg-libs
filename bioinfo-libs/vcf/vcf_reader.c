@@ -11,7 +11,7 @@ static vcf_record_t *current_record;
 static vcf_header_entry_t *current_header_entry;
 static vcf_batch_t *current_batch;
 
-enum Field current_field = CHROM;
+static enum VCF_Field current_field = CHROM;
 
 
 #line 18 "vcf_reader.c"
@@ -29,7 +29,7 @@ static const int vcf_en_main = 1;
 #line 241 "vcf.ragel"
 
 
-char* get_token(char *ts, char *te)
+static char* get_token(char *ts, char *te)
 {
 	char *field = (char*) malloc ((te-ts+1) * sizeof(char));
 	strncpy(field, ts, (te-ts));
@@ -37,7 +37,7 @@ char* get_token(char *ts, char *te)
 	return field;
 }
 
-void set_field(char* ts, char *te)
+static void set_field(char* ts, char *te)
 {
 	char *field = get_token(ts, te);
 	float quality = -1.0f;
@@ -1159,20 +1159,20 @@ tr101:
 	{te = p+1;{
 			add_header_entry(current_header_entry, file);
 			current_header_entry = create_header_entry();
-			dprintf("\n");
+			LOG_DEBUG("\n");
 			{cs = stack[--top];goto _again;}
 		}}
 	goto st93;
 tr104:
 #line 100 "vcf.ragel"
 	{te = p+1;{
-			dprintf(" , ");
+			LOG_DEBUG(" , ");
 		}}
 	goto st93;
 tr107:
 #line 96 "vcf.ragel"
 	{te = p+1;{
-			dprintf(" } ");
+			LOG_DEBUG(" } ");
 		}}
 	goto st93;
 tr108:
@@ -1211,7 +1211,7 @@ tr111:
 tr112:
 #line 92 "vcf.ragel"
 	{te = p+1;{
-			dprintf(" =< ");
+			LOG_DEBUG(" =< ");
 		}}
 	goto st93;
 st93:
@@ -1375,7 +1375,7 @@ tr113:
 tr114:
 #line 132 "vcf.ragel"
 	{te = p+1;{
-			dprintf("\n");
+			LOG_DEBUG("\n");
 			{cs = stack[--top];goto _again;} 
 		}}
 	goto st100;
@@ -1424,7 +1424,7 @@ tr118:
 			{
 				list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
 				list_insert_item(item, batches_list);
-				dprintf("Batch added - %zu records\n", current_batch->length);
+				LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
 				current_batch = vcf_batch_new(batch_size);
 			}
 			// Add record to current_batch
@@ -1433,7 +1433,7 @@ tr118:
 			current_field = CHROM;
 			records++;
 			samples = 0;
-			dprintf("\n");
+			LOG_DEBUG("\n");
 		}}
 	goto st102;
 tr125:
@@ -2148,7 +2148,7 @@ case 117:
 	{
 		list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
 		list_insert_item(item, batches_list);
-		dprintf("Batch added - %zu records (last)\n", current_batch->length);
+		LOG_DEBUG_F("Batch added - %zu records (last)\n", current_batch->length);
 	}
 	
 	if ( cs < 
@@ -2157,7 +2157,7 @@ case 117:
 #line 334 "vcf.ragel"
  ) 
 	{
-		printf("Last state is %d, but %d was expected\n", 
+		LOG_INFO_F("Last state is %d, but %d was expected\n", 
 		       cs, 
 #line 2163 "vcf_reader.c"
 80
@@ -2165,8 +2165,8 @@ case 117:
 );
 	} 
 	
-	printf("Records read = %zu\n", records);
-	printf("Samples per record = %zu\n", file->num_samples);
+	LOG_INFO_F("Records read = %zu\n", records);
+	LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
 	
 	// Free current_xxx pointers if not needed in another module
 	vcf_header_entry_free(current_header_entry);

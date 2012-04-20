@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include <log.h>
+
 #include "vcf_file_structure.h"
-#include "util.h"
 #include "list.h"
 
 //====================================================================================

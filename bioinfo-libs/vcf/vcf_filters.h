@@ -9,10 +9,11 @@
 
 #include <cprops/heap.h>
 
-#include "vcf_file_structure.h"
-#include "util.h"
+#include <list.h>
+#include <log.h>
+#include <region_table_utils.h>
 
-#include "list.h"
+#include "vcf_file_structure.h"
 
 //====================================================================================
 //  vcf_filter.h

@@ -16,7 +16,7 @@
  * tail -n 389 CEU.exon.2010_03.genotypes__head400.vcf | cut -f 3 | grep "rs" | wc -l
  * tail -n 389 CEU.exon.2010_03.genotypes__head400.vcf | cut -f 3 | grep "\." | wc -l
  */
-#define MAX_RECORDS	389
+#define MAX_RECORDS	    389
 #define SNPS_IN_FILE	266
 
 

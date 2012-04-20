@@ -10,39 +10,6 @@
 // vcf_open
 //-----------------------------------------------------
 
-void *mmap_file(size_t *len, const char *filename)
-{
-	int fd = open(filename, O_RDONLY);
-	if (fd < 0) 
-	{
-		fprintf(stderr, "Error opening file: %s\n", filename);
-		exit(1);
-	}
-	
-	struct stat st[1];
-	if (fstat(fd, st))
-	{
-		fprintf(stderr, "Error while getting file information: %s\n", filename);
-		exit(1);	
-	}
-	*len = (size_t) st->st_size;
-
-	if (!*len) {
-		close(fd);
-		return NULL;
-	}
-
-	void *map = mmap(NULL, *len, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (MAP_FAILED == map)
-	{
-		fprintf(stderr, "mmap failed for %s\n", filename);
-		exit(1);
-	}
-	close(fd);
-	
-	return map;
-}
-
 
 vcf_file_t *vcf_open(char *filename) 
 {
@@ -204,9 +171,9 @@ int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file)
 	int result = list_insert_item(item, vcf_file->header_entries);
 	if (result) {
 		vcf_file->num_header_entries++;
-		dprintf("header entry %zu\n", vcf_file->num_header_entries);
+		LOG_DEBUG_F("header entry %zu\n", vcf_file->num_header_entries);
 	} else {
-		dprintf("header entry %zu not inserted\n", vcf_file->num_header_entries);
+		LOG_DEBUG_F("header entry %zu not inserted\n", vcf_file->num_header_entries);
 	}
 	return result;
 }
@@ -217,9 +184,9 @@ int add_sample_name(char *name, vcf_file_t *vcf_file)
 	int result = list_insert_item(item, vcf_file->samples_names);
 	if (result) {
 		(vcf_file->num_samples)++;
-		dprintf("sample %zu is %s\n", vcf_file->num_samples, name);
+		LOG_DEBUG_F("sample %zu is %s\n", vcf_file->num_samples, name);
 	} else {
-		dprintf("sample %zu not inserted\n", vcf_file->num_samples);
+		LOG_DEBUG_F("sample %zu not inserted\n", vcf_file->num_samples);
 	}
 	return result;
 }
@@ -230,9 +197,9 @@ int add_record(vcf_record_t* record, vcf_file_t *vcf_file)
 	int result = list_insert_item(item, vcf_file->records);
 	if (result) {
 		vcf_file->num_records++;
-		dprintf("record %zu\n", vcf_file->num_records);
+		LOG_DEBUG_F("record %zu\n", vcf_file->num_records);
 	} else {
-		dprintf("record %zu not inserted\n", vcf_file->num_records);
+		LOG_DEBUG_F("record %zu not inserted\n", vcf_file->num_records);
 	}
 	return result;
 }

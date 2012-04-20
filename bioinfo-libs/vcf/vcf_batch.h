@@ -1,13 +1,14 @@
 #ifndef VCF_BATCH_H
 #define VCF_BATCH_H
 
+#include <log.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
 #include "vcf_file_structure.h"
-#include "util.h"
 
 //====================================================================================
 //  vcf_batch.h
@@ -16,15 +17,10 @@
 //====================================================================================
 
 /**
- * Struct which represents a batch of VCF records whose fields have been 
- * already loaded.
+ * List who is equivalent to a batch of VCF records.
  */
 typedef list_t vcf_batch_t;
-// typedef struct vcf_batch {
-//        size_t num_records;	// Number of records read
-//        size_t size;             // Max buffer size (can be greater than num_records)
-//        vcf_record_t **records;	// Records read
-// } vcf_batch_t;
+
 
 vcf_batch_t* vcf_batch_new(size_t size);
 

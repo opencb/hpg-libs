@@ -10,10 +10,13 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <file_utils.h>
+#include <list.h>
+#include <log.h>
+
 #include "vcf_file_structure.h"
 #include "vcf_reader.h"
 #include "vcf_write.h"
-#include "list.h"
 
 #define INIT_RECORD_SIZE	100
 

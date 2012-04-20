@@ -9,7 +9,7 @@ static vcf_record_t *current_record;
 static vcf_header_entry_t *current_header_entry;
 static vcf_batch_t *current_batch;
 
-enum Field current_field = CHROM;
+static enum VCF_Field current_field = CHROM;
 
 %%{
 	machine vcf;
@@ -90,21 +90,21 @@ enum Field current_field = CHROM;
 		};
 		
 		"=<" @ 6	=> {
-			dprintf(" =< ");
+			LOG_DEBUG(" =< ");
 		};
 		
 		">" @ 6 {
-			dprintf(" } ");
+			LOG_DEBUG(" } ");
 		};
 		
 		"," @ 6 	=> {
-			dprintf(" , ");
+			LOG_DEBUG(" , ");
 		};
 		
 		"\n"		=> {
 			add_header_entry(current_header_entry, file);
 			current_header_entry = create_header_entry();
-			dprintf("\n");
+			LOG_DEBUG("\n");
 			fret;
 		};
 		
@@ -130,7 +130,7 @@ enum Field current_field = CHROM;
 		};
 		
 		"\n"		=> {
-			dprintf("\n");
+			LOG_DEBUG("\n");
 			fret; 
 		};
 		
@@ -215,7 +215,7 @@ enum Field current_field = CHROM;
 			{
 				list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
 				list_insert_item(item, batches_list);
-				dprintf("Batch added - %zu records\n", current_batch->length);
+				LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
 				current_batch = vcf_batch_new(batch_size);
 			}
 			// Add record to current_batch
@@ -224,7 +224,7 @@ enum Field current_field = CHROM;
 			current_field = CHROM;
 			records++;
 			samples = 0;
-			dprintf("\n");
+			LOG_DEBUG("\n");
 		};
 		
 		space;
@@ -240,7 +240,7 @@ enum Field current_field = CHROM;
 
 }%%
 
-char* get_token(char *ts, char *te)
+static char* get_token(char *ts, char *te)
 {
 	char *field = (char*) malloc ((te-ts+1) * sizeof(char));
 	strncpy(field, ts, (te-ts));
@@ -248,7 +248,7 @@ char* get_token(char *ts, char *te)
 	return field;
 }
 
-void set_field(char* ts, char *te)
+static void set_field(char* ts, char *te)
 {
 	char *field = get_token(ts, te);
 	float quality = -1.0f;
@@ -328,17 +328,17 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 	{
 		list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
 		list_insert_item(item, batches_list);
-		dprintf("Batch added - %zu records (last)\n", current_batch->length);
+		LOG_DEBUG_F("Batch added - %zu records (last)\n", current_batch->length);
 	}
 	
 	if ( cs < %%{ write first_final; }%% ) 
 	{
-		printf("Last state is %d, but %d was expected\n", 
+		LOG_INFO_F("Last state is %d, but %d was expected\n", 
 		       cs, %%{ write first_final; }%%);
 	} 
 	
-	printf("Records read = %zu\n", records);
-	printf("Samples per record = %zu\n", file->num_samples);
+	LOG_INFO_F("Records read = %zu\n", records);
+	LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
 	
 	// Free current_xxx pointers if not needed in another module
 	vcf_header_entry_free(current_header_entry);

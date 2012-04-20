@@ -5,21 +5,23 @@ CFLAGS_DEBUG = -std=c99 -g
 LIBS_ROOT = ../..
 CONTAINERS_DIR = $(LIBS_ROOT)/containers
 COMMONS_DIR = $(LIBS_ROOT)/commons
-REGION_DIR = $(LIBS_ROOT)/bioformats/features/region
+BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
+REGION_DIR = $(BIOFORMATS_DIR)/features/region
 
-INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR)
+INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
 LIBS = -lcprops -fopenmp
 
-MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c $(CONTAINERS_DIR)/list.o
-VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS)
-VCF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS)
+MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c
+MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/log.o
+REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
+GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
 
-REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(REGION_DIR)/region.o $(COMMONS_DIR)/string_utils.o
-VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) vcf_filters.c util.c $(REGION_TABLE_OBJECTS)
+VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
+VCF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
+VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS) vcf_filters.c 
 
 
-
-all: list.o string_utils.o region.o region_table.o ragel main_batch main_filter
+all: list.o string_utils.o region.o region_table.o region_table_utils.o gff-reader ragel main_batch main_filter
 
 ragel:
 	ragel -o vcf_reader.c -C -G2 vcf.ragel
@@ -30,7 +32,7 @@ ragel_graphviz:
 main_batch: $(VCF_BATCH_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
-main_filter: $(VCF_FILTER_OBJECTS)
+main_filter: $(VCF_FILTER_OBJECTS) list.o string_utils.o region.o region_table.o region_table_utils.o gff-reader
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 # 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 
@@ -49,9 +51,14 @@ region.o:
 region_table.o:
 	cd $(CONTAINERS_DIR) && make region_table.o
 
+region_table_utils.o:
+	cd $(CONTAINERS_DIR) && make region_table_utils.o
+
 string_utils.o:
 	cd $(COMMONS_DIR) && make string_utils.o
 
+gff-reader:
+	cd $(BIOFORMATS_DIR)/gff && make compile
 
 clean:
 	rm main_batch
