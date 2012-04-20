@@ -15,7 +15,7 @@ region_table_t *parse_regions(char *input_regions) {
         region_t *region = (region_t*) malloc (sizeof(region_t));
         token_len = strlen(token);
         
-//         dprintf("token = %s, len = %zu\n", token, token_len);
+        LOG_DEBUG_F("token = %s, len = %zu\n", token, token_len);
         
         strncpy(str_2, token, 63);
         str_2[token_len] = '\0';
@@ -27,19 +27,19 @@ region_table_t *parse_regions(char *input_regions) {
         strncpy(region->chromosome, subtoken, subtoken_len);
         region->chromosome[subtoken_len] = '\0';
         
-//         dprintf("region %s", region->chromosome);
+        LOG_DEBUG_F("region %s", region->chromosome);
         
         // Set start position
         subtoken = strtok_r(NULL, "-", &saveptr2);
         region->start_position = (subtoken != NULL) ? atol(subtoken) : 1;
         
-//         dprintf(":%u", region->start_position);
+        LOG_DEBUG_F(":%u", region->start_position);
         
         // Set end position
         subtoken = strtok_r(NULL, "-", &saveptr2);
         region->end_position = (subtoken != NULL) ? atol(subtoken) : UINT_MAX;
         
-//         dprintf("-%u\n", region->end_position);
+        LOG_DEBUG_F("-%u\n", region->end_position);
         
         insert_region(region, regions_table);
         
@@ -73,12 +73,12 @@ region_table_t *parse_regions_from_gff_file(char *filename) {
         // The producer reads the GFF file
         #pragma omp section
         {
-//             dprintf("Thread %d reads the GFF file\n", omp_get_thread_num());
+            LOG_DEBUG_F("Thread %d reads the GFF file\n", omp_get_thread_num());
             ret_code = gff_read_batches(read_list, batch_size, file);
             list_decr_writers(read_list);
             
             if (ret_code) {
-                fprintf(stderr, "Error while reading GFF file %s (%d)\n", filename, ret_code);
+                LOG_FATAL_F("Error while reading GFF file %s (%d)\n", filename, ret_code);
             }
         }
         
@@ -95,11 +95,11 @@ region_table_t *parse_regions_from_gff_file(char *filename) {
                     record = batch_item->data_p;
                     
                     region_t *region = (region_t*) malloc (sizeof(region_t));
-                    region->chromosome = (char*) malloc ((strlen(record->sequence)+1) * sizeof(char));
+                    region->chromosome = (char*) calloc ((strlen(record->sequence)+1), sizeof(char));
                     strncat(region->chromosome, record->sequence, strlen(record->sequence));
                     region->start_position = record->start;
                     region->end_position = record->end;
-//                     dprintf("region %s:%u-%u", region->chromosome, region->start_position, region->end_position);
+                    LOG_DEBUG_F("region '%s:%u-%u'", region->chromosome, region->start_position, region->end_position);
                     
                     insert_region(region, regions_table);
                 }

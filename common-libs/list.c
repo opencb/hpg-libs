@@ -143,11 +143,11 @@ int list_insert_item(list_item_t* item_p, list_t* list_p) {
   list_p->inserting++;
 
   while (list_p->length >= list_p->max_length) {
-    //printf("-->Insert cond wait\n");
+    LOG_DEBUG("-->Insert cond wait\n");
     pthread_cond_wait(&list_p->condition, &list_p->lock);
   }
 
-  //printf("--> inserting %s: length = %i, max_length = %i\n", list_p->name, list_p->length, list_p->max_length);
+  LOG_DEBUG_F("--> inserting %s: length = %i, max_length = %i\n", list_p->name, list_p->length, list_p->max_length);
 
   if (list_p->first_p==NULL) {
     item_p->prev_p = NULL;
@@ -161,7 +161,7 @@ int list_insert_item(list_item_t* item_p, list_t* list_p) {
     list_p->last_p = item_p;
   }
   list_p->length++;
-  //printf("<-- inserting %s: length = %i, max_length = %i\n", list_p->name, list_p->length, list_p->max_length);
+  LOG_DEBUG_F("<-- inserting %s: length = %i, max_length = %i\n", list_p->name, list_p->length, list_p->max_length);
 
   list_p->inserting--;
 

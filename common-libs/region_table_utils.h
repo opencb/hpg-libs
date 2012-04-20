@@ -10,6 +10,8 @@
 
 #include <gff_file.h>
 #include <gff_file_structure.h>
+#include <log.h>
+
 #include <region.h>
 #include <region_table.h>
 

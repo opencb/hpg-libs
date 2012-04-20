@@ -1,10 +1,11 @@
-
 #ifndef LIST_H
 #define LIST_H
 
 #include <stdio.h>
 #include <stdio.h>
 #include <pthread.h>
+
+#include <log.h>
 
 //=====================================================
 // structures
