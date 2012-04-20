@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-
 #include "log.h"
-#include "string_utils.h"
 
 int log_level;
 int verbose;
@@ -73,16 +68,23 @@ void print_log_message_with_format(int level, char *log_level_word, char *filena
         // if 'verbose' logs are printed in stdout
         if(verbose) {
             fprintf(stderr, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
+            if (args == NULL) printf("OMFGexplosion! -- v\n");
             vfprintf(stderr, msg_format, args);
         }
 
         // if 'log_file' has been set up then logs are printed
         // logs are ALWAYS printed in log_file independently of 'verbose'       
         if(log_filename != NULL) {
+            va_list argsf;
+            memcpy(argsf, args, sizeof(args));
+            va_start(argsf, msg_format);
+            
             FILE *log_file = fopen(log_filename, "a");
             fprintf(log_file, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
-            vfprintf(log_file, msg_format, args);
+            vfprintf(log_file, msg_format, argsf);
             fclose(log_file);
+            
+            va_end(argsf);
         }
         
         va_end(args);
