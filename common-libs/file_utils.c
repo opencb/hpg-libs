@@ -1,22 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "file_utils.h"
-#include "string_utils.h"
-
 
 void *mmap_file(size_t *len, const char *filename) {
     int fd = open(filename, O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, "Error opening file: %s\n", filename);
-        exit(1);
+        LOG_FATAL_F("Error opening file: %s\n", filename);
     }
     
     struct stat st[1];
     if (fstat(fd, st)) {
-        fprintf(stderr, "Error while getting file information: %s\n", filename);
-        exit(1);    
+        LOG_FATAL_F("Error while getting file information: %s\n", filename);
     }
     *len = (size_t) st->st_size;
 
@@ -27,8 +19,7 @@ void *mmap_file(size_t *len, const char *filename) {
 
     void *map = mmap(NULL, *len, PROT_READ, MAP_PRIVATE, fd, 0);
     if (MAP_FAILED == map) {
-        fprintf(stderr, "mmap failed for %s\n", filename);
-        exit(1);
+        LOG_FATAL_F("mmap failed for %s\n", filename);
     }
     close(fd);
     
