@@ -8,7 +8,7 @@ static gff_record_t *current_record;
 static gff_header_entry_t *current_header_entry;
 static gff_batch_t *current_batch;
 
-enum Field current_field = SEQUENCE;
+enum GFF_Field current_field = SEQUENCE;
 
 
 #line 15 "gff_reader.c"
@@ -25,7 +25,7 @@ static const int gff_en_main = 1;
 
 
 
-char* get_token(char *ts, char *te)
+static char* get_token(char *ts, char *te)
 {
     char *field = (char*) malloc ((te-ts+1) * sizeof(char));
     strncpy(field, ts, (te-ts));
@@ -33,7 +33,7 @@ char* get_token(char *ts, char *te)
     return field;
 }
 
-void set_field(char* ts, char *te)
+static void set_field(char* ts, char *te)
 {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
@@ -41,21 +41,21 @@ void set_field(char* ts, char *te)
     switch (current_field)
     {
         case SEQUENCE:
-            current_record = create_record();
-            set_record_sequence(field, current_record);
+            current_record = create_gff_record();
+            set_gff_record_sequence(field, current_record);
         break;
         case SOURCE:
-            set_record_source(field, current_record);
+            set_gff_record_source(field, current_record);
         break;
         case FEATURE:
-            set_record_feature(field, current_record);
+            set_gff_record_feature(field, current_record);
         break;
         case START:
-            set_record_start(atol(field), current_record);
+            set_gff_record_start(atol(field), current_record);
             free(field);    // Not set as gff_record_t variable -> not freed later
         break;
         case END:
-            set_record_end(atol(field), current_record);
+            set_gff_record_end(atol(field), current_record);
             free(field);    // Not set as gff_record_t variable -> not freed later
         break;
         case SCORE:
@@ -63,12 +63,12 @@ void set_field(char* ts, char *te)
             {
                 float_val = atof(field);
             }
-            set_record_score(float_val, current_record);
+            set_gff_record_score(float_val, current_record);
             free(field);	// Not set as gff_record_t variable -> not freed later
         break;
         case STRAND:
             if (field != NULL && strlen(field) > 0) {
-                set_record_strand(field[0], current_record);
+                set_gff_record_strand(field[0], current_record);
             }
         break;
         case FRAME:
@@ -76,11 +76,11 @@ void set_field(char* ts, char *te)
             {
                 float_val = atof(field);
             }
-            set_record_frame(float_val, current_record);
+            set_gff_record_frame(float_val, current_record);
             free(field);    // Not set as gff_record_t variable -> not freed later
         break;
         case ATTRIBUTE:
-            set_record_attribute(field, current_record);
+            set_gff_record_attribute(field, current_record);
         break;
     }
 
@@ -97,7 +97,7 @@ int gff_ragel_read(list_t *batches_list, size_t batch_size, gff_file_t *file)
     int stack[4];
     int top, act;
 
-    current_header_entry = create_header_entry();
+    current_header_entry = create_gff_header_entry();
     current_batch = gff_batch_new(batch_size);
 
     
@@ -493,9 +493,9 @@ case 25:
 tr35:
 #line 35 "gff.ragel"
 	{te = p+1;{
-            add_header_entry(current_header_entry, file);
-            current_header_entry = create_header_entry();
-            dprintf("\n");
+            add_gff_header_entry(current_header_entry, file);
+            current_header_entry = create_gff_header_entry();
+            LOG_DEBUG("\n");
             {cs = stack[--top];goto _again;}
         }}
 	goto st32;
@@ -503,7 +503,7 @@ tr36:
 #line 30 "gff.ragel"
 	{te = p;p--;{
             char *text = get_token(ts, te);
-            set_header_entry_text(text, current_header_entry);
+            set_gff_header_entry_text(text, current_header_entry);
         }}
 	goto st32;
 st32:
@@ -565,19 +565,19 @@ tr38:
 #line 107 "gff.ragel"
 	{te = p+1;{
             // If batch is full, add to the list of batches and create a new, empty one
-            if (batch_is_full(current_batch))
+            if (gff_batch_is_full(current_batch))
             {
                 list_item_t *item = list_item_new(records, 1, current_batch); 
                 list_insert_item(item, batches_list);
-                dprintf("Batch added - %zu records\n", current_batch->length);
+                LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
                 current_batch = gff_batch_new(batch_size);
             }
             // Add record to current_batch
-            add_record_to_batch(current_record, current_batch);
+            add_record_to_gff_batch(current_record, current_batch);
             
             current_field = SEQUENCE;
             records++;
-            dprintf("\n");
+            LOG_DEBUG("\n");
         }}
 	goto st34;
 tr39:
@@ -822,11 +822,11 @@ case 39:
  
 
     // Insert the last batch
-    if (!batch_is_empty(current_batch))
+    if (!gff_batch_is_empty(current_batch))
     {
         list_item_t *item = list_item_new(records, 1, current_batch); 
         list_insert_item(item, batches_list);
-        dprintf("Batch added - %zu records (last)\n", current_batch->length);
+        LOG_DEBUG_F("Batch added - %zu records (last)\n", current_batch->length);
     }
 
     if ( cs < 
@@ -835,7 +835,7 @@ case 39:
 #line 225 "gff.ragel"
  ) 
     {
-        printf("Last state is %d, but %d was expected\n", 
+        LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
 #line 841 "gff_reader.c"
 29
@@ -843,7 +843,7 @@ case 39:
 );
     } 
 
-    printf("Records read = %zu\n", records);
+    LOG_INFO_F("Records read = %zu\n", records);
 
     // Free current_xxx pointers if not needed in another module
     gff_header_entry_free(current_header_entry);

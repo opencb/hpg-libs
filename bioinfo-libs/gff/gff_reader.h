@@ -14,7 +14,7 @@
 #include "gff_read.h"
 #include "gff_batch.h"
 
-enum Field { SEQUENCE, SOURCE, FEATURE, START, END, SCORE, STRAND, FRAME, ATTRIBUTE };
+enum GFF_Field { SEQUENCE, SOURCE, FEATURE, START, END, SCORE, STRAND, FRAME, ATTRIBUTE };
 
 int gff_ragel_read(list_t *batches_list, size_t batch_size, gff_file_t *file);
 

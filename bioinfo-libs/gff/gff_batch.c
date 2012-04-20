@@ -19,18 +19,18 @@ void gff_batch_free(gff_batch_t* gff_batch_p)
     free(gff_batch_p);
 }
 
-void add_record_to_batch(gff_record_t *record, gff_batch_t *gff_batch)
+void add_record_to_gff_batch(gff_record_t *record, gff_batch_t *gff_batch)
 {
     list_item_t *item = list_item_new(gff_batch->length, 1, record);
     list_insert_item(item, gff_batch);
 }
 
-inline int batch_is_empty(gff_batch_t *gff_batch)
+inline int gff_batch_is_empty(gff_batch_t *gff_batch)
 {
     return gff_batch->length == 0;
 }
 
-inline int batch_is_full(gff_batch_t *gff_batch)
+inline int gff_batch_is_full(gff_batch_t *gff_batch)
 {
     return gff_batch->length == gff_batch->max_length;
 }

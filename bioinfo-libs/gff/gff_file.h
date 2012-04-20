@@ -13,6 +13,7 @@
 #include <cprops/linked_list.h>
 
 #include <file_utils.h>
+#include <log.h>
 
 #include "gff_file_structure.h"
 #include "gff_reader.h"
@@ -81,10 +82,8 @@ int gff_write(gff_file_t *gff_file, char *filename);
  * Header and record entries management
  */
 
-int add_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file);
+int add_gff_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file);
 
-int add_sample_name(char *name, gff_file_t *gff_file);
-
-int add_record(gff_record_t* record, gff_file_t *gff_file);
+int add_gff_record(gff_record_t* record, gff_file_t *gff_file);
 
 #endif

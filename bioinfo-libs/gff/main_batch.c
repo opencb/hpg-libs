@@ -2,10 +2,14 @@
 #include <stdlib.h>
 #include <omp.h>
 
+#include <log.h>
+
+#include "gff_batch.h"
 #include "gff_file_structure.h"
 #include "gff_file.h"
 #include "gff_read.h"
 #include "gff_reader.h"
+#include "gff_write.h"
 
 #include "list.h"
 
@@ -21,12 +25,14 @@ int main (int argc, char *argv[])
     char *filename = (char*) malloc ((strlen(argv[1])+1) * sizeof(char));
     strncat(filename, argv[1], strlen(argv[1]));
     gff_file_t* file;
-
+    
+    init_log_custom(1, 1, NULL);
+    
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
 {
     #pragma omp section
     {
-        dprintf("Thread %d reads the VCF file\n", omp_get_thread_num());
+        LOG_DEBUG_F("Thread %d reads the GFF file\n", omp_get_thread_num());
         // Reading
         start = omp_get_wtime();
         
@@ -36,9 +42,11 @@ int main (int argc, char *argv[])
         stop = omp_get_wtime();
         total = (stop - start);
         
-        if (ret_code) dprintf("[%dR] Error code = %d\n", omp_get_thread_num(), ret_code);
-        bprintf("[%dR] Time elapsed = %f s\n", omp_get_thread_num(), total);
-        bprintf("[%dR] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+        if (ret_code) {
+            LOG_FATAL_F("[%dR] Error code = %d\n", omp_get_thread_num(), ret_code);
+        }
+        LOG_INFO_F("[%dR] Time elapsed = %f s\n", omp_get_thread_num(), total);
+        LOG_INFO_F("[%dR] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
         
         // Writing to a new file
         if (argc == 3) 
@@ -50,9 +58,11 @@ int main (int argc, char *argv[])
             stop = omp_get_wtime();
             total = (stop - start);
             
-            if (ret_code) dprintf("[%dW] Error code = %d\n", omp_get_thread_num(), ret_code);
-            bprintf("[%dW] Time elapsed = %f s\n", omp_get_thread_num(), total);
-            bprintf("[%dW] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+            if (ret_code) {
+                LOG_ERROR_F("[%dW] Error code = %d\n", omp_get_thread_num(), ret_code);
+            }
+            LOG_INFO_F("[%dW] Time elapsed = %f s\n", omp_get_thread_num(), total);
+            LOG_INFO_F("[%dW] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
         }
         
         list_decr_writers(read_list);
@@ -61,8 +71,10 @@ int main (int argc, char *argv[])
     }
     #pragma omp section
     {
-        dprintf("OMP num threads = %d\n", omp_get_num_threads());
-        dprintf("Thread %d prints info\n", omp_get_thread_num());
+        printf("1st log debug\n");
+        LOG_DEBUG_F("OMP num threads = %d\n", omp_get_num_threads());
+        LOG_DEBUG_F("Thread %d prints info\n", omp_get_thread_num());
+        printf("after 1st log debug\n");
         
         start = omp_get_wtime();
         
@@ -73,12 +85,13 @@ int main (int argc, char *argv[])
             if (i % 200 == 0) 
             {
                 int debug = 1;
-                dprintf("Batch %d reached by thread %d - %zu/%zu records \n", i, omp_get_thread_num(), 
+                LOG_DEBUG_F("Batch %d reached by thread %d - %zu/%zu records \n", i, omp_get_thread_num(), 
                     ((gff_batch_t*) item->data_p)->length, ((gff_batch_t*) item->data_p)->max_length);
             }
             
+//             gff_write_to_file(file, out);
 //             gff_batch_print(stdout, item->data_p);
-            write_batch(item->data_p, out);
+            write_gff_batch(item->data_p, out);
             gff_batch_free(item->data_p);
             list_item_free(item);
             i++;
@@ -88,8 +101,8 @@ int main (int argc, char *argv[])
         stop = omp_get_wtime();
         total = (stop - start);
         
-        bprintf("[%d] Time elapsed = %f s\n", omp_get_thread_num(), total);
-        bprintf("[%d] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+        LOG_INFO_F("[%d] Time elapsed = %f s\n", omp_get_thread_num(), total);
+        LOG_INFO_F("[%d] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
     }
 }
 

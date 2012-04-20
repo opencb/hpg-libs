@@ -17,13 +17,13 @@ int gff_write_to_file(gff_file_t *gff_file, FILE *fd);
 
 /* ************ Header management functions **********************/
 
-void write_header_entry(gff_header_entry_t *entry, FILE *fd);
+void write_gff_header_entry(gff_header_entry_t *entry, FILE *fd);
 
 /* ************ Record management functions **********************/
 
-void write_batch(gff_batch_t *gff_batch, FILE *fd);
+void write_gff_batch(gff_batch_t *gff_batch, FILE *fd);
 
-void write_record(gff_record_t* gff_record, FILE *fd);
+void write_gff_record(gff_record_t* gff_record, FILE *fd);
 
 
 #endif 

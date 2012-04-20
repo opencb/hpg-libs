@@ -10,7 +10,7 @@ int gff_write_to_file(gff_file_t *gff_file, FILE *fd) {
 //     cp_list_iterator_init(headers_iter, gff_file->header_entries, COLLECTION_LOCK_READ);
     gff_header_entry_t *entry = NULL;
     while ((entry = cp_list_iterator_next(headers_iter)) != NULL) {
-        write_header_entry(entry, fd);
+        write_gff_header_entry(entry, fd);
     }
     
     // Write records
@@ -18,13 +18,13 @@ int gff_write_to_file(gff_file_t *gff_file, FILE *fd) {
 //     cp_list_iterator_init(records_iter, gff_file->records, COLLECTION_LOCK_READ);
     gff_record_t *record = NULL;
     while ((record = cp_list_iterator_next(records_iter)) != NULL) {
-        write_record(record, fd);
+        write_gff_record(record, fd);
     }
 
     return 0;
 }
 
-void write_header_entry(gff_header_entry_t *entry, FILE *fd) {
+void write_gff_header_entry(gff_header_entry_t *entry, FILE *fd) {
     if (entry == NULL || fd == NULL) {
         return;
     }
@@ -32,16 +32,16 @@ void write_header_entry(gff_header_entry_t *entry, FILE *fd) {
     fprintf(fd, "##%s\n", entry->text);
 }
 
-void write_batch(gff_batch_t *gff_batch, FILE *fd) {
+void write_gff_batch(gff_batch_t *gff_batch, FILE *fd) {
     if(gff_batch == NULL || fd == NULL) {
         return;
     }
     for (list_item_t *i = gff_batch->first_p; i != NULL; i = i->next_p) {
-        write_record(i->data_p, fd);
+        write_gff_record(i->data_p, fd);
     }
 }
 
-void write_record(gff_record_t* gff_record, FILE *fd) {
+void write_gff_record(gff_record_t* gff_record, FILE *fd) {
     if(gff_record == NULL || fd == NULL) {
         return;
     }

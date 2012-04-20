@@ -31,11 +31,11 @@ gff_batch_t* gff_batch_new(size_t size);
 
 void gff_batch_free(gff_batch_t *gff_batch);
 
-void add_record_to_batch(gff_record_t *record, gff_batch_t *gff_batch);
+void add_record_to_gff_batch(gff_record_t *record, gff_batch_t *gff_batch);
 
-int batch_is_empty(gff_batch_t *gff_batch);
+int gff_batch_is_empty(gff_batch_t *gff_batch);
 
-int batch_is_full(gff_batch_t *gff_batch);
+int gff_batch_is_full(gff_batch_t *gff_batch);
 
 void gff_batch_print(FILE *fd, gff_batch_t *gff_batch);
 

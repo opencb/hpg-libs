@@ -106,24 +106,24 @@ int gff_write(gff_file_t *gff_file, char *filename) {
 // load data into the gff_file_t
 //-----------------------------------------------------
 
-int add_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file)
+int add_gff_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file)
 {
     void *result = cp_list_append(gff_file->header_entries, header_entry);
     if (result != NULL) {
-        dprintf("header entry %zu\n", cp_list_item_count(gff_file->header_entries));
+        LOG_DEBUG_F("header entry %zu\n", cp_list_item_count(gff_file->header_entries));
     } else {
-        dprintf("header entry %zu not inserted\n", cp_list_item_count(gff_file->header_entries));
+        LOG_DEBUG_F("header entry %zu not inserted\n", cp_list_item_count(gff_file->header_entries));
     }
     return result != NULL;
 }
 
-int add_record(gff_record_t* record, gff_file_t *gff_file)
+int add_gff_record(gff_record_t* record, gff_file_t *gff_file)
 {
     void *result = cp_list_append(gff_file->records, record);
     if (result != NULL) {
-        dprintf("record %zu\n", cp_list_item_count(gff_file->records));
+        LOG_DEBUG_F("record %zu\n", cp_list_item_count(gff_file->records));
     } else {
-        dprintf("record %zu not inserted\n", cp_list_item_count(gff_file->records));
+        LOG_DEBUG_F("record %zu not inserted\n", cp_list_item_count(gff_file->records));
     }
     return result != NULL;
 }
