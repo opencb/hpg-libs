@@ -21,7 +21,7 @@ static const int gff_en_record_scan = 34;
 static const int gff_en_main = 1;
 
 
-#line 134 "gff.ragel"
+#line 137 "gff.ragel"
 
 
 
@@ -211,7 +211,7 @@ case 3:
 		goto tr3;
 	goto st0;
 tr3:
-#line 132 "gff.ragel"
+#line 135 "gff.ragel"
 	{ p--; {stack[top++] = 4; goto st34;} }
 	goto st4;
 st4:
@@ -558,7 +558,7 @@ tr29:
 	}
 	goto st34;
 tr37:
-#line 124 "gff.ragel"
+#line 127 "gff.ragel"
 	{te = p+1;}
 	goto st34;
 tr38:
@@ -572,8 +572,11 @@ tr38:
                 LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
                 current_batch = gff_batch_new(batch_size);
             }
-            // Add record to current_batch
-            add_record_to_gff_batch(current_record, current_batch);
+            
+            // If not a blank line, add current record to current batch
+            if (current_field != SEQUENCE) {
+                add_record_to_gff_batch(current_record, current_batch);
+            }
             
             current_field = SEQUENCE;
             records++;
@@ -618,7 +621,7 @@ st34:
 case 34:
 #line 1 "NONE"
 	{ts = p;}
-#line 622 "gff_reader.c"
+#line 625 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr38;
 		case 32: goto tr37;
@@ -649,7 +652,7 @@ st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-#line 653 "gff_reader.c"
+#line 656 "gff_reader.c"
 	switch( (*p) ) {
 		case 46: goto st26;
 		case 59: goto st27;
@@ -704,7 +707,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 708 "gff_reader.c"
+#line 711 "gff_reader.c"
 	switch( (*p) ) {
 		case 59: goto st27;
 		case 61: goto st28;
@@ -743,7 +746,7 @@ st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-#line 747 "gff_reader.c"
+#line 750 "gff_reader.c"
 	switch( (*p) ) {
 		case 59: goto st27;
 		case 61: goto st28;
@@ -818,7 +821,7 @@ case 39:
 	_out: {}
 	}
 
-#line 215 "gff.ragel"
+#line 218 "gff.ragel"
  
 
     // Insert the last batch
@@ -830,16 +833,16 @@ case 39:
     }
 
     if ( cs < 
-#line 834 "gff_reader.c"
+#line 837 "gff_reader.c"
 29
-#line 225 "gff.ragel"
+#line 228 "gff.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 841 "gff_reader.c"
+#line 844 "gff_reader.c"
 29
-#line 228 "gff.ragel"
+#line 231 "gff.ragel"
 );
     } 
 
@@ -849,8 +852,8 @@ case 39:
     gff_header_entry_free(current_header_entry);
 
     return cs < 
-#line 853 "gff_reader.c"
+#line 856 "gff_reader.c"
 29
-#line 236 "gff.ragel"
+#line 239 "gff.ragel"
 ;
 }

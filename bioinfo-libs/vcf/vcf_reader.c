@@ -26,7 +26,7 @@ static const int vcf_en_record_scan = 102;
 static const int vcf_en_main = 1;
 
 
-#line 241 "vcf.ragel"
+#line 242 "vcf.ragel"
 
 
 static char* get_token(char *ts, char *te)
@@ -639,7 +639,7 @@ case 50:
 		goto tr50;
 	goto st0;
 tr50:
-#line 238 "vcf.ragel"
+#line 239 "vcf.ragel"
 	{ p--; {stack[top++] = 51; goto st102;} }
 	goto st51;
 st51:
@@ -1411,14 +1411,12 @@ case 101:
 		goto st101;
 	goto tr116;
 tr117:
-#line 230 "vcf.ragel"
+#line 231 "vcf.ragel"
 	{te = p+1;}
 	goto st102;
 tr118:
 #line 210 "vcf.ragel"
 	{te = p+1;{
-// 			add_record(current_record, file);
-
 			// If batch is full, add to the list of batches and create a new, empty one
 			if (batch_is_full(current_batch))
 			{
@@ -1427,11 +1425,14 @@ tr118:
 				LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
 				current_batch = vcf_batch_new(batch_size);
 			}
-			// Add record to current_batch
-			add_record_to_batch(current_record, current_batch);
-			
+
+            // If not a blank line, add current record to current batch
+            if (current_field != CHROM) {
+                add_record_to_batch(current_record, current_batch);
+                records++;
+            }
+            
 			current_field = CHROM;
-			records++;
 			samples = 0;
 			LOG_DEBUG("\n");
 		}}
@@ -1500,7 +1501,7 @@ st102:
 case 102:
 #line 1 "NONE"
 	{ts = p;}
-#line 1504 "vcf_reader.c"
+#line 1505 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr118;
 		case 32: goto tr117;
@@ -1554,7 +1555,7 @@ st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1558 "vcf_reader.c"
+#line 1559 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr119;
 	goto tr125;
@@ -1664,7 +1665,7 @@ st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1668 "vcf_reader.c"
+#line 1669 "vcf_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 33 <= (*p) && (*p) <= 47 )
 			goto tr119;
@@ -1800,7 +1801,7 @@ st112:
 	if ( ++p == pe )
 		goto _test_eof112;
 case 112:
-#line 1804 "vcf_reader.c"
+#line 1805 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr139;
 	goto tr125;
@@ -2140,7 +2141,7 @@ case 117:
 	_out: {}
 	}
 
-#line 324 "vcf.ragel"
+#line 325 "vcf.ragel"
  
 	
 	// Insert the last batch
@@ -2152,16 +2153,16 @@ case 117:
 	}
 	
 	if ( cs < 
-#line 2156 "vcf_reader.c"
+#line 2157 "vcf_reader.c"
 80
-#line 334 "vcf.ragel"
+#line 335 "vcf.ragel"
  ) 
 	{
 		LOG_INFO_F("Last state is %d, but %d was expected\n", 
 		       cs, 
-#line 2163 "vcf_reader.c"
+#line 2164 "vcf_reader.c"
 80
-#line 337 "vcf.ragel"
+#line 338 "vcf.ragel"
 );
 	} 
 	
@@ -2172,8 +2173,8 @@ case 117:
 	vcf_header_entry_free(current_header_entry);
 	
 	return cs < 
-#line 2176 "vcf_reader.c"
+#line 2177 "vcf_reader.c"
 80
-#line 346 "vcf.ragel"
+#line 347 "vcf.ragel"
 ;
 }

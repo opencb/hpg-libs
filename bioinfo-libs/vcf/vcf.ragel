@@ -208,8 +208,6 @@ static enum VCF_Field current_field = CHROM;
 		};
 		
 		"\n"		=> {
-// 			add_record(current_record, file);
-
 			// If batch is full, add to the list of batches and create a new, empty one
 			if (batch_is_full(current_batch))
 			{
@@ -218,11 +216,14 @@ static enum VCF_Field current_field = CHROM;
 				LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
 				current_batch = vcf_batch_new(batch_size);
 			}
-			// Add record to current_batch
-			add_record_to_batch(current_record, current_batch);
-			
+
+            // If not a blank line, add current record to current batch
+            if (current_field != CHROM) {
+                add_record_to_batch(current_record, current_batch);
+                records++;
+            }
+            
 			current_field = CHROM;
-			records++;
 			samples = 0;
 			LOG_DEBUG("\n");
 		};

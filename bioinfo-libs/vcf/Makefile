@@ -24,7 +24,7 @@ VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABL
 all: list.o string_utils.o region.o region_table.o region_table_utils.o gff-reader ragel main_batch main_filter
 
 compile:
-	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 ragel:
 	ragel -o vcf_reader.c -C -G2 vcf.ragel

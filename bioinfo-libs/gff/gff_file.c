@@ -65,10 +65,10 @@ void gff_header_entry_free(gff_header_entry_t *gff_header_entry)
 
 void gff_record_free(gff_record_t *gff_record)
 {
-    free(gff_record->sequence);
-    free(gff_record->source);
-    free(gff_record->feature);
-    free(gff_record->attribute);
+    if (gff_record->sequence) { free(gff_record->sequence); }
+    if (gff_record->source) { free(gff_record->source); }
+    if (gff_record->feature) { free(gff_record->feature); }
+    if (gff_record->feature) { free(gff_record->attribute); }
     free(gff_record);
 }
 

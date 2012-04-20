@@ -113,8 +113,11 @@ static enum GFF_Field current_field = SEQUENCE;
                 LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
                 current_batch = gff_batch_new(batch_size);
             }
-            // Add record to current_batch
-            add_record_to_gff_batch(current_record, current_batch);
+            
+            // If not a blank line, add current record to current batch
+            if (current_field != SEQUENCE) {
+                add_record_to_gff_batch(current_record, current_batch);
+            }
             
             current_field = SEQUENCE;
             records++;
