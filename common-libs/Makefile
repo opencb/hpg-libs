@@ -9,10 +9,8 @@ INCLUDES = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOF
 LIBS = -lcprops -lcheck
 
 
-all: string_utils.o list.o region_table.o region_table_utils.o
+all: list.o region_table.o region_table_utils.o
 
-string_utils.o:
-	cd $(COMMONS_DIR) && make string_utils.o
 
 list.o:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
@@ -22,7 +20,7 @@ region_table.o:
 
 region_table_utils.o:
 	$(CC) $(CFLAGS) -c region_table_utils.c $(INCLUDES) $(LIBS)
-	
+
 clean:
 	rm list.o
 	rm region_table.o
