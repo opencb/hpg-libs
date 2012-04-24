@@ -53,7 +53,7 @@ typedef struct fastq_batch_reader {
 *  @param batch_list_max_length Fastq batch list maximum length
 *  @return fastq_batch_reader_t pointer to the reader
 *  
-*  Free a fastq batch list item (all = 0 -> fastq batch not freed, all = 1 -> fastq batch freed)
+*  Creates a new fastq batch reader structure
 */
 fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, fastq_batch_list_t* batch_list_p, size_t batch_size, list_t* qc_batch_list_p, int batch_list_max_length);
 
