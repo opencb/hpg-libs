@@ -95,7 +95,7 @@ family_t *family_new(char *id);
  * @return 0 if the individual was succcessfully set, 1-2 if one of the arguments is NULL, 
  * 3 if the parent sex in unknown, or 4 if the family already contains the individual
  */
-int family_set_parent(invididual_t *parent, family_t *family);
+int family_set_parent(individual_t *parent, family_t *family);
 
 /**
  * Sets an individual as child of a family. An individual can only be set as child if he is 
@@ -121,6 +121,6 @@ void family_free(family_t *family);
  * @param individual the individual to check
  * @param family the family that could contain the individual
  */
-individual *family_contains_individual(invididual_t *individual, family_t *family);
+individual_t *family_contains_individual(individual_t *individual, family_t *family);
 
 #endif

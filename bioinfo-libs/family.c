@@ -6,7 +6,7 @@
  */
 
 individual_t *individual_new(char *id, float phenotype, enum Sex sex, individual_t *father, individual_t *mother, family_t *family) {
-    individual_t *individual = (individual_t*) malloc (sizeof(invididual_t));
+    individual_t *individual = (individual_t*) malloc (sizeof(individual_t));
     individual_init(id, phenotype, sex, father, mother, family, individual);
     return individual;
 }
@@ -33,7 +33,7 @@ void individual_free(individual_t *individual) {
     free(individual);
 }
 
-int individual_compare(individual *a, individual *b) {
+int individual_compare(individual_t *a, individual_t *b) {
     int result = strcasecmp(a->id, b->id);
     if (a->family == NULL && b->family != NULL) {
         result = -1;
@@ -51,17 +51,17 @@ int individual_compare(individual *a, individual *b) {
  */
 
 family_t *family_new(char *id) {
-    family_t *family = (family_t*) malloc (sizeof(family);
+    family_t *family = (family_t*) malloc (sizeof(family));
     family->id = id;
     family->children = cp_list_create_list(COLLECTION_MODE_DEEP,
                                            (cp_compare_fn) individual_compare,
                                            NULL,
-                                           individual_free
+                                           (cp_destructor_fn) individual_free
                                           );
     return family;
 }
 
-int family_set_parent(invididual_t *parent, family_t *family) {
+int family_set_parent(individual_t *parent, family_t *family) {
     if (parent == NULL) {
         return 1;
     }
@@ -108,7 +108,7 @@ void family_free(family_t *family) {
     cp_list_destroy(family->children);
 }
 
-individual *family_contains_individual(invididual_t *individual, family_t *family) {
+individual_t *family_contains_individual(individual_t *individual, family_t *family) {
     if (individual_compare(individual, family->father) == 0) {
         return family->father;
     } 
@@ -117,7 +117,7 @@ individual *family_contains_individual(invididual_t *individual, family_t *famil
     }
     
     cp_list_iterator *iterator = cp_list_create_iterator(family->children, COLLECTION_LOCK_READ);
-    individual *child = NULL;
+    individual_t *child = NULL;
     while ((child = cp_list_iterator_next(iterator)) != NULL) {
         if (individual_compare(individual, child) == 0) {
             return child;
