@@ -3,10 +3,9 @@
 static size_t records = 0;
 
 static ped_record_t *current_record;
-static ped_header_entry_t *current_header_entry;
 static ped_batch_t *current_batch;
 
-static enum PED_Field current_field = SEQUENCE;
+static enum PED_Field current_field = FAMILY_ID;
 
 %%{
     machine ped;
@@ -35,7 +34,10 @@ static enum PED_Field current_field = SEQUENCE;
     records		= record ("\n" record)* ("\n")? ;
 
     # Records scanner
-    record_scan	:= |*
+#     record_scan	:= |*
+    main := |*
+        comment;
+
         record_family  	=> {
             set_field(ts, te);
         };
@@ -73,11 +75,11 @@ static enum PED_Field current_field = SEQUENCE;
             }
             
             // If not a blank line, add current record to current batch
-            if (current_field != SEQUENCE) {
+            if (current_field != FAMILY_ID) {
                 add_record_to_ped_batch(current_record, current_batch);
             }
             
-            current_field = SEQUENCE;
+            current_field = FAMILY_ID;
             records++;
             LOG_DEBUG("\n");
         };
@@ -90,7 +92,7 @@ static enum PED_Field current_field = SEQUENCE;
     #                Machine                #
     #########################################
 
-    main		:= records >{ fhold; fcall record_scan; } ;
+#    main		:= records >{ fhold; fcall record_scan; } ;
 
 }%%
 
@@ -107,50 +109,40 @@ static void set_field(char* ts, char *te)
 {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
+    enum Sex sex;
 
     switch (current_field)
     {
-        case SEQUENCE:
+        case FAMILY_ID:
             current_record = create_ped_record();
-            set_ped_record_sequence(field, current_record);
+            set_ped_record_family_id(field, current_record);
         break;
-        case SOURCE:
-            set_ped_record_source(field, current_record);
+        case INDIVIDUAL_ID:
+            set_ped_record_individual_id(field, current_record);
         break;
-        case FEATURE:
-            set_ped_record_feature(field, current_record);
+        case FATHER_ID:
+            set_ped_record_father_id(field, current_record);
         break;
-        case START:
-            set_ped_record_start(atol(field), current_record);
+        case MOTHER_ID:
+            set_ped_record_mother_id(field, current_record);
+        break;
+        case SEX:
+            sex = UNKNOWN;
+            if (atoi(field) == 1) {
+               sex = MALE;
+            } else if (atoi(field) == 2) {
+               sex = FEMALE;
+            }
+            set_ped_record_sex(sex, current_record);
             free(field);    // Not set as ped_record_t variable -> not freed later
         break;
-        case END:
-            set_ped_record_end(atol(field), current_record);
-            free(field);    // Not set as ped_record_t variable -> not freed later
-        break;
-        case SCORE:
+        case PHENOTYPE:
             if (strncmp(".", field, 1) != 0)
             {
                 float_val = atof(field);
             }
-            set_ped_record_score(float_val, current_record);
+            set_ped_record_phenotype(float_val, current_record);
             free(field);	// Not set as ped_record_t variable -> not freed later
-        break;
-        case STRAND:
-            if (field != NULL && strlen(field) > 0) {
-                set_ped_record_strand(field[0], current_record);
-            }
-        break;
-        case FRAME:
-            if (strncmp(".", field, 1) != 0)
-            {
-                float_val = atof(field);
-            }
-            set_ped_record_frame(float_val, current_record);
-            free(field);    // Not set as ped_record_t variable -> not freed later
-        break;
-        case ATTRIBUTE:
-            set_ped_record_attribute(field, current_record);
         break;
     }
 
@@ -167,7 +159,6 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     int stack[4];
     int top, act;
 
-    current_header_entry = create_ped_header_entry();
     current_batch = ped_batch_new(batch_size);
 
     %%{
@@ -190,9 +181,6 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     } 
 
     LOG_INFO_F("Records read = %zu\n", records);
-
-    // Free current_xxx pointers if not needed in another module
-    ped_header_entry_free(current_header_entry);
 
     return cs < %%{ write first_final; }%%;
 }

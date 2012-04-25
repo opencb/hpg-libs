@@ -38,7 +38,5 @@ inline int ped_batch_is_full(ped_batch_t *ped_batch)
 void ped_batch_print(FILE *fd, ped_batch_t *ped_batch)
 {
     ped_record_t *first_record = ped_batch->first_p->data_p;
-    fprintf(fd, "Batch with %zu/%zu records - %s in %ld\n", 
-        ped_batch->length, ped_batch->max_length, 
-        first_record->sequence, first_record->start);
+    fprintf(fd, "Batch with %zu/%zu records\n", ped_batch->length, ped_batch->max_length);
 }

@@ -5,7 +5,7 @@ int ped_write_to_file(ped_file_t *ped_file, FILE *fd) {
         return -1;
     }
     
-    family_t **families = cp_hashtable_get_values(ped_file);
+    family_t **families = (family_t**) cp_hashtable_get_values(ped_file->families);
     int num_families = get_num_families(ped_file);
     cp_list_iterator *children_iterator;
     
@@ -14,13 +14,13 @@ int ped_write_to_file(ped_file_t *ped_file, FILE *fd) {
     for (int i = 0; i < num_families; i++) {
         family = families[i];
         // Write mother and father
-        write_ped_individual(family->father);
-        write_ped_individual(family->mother);
+        write_ped_individual(family->father, fd);
+        write_ped_individual(family->mother, fd);
         // Write children
         cp_list_iterator *iterator = cp_list_create_iterator(family->children, COLLECTION_LOCK_READ);
-        individual *child = NULL;
+        individual_t *child = NULL;
         while ((child = cp_list_iterator_next(iterator)) != NULL) {
-            write_ped_individual(child);
+            write_ped_individual(child, fd);
         }
     }
     
