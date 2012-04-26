@@ -3,9 +3,9 @@
 
 #include "system_utils.h"
 
-//-----------------------------------------------------
-// get_free_memory()
-//-----------------------------------------------------
+/* **************************************************************
+ *    		Functions implementations  			*
+ * **************************************************************/
 
 unsigned long int get_free_memory() {
   FILE* fd_memory = NULL;
@@ -32,10 +32,6 @@ unsigned long int get_free_memory() {
   return free_memory;  
 }
 
-//-----------------------------------------------------
-// get_estimated_memory_needed
-//-----------------------------------------------------
-
 unsigned long int get_estimated_memory_needed(int process, int batch_size, int max_list_length) {
   unsigned long int list_memory = max_list_length * batch_size;
   char log_message[50];
@@ -53,10 +49,6 @@ unsigned long int get_estimated_memory_needed(int process, int batch_size, int m
   }
 }
 
-//-----------------------------------------------------
-// get_max_estimated_alignments_by_chromosome
-//-----------------------------------------------------
-
 int get_max_estimated_alignments_by_chromosome(char* input_filename) {
   int max_estimated_alignments;  
   struct stat st;
@@ -66,10 +58,6 @@ int get_max_estimated_alignments_by_chromosome(char* input_filename) {
     
   return max_estimated_alignments;  
 }
-
-//-----------------------------------------------------
-// get_estimated_memory_needed
-//-----------------------------------------------------
 
 int get_optimal_cpu_num_threads() {    
   FILE* fd_cpu_num_cores = NULL;
@@ -96,10 +84,6 @@ int get_optimal_cpu_num_threads() {
   return optimal_cpu_num_threads;    
 }
 
-//-----------------------------------------------------
-// get_optimal_gpu_num_threads
-//-----------------------------------------------------
-
 int get_optimal_gpu_num_threads() {
   int optimal_gpu_num_threads = 0;
   
@@ -109,11 +93,6 @@ int get_optimal_gpu_num_threads() {
   
   return optimal_gpu_num_threads;
 }
-
-//-----------------------------------------------------
-// get_optimal_batch_size
-//
-//-----------------------------------------------------
 
 int get_optimal_batch_size(int process, int max_list_length) {
   unsigned long int optimal_batch_size;
@@ -137,10 +116,5 @@ int get_optimal_batch_size(int process, int max_list_length) {
   
   return (int) size;
 }
-
-
-
-
-
 
 
