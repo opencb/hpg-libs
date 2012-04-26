@@ -1,4 +1,6 @@
 
+#include <limits.h>
+
 #include "system_utils.h"
 
 //-----------------------------------------------------
@@ -98,10 +100,14 @@ int get_optimal_cpu_num_threads() {
 // get_optimal_gpu_num_threads
 //-----------------------------------------------------
 
-int get_optimal_gpu_num_threads() {  
-  int optimal_gpu_num_threads = 16 * get_cuda_device_warp_size();
+int get_optimal_gpu_num_threads() {
+  int optimal_gpu_num_threads = 0;
   
-  return optimal_gpu_num_threads;  
+  #ifdef CUDA_VERSION
+  optimal_gpu_num_threads = 16 * get_cuda_device_warp_size();  
+  #endif
+  
+  return optimal_gpu_num_threads;
 }
 
 //-----------------------------------------------------
@@ -111,7 +117,11 @@ int get_optimal_gpu_num_threads() {
 
 int get_optimal_batch_size(int process, int max_list_length) {
   unsigned long int optimal_batch_size;
-  unsigned long int gpu_global_memory = get_cuda_device_global_memory();
+  unsigned long int gpu_global_memory = ULLONG_MAX;
+  
+  #ifdef CUDA_VERSION
+  gpu_global_memory = get_cuda_device_global_memory();
+  #endif
   
   unsigned long int free_memory = get_free_memory();
   
