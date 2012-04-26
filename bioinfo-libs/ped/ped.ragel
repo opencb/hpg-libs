@@ -80,11 +80,14 @@ static enum PED_Field current_field = FAMILY_ID;
             }
             
             // If not a blank line nor erroneous record, add current record to current batch
-            if (current_field != FAMILY_ID && !record_error) {
+            if (current_field > PHENOTYPE) {
                 add_record_to_ped_batch(current_record, current_batch);
                 records++;
             } else {
-                free(current_record);
+                if (current_field > FAMILY_ID) {
+                    LOG_ERROR_F("Line %d - %d field(s) missing\n", lines, EOL - current_field);
+                    free(current_record);
+                }
             }
             
             lines++;
@@ -107,40 +110,10 @@ static char* get_token(char *ts, char *te)
     return field;
 }
 
-static void column_missing_error() {
-    switch (current_field) {
-        case FAMILY_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FAMILY_ID_MISSING));
-        break;
-        case INDIVIDUAL_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_INDIVIDUAL_ID_MISSING));
-        break;
-        case FATHER_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FATHER_ID_MISSING));
-        break;
-        case MOTHER_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_MOTHER_ID_MISSING));
-        break;
-        case SEX:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_SEX_MISSING));
-        break;
-        case PHENOTYPE:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_PHENOTYPE_MISSING));
-        break;
-    }
-
-    record_error = 1;
-}
-
 static void set_field(char* ts, char *te) {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
-
-    if (strlen(field) == 0) {
-        column_missing_error();
-        return;
-    }
 
     switch (current_field) {
         case FAMILY_ID:

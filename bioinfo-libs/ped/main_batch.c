@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
     strncat(filename, argv[1], strlen(argv[1]));
     ped_file_t* file = ped_open(filename);
     
-    init_log_custom(1, 1, NULL);
+    init_log_custom(2, 1, NULL);
     
 #pragma omp parallel sections private(start, stop, total)
 {
@@ -92,7 +92,6 @@ int main (int argc, char *argv[])
             while ( (batch_item = list_remove_item_async(batch)) != NULL) {
                 add_ret_code = add_ped_record(batch_item->data_p, file);
                 if (add_ret_code > 0) {
-                    printf("%s - %d\n", ((ped_record_t*) batch_item->data_p)->family_id, add_ret_code);
                     LOG_ERROR_F("%s - %s\n", ((ped_record_t*) batch_item->data_p)->family_id, get_ped_semantic_error_msg(add_ret_code));
                 }
             }

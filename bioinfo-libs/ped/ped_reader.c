@@ -22,7 +22,7 @@ static const int ped_error = 0;
 static const int ped_en_main = 1;
 
 
-#line 99 "ped.ragel"
+#line 102 "ped.ragel"
 
 
 
@@ -34,40 +34,10 @@ static char* get_token(char *ts, char *te)
     return field;
 }
 
-static void column_missing_error() {
-    switch (current_field) {
-        case FAMILY_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FAMILY_ID_MISSING));
-        break;
-        case INDIVIDUAL_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_INDIVIDUAL_ID_MISSING));
-        break;
-        case FATHER_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FATHER_ID_MISSING));
-        break;
-        case MOTHER_ID:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_MOTHER_ID_MISSING));
-        break;
-        case SEX:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_SEX_MISSING));
-        break;
-        case PHENOTYPE:
-            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_PHENOTYPE_MISSING));
-        break;
-    }
-
-    record_error = 1;
-}
-
 static void set_field(char* ts, char *te) {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
-
-    if (strlen(field) == 0) {
-        column_missing_error();
-        return;
-    }
 
     switch (current_field) {
         case FAMILY_ID:
@@ -126,7 +96,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     current_batch = ped_batch_new(batch_size);
 
     
-#line 130 "ped_reader.c"
+#line 100 "ped_reader.c"
 	{
 	cs = ped_start;
 	ts = 0;
@@ -134,14 +104,14 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
 	act = 0;
 	}
 
-#line 138 "ped_reader.c"
+#line 108 "ped_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
 	switch ( cs )
 	{
 tr0:
-#line 96 "ped.ragel"
+#line 99 "ped.ragel"
 	{te = p+1;}
 	goto st1;
 tr2:
@@ -157,11 +127,14 @@ tr2:
             }
             
             // If not a blank line nor erroneous record, add current record to current batch
-            if (current_field != FAMILY_ID && !record_error) {
+            if (current_field > PHENOTYPE) {
                 add_record_to_ped_batch(current_record, current_batch);
                 records++;
             } else {
-                free(current_record);
+                if (current_field > FAMILY_ID) {
+                    LOG_ERROR_F("Line %d - %d field(s) missing\n", lines, EOL - current_field);
+                    free(current_record);
+                }
             }
             
             lines++;
@@ -208,7 +181,7 @@ st1:
 case 1:
 #line 1 "NONE"
 	{ts = p;}
-#line 212 "ped_reader.c"
+#line 185 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 35: goto st3;
@@ -300,7 +273,7 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 304 "ped_reader.c"
+#line 277 "ped_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 32 <= (*p) && (*p) <= 47 )
 			goto st2;
@@ -360,7 +333,7 @@ case 6:
 	_out: {}
 	}
 
-#line 204 "ped.ragel"
+#line 177 "ped.ragel"
  
 
     // Insert the last batch
@@ -372,24 +345,24 @@ case 6:
     }
 
     if ( cs < 
-#line 376 "ped_reader.c"
+#line 349 "ped_reader.c"
 1
-#line 214 "ped.ragel"
+#line 187 "ped.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 383 "ped_reader.c"
+#line 356 "ped_reader.c"
 1
-#line 217 "ped.ragel"
+#line 190 "ped.ragel"
 );
     } 
 
     LOG_INFO_F("Records read = %zu\n", records);
 
     return cs < 
-#line 392 "ped_reader.c"
+#line 365 "ped_reader.c"
 1
-#line 222 "ped.ragel"
+#line 195 "ped.ragel"
 ;
 }
