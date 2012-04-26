@@ -1,9 +1,13 @@
 #include "ped_reader.h"
 
+static size_t lines = 0;
 static size_t records = 0;
 
 static ped_record_t *current_record;
 static ped_batch_t *current_batch;
+
+static int record_error = 0;
+static int num_spaces = 0;
 
 static enum PED_Field current_field = FAMILY_ID;
 
@@ -12,9 +16,6 @@ static enum PED_Field current_field = FAMILY_ID;
     write data;
 
     number      = (digit)+ ("." (digit)+)? ;
-    bases       = ("A" | "C" | "G" | "T" | "N")+ ;
-    identifier  = (alnum)+ ;
-
     comment     = "#" (print)* ;
 
     #########################################
@@ -33,8 +34,10 @@ static enum PED_Field current_field = FAMILY_ID;
     record		= record_family "\t" record_indiv "\t" record_father "\t" record_mother "\t" record_sex "\t" record_phenot "\t" record_rest ;
     records		= record ("\n" record)* ("\n")? ;
 
-    # Records scanner
-#     record_scan	:= |*
+    #########################################
+    #                Machine                #
+    #########################################
+
     main := |*
         comment         => {
             LOG_DEBUG("Comment found, nothing to do.");
@@ -76,25 +79,22 @@ static enum PED_Field current_field = FAMILY_ID;
                 current_batch = ped_batch_new(batch_size);
             }
             
-            // If not a blank line, add current record to current batch
-            if (current_field != FAMILY_ID) {
+            // If not a blank line nor erroneous record, add current record to current batch
+            if (current_field != FAMILY_ID && !record_error) {
                 add_record_to_ped_batch(current_record, current_batch);
+                records++;
+            } else {
+                free(current_record);
             }
             
+            lines++;
             current_field = FAMILY_ID;
-            records++;
-            LOG_DEBUG("\n");
+            record_error = 0;
+            LOG_DEBUG("End of line\n");
         };
         
         space;
     *|;
-
-
-    #########################################
-    #                Machine                #
-    #########################################
-
-#    main		:= records >{ fhold; fcall record_scan; } ;
 
 }%%
 
@@ -107,18 +107,42 @@ static char* get_token(char *ts, char *te)
     return field;
 }
 
-static void set_field(char* ts, char *te)
-{
+static void column_missing_error() {
+    switch (current_field) {
+        case FAMILY_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FAMILY_ID_MISSING));
+        break;
+        case INDIVIDUAL_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_INDIVIDUAL_ID_MISSING));
+        break;
+        case FATHER_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FATHER_ID_MISSING));
+        break;
+        case MOTHER_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_MOTHER_ID_MISSING));
+        break;
+        case SEX:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_SEX_MISSING));
+        break;
+        case PHENOTYPE:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_PHENOTYPE_MISSING));
+        break;
+    }
+
+    record_error = 1;
+}
+
+static void set_field(char* ts, char *te) {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
 
     if (strlen(field) == 0) {
+        column_missing_error();
         return;
     }
 
-    switch (current_field)
-    {
+    switch (current_field) {
         case FAMILY_ID:
             current_record = create_ped_record();
             set_ped_record_family_id(field, current_record);

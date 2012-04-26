@@ -13,7 +13,7 @@ INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(BIOF
 LIBS = -lcprops -fopenmp
 
 # Source and object files
-MAIN_OBJECTS = ped_file.c ped_read.c ped_reader.c ped_write.c ped_batch.c
+MAIN_OBJECTS = ped_file.c ped_read.c ped_reader.c ped_write.c ped_batch.c ped_error.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o $(BIOFORMATS_DIR)/family.c
 PED_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
 

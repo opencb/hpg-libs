@@ -2,15 +2,19 @@
 #line 1 "ped.ragel"
 #include "ped_reader.h"
 
+static size_t lines = 0;
 static size_t records = 0;
 
 static ped_record_t *current_record;
 static ped_batch_t *current_batch;
 
+static int record_error = 0;
+static int num_spaces = 0;
+
 static enum PED_Field current_field = FAMILY_ID;
 
 
-#line 14 "ped_reader.c"
+#line 18 "ped_reader.c"
 static const int ped_start = 1;
 static const int ped_first_final = 1;
 static const int ped_error = 0;
@@ -30,18 +34,42 @@ static char* get_token(char *ts, char *te)
     return field;
 }
 
-static void set_field(char* ts, char *te)
-{
+static void column_missing_error() {
+    switch (current_field) {
+        case FAMILY_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FAMILY_ID_MISSING));
+        break;
+        case INDIVIDUAL_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_INDIVIDUAL_ID_MISSING));
+        break;
+        case FATHER_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_FATHER_ID_MISSING));
+        break;
+        case MOTHER_ID:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_MOTHER_ID_MISSING));
+        break;
+        case SEX:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_SEX_MISSING));
+        break;
+        case PHENOTYPE:
+            LOG_ERROR_F("Line %d - %s\n", lines, get_ped_syntax_error_msg(COLUMN_PHENOTYPE_MISSING));
+        break;
+    }
+
+    record_error = 1;
+}
+
+static void set_field(char* ts, char *te) {
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
 
     if (strlen(field) == 0) {
+        column_missing_error();
         return;
     }
 
-    switch (current_field)
-    {
+    switch (current_field) {
         case FAMILY_ID:
             current_record = create_ped_record();
             set_ped_record_family_id(field, current_record);
@@ -98,7 +126,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     current_batch = ped_batch_new(batch_size);
 
     
-#line 102 "ped_reader.c"
+#line 130 "ped_reader.c"
 	{
 	cs = ped_start;
 	ts = 0;
@@ -106,18 +134,18 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
 	act = 0;
 	}
 
-#line 110 "ped_reader.c"
+#line 138 "ped_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
 	switch ( cs )
 	{
 tr0:
-#line 89 "ped.ragel"
+#line 96 "ped.ragel"
 	{te = p+1;}
 	goto st1;
 tr2:
-#line 69 "ped.ragel"
+#line 72 "ped.ragel"
 	{te = p+1;{
             // If batch is full, add to the list of batches and create a new, empty one
             if (ped_batch_is_full(current_batch))
@@ -128,28 +156,32 @@ tr2:
                 current_batch = ped_batch_new(batch_size);
             }
             
-            // If not a blank line, add current record to current batch
-            if (current_field != FAMILY_ID) {
+            // If not a blank line nor erroneous record, add current record to current batch
+            if (current_field != FAMILY_ID && !record_error) {
                 add_record_to_ped_batch(current_record, current_batch);
+                records++;
+            } else {
+                free(current_record);
             }
             
+            lines++;
             current_field = FAMILY_ID;
-            records++;
-            LOG_DEBUG("\n");
+            record_error = 0;
+            LOG_DEBUG("End of line\n");
         }}
 	goto st1;
 tr7:
-#line 67 "ped.ragel"
+#line 70 "ped.ragel"
 	{te = p;p--;}
 	goto st1;
 tr8:
-#line 39 "ped.ragel"
+#line 42 "ped.ragel"
 	{te = p;p--;{
             LOG_DEBUG("Comment found, nothing to do.");
         }}
 	goto st1;
 tr9:
-#line 43 "ped.ragel"
+#line 46 "ped.ragel"
 	{te = p;p--;{
             set_field(ts, te);
         }}
@@ -176,7 +208,7 @@ st1:
 case 1:
 #line 1 "NONE"
 	{ts = p;}
-#line 180 "ped_reader.c"
+#line 212 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 35: goto st3;
@@ -255,20 +287,20 @@ case 4:
 tr10:
 #line 1 "NONE"
 	{te = p+1;}
-#line 67 "ped.ragel"
+#line 70 "ped.ragel"
 	{act = 8;}
 	goto st5;
 tr12:
 #line 1 "NONE"
 	{te = p+1;}
-#line 59 "ped.ragel"
+#line 62 "ped.ragel"
 	{act = 6;}
 	goto st5;
 st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 272 "ped_reader.c"
+#line 304 "ped_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 32 <= (*p) && (*p) <= 47 )
 			goto st2;
@@ -328,7 +360,7 @@ case 6:
 	_out: {}
 	}
 
-#line 180 "ped.ragel"
+#line 204 "ped.ragel"
  
 
     // Insert the last batch
@@ -340,24 +372,24 @@ case 6:
     }
 
     if ( cs < 
-#line 344 "ped_reader.c"
+#line 376 "ped_reader.c"
 1
-#line 190 "ped.ragel"
+#line 214 "ped.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 351 "ped_reader.c"
+#line 383 "ped_reader.c"
 1
-#line 193 "ped.ragel"
+#line 217 "ped.ragel"
 );
     } 
 
     LOG_INFO_F("Records read = %zu\n", records);
 
     return cs < 
-#line 360 "ped_reader.c"
+#line 392 "ped_reader.c"
 1
-#line 198 "ped.ragel"
+#line 222 "ped.ragel"
 ;
 }

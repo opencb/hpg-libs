@@ -9,6 +9,7 @@
 
 #include <list.h>
 
+#include "ped_error.h"
 #include "ped_file_structure.h"
 #include "ped_file.h"
 #include "ped_read.h"

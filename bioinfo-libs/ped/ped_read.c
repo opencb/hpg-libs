@@ -42,5 +42,5 @@ void set_ped_record_sex(enum Sex sex, ped_record_t* ped_record) {
 
 void set_ped_record_phenotype(float phenotype, ped_record_t* ped_record) {
     ped_record->phenotype = phenotype;
-    LOG_DEBUG_F("set phenotype: %ld\n", ped_record->phenotype);
+    LOG_DEBUG_F("set phenotype: %f\n", ped_record->phenotype);
 }

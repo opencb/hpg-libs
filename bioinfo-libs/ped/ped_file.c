@@ -115,10 +115,11 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     if (family == NULL) {
         family = family_new(record->family_id);
         if (add_family(family, ped_file)) {
-            LOG_ERROR_F("Could not add family %s\n", family->id);
-            return 1;
+            return ALREADY_EXISTING_FAMILY;
         }
     }
+    
+    int result = 0;
     
     // Get parents from family or, should they not exist yet, create them
     individual_t *father = NULL, *mother = NULL;
@@ -139,19 +140,24 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         }
     }
     
-    printf("family->father = NULL? %d, family->mother = NULL? %d\n", family->father == NULL, family->mother == NULL);
-    printf("father = NULL? %d, mother = NULL? %d\n", father == NULL, mother == NULL);
+    LOG_DEBUG_F("family->father = NULL? %d, family->mother = NULL? %d\n", family->father == NULL, family->mother == NULL);
+    LOG_DEBUG_F("father = NULL? %d, mother = NULL? %d\n", father == NULL, mother == NULL);
     
     // Create individual with the information extracted from the PED record
     individual_t *individual = individual_new(record->individual_id, record->phenotype, record->sex, father, mother, family);
-    if (father != NULL && mother != NULL) {
-        printf("** add child\n");
+    if (father != NULL || mother != NULL) {
+        LOG_DEBUG("** add child\n");
         family_add_child(individual, family);
     } else {
-        printf("** set family %s parent of sex %d\n", family->id, individual->sex);
-        family_set_parent(individual, family);
+        LOG_DEBUG_F("** set family %s parent of sex %d\n", family->id, individual->sex);
+        result = family_set_parent(individual, family);
+        if (result == 1) {
+            result = FATHER_APPEARS_MORE_THAN_ONCE;
+        } else if (result == 2) {
+            result = MOTHER_APPEARS_MORE_THAN_ONCE;
+        }
     }
 
-    return 0;
+    return result;
 }
 
