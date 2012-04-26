@@ -1,10 +1,12 @@
 #ifndef FAMILY_H
 #define FAMILY_H
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include <cprops/linked_list.h>
 
+#include <log.h>
 #include <string_utils.h>
 
 

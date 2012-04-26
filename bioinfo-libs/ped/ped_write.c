@@ -11,16 +11,23 @@ int ped_write_to_file(ped_file_t *ped_file, FILE *fd) {
     
     // Write members of each family
     family_t *family;
+    LOG_INFO_F("Number of families read: %d\n", num_families);
     for (int i = 0; i < num_families; i++) {
         family = families[i];
         // Write mother and father
         write_ped_individual(family->father, fd);
         write_ped_individual(family->mother, fd);
         // Write children
-        cp_list_iterator *iterator = cp_list_create_iterator(family->children, COLLECTION_LOCK_READ);
-        individual_t *child = NULL;
-        while ((child = cp_list_iterator_next(iterator)) != NULL) {
-            write_ped_individual(child, fd);
+        if (!cp_list_is_empty(family->children)) {
+            LOG_INFO_F("Family %s has %ld children\n", family->id, cp_list_item_count(family->children));
+            cp_list_iterator *iterator = cp_list_create_iterator(family->children, COLLECTION_LOCK_READ);
+            individual_t *child = NULL;
+            while ((child = cp_list_iterator_next(iterator)) != NULL) {
+                write_ped_individual(child, fd);
+            }
+            cp_list_iterator_destroy(iterator);
+        } else {
+            LOG_INFO_F("Family %s has no children\n", family->id);
         }
     }
     
@@ -34,8 +41,8 @@ void write_ped_individual(individual_t* individual, FILE* fd) {
     }
     
     fprintf(fd, "%s\t%s\t", individual->family->id, individual->id);
-    fprintf(fd, "%s\t%s\t%d\t", (individual->father == NULL) ? 0 : individual->father->id,
-                                (individual->mother == NULL) ? 0 : individual->mother->id,
+    fprintf(fd, "%s\t%s\t%d\t", (individual->father == NULL) ? "0" : individual->father->id,
+                                (individual->mother == NULL) ? "0" : individual->mother->id,
                                 individual->sex);
     if (individual->phenotype - ((int) individual->phenotype) > 1e3) {
         fprintf(fd, "%f\t\n", individual->phenotype);

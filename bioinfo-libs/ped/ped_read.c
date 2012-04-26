@@ -5,7 +5,14 @@
 //====================================================================================
 
 ped_record_t* create_ped_record() {
-    return malloc (sizeof(ped_record_t));
+    ped_record_t *record = (ped_record_t*) malloc (sizeof(ped_record_t));
+    record->family_id = NULL;
+    record->individual_id = NULL;
+    record->father_id = NULL;
+    record->mother_id = NULL;
+    record->sex = UNKNOWN;
+    record->phenotype = -9;
+    return record;
 }
 
 void set_ped_record_family_id(char* family_id, ped_record_t* ped_record) {

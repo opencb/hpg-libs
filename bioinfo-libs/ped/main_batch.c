@@ -24,11 +24,11 @@ int main (int argc, char *argv[])
     double start, stop, total;
     char *filename = (char*) malloc ((strlen(argv[1])+1) * sizeof(char));
     strncat(filename, argv[1], strlen(argv[1]));
-    ped_file_t* file;
+    ped_file_t* file = ped_open(filename);
     
-    init_log_custom(1, 1, NULL);
+    init_log(1, 1, NULL);
     
-#pragma omp parallel sections private(start, stop, total) lastprivate(file)
+#pragma omp parallel sections private(start, stop, total)
 {
     #pragma omp section
     {
@@ -36,7 +36,6 @@ int main (int argc, char *argv[])
         // Reading
         start = omp_get_wtime();
         
-        file = ped_open(filename);
         ret_code = ped_read_batches(read_list, batch_size, file);
         
         stop = omp_get_wtime();
@@ -67,21 +66,21 @@ int main (int argc, char *argv[])
         
         list_decr_writers(read_list);
         
-        ped_close(file, 0);
     }
     #pragma omp section
     {
-        printf("1st log debug\n");
         LOG_DEBUG_F("OMP num threads = %d\n", omp_get_num_threads());
         LOG_DEBUG_F("Thread %d prints info\n", omp_get_thread_num());
-        printf("after 1st log debug\n");
         
         start = omp_get_wtime();
         
         int i = 0;
         list_item_t* item = NULL;
+        ped_batch_t *batch = NULL;
+        list_item_t *batch_item = NULL;
         FILE *out = fopen("result.ped", "w");
         while ( (item = list_remove_item(read_list)) != NULL ) {
+            batch = (ped_batch_t*) item->data_p;
             if (i % 200 == 0) 
             {
                 int debug = 1;
@@ -89,13 +88,16 @@ int main (int argc, char *argv[])
                     ((ped_batch_t*) item->data_p)->length, ((ped_batch_t*) item->data_p)->max_length);
             }
             
-//             ped_write_to_file(file, out);
-//             ped_batch_print(stdout, item->data_p);
-            write_ped_batch(item->data_p, out);
+            while ( (batch_item = list_remove_item_async(batch)) != NULL) {
+                add_ped_record(batch_item->data_p, file);
+            }
+            
             ped_batch_free(item->data_p);
             list_item_free(item);
             i++;
         }
+        
+        ped_write_to_file(file, out);
         fclose(out);
         
         stop = omp_get_wtime();
@@ -106,6 +108,7 @@ int main (int argc, char *argv[])
     }
 }
 
+    ped_close(file, 0);
     free(read_list);
 
     return 0;

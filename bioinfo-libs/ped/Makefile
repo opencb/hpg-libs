@@ -14,7 +14,7 @@ LIBS = -lcprops -fopenmp
 
 # Source and object files
 MAIN_OBJECTS = ped_file.c ped_read.c ped_reader.c ped_write.c ped_batch.c
-MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o
+MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o $(BIOFORMATS_DIR)/family.c
 PED_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
 
 
@@ -31,8 +31,8 @@ ragel_graphviz:
 	ragel -o ped_ragel.dot -V -C -G2 ped.ragel
 
 main_batch: compile_dependencies compile ragel $(PED_BATCH_OBJECTS)
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(PED_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
-#	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(PED_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+#	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(PED_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(PED_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
 compile_dependencies:
 	cd $(COMMONS_DIR) && make file_utils.o && \

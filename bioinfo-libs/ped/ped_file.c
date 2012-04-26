@@ -96,15 +96,26 @@ int add_family(family_t* family, ped_file_t* ped_file) {
 }
 
 int get_num_families(ped_file_t* ped_file) {
+    if (ped_file == NULL) {
+        return -1;
+    }
     return cp_hashtable_count(ped_file->families);
 }
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
+    if (record == NULL) {
+        return -1;
+    }
+    if (ped_file == NULL) {
+        return -2;
+    }
+    
     // Get family or, should it not exist yet, create it
     family_t *family = cp_hashtable_get(ped_file->families, record->family_id);
     if (family == NULL) {
         family = family_new(record->family_id);
         if (add_family(family, ped_file)) {
+            LOG_ERROR_F("Could not add family %s\n", family->id);
             return 1;
         }
     }
@@ -128,16 +139,19 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         }
     }
     
+    printf("family->father = NULL? %d, family->mother = NULL? %d\n", family->father == NULL, family->mother == NULL);
+    printf("father = NULL? %d, mother = NULL? %d\n", father == NULL, mother == NULL);
+    
     // Create individual with the information extracted from the PED record
     individual_t *individual = individual_new(record->individual_id, record->phenotype, record->sex, father, mother, family);
     if (father != NULL && mother != NULL) {
+        printf("** add child\n");
         family_add_child(individual, family);
     } else {
+        printf("** set family %s parent of sex %d\n", family->id, individual->sex);
         family_set_parent(individual, family);
     }
 
-    ped_record_free(record);
-    
     return 0;
 }
 
