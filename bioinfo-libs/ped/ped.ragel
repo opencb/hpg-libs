@@ -32,8 +32,6 @@ static enum PED_Field current_field = FAMILY_ID;
     record_phenot   = empty | number ;
     record_genotype = (bases)+ ;
 
-    record		= record_family "\t" record_indiv "\t" record_father "\t" record_mother "\t" record_sex "\t" record_phenot ("\t" record_genotype)* ;
-    records		= record ("\n" record)* ("\n")? ;
 
     #########################################
     #                Machine                #
