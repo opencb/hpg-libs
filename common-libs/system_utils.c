@@ -86,11 +86,12 @@ int get_optimal_cpu_num_threads() {
 
 int get_optimal_gpu_num_threads() {
   int optimal_gpu_num_threads = 0;
-  
+  printf("before CUDA_VERSION........\n");
   #ifdef CUDA_VERSION
-  optimal_gpu_num_threads = 16 * get_cuda_device_warp_size();  
+  optimal_gpu_num_threads = 16 * get_cuda_device_warp_size(); 
+printf("get_cuda_device_warp_size(): %i\n", get_cuda_device_warp_size());
   #endif
-  
+  printf("after CUDA_VERSION........\n");
   return optimal_gpu_num_threads;
 }
 
