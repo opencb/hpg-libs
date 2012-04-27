@@ -16,6 +16,7 @@ static enum PED_Field current_field = FAMILY_ID;
     write data;
 
     number      = (digit)+ ("." (digit)+)? ;
+    bases       = ("A" | "C" | "G" | "T" | "N")+ ;
     comment     = "#" (print)* ;
 
     #########################################
@@ -23,15 +24,15 @@ static enum PED_Field current_field = FAMILY_ID;
     #########################################
 
     # Records rules
-    record_family   = empty | (alnum | "_")+ ;
+    record_family   = empty | (alnum | punct)+ ;
     record_indiv    = empty | (alnum | "_")+ ;
     record_father   = empty | (alnum | "_")+ ;
     record_mother   = empty | (alnum | "_")+ ;
     record_sex      = empty | number ;
     record_phenot   = empty | number ;
-    record_rest     = empty | (print)+ ;
+    record_genotype = (bases)+ ;
 
-    record		= record_family "\t" record_indiv "\t" record_father "\t" record_mother "\t" record_sex "\t" record_phenot "\t" record_rest ;
+    record		= record_family "\t" record_indiv "\t" record_father "\t" record_mother "\t" record_sex "\t" record_phenot ("\t" record_genotype)* ;
     records		= record ("\n" record)* ("\n")? ;
 
     #########################################
@@ -39,43 +40,45 @@ static enum PED_Field current_field = FAMILY_ID;
     #########################################
 
     main := |*
-        comment         => {
+        comment @ 6         => {
             LOG_DEBUG("Comment found, nothing to do.");
         };
 
-        record_family  	=> {
+        record_family @ 5   => {
             set_field(ts, te);
         };
         
-        record_indiv	=> {
+        record_indiv @ 5    => {
             set_field(ts, te);
         };
         
-        record_father 	=> {
+        record_father @ 5   => {
             set_field(ts, te);
         };
         
-        record_mother 	=> {
+        record_mother @ 5   => {
             set_field(ts, te);
         };
         
-        record_sex 	    => {
+        record_sex @ 5      => {
             set_field(ts, te);
         };
         
-        record_phenot 	=> {
+        record_phenot @ 5   => {
             set_field(ts, te);
         };
         
-        record_rest;
+        record_genotype @ 6 => {
+            LOG_DEBUG("Genotypes found, nothing to do.");
+        };
         
         "\n"		=> {
             // If batch is full, add to the list of batches and create a new, empty one
             if (ped_batch_is_full(current_batch))
             {
-                list_item_t *item = list_item_new(records, 1, current_batch); 
+                list_item_t *item = list_item_new(records, 1, current_batch);
                 list_insert_item(item, batches_list);
-                LOG_DEBUG_F("Batch added - %zu records", current_batch->length);
+                LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
                 current_batch = ped_batch_new(batch_size);
             }
             
@@ -85,7 +88,7 @@ static enum PED_Field current_field = FAMILY_ID;
                 records++;
             } else {
                 if (current_field > FAMILY_ID) {
-                    LOG_ERROR_F("Line %d - %d field(s) missing\n", lines, EOL - current_field);
+                    LOG_ERROR_F("Line %d - %d field(s) missing\n", lines, OTHER - current_field);
                     free(current_record);
                 }
             }
@@ -156,6 +159,7 @@ static void set_field(char* ts, char *te) {
         break;
     }
 
+//     LOG_DEBUG_F("Line %zu, current_field = %d\n", lines, current_field);
     current_field++;
 }
 
@@ -186,6 +190,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
 
     if ( cs < %%{ write first_final; }%% ) 
     {
+        LOG_ERROR("The file was not successfully read\n");
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, %%{ write first_final; }%%);
     } 
