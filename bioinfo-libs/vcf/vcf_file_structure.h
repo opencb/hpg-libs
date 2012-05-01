@@ -45,6 +45,7 @@ typedef struct vcf_record {
 typedef struct vcf_file {
 	char* filename;
 	char* mode;
+    FILE *fd;
 	char *data;
 	size_t data_len;
 	

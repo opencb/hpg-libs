@@ -22,6 +22,8 @@ int main (int argc, char *argv[])
     double start, stop, total;
     vcf_file_t* file;
 
+    init_log_custom(2, 1, NULL);
+    
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
 {
     #pragma omp section
@@ -72,7 +74,6 @@ int main (int argc, char *argv[])
         while ( (item = list_remove_item(read_list)) != NULL ) {
     // 			if (i % 200 == 0) 
     // 			{
-                int debug = 1;
                 LOG_DEBUG_F("Batch %d reached by thread %d - %zu/%zu records \n", i, omp_get_thread_num(), 
                     ((vcf_batch_t*) item->data_p)->length, ((vcf_batch_t*) item->data_p)->max_length);
     // 			}

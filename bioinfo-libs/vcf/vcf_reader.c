@@ -15,25 +15,24 @@ static enum VCF_Field current_field = CHROM;
 
 
 #line 18 "vcf_reader.c"
-static const int vcf_start = 1;
-static const int vcf_first_final = 80;
+static const int vcf_start = 78;
+static const int vcf_first_final = 78;
 static const int vcf_error = 0;
 
 static const int vcf_en_fileformat_scan = 82;
 static const int vcf_en_header_scan = 93;
 static const int vcf_en_delimiter_scan = 100;
 static const int vcf_en_record_scan = 102;
-static const int vcf_en_main = 1;
+static const int vcf_en_main = 78;
 
 
-#line 242 "vcf.ragel"
+#line 243 "vcf.ragel"
 
 
 static char* get_token(char *ts, char *te)
 {
-	char *field = (char*) malloc ((te-ts+1) * sizeof(char));
-	strncpy(field, ts, (te-ts));
-	field[te-ts] = '\0';
+	char *field = (char*) calloc ((te-ts+1), sizeof(char));
+    strncat(field, ts, (te-ts));
 	return field;
 }
 
@@ -95,20 +94,56 @@ static void set_field(char* ts, char *te)
 
 int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples)
 {
-	int cs;
-	char *p = file->data;
-	char *pe = p + file->data_len;
-	char *eof = pe;
-	char *ts, *te;
-	int stack[4];
-	int top, act;
+    int cs;
+    char *ts, *te;
+    int stack[4];
+    int top, act;
 
     store_samples = read_samples;
-	current_header_entry = create_header_entry();
-	current_batch = vcf_batch_new(batch_size);
-	
-	
-#line 112 "vcf_reader.c"
+    current_header_entry = create_header_entry();
+    current_batch = vcf_batch_new(batch_size);
+
+    size_t max_len = 256;
+    __ssize_t line_len = 0;
+
+    char *data = (char*) malloc (max_len * sizeof(char));
+    char *line = NULL;
+    char *aux;
+
+    int eof_found = 0;
+
+    // Read text of a batch and call ragel parser in a loop
+    while (!eof_found) {
+        memset(data, 0, max_len * sizeof(char));
+
+        for (int i = 0; i < batch_size && !eof_found; i++) {
+            line_len = getline(&line, &line_len, file->fd);
+            if (line_len != -1) {
+//                LOG_DEBUG_F("Line (len %zu): %s", line_len, line);
+                // Line too long to be stored in data, realloc
+                if (file->data_len + line_len + 1 > max_len) {
+                    aux = realloc(data, max_len + line_len * 20);
+                    if (aux) {
+                        data = aux;
+                        max_len += line_len * 20;
+                    } else {
+                        LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                    }
+                }
+                // Concat previous data with new line
+                strncat(data, line, line_len);
+                file->data_len += line_len;
+            } else {
+                eof_found = 1;
+            }
+        }
+
+        char *p = data;
+        char *pe = p + file->data_len;
+        char *eof = pe;
+
+        
+#line 147 "vcf_reader.c"
 	{
 	cs = vcf_start;
 	top = 0;
@@ -117,7 +152,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 	act = 0;
 	}
 
-#line 121 "vcf_reader.c"
+#line 156 "vcf_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -125,8 +160,9 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 
 _again:
 	switch ( cs ) {
-		case 1: goto st1;
+		case 78: goto st78;
 		case 0: goto st0;
+		case 1: goto st1;
 		case 2: goto st2;
 		case 3: goto st3;
 		case 4: goto st4;
@@ -174,6 +210,7 @@ _again:
 		case 46: goto st46;
 		case 47: goto st47;
 		case 48: goto st48;
+		case 79: goto st79;
 		case 49: goto st49;
 		case 50: goto st50;
 		case 51: goto st51;
@@ -192,10 +229,10 @@ _again:
 		case 64: goto st64;
 		case 65: goto st65;
 		case 66: goto st66;
-		case 67: goto st67;
-		case 68: goto st68;
 		case 80: goto st80;
 		case 81: goto st81;
+		case 67: goto st67;
+		case 68: goto st68;
 		case 69: goto st69;
 		case 70: goto st70;
 		case 71: goto st71;
@@ -204,8 +241,6 @@ _again:
 		case 74: goto st74;
 		case 75: goto st75;
 		case 76: goto st76;
-		case 77: goto st77;
-		case 78: goto st78;
 		case 82: goto st82;
 		case 83: goto st83;
 		case 84: goto st84;
@@ -220,7 +255,7 @@ _again:
 		case 93: goto st93;
 		case 94: goto st94;
 		case 95: goto st95;
-		case 79: goto st79;
+		case 77: goto st77;
 		case 96: goto st96;
 		case 97: goto st97;
 		case 98: goto st98;
@@ -251,423 +286,457 @@ _again:
 _resume:
 	switch ( cs )
 	{
-st1:
+st78:
 #line 1 "NONE"
 	{ts = 0;}
 	if ( ++p == pe )
-		goto _test_eof1;
-case 1:
-#line 261 "vcf_reader.c"
-	if ( (*p) == 35 )
-		goto st2;
+		goto _test_eof78;
+case 78:
+#line 296 "vcf_reader.c"
+	switch( (*p) ) {
+		case 35: goto st1;
+		case 95: goto tr82;
+	}
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr82;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto tr82;
+	} else
+		goto tr82;
 	goto st0;
 st0:
 cs = 0;
 	goto _out;
+st1:
+	if ( ++p == pe )
+		goto _test_eof1;
+case 1:
+	if ( (*p) == 35 )
+		goto tr0;
+	goto st0;
+tr0:
+#line 31 "vcf.ragel"
+	{ {stack[top++] = 2; goto st82;} }
+	goto st2;
 st2:
+#line 1 "NONE"
+	{ts = 0;}
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
+#line 330 "vcf_reader.c"
 	if ( (*p) == 35 )
-		goto tr2;
+		goto st3;
 	goto st0;
-tr2:
-#line 31 "vcf.ragel"
-	{ {stack[top++] = 3; goto st82;} }
-	goto st3;
 st3:
-#line 1 "NONE"
-	{ts = 0;}
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 285 "vcf_reader.c"
 	if ( (*p) == 35 )
-		goto st4;
+		goto tr3;
 	goto st0;
+tr3:
+#line 63 "vcf.ragel"
+	{ {stack[top++] = 4; goto st93;} }
+	goto st4;
 st4:
-	if ( ++p == pe )
-		goto _test_eof4;
-case 4:
-	if ( (*p) == 35 )
-		goto tr4;
-	goto st0;
-tr4:
-#line 61 "vcf.ragel"
-	{ {stack[top++] = 5; goto st93;} }
-	goto st5;
-st5:
 #line 1 "NONE"
 	{ts = 0;}
 	if ( ++p == pe )
+		goto _test_eof4;
+case 4:
+#line 351 "vcf_reader.c"
+	if ( (*p) == 35 )
+		goto st5;
+	goto st0;
+st5:
+	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 306 "vcf_reader.c"
-	if ( (*p) == 35 )
-		goto st6;
+	switch( (*p) ) {
+		case 35: goto tr3;
+		case 67: goto st6;
+	}
 	goto st0;
 st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-	switch( (*p) ) {
-		case 35: goto tr4;
-		case 67: goto st7;
-	}
+	if ( (*p) == 72 )
+		goto st7;
 	goto st0;
 st7:
 	if ( ++p == pe )
 		goto _test_eof7;
 case 7:
-	if ( (*p) == 72 )
+	if ( (*p) == 82 )
 		goto st8;
 	goto st0;
 st8:
 	if ( ++p == pe )
 		goto _test_eof8;
 case 8:
-	if ( (*p) == 82 )
+	if ( (*p) == 79 )
 		goto st9;
 	goto st0;
 st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-	if ( (*p) == 79 )
+	if ( (*p) == 77 )
 		goto st10;
 	goto st0;
 st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
-	if ( (*p) == 77 )
+	if ( (*p) == 9 )
 		goto st11;
 	goto st0;
 st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-	if ( (*p) == 9 )
+	if ( (*p) == 80 )
 		goto st12;
 	goto st0;
 st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
-	if ( (*p) == 80 )
+	if ( (*p) == 79 )
 		goto st13;
 	goto st0;
 st13:
 	if ( ++p == pe )
 		goto _test_eof13;
 case 13:
-	if ( (*p) == 79 )
+	if ( (*p) == 83 )
 		goto st14;
 	goto st0;
 st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-	if ( (*p) == 83 )
+	if ( (*p) == 9 )
 		goto st15;
 	goto st0;
 st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-	if ( (*p) == 9 )
+	if ( (*p) == 73 )
 		goto st16;
 	goto st0;
 st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-	if ( (*p) == 73 )
+	if ( (*p) == 68 )
 		goto st17;
 	goto st0;
 st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-	if ( (*p) == 68 )
+	if ( (*p) == 9 )
 		goto st18;
 	goto st0;
 st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-	if ( (*p) == 9 )
+	if ( (*p) == 82 )
 		goto st19;
 	goto st0;
 st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-	if ( (*p) == 82 )
+	if ( (*p) == 69 )
 		goto st20;
 	goto st0;
 st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-	if ( (*p) == 69 )
+	if ( (*p) == 70 )
 		goto st21;
 	goto st0;
 st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-	if ( (*p) == 70 )
+	if ( (*p) == 9 )
 		goto st22;
 	goto st0;
 st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
-	if ( (*p) == 9 )
+	if ( (*p) == 65 )
 		goto st23;
 	goto st0;
 st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-	if ( (*p) == 65 )
+	if ( (*p) == 76 )
 		goto st24;
 	goto st0;
 st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-	if ( (*p) == 76 )
+	if ( (*p) == 84 )
 		goto st25;
 	goto st0;
 st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-	if ( (*p) == 84 )
+	if ( (*p) == 9 )
 		goto st26;
 	goto st0;
 st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-	if ( (*p) == 9 )
+	if ( (*p) == 81 )
 		goto st27;
 	goto st0;
 st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-	if ( (*p) == 81 )
+	if ( (*p) == 85 )
 		goto st28;
 	goto st0;
 st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-	if ( (*p) == 85 )
+	if ( (*p) == 65 )
 		goto st29;
 	goto st0;
 st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-	if ( (*p) == 65 )
+	if ( (*p) == 76 )
 		goto st30;
 	goto st0;
 st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-	if ( (*p) == 76 )
+	if ( (*p) == 9 )
 		goto st31;
 	goto st0;
 st31:
 	if ( ++p == pe )
 		goto _test_eof31;
 case 31:
-	if ( (*p) == 9 )
+	if ( (*p) == 70 )
 		goto st32;
 	goto st0;
 st32:
 	if ( ++p == pe )
 		goto _test_eof32;
 case 32:
-	if ( (*p) == 70 )
+	if ( (*p) == 73 )
 		goto st33;
 	goto st0;
 st33:
 	if ( ++p == pe )
 		goto _test_eof33;
 case 33:
-	if ( (*p) == 73 )
+	if ( (*p) == 76 )
 		goto st34;
 	goto st0;
 st34:
 	if ( ++p == pe )
 		goto _test_eof34;
 case 34:
-	if ( (*p) == 76 )
+	if ( (*p) == 84 )
 		goto st35;
 	goto st0;
 st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-	if ( (*p) == 84 )
+	if ( (*p) == 69 )
 		goto st36;
 	goto st0;
 st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-	if ( (*p) == 69 )
+	if ( (*p) == 82 )
 		goto st37;
 	goto st0;
 st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-	if ( (*p) == 82 )
+	if ( (*p) == 9 )
 		goto st38;
 	goto st0;
 st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-	if ( (*p) == 9 )
+	if ( (*p) == 73 )
 		goto st39;
 	goto st0;
 st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-	if ( (*p) == 73 )
+	if ( (*p) == 78 )
 		goto st40;
 	goto st0;
 st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-	if ( (*p) == 78 )
+	if ( (*p) == 70 )
 		goto st41;
 	goto st0;
 st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-	if ( (*p) == 70 )
+	if ( (*p) == 79 )
 		goto st42;
 	goto st0;
 st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-	if ( (*p) == 79 )
+	if ( (*p) == 9 )
 		goto st43;
 	goto st0;
 st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-	if ( (*p) == 9 )
+	if ( (*p) == 70 )
 		goto st44;
 	goto st0;
 st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-	if ( (*p) == 70 )
+	if ( (*p) == 79 )
 		goto st45;
 	goto st0;
 st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-	if ( (*p) == 79 )
+	if ( (*p) == 82 )
 		goto st46;
 	goto st0;
 st46:
 	if ( ++p == pe )
 		goto _test_eof46;
 case 46:
-	if ( (*p) == 82 )
+	if ( (*p) == 77 )
 		goto st47;
 	goto st0;
 st47:
 	if ( ++p == pe )
 		goto _test_eof47;
 case 47:
-	if ( (*p) == 77 )
+	if ( (*p) == 65 )
 		goto st48;
 	goto st0;
 st48:
 	if ( ++p == pe )
 		goto _test_eof48;
 case 48:
-	if ( (*p) == 65 )
-		goto st49;
+	if ( (*p) == 84 )
+		goto tr48;
 	goto st0;
+tr48:
+#line 124 "vcf.ragel"
+	{ {stack[top++] = 79; goto st100;} }
+	goto st79;
+st79:
+#line 1 "NONE"
+	{ts = 0;}
+	if ( ++p == pe )
+		goto _test_eof79;
+case 79:
+#line 675 "vcf_reader.c"
+	if ( (*p) == 95 )
+		goto tr82;
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr82;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto tr82;
+	} else
+		goto tr82;
+	goto st0;
+tr82:
+#line 240 "vcf.ragel"
+	{ p--; {stack[top++] = 49; goto st102;} }
+	goto st49;
 st49:
+#line 1 "NONE"
+	{ts = 0;}
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-	if ( (*p) == 84 )
-		goto tr49;
-	goto st0;
-tr49:
-#line 122 "vcf.ragel"
-	{ {stack[top++] = 50; goto st100;} }
-	goto st50;
-st50:
-#line 1 "NONE"
-	{ts = 0;}
-	if ( ++p == pe )
-		goto _test_eof50;
-case 50:
-#line 630 "vcf_reader.c"
-	if ( (*p) == 95 )
-		goto tr50;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr50;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr50;
-	} else
-		goto tr50;
-	goto st0;
-tr50:
-#line 239 "vcf.ragel"
-	{ p--; {stack[top++] = 51; goto st102;} }
-	goto st51;
-st51:
-#line 1 "NONE"
-	{ts = 0;}
-	if ( ++p == pe )
-		goto _test_eof51;
-case 51:
-#line 652 "vcf_reader.c"
+#line 697 "vcf_reader.c"
 	switch( (*p) ) {
-		case 9: goto st52;
-		case 95: goto st51;
+		case 9: goto st50;
+		case 95: goto st49;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st51;
+			goto st49;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st51;
+			goto st49;
 	} else
+		goto st49;
+	goto st0;
+st50:
+	if ( ++p == pe )
+		goto _test_eof50;
+case 50:
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st51;
+	goto st0;
+st51:
+	if ( ++p == pe )
+		goto _test_eof51;
+case 51:
+	if ( (*p) == 9 )
+		goto st52;
+	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st51;
 	goto st0;
 st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-	if ( 48 <= (*p) && (*p) <= 57 )
+	if ( (*p) == 46 )
 		goto st53;
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto st76;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto st76;
+	} else
+		goto st76;
 	goto st0;
 st53:
 	if ( ++p == pe )
@@ -675,68 +744,60 @@ st53:
 case 53:
 	if ( (*p) == 9 )
 		goto st54;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st53;
 	goto st0;
 st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-	if ( (*p) == 46 )
-		goto st55;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st78;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st78;
-	} else
-		goto st78;
+	switch( (*p) ) {
+		case 65: goto st55;
+		case 67: goto st55;
+		case 71: goto st55;
+		case 78: goto st55;
+		case 84: goto st55;
+	}
 	goto st0;
 st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-	if ( (*p) == 9 )
-		goto st56;
+	switch( (*p) ) {
+		case 9: goto st56;
+		case 65: goto st55;
+		case 67: goto st55;
+		case 71: goto st55;
+		case 78: goto st55;
+		case 84: goto st55;
+	}
 	goto st0;
 st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
 	switch( (*p) ) {
-		case 65: goto st57;
-		case 67: goto st57;
-		case 71: goto st57;
-		case 78: goto st57;
-		case 84: goto st57;
+		case 46: goto st57;
+		case 65: goto st74;
+		case 67: goto st74;
+		case 71: goto st74;
+		case 78: goto st74;
+		case 84: goto st74;
 	}
 	goto st0;
 st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-	switch( (*p) ) {
-		case 9: goto st58;
-		case 65: goto st57;
-		case 67: goto st57;
-		case 71: goto st57;
-		case 78: goto st57;
-		case 84: goto st57;
-	}
+	if ( (*p) == 9 )
+		goto st58;
 	goto st0;
 st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-	switch( (*p) ) {
-		case 46: goto st59;
-		case 65: goto st76;
-		case 67: goto st76;
-		case 71: goto st76;
-		case 78: goto st76;
-		case 84: goto st76;
-	}
+	if ( (*p) == 46 )
+		goto st59;
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st71;
 	goto st0;
 st59:
 	if ( ++p == pe )
@@ -749,10 +810,18 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-	if ( (*p) == 46 )
-		goto st61;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st73;
+	switch( (*p) ) {
+		case 46: goto st61;
+		case 95: goto st69;
+	}
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto st69;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto st69;
+	} else
+		goto st69;
 	goto st0;
 st61:
 	if ( ++p == pe )
@@ -765,32 +834,40 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-	switch( (*p) ) {
-		case 46: goto st63;
-		case 95: goto st71;
-	}
+	if ( (*p) == 95 )
+		goto st63;
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st71;
+			goto st63;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st71;
+			goto st63;
 	} else
-		goto st71;
+		goto st63;
 	goto st0;
 st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-	if ( (*p) == 9 )
-		goto st64;
+	switch( (*p) ) {
+		case 9: goto st64;
+		case 59: goto st62;
+		case 61: goto st67;
+		case 95: goto st63;
+	}
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto st63;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto st63;
+	} else
+		goto st63;
 	goto st0;
 st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-	if ( (*p) == 95 )
-		goto st65;
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto st65;
@@ -806,9 +883,7 @@ st65:
 case 65:
 	switch( (*p) ) {
 		case 9: goto st66;
-		case 59: goto st64;
-		case 61: goto st69;
-		case 95: goto st65;
+		case 58: goto st64;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
@@ -823,36 +898,6 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st67;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st67;
-	} else
-		goto st67;
-	goto st0;
-st67:
-	if ( ++p == pe )
-		goto _test_eof67;
-case 67:
-	switch( (*p) ) {
-		case 9: goto st68;
-		case 58: goto st66;
-	}
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st67;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st67;
-	} else
-		goto st67;
-	goto st0;
-st68:
-	if ( ++p == pe )
-		goto _test_eof68;
-case 68:
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto st80;
 	goto st0;
@@ -861,7 +906,7 @@ st80:
 		goto _test_eof80;
 case 80:
 	switch( (*p) ) {
-		case 9: goto st68;
+		case 9: goto st66;
 		case 10: goto st81;
 	}
 	if ( 33 <= (*p) && (*p) <= 126 )
@@ -872,74 +917,90 @@ st81:
 		goto _test_eof81;
 case 81:
 	if ( (*p) == 95 )
-		goto st51;
+		goto st49;
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st51;
+			goto st49;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st51;
+			goto st49;
 	} else
-		goto st51;
+		goto st49;
+	goto st0;
+st67:
+	if ( ++p == pe )
+		goto _test_eof67;
+case 67:
+	if ( 33 <= (*p) && (*p) <= 126 )
+		goto st68;
+	goto st0;
+st68:
+	if ( ++p == pe )
+		goto _test_eof68;
+case 68:
+	if ( (*p) == 9 )
+		goto st64;
+	if ( 33 <= (*p) && (*p) <= 126 )
+		goto st68;
 	goto st0;
 st69:
 	if ( ++p == pe )
 		goto _test_eof69;
 case 69:
-	if ( 33 <= (*p) && (*p) <= 126 )
-		goto st70;
+	switch( (*p) ) {
+		case 9: goto st62;
+		case 44: goto st70;
+		case 59: goto st70;
+		case 95: goto st69;
+	}
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto st69;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto st69;
+	} else
+		goto st69;
 	goto st0;
 st70:
 	if ( ++p == pe )
 		goto _test_eof70;
 case 70:
-	if ( (*p) == 9 )
-		goto st66;
-	if ( 33 <= (*p) && (*p) <= 126 )
-		goto st70;
+	if ( (*p) == 95 )
+		goto st69;
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto st69;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto st69;
+	} else
+		goto st69;
 	goto st0;
 st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
 	switch( (*p) ) {
-		case 9: goto st64;
-		case 44: goto st72;
-		case 59: goto st72;
-		case 95: goto st71;
+		case 9: goto st60;
+		case 46: goto st72;
 	}
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st71;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st71;
-	} else
+	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st71;
 	goto st0;
 st72:
 	if ( ++p == pe )
 		goto _test_eof72;
 case 72:
-	if ( (*p) == 95 )
-		goto st71;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st71;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st71;
-	} else
-		goto st71;
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st73;
 	goto st0;
 st73:
 	if ( ++p == pe )
 		goto _test_eof73;
 case 73:
-	switch( (*p) ) {
-		case 9: goto st62;
-		case 46: goto st74;
-	}
+	if ( (*p) == 9 )
+		goto st60;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st73;
 	goto st0;
@@ -947,77 +1008,61 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st75;
+	switch( (*p) ) {
+		case 9: goto st58;
+		case 44: goto st75;
+		case 65: goto st74;
+		case 67: goto st74;
+		case 71: goto st74;
+		case 78: goto st74;
+		case 84: goto st74;
+	}
 	goto st0;
 st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-	if ( (*p) == 9 )
-		goto st62;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st75;
+	switch( (*p) ) {
+		case 65: goto st74;
+		case 67: goto st74;
+		case 71: goto st74;
+		case 78: goto st74;
+		case 84: goto st74;
+	}
 	goto st0;
 st76:
 	if ( ++p == pe )
 		goto _test_eof76;
 case 76:
-	switch( (*p) ) {
-		case 9: goto st60;
-		case 44: goto st77;
-		case 65: goto st76;
-		case 67: goto st76;
-		case 71: goto st76;
-		case 78: goto st76;
-		case 84: goto st76;
-	}
-	goto st0;
-st77:
-	if ( ++p == pe )
-		goto _test_eof77;
-case 77:
-	switch( (*p) ) {
-		case 65: goto st76;
-		case 67: goto st76;
-		case 71: goto st76;
-		case 78: goto st76;
-		case 84: goto st76;
-	}
-	goto st0;
-st78:
-	if ( ++p == pe )
-		goto _test_eof78;
-case 78:
 	if ( (*p) == 9 )
-		goto st56;
+		goto st54;
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st78;
+			goto st76;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st78;
+			goto st76;
 	} else
-		goto st78;
+		goto st76;
 	goto st0;
 tr84:
-#line 49 "vcf.ragel"
+#line 51 "vcf.ragel"
 	{te = p+1;}
 	goto st82;
 tr85:
-#line 47 "vcf.ragel"
+#line 49 "vcf.ragel"
 	{te = p+1;{ {cs = stack[--top];goto _again;} }}
 	goto st82;
 tr87:
-#line 43 "vcf.ragel"
-	{te = p+1;}
-	goto st82;
-tr88:
 #line 45 "vcf.ragel"
 	{te = p+1;}
 	goto st82;
+tr88:
+#line 47 "vcf.ragel"
+	{te = p+1;}
+	goto st82;
 tr90:
-#line 37 "vcf.ragel"
+#line 39 "vcf.ragel"
 	{te = p;p--;{ 
 			char *fileformat = (char*) malloc ((te-ts) * sizeof(char));
 			strncpy(fileformat, ts, te-ts);
@@ -1025,7 +1070,7 @@ tr90:
 		}}
 	goto st82;
 tr99:
-#line 35 "vcf.ragel"
+#line 37 "vcf.ragel"
 	{te = p+1;}
 	goto st82;
 st82:
@@ -1036,7 +1081,7 @@ st82:
 case 82:
 #line 1 "NONE"
 	{ts = p;}
-#line 1040 "vcf_reader.c"
+#line 1085 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr85;
 		case 32: goto tr84;
@@ -1138,8 +1183,8 @@ case 92:
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto st83;
 	goto tr90;
-tr80:
-#line 82 "vcf.ragel"
+tr78:
+#line 84 "vcf.ragel"
 	{{p = ((te))-1;}{
 			// Remove quotation marks if necessary
 			char *start = ts, *end = te;
@@ -1151,11 +1196,11 @@ tr80:
 		}}
 	goto st93;
 tr100:
-#line 111 "vcf.ragel"
+#line 113 "vcf.ragel"
 	{te = p+1;}
 	goto st93;
 tr101:
-#line 104 "vcf.ragel"
+#line 106 "vcf.ragel"
 	{te = p+1;{
 			add_header_entry(current_header_entry, file);
 			current_header_entry = create_header_entry();
@@ -1164,19 +1209,19 @@ tr101:
 		}}
 	goto st93;
 tr104:
-#line 100 "vcf.ragel"
+#line 102 "vcf.ragel"
 	{te = p+1;{
 			LOG_DEBUG(" , ");
 		}}
 	goto st93;
 tr107:
-#line 96 "vcf.ragel"
+#line 98 "vcf.ragel"
 	{te = p+1;{
 			LOG_DEBUG(" } ");
 		}}
 	goto st93;
 tr108:
-#line 82 "vcf.ragel"
+#line 84 "vcf.ragel"
 	{te = p;p--;{
 			// Remove quotation marks if necessary
 			char *start = ts, *end = te;
@@ -1188,7 +1233,7 @@ tr108:
 		}}
 	goto st93;
 tr110:
-#line 70 "vcf.ragel"
+#line 72 "vcf.ragel"
 	{te = p;p--;{
 			char *field_id = get_token(ts, te-1);
 			if (current_header_entry->name != NULL)
@@ -1202,14 +1247,14 @@ tr110:
 		}}
 	goto st93;
 tr111:
-#line 65 "vcf.ragel"
+#line 67 "vcf.ragel"
 	{te = p+1;{
 			char *header_id = get_token(ts, te-2);
 			set_header_entry_name(header_id, current_header_entry);
 		}}
 	goto st93;
 tr112:
-#line 92 "vcf.ragel"
+#line 94 "vcf.ragel"
 	{te = p+1;{
 			LOG_DEBUG(" =< ");
 		}}
@@ -1222,7 +1267,7 @@ st93:
 case 93:
 #line 1 "NONE"
 	{ts = p;}
-#line 1226 "vcf_reader.c"
+#line 1271 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr101;
 		case 34: goto tr103;
@@ -1275,28 +1320,28 @@ st95:
 	if ( ++p == pe )
 		goto _test_eof95;
 case 95:
-#line 1279 "vcf_reader.c"
+#line 1324 "vcf_reader.c"
 	if ( (*p) == 44 )
-		goto st79;
+		goto st77;
 	if ( (*p) > 61 ) {
 		if ( 63 <= (*p) && (*p) <= 126 )
 			goto tr103;
 	} else if ( (*p) >= 32 )
 		goto tr103;
 	goto tr108;
-st79:
+st77:
 	if ( ++p == pe )
-		goto _test_eof79;
-case 79:
+		goto _test_eof77;
+case 77:
 	if ( (*p) == 34 )
-		goto tr82;
+		goto tr80;
 	if ( (*p) > 61 ) {
 		if ( 63 <= (*p) && (*p) <= 126 )
-			goto st79;
+			goto st77;
 	} else if ( (*p) >= 32 )
-		goto st79;
-	goto tr80;
-tr82:
+		goto st77;
+	goto tr78;
+tr80:
 #line 1 "NONE"
 	{te = p+1;}
 	goto st96;
@@ -1304,14 +1349,14 @@ st96:
 	if ( ++p == pe )
 		goto _test_eof96;
 case 96:
-#line 1308 "vcf_reader.c"
+#line 1353 "vcf_reader.c"
 	if ( (*p) == 34 )
-		goto tr82;
+		goto tr80;
 	if ( (*p) > 61 ) {
 		if ( 63 <= (*p) && (*p) <= 126 )
-			goto st79;
+			goto st77;
 	} else if ( (*p) >= 32 )
-		goto st79;
+		goto st77;
 	goto tr108;
 st97:
 	if ( ++p == pe )
@@ -1369,18 +1414,18 @@ case 99:
 		goto st94;
 	goto tr108;
 tr113:
-#line 137 "vcf.ragel"
+#line 138 "vcf.ragel"
 	{te = p+1;}
 	goto st100;
 tr114:
-#line 132 "vcf.ragel"
+#line 133 "vcf.ragel"
 	{te = p+1;{
 			LOG_DEBUG("\n");
 			{cs = stack[--top];goto _again;} 
 		}}
 	goto st100;
 tr116:
-#line 127 "vcf.ragel"
+#line 128 "vcf.ragel"
 	{te = p;p--;{
 			char *sname = get_token(ts, te);
 			add_sample_name(sname, file);
@@ -1394,7 +1439,7 @@ st100:
 case 100:
 #line 1 "NONE"
 	{ts = p;}
-#line 1398 "vcf_reader.c"
+#line 1443 "vcf_reader.c"
 	if ( (*p) == 10 )
 		goto tr114;
 	if ( (*p) > 13 ) {
@@ -1411,11 +1456,11 @@ case 101:
 		goto st101;
 	goto tr116;
 tr117:
-#line 231 "vcf.ragel"
+#line 232 "vcf.ragel"
 	{te = p+1;}
 	goto st102;
 tr118:
-#line 210 "vcf.ragel"
+#line 211 "vcf.ragel"
 	{te = p+1;{
 			// If batch is full, add to the list of batches and create a new, empty one
 			if (batch_is_full(current_batch))
@@ -1464,31 +1509,31 @@ tr125:
 	}
 	goto st102;
 tr126:
-#line 170 "vcf.ragel"
+#line 171 "vcf.ragel"
 	{te = p;p--;{
 			set_field(ts, te);
 		}}
 	goto st102;
 tr132:
-#line 206 "vcf.ragel"
+#line 207 "vcf.ragel"
 	{te = p;p--;{
 			set_field(ts, te);
 		}}
 	goto st102;
 tr134:
-#line 194 "vcf.ragel"
+#line 195 "vcf.ragel"
 	{te = p;p--;{
 			set_field(ts, te);
 		}}
 	goto st102;
 tr137:
-#line 202 "vcf.ragel"
+#line 203 "vcf.ragel"
 	{te = p;p--;{
 			set_field(ts, te);
 		}}
 	goto st102;
 tr142:
-#line 186 "vcf.ragel"
+#line 187 "vcf.ragel"
 	{te = p;p--;{
 			set_field(ts, te);
 		}}
@@ -1501,7 +1546,7 @@ st102:
 case 102:
 #line 1 "NONE"
 	{ts = p;}
-#line 1505 "vcf_reader.c"
+#line 1550 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr118;
 		case 32: goto tr117;
@@ -1542,20 +1587,20 @@ case 102:
 tr119:
 #line 1 "NONE"
 	{te = p+1;}
-#line 206 "vcf.ragel"
+#line 207 "vcf.ragel"
 	{act = 27;}
 	goto st103;
 tr120:
 #line 1 "NONE"
 	{te = p+1;}
-#line 178 "vcf.ragel"
+#line 179 "vcf.ragel"
 	{act = 20;}
 	goto st103;
 st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1559 "vcf_reader.c"
+#line 1604 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr119;
 	goto tr125;
@@ -1652,20 +1697,20 @@ case 106:
 tr128:
 #line 1 "NONE"
 	{te = p+1;}
-#line 206 "vcf.ragel"
+#line 207 "vcf.ragel"
 	{act = 27;}
 	goto st107;
 tr135:
 #line 1 "NONE"
 	{te = p+1;}
-#line 190 "vcf.ragel"
+#line 191 "vcf.ragel"
 	{act = 23;}
 	goto st107;
 st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1669 "vcf_reader.c"
+#line 1714 "vcf_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 33 <= (*p) && (*p) <= 47 )
 			goto tr119;
@@ -1788,20 +1833,20 @@ case 111:
 tr131:
 #line 1 "NONE"
 	{te = p+1;}
-#line 206 "vcf.ragel"
+#line 207 "vcf.ragel"
 	{act = 27;}
 	goto st112;
 tr139:
 #line 1 "NONE"
 	{te = p+1;}
-#line 198 "vcf.ragel"
+#line 199 "vcf.ragel"
 	{act = 25;}
 	goto st112;
 st112:
 	if ( ++p == pe )
 		goto _test_eof112;
 case 112:
-#line 1805 "vcf_reader.c"
+#line 1850 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr139;
 	goto tr125;
@@ -1980,6 +2025,7 @@ case 117:
 		goto st117;
 	goto tr142;
 	}
+	_test_eof78: cs = 78; goto _test_eof; 
 	_test_eof1: cs = 1; goto _test_eof; 
 	_test_eof2: cs = 2; goto _test_eof; 
 	_test_eof3: cs = 3; goto _test_eof; 
@@ -2028,6 +2074,7 @@ case 117:
 	_test_eof46: cs = 46; goto _test_eof; 
 	_test_eof47: cs = 47; goto _test_eof; 
 	_test_eof48: cs = 48; goto _test_eof; 
+	_test_eof79: cs = 79; goto _test_eof; 
 	_test_eof49: cs = 49; goto _test_eof; 
 	_test_eof50: cs = 50; goto _test_eof; 
 	_test_eof51: cs = 51; goto _test_eof; 
@@ -2046,10 +2093,10 @@ case 117:
 	_test_eof64: cs = 64; goto _test_eof; 
 	_test_eof65: cs = 65; goto _test_eof; 
 	_test_eof66: cs = 66; goto _test_eof; 
-	_test_eof67: cs = 67; goto _test_eof; 
-	_test_eof68: cs = 68; goto _test_eof; 
 	_test_eof80: cs = 80; goto _test_eof; 
 	_test_eof81: cs = 81; goto _test_eof; 
+	_test_eof67: cs = 67; goto _test_eof; 
+	_test_eof68: cs = 68; goto _test_eof; 
 	_test_eof69: cs = 69; goto _test_eof; 
 	_test_eof70: cs = 70; goto _test_eof; 
 	_test_eof71: cs = 71; goto _test_eof; 
@@ -2058,8 +2105,6 @@ case 117:
 	_test_eof74: cs = 74; goto _test_eof; 
 	_test_eof75: cs = 75; goto _test_eof; 
 	_test_eof76: cs = 76; goto _test_eof; 
-	_test_eof77: cs = 77; goto _test_eof; 
-	_test_eof78: cs = 78; goto _test_eof; 
 	_test_eof82: cs = 82; goto _test_eof; 
 	_test_eof83: cs = 83; goto _test_eof; 
 	_test_eof84: cs = 84; goto _test_eof; 
@@ -2074,7 +2119,7 @@ case 117:
 	_test_eof93: cs = 93; goto _test_eof; 
 	_test_eof94: cs = 94; goto _test_eof; 
 	_test_eof95: cs = 95; goto _test_eof; 
-	_test_eof79: cs = 79; goto _test_eof; 
+	_test_eof77: cs = 77; goto _test_eof; 
 	_test_eof96: cs = 96; goto _test_eof; 
 	_test_eof97: cs = 97; goto _test_eof; 
 	_test_eof98: cs = 98; goto _test_eof; 
@@ -2114,7 +2159,7 @@ case 117:
 	case 92: goto tr90;
 	case 94: goto tr108;
 	case 95: goto tr108;
-	case 79: goto tr80;
+	case 77: goto tr78;
 	case 96: goto tr108;
 	case 97: goto tr108;
 	case 98: goto tr110;
@@ -2141,9 +2186,12 @@ case 117:
 	_out: {}
 	}
 
-#line 325 "vcf.ragel"
- 
-	
+#line 361 "vcf.ragel"
+
+
+        file->data_len = 0;
+    }
+
 	// Insert the last batch
 	if (!batch_is_empty(current_batch))
 	{
@@ -2153,16 +2201,16 @@ case 117:
 	}
 	
 	if ( cs < 
-#line 2157 "vcf_reader.c"
-80
-#line 335 "vcf.ragel"
+#line 2205 "vcf_reader.c"
+78
+#line 374 "vcf.ragel"
  ) 
 	{
 		LOG_INFO_F("Last state is %d, but %d was expected\n", 
 		       cs, 
-#line 2164 "vcf_reader.c"
-80
-#line 338 "vcf.ragel"
+#line 2212 "vcf_reader.c"
+78
+#line 377 "vcf.ragel"
 );
 	} 
 	
@@ -2170,11 +2218,13 @@ case 117:
 	LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
 	
 	// Free current_xxx pointers if not needed in another module
-	vcf_header_entry_free(current_header_entry);
+	vcf_header_entry_free(current_header_entry);    
+    free(line);
+    free(data);
 	
 	return cs < 
-#line 2177 "vcf_reader.c"
-80
-#line 347 "vcf.ragel"
+#line 2227 "vcf_reader.c"
+78
+#line 388 "vcf.ragel"
 ;
 }

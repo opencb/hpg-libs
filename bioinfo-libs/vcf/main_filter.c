@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
 	int num_filters;
 	filter_t **filter_list = sort_filter_chain(chain, &num_filters);
 
+    init_log_custom(2, 1, NULL);
 
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
     {

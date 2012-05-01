@@ -1,9 +1,11 @@
-#ifndef VCF_RAGEL_H
-#define VCF_RAGEL_H
+#ifndef VCF_READER_H
+#define VCF_READER_H
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <list.h>
 #include <log.h>

@@ -13,14 +13,17 @@
 
 vcf_file_t *vcf_open(char *filename) 
 {
-	size_t len;
-	char *data = mmap_file(&len, filename);
+// 	size_t len;
+// 	char *data = mmap_file(&len, filename);
 
 	vcf_file_t *vcf_file = (vcf_file_t *) malloc(sizeof(vcf_file_t));
 
 	vcf_file->filename = filename;
-	vcf_file->data = data;
-	vcf_file->data_len = len;
+    vcf_file->fd = fopen(filename, "r");
+// 	vcf_file->data = data;
+// 	vcf_file->data_len = len;
+    vcf_file->data = NULL;
+    vcf_file->data_len = 0;
 
 	// Initialize header
 	vcf_file->header_entries = (list_t*) malloc (sizeof(list_t));
@@ -76,7 +79,8 @@ void vcf_close(vcf_file_t *vcf_file)
 // 	}
 	free(vcf_file->records);
 
-	munmap((void*) vcf_file->data, vcf_file->data_len);
+// 	munmap((void*) vcf_file->data, vcf_file->data_len);
+    fclose(vcf_file->fd);
 	free(vcf_file);
 }
 
