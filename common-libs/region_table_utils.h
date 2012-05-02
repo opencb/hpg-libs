@@ -15,7 +15,7 @@
 #include <region.h>
 #include <region_table.h>
 
-region_table_t *parse_regions(char *input_regions);
+region_table_t *parse_regions(char *input_regions, int as_positions);
 
 region_table_t *parse_regions_from_gff_file(char *filename);
 

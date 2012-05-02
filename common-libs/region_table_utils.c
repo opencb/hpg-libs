@@ -1,7 +1,7 @@
 #include "region_table_utils.h"
 
 
-region_table_t *parse_regions(char *input_regions) {
+region_table_t *parse_regions(char *input_regions, int as_positions) {
     region_table_t *regions_table = create_table(NULL);
 
     char *str_1 = input_regions;
@@ -37,7 +37,15 @@ region_table_t *parse_regions(char *input_regions) {
         
         // Set end position
         subtoken = strtok_r(NULL, "-", &saveptr2);
-        region->end_position = (subtoken != NULL) ? atol(subtoken) : UINT_MAX;
+        if (subtoken != NULL) {
+            region->end_position = atol(subtoken);
+        } else {
+            if (as_positions) {
+                region->end_position = region->start_position;
+            } else {
+                region->end_position = UINT_MAX;
+            }
+        }
         
         LOG_DEBUG_F("-%u\n", region->end_position);
         
