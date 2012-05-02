@@ -29,16 +29,14 @@ static enum VCF_Field current_field = CHROM;
 	format_name	= (alnum | punct)+ ;
 	format_start	= "fileformat" ;
     fileformat  = "##" @{ fcall fileformat_scan; } ;
-#     format_start    = "##fileformat" ;
-# 	fileformat	= format_start @{ fcall fileformat_scan; } ;
 	
 	# File format scanner
 	fileformat_scan	:= |*
 		format_start @ 2 ;
 		
 		format_name @ 1	=> { 
-			char *fileformat = (char*) malloc ((te-ts) * sizeof(char));
-			strncpy(fileformat, ts, te-ts);
+			char *fileformat = (char*) calloc (te-ts+1, sizeof(char));
+			strncat(fileformat, ts, te-ts);
 			set_file_format(fileformat, file);
 		};
 		
@@ -210,7 +208,7 @@ static enum VCF_Field current_field = CHROM;
 		
 		"\n"		=> {
 			// If batch is full, add to the list of batches and create a new, empty one
-			if (batch_is_full(current_batch))
+			if (vcf_batch_is_full(current_batch))
 			{
 				list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
 				list_insert_item(item, batches_list);
@@ -220,7 +218,7 @@ static enum VCF_Field current_field = CHROM;
 
             // If not a blank line, add current record to current batch
             if (current_field != CHROM) {
-                add_record_to_batch(current_record, current_batch);
+                add_record_to_vcf_batch(current_record, current_batch);
                 records++;
             }
             
@@ -249,13 +247,11 @@ static char* get_token(char *ts, char *te)
 	return field;
 }
 
-static void set_field(char* ts, char *te)
-{
+static void set_field(char* ts, char *te) {
 	char *field = get_token(ts, te);
 	float quality = -1.0f;
 
-	switch (current_field)
-	{
+	switch (current_field) {
 		case CHROM:
 			current_record = create_record();
 			set_record_chromosome(field, current_record);
@@ -299,74 +295,95 @@ static void set_field(char* ts, char *te)
 		break;
 	}
 
-	if (current_field < SAMPLE)
-	{
+	if (current_field < SAMPLE) {
 		current_field++;
 	}
 }
 
-int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples)
-{
+static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file) {
     int cs;
     char *ts, *te;
     int stack[4];
     int top, act;
+    char *eof = pe;
+    
+    %%{
+        write init;
+        write exec;
+    }%%
+    
+    return cs;
+}
+
+
+int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+    int cs;
+//     char *ts, *te;
+//     int stack[4];
+//     int top, act;
+    char *p, *pe;
+//     char *eof;
 
     store_samples = read_samples;
     current_header_entry = create_header_entry();
     current_batch = vcf_batch_new(batch_size);
 
-    size_t max_len = 256;
-    __ssize_t line_len = 0;
+    if (mmap_vcf) {
+        LOG_DEBUG("Using mmap for file loading\n");
+        p = file->data;
+        pe = p + file->data_len;
+        cs = execute_ragel_machine(p, pe, batches_list, batch_size, file);
+    } else {
+        LOG_DEBUG("Using file-IO functions for file loading\n");
+        size_t max_len = 256;
+        __ssize_t line_len = 0;
 
-    char *data = (char*) malloc (max_len * sizeof(char));
-    char *line = NULL;
-    char *aux;
+        char *data = (char*) malloc (max_len * sizeof(char));
+        char *line = NULL;
+        char *aux;
+        
+        int eof_found = 0;
 
-    int eof_found = 0;
+        // Read text of a batch and call ragel parser in a loop
+        while (!eof_found) {
+            memset(data, 0, max_len * sizeof(char));
 
-    // Read text of a batch and call ragel parser in a loop
-    while (!eof_found) {
-        memset(data, 0, max_len * sizeof(char));
-
-        for (int i = 0; i < batch_size && !eof_found; i++) {
-            line_len = getline(&line, &line_len, file->fd);
-            if (line_len != -1) {
-//                LOG_DEBUG_F("Line (len %zu): %s", line_len, line);
-                // Line too long to be stored in data, realloc
-                if (file->data_len + line_len + 1 > max_len) {
-                    aux = realloc(data, max_len + line_len * 20);
-                    if (aux) {
-                        data = aux;
-                        max_len += line_len * 20;
-                    } else {
-                        LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+            for (int i = 0; i < batch_size && !eof_found; i++) {
+                line_len = getline(&line, &line_len, file->fd);
+                if (line_len != -1) {
+    //                LOG_DEBUG_F("Line (len %zu): %s", line_len, line);
+                    // Line too long to be stored in data, realloc
+                    if (file->data_len + line_len + 1 > max_len) {
+                        aux = realloc(data, max_len + line_len * 20);
+                        if (aux) {
+                            data = aux;
+                            max_len += line_len * 20;
+                        } else {
+                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                        }
                     }
+                    // Concat previous data with new line
+                    strncat(data, line, line_len);
+                    file->data_len += line_len;
+                } else {
+                    eof_found = 1;
                 }
-                // Concat previous data with new line
-                strncat(data, line, line_len);
-                file->data_len += line_len;
-            } else {
-                eof_found = 1;
             }
+
+            p = data;
+            pe = p + file->data_len;
+            cs = execute_ragel_machine(p, pe, batches_list, batch_size, file);
+            file->data_len = 0;
         }
-
-        char *p = data;
-        char *pe = p + file->data_len;
-        char *eof = pe;
-
-        %%{
-            write init;
-            write exec;
-        }%%
-
-        file->data_len = 0;
+        
+        if (line != NULL) { free(line); }
+        if (data != NULL) { free(data); }
     }
 
 	// Insert the last batch
-	if (!batch_is_empty(current_batch))
+	if (!vcf_batch_is_empty(current_batch))
 	{
-		list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
+		list_item_t *item = list_item_new(file->num_records, 1, current_batch);
 		list_insert_item(item, batches_list);
 		LOG_DEBUG_F("Batch added - %zu records (last)\n", current_batch->length);
 	}
@@ -381,9 +398,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 	LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
 	
 	// Free current_xxx pointers if not needed in another module
-	vcf_header_entry_free(current_header_entry);    
-    free(line);
-    free(data);
+	vcf_header_entry_free(current_header_entry);   
 	
 	return cs < %%{ write first_final; }%%;
 }

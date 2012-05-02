@@ -14,13 +14,14 @@ INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMA
 LIBS = -lcprops -fopenmp
 
 # Source and object files
-MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c
+MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c vcf_util.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
+VCF_OBJECTS = ./vcf_*.o
 
 VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
-VCF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
+VCF_BATCH_OBJECTS = $(VCF_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
 VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
 
 
@@ -28,8 +29,8 @@ VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABL
 all: compile_dependencies ragel compile main_batch main_filter
 
 compile:
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
-# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+# 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 ragel:
 	ragel -o vcf_reader.c -C -G2 vcf.ragel
@@ -38,8 +39,8 @@ ragel_graphviz:
 	ragel -o vcf_ragel.dot -V -C -G2 vcf.ragel
 
 main_batch: compile_dependencies compile $(VCF_BATCH_OBJECTS) 
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
-# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+# 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ main_batch.c $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ main_batch.c $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
 main_filter: compile_dependencies ragel compile $(VCF_FILTER_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
@@ -58,6 +59,7 @@ compile_dependencies:
 	cd $(CONTAINERS_DIR) && make region_table.o && \
 	cd $(CONTAINERS_DIR) && make region_table_utils.o && \
 	cd $(COMMONS_DIR) && make string_utils.o && \
+	cd $(COMMONS_DIR) && make file_utils.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile
 
 clean:

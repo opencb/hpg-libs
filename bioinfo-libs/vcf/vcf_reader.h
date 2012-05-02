@@ -7,13 +7,17 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <file_utils.h>
 #include <list.h>
 #include <log.h>
 
+#include "vcf_util.h"
 #include "vcf_file_structure.h"
 #include "vcf_file.h"
 #include "vcf_read.h"
 #include "vcf_batch.h"
+
+extern int mmap_vcf;
 
 
 enum VCF_Field { CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT, SAMPLE };

@@ -2,14 +2,17 @@
 #include <stdlib.h>
 #include <omp.h>
 
+#include <list.h>
 #include <log.h>
 
+#include "vcf_util.h"
 #include "vcf_file_structure.h"
 #include "vcf_file.h"
 #include "vcf_read.h"
 #include "vcf_reader.h"
 
-#include "list.h"
+
+extern int mmap_vcf;
 
 int main (int argc, char *argv[])
 {
@@ -23,6 +26,10 @@ int main (int argc, char *argv[])
     vcf_file_t* file;
 
     init_log_custom(2, 1, NULL);
+    
+    if (argc > 2 && strcmp(argv[2], "mmap-vcf") == 0) {
+        mmap_vcf = 1;
+    }
     
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
 {
@@ -43,11 +50,11 @@ int main (int argc, char *argv[])
         LOG_INFO_F("[%dR] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
         
         // Writing to a new file
-        if (argc == 3) 
+        if (argc == 4) 
         {
             start = omp_get_wtime();
         
-            ret_code = vcf_write(file, argv[2]);
+            ret_code = vcf_write(file, argv[3]);
             
             stop = omp_get_wtime();
             total = (stop - start);

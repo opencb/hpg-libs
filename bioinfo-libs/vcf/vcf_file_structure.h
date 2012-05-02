@@ -45,8 +45,10 @@ typedef struct vcf_record {
 typedef struct vcf_file {
 	char* filename;
 	char* mode;
-    FILE *fd;
-	char *data;
+    
+    FILE *fd;   /**< Should the file be loaded using IO functions, the file descriptor is set */
+    
+	char *data;   /**< Should the file be loaded using mmap, its contents are set */
 	size_t data_len;
 	
 	char* format;

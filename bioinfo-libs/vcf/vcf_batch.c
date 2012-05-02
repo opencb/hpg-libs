@@ -20,18 +20,18 @@ void vcf_batch_free(vcf_batch_t* vcf_batch_p)
     free(vcf_batch_p);
 }
 
-void add_record_to_batch(vcf_record_t *record, vcf_batch_t *vcf_batch)
+void add_record_to_vcf_batch(vcf_record_t *record, vcf_batch_t *vcf_batch)
 {
     list_item_t *item = list_item_new(vcf_batch->length, 1, record);
     list_insert_item(item, vcf_batch);
 }
 
-inline int batch_is_empty(vcf_batch_t *vcf_batch)
+inline int vcf_batch_is_empty(vcf_batch_t *vcf_batch)
 {
     return vcf_batch->length == 0;
 }
 
-inline int batch_is_full(vcf_batch_t *vcf_batch)
+inline int vcf_batch_is_full(vcf_batch_t *vcf_batch)
 {
     return vcf_batch->length == vcf_batch->max_length;
 }

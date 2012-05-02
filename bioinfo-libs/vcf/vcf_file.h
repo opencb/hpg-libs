@@ -14,12 +14,14 @@
 #include <list.h>
 #include <log.h>
 
+#include "vcf_util.h"
 #include "vcf_file_structure.h"
 #include "vcf_reader.h"
 #include "vcf_write.h"
 
 #define INIT_RECORD_SIZE	100
 
+extern int mmap_vcf;
 
 //====================================================================================
 //  vcf_file.h

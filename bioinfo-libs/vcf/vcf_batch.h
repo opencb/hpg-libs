@@ -26,11 +26,13 @@ vcf_batch_t* vcf_batch_new(size_t size);
 
 void vcf_batch_free(vcf_batch_t *vcf_batch);
 
-void add_record_to_batch(vcf_record_t *record, vcf_batch_t *vcf_batch);
+void add_record_to_vcf_batch(vcf_record_t *record, vcf_batch_t *vcf_batch);
 
-int batch_is_empty(vcf_batch_t *vcf_batch);
 
-int batch_is_full(vcf_batch_t *vcf_batch);
+int vcf_batch_is_empty(vcf_batch_t *vcf_batch);
+
+int vcf_batch_is_full(vcf_batch_t *vcf_batch);
+
 
 void vcf_batch_print(FILE *fd, vcf_batch_t *vcf_batch);
 
