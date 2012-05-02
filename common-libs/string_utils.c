@@ -131,7 +131,7 @@ char* remove_char(char *str, char c) {
     }
     char *str_aux = (char*)malloc((str_len - count + 1) * sizeof(char));
     
-    for (int i = 0, int j = 0; i < str_len + 1; i++) {
+    for (int i = 0, j = 0; i < str_len + 1; i++) {
         if (str[i] != c) {
             str_aux[j] = str[i];
             j++;
@@ -147,7 +147,7 @@ char* remove_char_at(char *str, int position) {
     int str_len = strlen(str);    
     char *str_aux = (char*)malloc((str_len) * sizeof(char));
     
-    for (int i = 0, int j = 0; i < str_len + 1; i++) {
+    for (int i = 0, j = 0; i < str_len + 1; i++) {
         if (i != position) {
             str_aux[j] = str[i];
             j++;
@@ -231,13 +231,14 @@ char* str_replace(char *str, const char *orig, const char *repl, int max_line_le
 }
 
 int array_concat(char **dest, int orig1_length, const char **orig1, int orig2_length, const char **orig2) {
-    for (int i = 0; i < orig1_length; i++) {
+    int i, j;
+    for (i = 0; i < orig1_length; i++) {
         dest[i] = (char*)malloc(strlen(orig1[i]) * sizeof(char) + 1);
 
         strcpy(dest[i], orig1[i]);
     }
 
-    for (int i = orig1_length, int j = 0; j < orig2_length; i++, j++) {
+    for (i = orig1_length, j = 0; j < orig2_length; i++, j++) {
         dest[i] = (char *)malloc(strlen(orig2[j]) * sizeof(char) + 1);
         strcpy(dest[i], orig2[j]);
     }
