@@ -45,7 +45,27 @@ filter_t *create_region_filter(char *region_descriptor, int use_region_file) {
         reg_args->regions = parse_regions_from_gff_file(region_descriptor);
     } else
     {
-        reg_args->regions = parse_regions(region_descriptor);
+        reg_args->regions = parse_regions(region_descriptor, 0);
+    }
+    region_f->args = reg_args;
+
+    return region_f;
+}
+
+filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file) {
+    filter_t *region_f = (filter_t*) malloc (sizeof(filter_t));
+    region_f->type = REGION;
+    region_f->filter_func = region_filter;
+    region_f->free_func = free_region_filter;
+    region_f->priority = 2;
+
+    region_filter_args *reg_args = (region_filter_args*) malloc (sizeof(region_filter_args));
+    if (use_region_file)
+    {
+        reg_args->regions = parse_regions_from_gff_file(region_descriptor);
+    } else
+    {
+        reg_args->regions = parse_regions(region_descriptor, 1);
     }
     region_f->args = reg_args;
 

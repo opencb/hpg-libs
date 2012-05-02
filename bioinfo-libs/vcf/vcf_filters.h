@@ -64,6 +64,8 @@ void free_snp_filter(filter_t *filter);
 
 filter_t *create_region_filter(char *region_descriptor, int use_region_file);
 
+filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file);
+
 void free_region_filter(filter_t *filter);
 
 int filter_compare(const void *filter1, const void *filter2);

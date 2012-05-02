@@ -13,7 +13,7 @@ INCLUDES = -I $(SRC_DIR) -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR)
 LIBS = -lpthread -lcheck -lcprops -fopenmp
 
 
-SRC_OBJECTS = $(SRC_DIR)/vcf_filters.c $(SRC_DIR)/vcf_file.c $(SRC_DIR)/vcf_read.c $(SRC_DIR)/vcf_reader.c $(SRC_DIR)/vcf_write.c $(SRC_DIR)/vcf_batch.c $(SRC_DIR)/util.c
+SRC_OBJECTS = $(SRC_DIR)/vcf_filters.c $(SRC_DIR)/vcf_file.c $(SRC_DIR)/vcf_read.c $(SRC_DIR)/vcf_reader.c $(SRC_DIR)/vcf_write.c $(SRC_DIR)/vcf_batch.c $(SRC_DIR)/vcf_util.c
 GFF_OBJECTS = $(GFF_DIR)/gff_file.c $(GFF_DIR)/gff_read.c $(GFF_DIR)/gff_reader.c $(GFF_DIR)/gff_write.c $(GFF_DIR)/gff_batch.c
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 
