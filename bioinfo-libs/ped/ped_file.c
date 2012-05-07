@@ -63,7 +63,37 @@ void ped_record_free(ped_record_t* ped_record) {
 //-----------------------------------------------------
 
 int ped_read(ped_file_t *ped_file) {
-    return ped_ragel_read(NULL, 1, ped_file);
+    list_t *ped_batches = (list_t*) malloc (sizeof(list_t));
+    list_init("batches", 1, 100, ped_batches);
+    
+    int ret_code = 0;
+#pragma omp parallel sections
+{
+#pragma omp section
+    {
+        ret_code = ped_read_batches(ped_batches, 1000, ped_file);
+        
+        if (ret_code) {
+            LOG_FATAL_F("Error %d while reading the file %s\n", ret_code, ped_file->filename);
+        }
+    }
+    
+#pragma omp section
+    {
+        list_item_t *item = NULL;
+        list_item_t *record_item = NULL;
+        while ((item = list_remove_item(ped_batches)) != NULL) {
+            ped_batch_t *batch = (ped_batch_t*) item->data_p;
+            while ((record_item = list_remove_item(batch)) != NULL) {
+                ret_code &= add_ped_record(record_item->data_p, ped_file);
+                list_item_free(record_item);
+            }
+            ped_batch_free(batch);
+        }
+    }
+}
+    return ret_code;
+//     return ped_ragel_read(NULL, 1, ped_file);
 }
 
 int ped_read_batches(list_t *batches_list, size_t batch_size, ped_file_t *ped_file) {

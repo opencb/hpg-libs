@@ -22,7 +22,7 @@ static const int ped_error = 0;
 static const int ped_en_main = 1;
 
 
-#line 105 "ped.ragel"
+#line 103 "ped.ragel"
 
 
 
@@ -112,11 +112,11 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
 	switch ( cs )
 	{
 tr0:
-#line 102 "ped.ragel"
+#line 100 "ped.ragel"
 	{te = p+1;}
 	goto st1;
 tr2:
-#line 75 "ped.ragel"
+#line 73 "ped.ragel"
 	{te = p+1;{
             // If batch is full, add to the list of batches and create a new, empty one
             if (ped_batch_is_full(current_batch))
@@ -145,19 +145,19 @@ tr2:
         }}
 	goto st1;
 tr8:
-#line 47 "ped.ragel"
+#line 45 "ped.ragel"
 	{te = p;p--;{
             set_field(ts, te);
         }}
 	goto st1;
 tr9:
-#line 43 "ped.ragel"
+#line 41 "ped.ragel"
 	{te = p;p--;{
             LOG_DEBUG("Comment found, nothing to do.");
         }}
 	goto st1;
 tr11:
-#line 71 "ped.ragel"
+#line 69 "ped.ragel"
 	{te = p;p--;{
             LOG_DEBUG("Genotypes found, nothing to do.");
         }}
@@ -331,7 +331,7 @@ case 7:
 	_out: {}
 	}
 
-#line 181 "ped.ragel"
+#line 179 "ped.ragel"
  
 
     // Insert the last batch
@@ -345,7 +345,7 @@ case 7:
     if ( cs < 
 #line 347 "ped_reader.c"
 1
-#line 191 "ped.ragel"
+#line 189 "ped.ragel"
  ) 
     {
         LOG_ERROR("The file was not successfully read\n");
@@ -353,7 +353,7 @@ case 7:
                 cs, 
 #line 355 "ped_reader.c"
 1
-#line 195 "ped.ragel"
+#line 193 "ped.ragel"
 );
     } 
 
@@ -362,6 +362,6 @@ case 7:
     return cs < 
 #line 364 "ped_reader.c"
 1
-#line 200 "ped.ragel"
+#line 198 "ped.ragel"
 ;
 }

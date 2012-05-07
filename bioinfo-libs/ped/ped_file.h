@@ -12,11 +12,13 @@
 
 #include <cprops/hashtable.h>
 #include <cprops/linked_list.h>
+#include <omp.h>
 
 #include <family.h>
 #include <file_utils.h>
 #include <log.h>
 
+#include "ped_batch.h"
 #include "ped_error.h"
 #include "ped_file_structure.h"
 #include "ped_reader.h"
