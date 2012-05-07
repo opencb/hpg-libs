@@ -21,6 +21,6 @@ region_table.o:
 	$(CC) $(CFLAGS) -c region_table.c $(INCLUDES) $(LIBS)
 
 clean:
-	rm list.o
-	rm region_table.o
+	-rm list.o
+	-rm region_table.o
 
