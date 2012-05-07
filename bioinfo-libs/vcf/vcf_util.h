@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 
 static int debug = 0;
@@ -16,5 +17,7 @@ static int benchmark = 1;
 int mmap_vcf;
 
 size_t count_regions(char *regions_string);
+
+int get_alleles(char *sample, int *allele1, int *allele2);
 
 #endif
