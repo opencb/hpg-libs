@@ -190,12 +190,14 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     // Create individual with the information extracted from the PED record
-    individual_t *individual = individual_new(record->individual_id, record->phenotype, record->sex, father, mother, family);
+    aux_buffer = (char*) calloc (strlen(record->individual_id)+1, sizeof(char));
+    strncat(aux_buffer, record->individual_id, strlen(record->individual_id));
+    individual_t *individual = individual_new(aux_buffer, record->phenotype, record->sex, father, mother, family);
     if (father != NULL || mother != NULL) {
-        LOG_DEBUG_F("** add family %s child\n", family->id);
+        LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);
     } else {
-        LOG_DEBUG_F("** set family %s parent of sex %d\n", family->id, individual->sex);
+        LOG_DEBUG_F("** set family %s parent of sex %d (id %s)\n", family->id, individual->sex, individual->id);
         result = family_set_parent(individual, family);
         if (result == 1) {
             result = FATHER_APPEARS_MORE_THAN_ONCE;
