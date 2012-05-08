@@ -48,7 +48,7 @@ void list_item_free(list_item_t* item_p);
 
 //-----------------------------------------------------
 void list_init(char* name, int writers, size_t max_length, list_t* list_p);
-void list_free(list_t* list_p, void* (*data_callback) (void* data));
+void list_free_deep(list_t* list_p, void* (*data_callback) (void* data));
 
 int list_insert_item(list_item_t* item_p, list_t* list_p);
 list_item_t* list_remove_item(list_t* list_p);

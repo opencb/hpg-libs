@@ -50,7 +50,7 @@ void list_init(char* name, int writers, size_t max_length, list_t* list_p) {
    list_p->removing = 0;
 }
 
-void list_free(list_t* list_p, void* (*data_callback) (void* data)) {
+void list_free_deep(list_t* list_p, void* (*data_callback) (void* data)) {
     list_item_t *freed = NULL;
     while ((freed = list_remove_item_async(list_p)) != NULL) {
         if (data_callback) {
