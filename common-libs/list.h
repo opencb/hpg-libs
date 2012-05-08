@@ -66,4 +66,6 @@ int list_decr_writers(list_t* list_p);
 
 void list_print(list_t * list_p);
 
+void **list_to_array(list_t *list_p);
+
 #endif /* LIST_H */
