@@ -155,7 +155,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         }
     }
     
-    LOG_INFO_F("father id = %s\tmother id = %s\n", record->father_id, record->mother_id);
+    LOG_DEBUG_F("father id = %s\tmother id = %s\n", record->father_id, record->mother_id);
     
     // Get parents from family or, should they not exist yet, create them
     individual_t *father = NULL, *mother = NULL;
