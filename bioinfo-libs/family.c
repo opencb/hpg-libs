@@ -5,19 +5,20 @@
  * Individual management functions
  */
 
-individual_t *individual_new(char *id, float phenotype, enum Sex sex, individual_t *father, individual_t *mother, family_t *family) {
+individual_t *individual_new(char *id, float phenotype, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family) {
     individual_t *individual = (individual_t*) malloc (sizeof(individual_t));
-    individual_init(id, phenotype, sex, father, mother, family, individual);
+    individual_init(id, phenotype, sex, condition, father, mother, family, individual);
     return individual;
 }
 
-void individual_init(char *id, float phenotype, enum Sex sex, individual_t *father, individual_t *mother, family_t *family, individual_t *individual) {
+void individual_init(char *id, float phenotype, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family, individual_t *individual) {
     if (individual == NULL) {
         return;
     }
     
     individual->id = id;
     individual->phenotype = phenotype;
+    individual->condition = condition;
     individual->sex = sex;
     individual->father = father;
     individual->mother = mother;

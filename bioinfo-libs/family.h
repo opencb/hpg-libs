@@ -11,7 +11,7 @@
 
 
 enum Sex { UNKNOWN, MALE, FEMALE };
-
+enum Condition { MISSING, AFFECTED, UNAFFECTED };
 
 /**
  * Entry in the PED document body, representing an individual and member of a family.
@@ -20,6 +20,7 @@ typedef struct individual {
     char *id;   /**< Unique ID of the individual **/
     float phenotype;    /**< Numerical descriptor for the affection of the individual */
     enum Sex sex;   /**< Sex of the individual */
+    enum Condition condition;  /**< Whether the individual is affected by a disease or not, or its data are missing */
     struct individual *father;  /**< Father of the individual (NULL in case he's parent in a family) */
     struct individual *mother;  /**< Mother of the individual (NULL in case he's parent in a family) */
     struct family *family;  /**< Family of the individual **/
@@ -46,12 +47,13 @@ typedef struct family {
  * @param id unique ID of the individual
  * @param phenotype numerical descriptor for the affection of the individual
  * @param sex sex of the individual
+ * @param condition whether the individual is un/affected or missing
  * @param father father of the individual, if apply
  * @param mother mother of the individual, if apply
  * @param family family of the individual
  * @return The newly created individual
  */
-individual_t *individual_new(char *id, float phenotype, enum Sex sex, individual_t *father, individual_t *mother, family_t *family);
+individual_t *individual_new(char *id, float phenotype, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family);
 
 /**
  * Fills member of an already existing individual with the characteristics provided as arguments.
@@ -64,7 +66,7 @@ individual_t *individual_new(char *id, float phenotype, enum Sex sex, individual
  * @param family family of the individual
  * @param individual individual whose members are being filled
  */
-void individual_init(char *id, float phenotype, enum Sex sex, individual_t *father, individual_t *mother, family_t *family, individual_t *individual);
+void individual_init(char *id, float phenotype, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family, individual_t *individual);
 
 /**
  * Free memory associated to an individual.

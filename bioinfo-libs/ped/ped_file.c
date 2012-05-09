@@ -142,6 +142,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     int result = 0;
+    enum Condition condition = MISSING;
     char *aux_buffer;
     
     // Get family or, should it not exist yet, create it
@@ -169,7 +170,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         } else {
             aux_buffer = (char*) calloc (strlen(record->father_id)+1, sizeof(char));
             strncat(aux_buffer, record->father_id, strlen(record->father_id));
-            father = individual_new(aux_buffer, -9, MALE, NULL, NULL, family);
+            father = individual_new(aux_buffer, -9, MALE, condition, NULL, NULL, family);
             family_set_parent(father, family);
         }
     }
@@ -184,7 +185,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         } else {
             aux_buffer = (char*) calloc (strlen(record->mother_id)+1, sizeof(char));
             strncat(aux_buffer, record->mother_id, strlen(record->mother_id));
-            mother = individual_new(aux_buffer, -9, FEMALE, NULL, NULL, family);
+            mother = individual_new(aux_buffer, -9, FEMALE, condition, NULL, NULL, family);
             family_set_parent(mother, family);
         }
     }
@@ -192,7 +193,14 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     // Create individual with the information extracted from the PED record
     aux_buffer = (char*) calloc (strlen(record->individual_id)+1, sizeof(char));
     strncat(aux_buffer, record->individual_id, strlen(record->individual_id));
-    individual_t *individual = individual_new(aux_buffer, record->phenotype, record->sex, father, mother, family);
+  
+    if (record->phenotype == 1.0) {
+        condition = UNAFFECTED;
+    } else if (record->phenotype == 2.0) {
+        condition = AFFECTED;
+    }
+    
+    individual_t *individual = individual_new(aux_buffer, record->phenotype, record->sex, condition, father, mother, family);
     if (father != NULL || mother != NULL) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);
