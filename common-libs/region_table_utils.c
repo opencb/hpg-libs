@@ -27,13 +27,9 @@ region_table_t *parse_regions(char *input_regions, int as_positions) {
         strncpy(region->chromosome, subtoken, subtoken_len);
         region->chromosome[subtoken_len] = '\0';
         
-        LOG_DEBUG_F("region %s", region->chromosome);
-        
         // Set start position
         subtoken = strtok_r(NULL, "-", &saveptr2);
         region->start_position = (subtoken != NULL) ? atol(subtoken) : 1;
-        
-        LOG_DEBUG_F(":%u", region->start_position);
         
         // Set end position
         subtoken = strtok_r(NULL, "-", &saveptr2);
@@ -47,7 +43,7 @@ region_table_t *parse_regions(char *input_regions, int as_positions) {
             }
         }
         
-        LOG_DEBUG_F("-%u\n", region->end_position);
+        LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
         
         insert_region(region, regions_table);
         
@@ -107,7 +103,7 @@ region_table_t *parse_regions_from_gff_file(char *filename) {
                     strncat(region->chromosome, record->sequence, strlen(record->sequence));
                     region->start_position = record->start;
                     region->end_position = record->end;
-                    LOG_DEBUG_F("region '%s:%u-%u'", region->chromosome, region->start_position, region->end_position);
+                    LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
                     insert_region(region, regions_table);
                 }
