@@ -11,8 +11,11 @@
 //-----------------------------------------------------
 
 
-vcf_file_t *vcf_open(char *filename) 
-{
+vcf_file_t *vcf_open(char *filename) {
+    if (!exists(filename)) {
+        return NULL;
+    }
+    
 	vcf_file_t *vcf_file = (vcf_file_t *) malloc(sizeof(vcf_file_t));
     vcf_file->filename = filename;
     
@@ -52,8 +55,7 @@ vcf_file_t *vcf_open(char *filename)
 // vcf_close and memory freeing
 //-----------------------------------------------------
 
-void vcf_close(vcf_file_t *vcf_file) 
-{
+void vcf_close(vcf_file_t *vcf_file) {
 	// Free file format
 	free(vcf_file->format);
 	// Free samples names
@@ -91,8 +93,7 @@ void vcf_close(vcf_file_t *vcf_file)
 	free(vcf_file);
 }
 
-void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry)
-{
+void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 	// Free entry name
 	free(vcf_header_entry->name);
 	// Free list of keys
@@ -115,8 +116,7 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry)
 	free(vcf_header_entry);
 }
 
-void vcf_record_free(vcf_record_t *vcf_record)
-{
+void vcf_record_free(vcf_record_t *vcf_record) {
 	free(vcf_record->chromosome);
 	free(vcf_record->id);
 	free(vcf_record->reference);
@@ -142,18 +142,15 @@ void vcf_record_free(vcf_record_t *vcf_record)
 // I/O operations (read and write) in various ways
 //-----------------------------------------------------
 
-int vcf_read(vcf_file_t *vcf_file) 
-{
+int vcf_read(vcf_file_t *vcf_file) {
 	return vcf_ragel_read(NULL, 1, vcf_file, 0);
 }
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples)
-{
+int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
 	return vcf_ragel_read(batches_list, batch_size, vcf_file, read_samples);
 }
 
-int vcf_write(vcf_file_t *vcf_file, char *filename)
-{
+int vcf_write(vcf_file_t *vcf_file, char *filename) {
 	FILE *fd = fopen(filename, "w");
 	if (fd < 0) 
 	{
@@ -176,8 +173,7 @@ int vcf_write(vcf_file_t *vcf_file, char *filename)
 // load data into the vcf_file_t
 //-----------------------------------------------------
 
-int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file)
-{
+int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
 	list_item_t *item = list_item_new(vcf_file->num_header_entries, 1, header_entry);
 	int result = list_insert_item(item, vcf_file->header_entries);
 	if (result) {
@@ -189,8 +185,7 @@ int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file)
 	return result;
 }
 
-int add_sample_name(char *name, vcf_file_t *vcf_file)
-{
+int add_sample_name(char *name, vcf_file_t *vcf_file) {
 	list_item_t *item = list_item_new(vcf_file->num_samples, 1, name);
 	int result = list_insert_item(item, vcf_file->samples_names);
 	if (result) {
@@ -202,8 +197,7 @@ int add_sample_name(char *name, vcf_file_t *vcf_file)
 	return result;
 }
 
-int add_record(vcf_record_t* record, vcf_file_t *vcf_file)
-{
+int add_record(vcf_record_t* record, vcf_file_t *vcf_file) {
 	list_item_t *item = list_item_new(vcf_file->num_records, 1, record);
 	int result = list_insert_item(item, vcf_file->records);
 	if (result) {
