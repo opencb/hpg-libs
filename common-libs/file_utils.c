@@ -44,6 +44,15 @@ char *fgets_no_ln(char *s, int n, FILE *f) {
 	return s;
 }
 
+int exists(const char * filename) {
+    FILE *file;
+    if (file = fopen(filename, "r")) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
 unsigned long count_lines(const char *filename) {
 	unsigned long count = 0;
 	char *buffer = (char*) malloc(1024*4);
