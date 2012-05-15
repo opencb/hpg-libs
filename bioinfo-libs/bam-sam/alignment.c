@@ -9,14 +9,14 @@
 //  convertion functions between high level aligment record and bam1_t structure
 //====================================================================================
 
-char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length);
-char* convert_to_quality_string_(uint8_t* quality_p, int quality_length, int base_quality);
-char* convert_from_uint8_to_string_(uint8_t* sequence_p, int sequence_length);
-char* convert_to_quality_string_(uint8_t* quality_p);
-char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations);
-void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operations);
-void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length);
-void convert_to_quality_uint8_t_(uint8_t* data, char* quality_p, int quality_length, int base_quality);
+// char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length);
+// char* convert_to_quality_string_length_(uint8_t* quality_p, int quality_length, int base_quality);
+// char* convert_from_uint8_to_string_(uint8_t* sequence_p, int sequence_length);
+// char* convert_to_quality_string_(uint8_t* quality_p);
+// char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations);
+// void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operations);
+// void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length);
+// void convert_to_quality_uint8_t_(uint8_t* data, char* quality_p, int quality_length, int base_quality);
 
 //-----------------------------------------------------
 // alignment_new
@@ -176,9 +176,9 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
   //copy the data between structures 
     
   strcpy(alignment_p->query_name, bam1_qname(bam_p));
-  strcpy(alignment_p->sequence, convert_to_sequence_string_(bam1_seq(bam_p), bam_p->core.l_qseq));
-  strcpy(alignment_p->quality, convert_to_quality_string_(bam1_qual(bam_p), bam_p->core.l_qseq, base_quality));
-  strcpy(alignment_p->cigar, convert_to_cigar_string_(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
+  strcpy(alignment_p->sequence, convert_to_sequence_string(bam1_seq(bam_p), bam_p->core.l_qseq));
+  strcpy(alignment_p->quality, convert_to_quality_string_length(bam1_qual(bam_p), bam_p->core.l_qseq, base_quality));
+  strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
   memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);  
 
   //flags  
@@ -247,21 +247,21 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
   index_to_data += copy_length;  
   
   //convert cigar to uint32_t format 
-  convert_to_cigar_uint32_t_(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);  // -------------------------> 2,1 s.
+  convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);  // -------------------------> 2,1 s.
 
   copy_length = (4 * alignment_p->num_cigar_operations);
   index_to_data += copy_length;
 
   //convert sequence to uint8_t format
 //if (time_flag) { start_timer(t1_sort); }
-  convert_to_sequence_uint8_t_(&data[index_to_data], alignment_p->sequence, sequence_length);  // -------------------------> 4,8 s.
+  convert_to_sequence_uint8_t(&data[index_to_data], alignment_p->sequence, sequence_length);  // -------------------------> 4,8 s.
 //if (time_flag) { stop_timer(t1_sort, t2_sort, sort_time); }
   
   copy_length = ((sequence_length + 1) / 2);
   index_to_data += copy_length;
   
   //convert quality to uint8_t format 
-  convert_to_quality_uint8_t_(&data[index_to_data], alignment_p->quality, sequence_length, base_quality);
+  convert_to_quality_uint8_t(&data[index_to_data], alignment_p->quality, sequence_length, base_quality);
 
   copy_length = sequence_length;
   index_to_data += copy_length;
@@ -363,7 +363,7 @@ void bam_print(bam1_t* bam_p, int base_quality) {
   
   printf("\n------------------------------------------------------------------->\n");
   printf("bam_p->data (qname): %s\n", bam1_qname(bam_p));
-  printf("bam_p->data (seq):  %s\n", convert_to_sequence_string_(bam1_seq(bam_p), bam_p->core.l_qseq));
+  printf("bam_p->data (seq):  %s\n", convert_to_sequence_string(bam1_seq(bam_p), bam_p->core.l_qseq));
 
   //quality
   printf("bam_p->data (qual): ");
@@ -376,7 +376,7 @@ void bam_print(bam1_t* bam_p, int base_quality) {
   }
   printf("\n");  
 
-  printf("bam_p->data (cigar): %s\n", convert_to_cigar_string_(bam1_cigar(bam_p), bam_p->core.n_cigar));
+  printf("bam_p->data (cigar): %s\n", convert_to_cigar_string(bam1_cigar(bam_p), bam_p->core.n_cigar));
   
   //aux(optional) data
   printf("bam_p->data (aux): ");  
@@ -447,7 +447,7 @@ bam_header_t* bam_header_new(int specie, int assembly) {
 // convert_to_sequence_string_
 //-----------------------------------------------------
 
-char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length) {
+char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length) {
 
 //  char sequence_string[sequence_length + 1];	//each byte codes two nts ( 1 nt = 4 bits)
   char* sequence_string = (char*) calloc(1, sequence_length + 1);	//each byte codes two nts ( 1 nt = 4 bits)
@@ -483,7 +483,7 @@ char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length) {
 // convert_to_quality_string_
 //-----------------------------------------------------
 
-char* convert_to_quality_string_(uint8_t* quality_p, int quality_length, int base_quality) {
+char* convert_to_quality_string_length(uint8_t* quality_p, int quality_length, int base_quality) {
 
   char quality_string[quality_length + 1];	//each byte codes two nts ( 1 nt = 4 bits)
   
@@ -500,7 +500,7 @@ char* convert_to_quality_string_(uint8_t* quality_p, int quality_length, int bas
 // convert_to_quality_string_
 //-----------------------------------------------------
 
-char* convert_to_quality_string_(uint8_t* quality_p) {
+char* convert_to_quality_string(uint8_t* quality_p) {
   
   int num_of_nts = sizeof(quality_p);
   char quality_string[num_of_nts];
@@ -517,7 +517,7 @@ char* convert_to_quality_string_(uint8_t* quality_p) {
 // convert_to_cigar_string_int_
 //-----------------------------------------------------
 
-char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations) {
+char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
   
   int cigar_string_length = sizeof(cigar_p);		//asumming not more than 3 digits per operation
 
@@ -569,7 +569,7 @@ char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations) {
 // convert_to_cigar_int_
 //-----------------------------------------------------
 
-void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operations) {
+void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations) {
   
   int cigar_string_length = strlen(cigar);
   uint32_t cigar_uint32_position;
@@ -629,7 +629,7 @@ void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operat
 // convert_to_sequence_uint8_t
 //-----------------------------------------------------
 
-// void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length) {
+// void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_length) {
 // 
 //   uint8_t nts_uint8 = 0;
 //   
@@ -667,7 +667,7 @@ void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operat
 //   }
 // }
 
-void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length) {
+void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_length) {
 
   uint8_t nts_uint8 = 0;
   
@@ -711,7 +711,7 @@ void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_
 // convert_to_quality_uint8_t
 //-----------------------------------------------------
 
-void convert_to_quality_uint8_t_(uint8_t* data, char* quality_p, int quality_length, int base_quality) {
+void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_length, int base_quality) {
   
   int i;
   for (i=0; i < quality_length; i++) {

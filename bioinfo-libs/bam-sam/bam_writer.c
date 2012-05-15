@@ -20,12 +20,13 @@ bam_writer_t* bam_writer_new(char* filename, alignments_list_t* alignments_list_
 
   // open the output file....
   //
-  writer_p->bam_file_p = bam_fopen(filename, bam_header_p, "w");  
+  writer_p->bam_file_p = bam_fopen_mode(filename, bam_header_p, "w");
   writer_p->mode = mode;
   writer_p->chromosome = chromosome;
 
   writer_p->alive = 1;
-  writer_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  //writer_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_init(&(writer_p->alive_lock), NULL);
 
   writer_p->alignments_list_p = alignments_list_p;
   writer_p->bam_write_alignment_count = (int*) calloc(NUM_OF_CHROMOSOMES, sizeof(int));
@@ -201,7 +202,7 @@ void* bam_writer_chromosome_thread_function(void* param_p) {
     usleep(10000);      
   }
 
-  while (true) {
+  while (1) {
 
     //printf("Thread-WRITE: Starting while loop...\n");
     if ((chrom_alignments_is_complete(chrom_alignments_p)) && (alignment_p = chrom_alignments_get_alignment(chrom_alignments_p, num_alignments)) != NULL) { 
@@ -277,7 +278,7 @@ void* bam_writer_sequential_thread_function(void* param_p) {
     usleep(10000);   
   }
 
-  while (true) {
+  while (1) {
 
     //printf("Thread-WRITE: Starting while loop... for chromosome: %i\n", current_chromosome);
     //if ((current_chromosome < NUM_OF_CHROMOSOMES) && (chrom_alignments_is_complete(chrom_alignments_p)) && (alignment_p = chrom_alignments_get_alignment(chrom_alignments_p, num_alignments)) != NULL) { 

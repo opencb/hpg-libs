@@ -16,10 +16,10 @@
 //-----------------------------------------------------
 
 bam_file_t* bam_fopen(char* filename) {
-	return bam_fopen(filename, NULL, (char*)"r");
+	return bam_fopen_mode(filename, NULL, (char*)"r");
 } 
 
-bam_file_t* bam_fopen(char* filename, bam_header_t* bam_header_p, char* mode) {
+bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mode) {
 	
 	bamFile bam_fd = bam_open(filename, mode);
 	if (bam_fd == NULL) {

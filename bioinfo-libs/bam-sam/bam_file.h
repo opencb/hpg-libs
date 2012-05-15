@@ -59,7 +59,7 @@ typedef struct bam_batch {
 // open and close functions
 //
 bam_file_t* bam_fopen(char* filename);
-bam_file_t* bam_fopen(char* filename, bam_header_t* bam_header_p, char* mode);
+bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mode);
 void bam_fclose(bam_file_t *bam_file);
 
 // read functions
@@ -85,7 +85,8 @@ int bam_fwrite_batch(bam_batch_t* batch_p, bam_file_t* bam_file_p);
 //high level alignment functions
 int alignment_fwrite(alignment_t* alignment_p, bam_file_t* bam_file_p);
 int alignment_fwrite_array(alignment_t** alignment_p, int length, bam_file_t* bam_file_p);
-int alignment_fwrite_batch(bam_batch_t* batch_p, bam_file_t* bam_file_p);  
+int alignment_fwrite_batch(alignment_batch_t* batch_p, bam_file_t* bam_file_p);
+//int alignment_fwrite_batch(bam_batch_t* batch_p, bam_file_t* bam_file_p);
 
 //validation of the header
 int bam_validate_header(bam_file_t* bam_file_p);

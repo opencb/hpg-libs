@@ -3,11 +3,13 @@
 #include "bam_data_batch.h"
 #include "bam_reader.h"
 
+#include "bam.h"
 #include "bam_commons.h"
 #include "bam_qc_batch.h"
 #include "chrom_alignments.h"
 #include "sort_thrust.h"
-#include "bam.h"
+
+
 
 //=====================================================
 // functions to manage bam read server
@@ -33,7 +35,8 @@ bam_reader_t* bam_reader_new(char* filename, size_t batch_size, int base_quality
   reader_p->base_quality = base_quality;
     
   reader_p->alive = 1;
-  reader_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  //reader_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_init(&(reader_p->alive_lock), NULL);
 
   reader_p->alignments_list_p = alignments_list_p;
   reader_p->bam_data_batch_list_p = NULL;
@@ -45,7 +48,7 @@ bam_reader_t* bam_reader_new(char* filename, size_t batch_size, int base_quality
 // bam reader new (insert into list of batches)
 //--------------------------------------------
 
-bam_reader_t* bam_reader_new(char * filename, size_t batch_size, int base_quality, list_t* bam_data_batch_list_p, int mode) {
+bam_reader_t* bam_reader_by_batch_new(char * filename, size_t batch_size, int base_quality, list_t* bam_data_batch_list_p, int mode) {
   
   bam_reader_t* reader_p = (bam_reader_t*) malloc(sizeof(bam_reader_t));
   
@@ -60,8 +63,9 @@ bam_reader_t* bam_reader_new(char * filename, size_t batch_size, int base_qualit
   reader_p->base_quality = base_quality;
     
   reader_p->alive = 1;
-  reader_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
-
+  //reader_p->alive_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_init(&(reader_p->alive_lock), NULL);
+  
   reader_p->alignments_list_p = NULL;
   reader_p->bam_data_batch_list_p = bam_data_batch_list_p;
   
@@ -177,8 +181,8 @@ void* bam_reader_sequential_thread_function(void* param_p) {
   }
   
   alignments_list_new_chrom_alignment(current_chromosome, reader_p->max_estimated_alignments, reader_p->alignments_list_p);
-  
-  while (true) {
+
+  while (1) {
     //printf("Thread-READ: Before reading bam batch for chromosome %i...\n", current_chromosome);
     
     batch_p = bam_batch_new(reader_p->batch_size, SINGLE_CHROM_BATCH);
@@ -227,7 +231,7 @@ void* bam_reader_sequential_thread_function(void* param_p) {
     while (get_free_memory() < MIN_FREE_MEMORY_ALLOWED_FOR_BAM_READ_KB)  {
       //printf("Thread-READ: go to sleep for a while...\n");
       sched_yield();      
-      usleep(10000);
+      usleep(10000);      
     }
 
   }
@@ -255,7 +259,7 @@ void* bam_reader_sequential_thread_function(void* param_p) {
 //----------------------------------------------
 
 void* bam_reader_chromosome_thread_function(void* param_p) {
-  
+ 
   bam_reader_t* reader_p = (bam_reader_t*) param_p;
 
   bam_reader_set_alive(reader_p, 1);
@@ -272,7 +276,7 @@ void* bam_reader_chromosome_thread_function(void* param_p) {
     alignments_list_new_chrom_alignment(i, reader_p->max_estimated_alignments, reader_p->alignments_list_p);
   }
 
-  while (true) {
+  while (1) {
 
     //printf("Thread-READ: Before reading bam batch...\n");
 
@@ -359,7 +363,7 @@ void* bam_reader_list_insert_thread_function(void* param_p) {
   int* prev_seq_length = NULL;
   int* prev_seq_start_coordinate = NULL;
  
-  while (true) {
+  while (1) {
    
     //printf("Thread-READ: Before reading bam batch...\n");
     
@@ -376,7 +380,7 @@ void* bam_reader_list_insert_thread_function(void* param_p) {
     // exit condition, no more alignments in bam file
     //
     if (num_alignments == 0) {
-      bam_batch_free(bam_batch_p, true);
+      bam_batch_free(bam_batch_p, 1);
       break;
     }
 
@@ -394,12 +398,12 @@ void* bam_reader_list_insert_thread_function(void* param_p) {
     //if (time_flag) { stop_timer(t1_read, t2_read, read_time); }
     //bam_data_batch_list_print(reader_p->bam_data_batch_list_p);
 
-    bam_batch_free(bam_batch_p, true);
+    bam_batch_free(bam_batch_p, 1);
     
     //if (time_flag) { stop_timer(t1_read, t2_read, read_time); }
     
     while (get_free_memory() < MIN_FREE_MEMORY_ALLOWED_FOR_BAM_READ_KB)  {
-      //printf("Thread-READ: go to sleep for a while...\n");
+      printf("Thread-READ: go to sleep for a while...\n");
       sched_yield();      
       usleep(10000);
     }
@@ -447,7 +451,7 @@ void* bam_reader_list_insert_by_chromosome_thread_function(void* param_p) {
   //bam_data_batch_list_item* bam_data_batch_list_item_p;
   list_item_t* bam_data_batch_list_item_p;
 
-  while (true) {
+  while (1) {
 
     //printf("Thread-READ: Before reading bam batch...\n");
     
@@ -469,7 +473,7 @@ void* bam_reader_list_insert_by_chromosome_thread_function(void* param_p) {
     
     int start_alignment = 0;
    
-    while (true) {
+    while (1) {
  
       bam_data_batch_p = bam_data_batch_new(bam_batch_p->num_alignments);
       bam_data_batch_p = bam_data_batch_by_chromosome_init(bam_data_batch_p, bam_batch_p, start_alignment);
@@ -487,7 +491,7 @@ void* bam_reader_list_insert_by_chromosome_thread_function(void* param_p) {
     }
     //bam_data_batch_list_print(reader_p->bam_data_batch_list_p);
 
-    bam_batch_free(bam_batch_p, true);
+    bam_batch_free(bam_batch_p, 1);
     //bam_data_batch_free(bam_data_batch_p);
 
     while (get_free_memory() < MIN_FREE_MEMORY_ALLOWED_FOR_BAM_READ_KB)  {

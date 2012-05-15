@@ -79,5 +79,15 @@ void bam_print(bam1_t* bam_p, int base_quality);
 
 bam_header_t* bam_header_new(int specie, int assembly);
 
+char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length);
+char* convert_to_quality_string_length(uint8_t* quality_p, int quality_length, int base_quality);
+char* convert_from_uint8_to_string(uint8_t* sequence_p, int sequence_length);
+char* convert_to_quality_string(uint8_t* quality_p);
+char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations);
+void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations);
+void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_length);
+void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_length, int base_quality);
+
+
 #endif /* MAP_ALIGNMENTS_ */
 
