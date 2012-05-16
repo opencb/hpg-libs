@@ -93,6 +93,24 @@ void vcf_close(vcf_file_t *vcf_file) {
 	free(vcf_file);
 }
 
+
+//-----------------------------------------------------
+// Header/records allocation/freeing
+//-----------------------------------------------------
+
+
+vcf_header_entry_t* create_header_entry() {
+    vcf_header_entry_t *entry = (vcf_header_entry_t*) malloc (sizeof(vcf_header_entry_t));
+    entry->name = NULL;
+    entry->num_keys = 0;
+    entry->keys = (list_t*) malloc (sizeof(list_t));
+    list_init("keys", 1, INT_MAX, entry->keys);
+    entry->num_values = 0;
+    entry->values = (list_t*) malloc (sizeof(list_t));
+    list_init("values", 1, INT_MAX, entry->values);
+    return entry;
+}
+
 void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 	// Free entry name
 	free(vcf_header_entry->name);
@@ -114,6 +132,13 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 	free(vcf_header_entry->values);
 	
 	free(vcf_header_entry);
+}
+
+vcf_record_t* create_record() {
+    vcf_record_t *record = (vcf_record_t*) malloc (sizeof(vcf_record_t));
+    record->samples = (list_t*) malloc (sizeof(list_t));
+    list_init("samples", 1, INT_MAX, record->samples);
+    return record;
 }
 
 void vcf_record_free(vcf_record_t *vcf_record) {

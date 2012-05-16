@@ -3,7 +3,8 @@ CFLAGS = -std=c99 -O3
 CFLAGS_DEBUG = -std=c99 -g
 
 # Directories' path
-LIBS_ROOT = ~/appl/bioinfo-c/libs
+# LIBS_ROOT = ~/appl/bioinfo-c/libs
+LIBS_ROOT = $(PWD)/../..
 CONTAINERS_DIR = $(LIBS_ROOT)/containers
 COMMONS_DIR = $(LIBS_ROOT)/commons
 REGION_DIR = $(LIBS_ROOT)/bioformats/features/region

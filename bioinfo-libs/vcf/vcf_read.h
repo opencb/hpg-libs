@@ -1,5 +1,5 @@
-#ifndef _VCF_READ_H
-#define _VCF_READ_H
+#ifndef VCF_READ_H
+#define VCF_READ_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +22,6 @@
 
 void set_file_format(char *fileformat, vcf_file_t *vcf_file);
 
-vcf_header_entry_t* create_header_entry();
-
 void set_header_entry_name(char *name, vcf_header_entry_t *entry);
 
 void add_header_entry_key(char *key, vcf_header_entry_t *entry);
@@ -31,8 +29,6 @@ void add_header_entry_key(char *key, vcf_header_entry_t *entry);
 void add_header_entry_value(char *value, vcf_header_entry_t *entry);
 
 /* ************ Record management functions **********************/
-
-vcf_record_t* create_record();
 
 void set_record_chromosome(char* chromosome, vcf_record_t* vcf_record);
 

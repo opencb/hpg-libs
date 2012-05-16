@@ -54,9 +54,22 @@ vcf_file_t *vcf_open(char *filename);
  */
 void vcf_close(vcf_file_t *vcf_file);
 
+
+/*
+ * Creation and destruction of header entries and records
+ */
+
+vcf_header_entry_t* create_header_entry();
+
 void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry);
 
+vcf_record_t* create_record();
+
 void vcf_record_free(vcf_record_t *vcf_record);
+
+/*
+ * File reading
+ */
 
 /**
  * Fill the fields of the vcf_file_t given as argument reading data from a file.
