@@ -337,10 +337,12 @@ char** split(char* str, const char *delimiters, int *num_substrings) {
 char** splitn(char* str, const char *delimiters, int limit, int *num_substrings) {
     int i = 0;
     int max_substrings = 16;
-    char **split_text = (char**) calloc (max_substrings, sizeof(char*));
+    char **split_text = (char**) malloc (max_substrings * sizeof(char*));
+    char **tmp_realloc;
     
     char *token, *token_dest;
-    char *save_strtok, *tmp_realloc;
+    char *save_strtok;
+    
     while ((token = strtok_r(str, delimiters, &save_strtok)) && i < limit) {
         token_dest = (char*) calloc (strlen(token)+1, sizeof(char));
         strcat(token_dest, token);
@@ -349,7 +351,8 @@ char** splitn(char* str, const char *delimiters, int limit, int *num_substrings)
         str = NULL;
         i++;
         if (i == max_substrings) {
-            tmp_realloc = realloc(split_text, max_substrings + 16);
+            printf("realloc'ing\n");
+            tmp_realloc = realloc(split_text, (max_substrings + 16) * sizeof(char*));
             if (tmp_realloc) {
                 max_substrings += 16;
                 split_text = tmp_realloc;
@@ -357,11 +360,12 @@ char** splitn(char* str, const char *delimiters, int limit, int *num_substrings)
                 // Impossibility of reallocation avoids the function to end successfully
                 return NULL;
             }
+            printf("realloc'd\n");
         }
     }
     
     // Reallocate memory for a little optimization
-    tmp_realloc = realloc(split_text, i);
+    tmp_realloc = realloc(split_text, (i + 1) * sizeof(char*));
     if (tmp_realloc) {
         split_text = tmp_realloc;
     }
