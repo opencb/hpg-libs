@@ -45,8 +45,8 @@ char *fgets_no_ln(char *s, int n, FILE *f) {
 }
 
 int exists(const char * filename) {
-    FILE *file;
-    if (file = fopen(filename, "r")) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
         fclose(file);
         return 1;
     }
