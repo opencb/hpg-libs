@@ -1,4 +1,3 @@
-
 #include "string_utils.h"
 
 int equals(const char *str1, const char *str2) {
@@ -47,9 +46,6 @@ int is_numeric(const char *str){
 	return 1;
 }
 
-int contains(const char *str, const char *search) {
-	return 1;
-}
 
 int starts_with(const char *str, const char *search) {
     int str_len = strlen(str);
@@ -327,6 +323,51 @@ char* rtrim(char* string, int num_chars) {
   string[index] = '\0';
 
   return string;
+}
+
+
+//------------------------------------------------------------------------------------
+// Text splitting
+//------------------------------------------------------------------------------------
+
+char** split(char* str, const char *delimiters, int *num_substrings) {
+    return splitn(str, delimiters, INT_MAX, num_substrings);
+}
+
+char** splitn(char* str, const char *delimiters, int limit, int *num_substrings) {
+    int i = 0;
+    int max_substrings = 16;
+    char **split_text = (char**) calloc (max_substrings, sizeof(char*));
+    
+    char *token, *token_dest;
+    char *save_strtok, *tmp_realloc;
+    while ((token = strtok_r(str, delimiters, &save_strtok)) && i < limit) {
+        token_dest = (char*) calloc (strlen(token)+1, sizeof(char));
+        strcat(token_dest, token);
+        split_text[i] = token_dest;
+        
+        str = NULL;
+        i++;
+        if (i == max_substrings) {
+            tmp_realloc = realloc(split_text, max_substrings + 16);
+            if (tmp_realloc) {
+                max_substrings += 16;
+                split_text = tmp_realloc;
+            } else {
+                // Impossibility of reallocation avoids the function to end successfully
+                return NULL;
+            }
+        }
+    }
+    
+    // Reallocate memory for a little optimization
+    tmp_realloc = realloc(split_text, i);
+    if (tmp_realloc) {
+        split_text = tmp_realloc;
+    }
+    
+    *num_substrings = i;
+    return split_text;
 }
 
 

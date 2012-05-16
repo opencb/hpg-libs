@@ -1,11 +1,11 @@
-
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
 
+#include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 int equals(const char *str1, const char *str2);
 
@@ -64,9 +64,9 @@ char* lstrip(char *str);
 char* rstrip(char *str);
 
 
-char** split(const char *str);
+char** split(char *str, const char *delimiters, int *num_substrings);
 
-char** splitn(const char *str, int limit);
+char** splitn(char *str, const char *delimiters, int limit, int *num_substrings);
 
 /**
  * Case-insensitive string comparison. Inspired in non-standard function:
