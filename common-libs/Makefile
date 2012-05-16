@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
 
-LIBS_ROOT = ..
+LIBS_ROOT = $(PWD)/..
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
 COMMONS_DIR = $(LIBS_ROOT)/commons
 
