@@ -132,20 +132,17 @@ char* get_filename_from_path(char* path, char* filename_p) {
     int i = 0;
     char* char_p = strrchr(path, '/');
 
-    while (*char_p != '\0') {
-        char_p++;
-        filename_p[i++] = *char_p;
+    if (char_p == NULL) {  //the path has no subdirectories
+        strcpy(filename_p, path);
+    } else {
+        while (*char_p != '\0') {
+            char_p++;
+            filename_p[i++] = *char_p;
+        }
     }
 
     return filename_p;
 }
-
-
-
-
-
-
-
 
 
 
