@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
+CFLAGS_DEBUG = -std=c99 -g
 
 LIBS_ROOT = ../../..
 
@@ -21,7 +22,7 @@ MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_
 
 # Test executables
 FILTER_OBJECTS = test_vcf_filters.c $(SRC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS) $(MISC_OBJECTS)
-REGION_PARSE_OBJECTS = test_parse_regions.c $(GFF_OBJECTS) $(REGION_TABLE_OBJECTS) $(MISC_OBJECTS) $(SRC_DIR)/util.c
+REGION_PARSE_OBJECTS = test_parse_regions.c $(GFF_OBJECTS) $(REGION_TABLE_OBJECTS) $(MISC_OBJECTS) $(SRC_DIR)/vcf_util.c
 
 
 all: list.o string_utils.o region.o region_table.o test_filter test_parse_region
@@ -31,6 +32,7 @@ test_parse_region: $(REGION_PARSE_OBJECTS)
 
 test_filter: $(FILTER_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(FILTER_OBJECTS) $(INCLUDES) $(LIBS)
+#	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 
 list.o:
 	cd $(CONTAINERS_DIR) && make list.o

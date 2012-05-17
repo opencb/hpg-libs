@@ -25,17 +25,19 @@ list_t *read_test_datasuite(vcf_file_t *file);
 void free_test_datasuite(list_t *datasuite, vcf_file_t *file);
 
 
-list_t *datasuite;
+list_t *datasuite, *quality_datasuite;
 list_t *passed, *failed;
 
 
 filter_t *snp_f;
 filter_t *region_f;
+filter_t *quality_f;
 filter_chain *chain;
 
 
+
 /* ******************************
- * 	Unchecked fixtures	*
+ *       Unchecked fixtures     *
  * ******************************/
 
 void setup_snp(void)
@@ -47,7 +49,6 @@ void setup_snp(void)
 void teardown_snp(void)
 {
 	printf("Finished SNP filter testing\n");
-	
 	snp_f->free_func(snp_f);
 }
 
@@ -59,6 +60,18 @@ void setup_region(void)
 void teardown_region(void)
 {
 	printf("Finished region filter testing\n");
+}
+
+void setup_quality(void)
+{
+    printf("Begin quality filter testing\n");
+    quality_f = create_quality_filter(30);
+}
+
+void teardown_quality(void)
+{
+    printf("Finished quality filter testing\n");
+    quality_f->free_func(quality_f);
 }
 
 void setup_snp_region(void)
@@ -79,11 +92,11 @@ void teardown_snp_region(void)
 	
 	snp_f->free_func(snp_f);
 	region_f->free_func(region_f);
-	free(chain);
+    free_filter_chain(chain);
 }
 
 /* ******************************
- * 	Checked fixtures	*
+ *       Checked fixtures       *
  * ******************************/
 
 void create_passed_failed(void)
@@ -94,6 +107,8 @@ void create_passed_failed(void)
 
 void free_passed_failed(void)
 {
+//     list_free_deep(passed, vcf_record_free);
+//     list_free_deep(failed, vcf_record_free);
 	list_item_t* item = NULL;
 	
 	while ( (item = list_remove_item_async(passed)) != NULL ) {
@@ -109,7 +124,7 @@ void free_passed_failed(void)
 
 
 /* ******************************
- * 	     Unit tests	        *
+ *           Unit tests         *
  * ******************************/
 
 START_TEST (snp_include)
@@ -312,6 +327,101 @@ START_TEST (region_chrom_start_end)
 END_TEST
 
 
+START_TEST (quality_limit_bound)
+{
+    ((quality_filter_args*) quality_f->args)->min_quality = 100;
+    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->args);
+    
+    fail_unless(passed->length == 31, "Q100: The number of qualities found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == quality_datasuite->length,
+            "Q100: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no accepted ID < min_qual
+    for (item = passed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_if(record->quality < 100, "Q100: An accepted record can't have less quality than specified");
+    }
+    
+    // no rejected ID >= min_qual
+    for (item = failed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_unless(record->quality < 100, "Q100: A rejected record can't have greater or equal quality than specified");
+    }
+}
+END_TEST
+
+START_TEST (quality_limit_over_bound)
+{
+    ((quality_filter_args*) quality_f->args)->min_quality = 101;
+    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->args);
+    
+    fail_unless(passed->length == 2, "Q101: The number of qualities found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == quality_datasuite->length,
+            "Q101: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no accepted ID < min_qual
+    for (item = passed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_if(record->quality < 101, "Q101: An accepted record can't have less quality than specified");
+    }
+    
+    // no rejected ID >= min_qual
+    for (item = failed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_unless(record->quality < 101, "Q101: A rejected record can't have greater or equal quality than specified");
+    }
+}
+END_TEST
+
+START_TEST (quality_all_excluded)
+{
+    ((quality_filter_args*) quality_f->args)->min_quality = 200;
+    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->args);
+    
+    fail_unless(passed->length == 0, "Q200: The number of qualities found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == quality_datasuite->length,
+            "Q200: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no rejected ID >= min_qual
+    for (item = failed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_unless(record->quality < 200, "Q200: A rejected record can't have greater or equal quality than specified");
+    }
+}
+END_TEST
+
+START_TEST (quality_all_included)
+{
+    ((quality_filter_args*) quality_f->args)->min_quality = 60;
+    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->args);
+    
+    fail_unless(passed->length == 32, "Q60: The number of qualities found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == quality_datasuite->length,
+            "Q60: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no accepted ID < min_qual
+    for (item = passed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        fail_if(record->quality < 60, "Q60: An accepted record can't have less quality than specified");
+    }
+}
+END_TEST
+
+
 START_TEST (snpinclude_regionchromstartend_chain)
 {
 	int num_filters;
@@ -361,8 +471,11 @@ END_TEST
 int main (int argc, char *argv)
 {
 	vcf_file_t *file = vcf_open("CEU.exon.2010_03.genotypes__head400.vcf");
+    vcf_file_t *quality_file = vcf_open("qualities.vcf");
 	list_t *batches = read_test_datasuite(file);
 	datasuite = batches->first_p->data_p;
+    batches = read_test_datasuite(quality_file);
+    quality_datasuite = batches->first_p->data_p;
 	
 	Suite *fs = create_test_suite();
 	SRunner *fs_runner = srunner_create(fs);
@@ -371,7 +484,9 @@ int main (int argc, char *argv)
 	srunner_free (fs_runner);
 	
 	free_test_datasuite(datasuite, file);	// TODO exceeds check timeout
+    free_test_datasuite(quality_datasuite, quality_file);
 	vcf_close(file);
+    vcf_close(quality_file);
 	
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -395,6 +510,15 @@ Suite *create_test_suite()
 	tcase_add_test(tc_region, region_chrom_start);
 	tcase_add_test(tc_region, region_chrom_start_end);
 	
+    // Quality filter
+    TCase *tc_quality = tcase_create("Quality filters");
+    tcase_add_unchecked_fixture(tc_quality, setup_quality, teardown_quality);
+    tcase_add_checked_fixture(tc_quality, create_passed_failed, free_passed_failed);
+    tcase_add_test(tc_quality, quality_limit_bound);
+    tcase_add_test(tc_quality, quality_limit_over_bound);
+    tcase_add_test(tc_quality, quality_all_included);
+    tcase_add_test(tc_quality, quality_all_excluded);
+    
 	// Chains of filter (SNP+region...)
 	TCase *tc_filterchain = tcase_create("Filter chains");
 	tcase_add_unchecked_fixture(tc_filterchain, setup_snp_region, teardown_snp_region);
@@ -405,6 +529,7 @@ Suite *create_test_suite()
 	Suite *fs = suite_create("VCF filters");
 	suite_add_tcase(fs, tc_snp);
 	suite_add_tcase(fs, tc_region);
+    suite_add_tcase(fs, tc_quality);
 	suite_add_tcase(fs, tc_filterchain);
 	
 	return fs;

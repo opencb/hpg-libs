@@ -21,7 +21,7 @@
 //  vcf_filter structures and prototypes
 //====================================================================================
 
-enum filter_type { REGION, SNP };
+enum filter_type { REGION, SNP, QUALITY };
 
 typedef struct SNP_FILTER_ARGS {
 	int include_snps;	// 1 = preserve SNPs, 0 = remove SNPs
@@ -31,6 +31,10 @@ typedef struct SNP_FILTER_ARGS {
 typedef struct REGION_FILTER_ARGS {
 	region_table_t *regions;
 } region_filter_args;
+
+typedef struct QUALITY_FILTER_ARGS {
+    int min_quality;
+} quality_filter_args;
 
 
 /**
@@ -51,7 +55,6 @@ typedef struct filter {
 } filter_t;
 
 typedef cp_heap filter_chain;
-// typedef list_t filter_chain;
 
 
 //====================================================================================
@@ -67,6 +70,11 @@ filter_t *create_region_filter(char *region_descriptor, int use_region_file);
 filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file);
 
 void free_region_filter(filter_t *filter);
+
+filter_t *create_quality_filter(int min_quality);
+
+void free_quality_filter(filter_t *filter);
+
 
 int filter_compare(const void *filter1, const void *filter2);
 
@@ -103,6 +111,14 @@ filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain);
 filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
 
 /**
+ * Free memory allocated to store a filter chain.
+ * 
+ * @param chain
+ * Chain of filters to apply
+ */
+void free_filter_chain(filter_chain *chain);
+
+/**
  * Applies a collection of filters to a list of records.
  * 
  * @param input_records
@@ -124,9 +140,9 @@ list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filte
 //====================================================================================
 
 /**
- * Given a list of records, check which ones of them are positioned in certain genome 
- * region. A region is define by a pair of fields: the chromosome and a position or 
- * range of positions.
+ * Given a list of records, check which ones are positioned in certain genome region.
+ * A region is defined by a pair of fields: the chromosome and a position or range 
+ * of positions.
  * 
  * @param input_records List of records to filter
  * @param failed Records that failed the filter's test
@@ -138,7 +154,7 @@ list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filte
 list_t *region_filter(list_t *input_records, list_t *failed, void *args);
 
 /**
- * Given a list of records, check which ones of them represent a SNP.
+ * Given a list of records, check which ones represent a SNP.
  * 
  * @param records List of records to filter
  * @param failed Records that failed the filter's test
@@ -146,6 +162,17 @@ list_t *region_filter(list_t *input_records, list_t *failed, void *args);
  * @return Records that passed the filter's test
  */
 list_t *snp_filter(list_t *input_records, list_t *failed, void *args);
+
+/**
+ * Given a list of records, check which ones have a quality greater or equals than 
+ * the one specified.
+ * 
+ * @param records List of records to filter
+ * @param failed Records that failed the filter's test
+ * 
+ * @return Records that passed the filter's test
+ */
+list_t *quality_filter(list_t *input_records, list_t *failed, void *args);
 
 
 #endif
