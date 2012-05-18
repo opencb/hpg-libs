@@ -14,6 +14,7 @@
 #include <region_table_utils.h>
 
 #include "vcf_file_structure.h"
+#include "vcf_util.h"
 
 //====================================================================================
 //  vcf_filter.h
@@ -21,20 +22,24 @@
 //  vcf_filter structures and prototypes
 //====================================================================================
 
-enum filter_type { REGION, SNP, QUALITY };
+enum filter_type { COVERAGE, QUALITY, REGION, SNP  };
 
-typedef struct SNP_FILTER_ARGS {
-	int include_snps;	// 1 = preserve SNPs, 0 = remove SNPs
-} snp_filter_args;
+typedef struct {
+    int min_coverage;
+} coverage_filter_args;
 
-
-typedef struct REGION_FILTER_ARGS {
-	region_table_t *regions;
-} region_filter_args;
-
-typedef struct QUALITY_FILTER_ARGS {
+typedef struct {
     int min_quality;
 } quality_filter_args;
+
+typedef struct {
+    region_table_t *regions;
+} region_filter_args;
+
+typedef struct {
+    int include_snps;	// 1 = preserve SNPs, 0 = remove SNPs
+} snp_filter_args;
+
 
 
 /**
@@ -61,9 +66,13 @@ typedef cp_heap filter_chain;
 //  Filter management (creation, comparison...) functions prototypes
 //====================================================================================
 
-filter_t *create_snp_filter(char *include_snps);
+filter_t *create_coverage_filter(int min_coverage);
 
-void free_snp_filter(filter_t *filter);
+void free_coverage_filter(filter_t *filter);
+
+filter_t *create_quality_filter(int min_quality);
+
+void free_quality_filter(filter_t *filter);
 
 filter_t *create_region_filter(char *region_descriptor, int use_region_file);
 
@@ -71,9 +80,9 @@ filter_t *create_region_exact_filter(char *region_descriptor, int use_region_fil
 
 void free_region_filter(filter_t *filter);
 
-filter_t *create_quality_filter(int min_quality);
+filter_t *create_snp_filter(char *include_snps);
 
-void free_quality_filter(filter_t *filter);
+void free_snp_filter(filter_t *filter);
 
 
 int filter_compare(const void *filter1, const void *filter2);

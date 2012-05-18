@@ -28,10 +28,7 @@ void free_test_datasuite(list_t *datasuite, vcf_file_t *file);
 list_t *datasuite, *quality_datasuite;
 list_t *passed, *failed;
 
-
-filter_t *snp_f;
-filter_t *region_f;
-filter_t *quality_f;
+filter_t *coverage_f, *quality_f, *region_f, *snp_f;
 filter_chain *chain;
 
 
@@ -72,6 +69,18 @@ void teardown_quality(void)
 {
     printf("Finished quality filter testing\n");
     quality_f->free_func(quality_f);
+}
+
+void setup_coverage(void)
+{
+    printf("Begin coverage filter testing\n");
+    coverage_f = create_coverage_filter(50);
+}
+
+void teardown_coverage(void)
+{
+    printf("Finished coverage filter testing\n");
+    coverage_f->free_func(coverage_f);
 }
 
 void setup_snp_region(void)

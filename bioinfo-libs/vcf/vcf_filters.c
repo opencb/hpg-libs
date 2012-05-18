@@ -1,30 +1,40 @@
 #include "vcf_filters.h"
 
 
-filter_t *create_snp_filter(char *include_snps) {
-    filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
-    filter->type = SNP;
-    filter->filter_func = snp_filter;
-    filter->free_func = free_snp_filter;
-    filter->priority = 5;
-
-    snp_filter_args *filter_args = (snp_filter_args*) malloc (sizeof(snp_filter_args));
-    filter_args->include_snps = 1;	// Default: Include SNPs
-
-    if (include_snps != NULL) {
-        if (strcmp("include", include_snps) == 0) {
-            filter_args->include_snps = 1;
-        } else if (strcmp("exclude", include_snps) == 0) {
-            filter_args->include_snps = 0;
-        }
-    }
-
+filter_t *create_coverage_filter(int min_coverage) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    filter->type = COVERAGE;
+    filter->filter_func = coverage_filter;
+    filter->free_func = free_coverage_filter;
+    filter->priority = 4;
+    
+    coverage_filter_args *filter_args = (coverage_filter_args*) malloc (sizeof(coverage_filter_args));
+    filter_args->min_coverage = min_coverage;
     filter->args = filter_args;
-
+    
     return filter;
 }
 
-void free_snp_filter(filter_t *filter) {
+void free_coverage_filter(filter_t *filter) {
+    free(filter->args);
+    free(filter);
+}
+
+filter_t *create_quality_filter(int min_quality) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    filter->type = QUALITY;
+    filter->filter_func = quality_filter;
+    filter->free_func = free_quality_filter;
+    filter->priority = 4;
+    
+    quality_filter_args *filter_args = (quality_filter_args*) malloc (sizeof(quality_filter_args));
+    filter_args->min_quality = min_quality;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void free_quality_filter(filter_t *filter) {
     free(filter->args);
     free(filter);
 }
@@ -84,29 +94,37 @@ void free_region_filter(filter_t *filter) {
     free(filter);
 }
 
-filter_t *create_quality_filter(int min_quality) {
-    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
-    filter->type = QUALITY;
-    filter->filter_func = quality_filter;
-    filter->free_func = free_quality_filter;
-    filter->priority = 4;
-    
-    quality_filter_args *filter_args = (quality_filter_args*) malloc (sizeof(quality_filter_args));
-    filter_args->min_quality = min_quality;
-    filter->args = filter_args;
-    
-    return filter;
-}
-
-void free_quality_filter(filter_t *filter) {
-    free(filter->args);
-    free(filter);
-}
-
-
 
 int filter_compare(const void *filter1, const void *filter2) {
     return ((filter_t*) filter1)->priority - ((filter_t*) filter2)->priority;
+}
+
+filter_t *create_snp_filter(char *include_snps) {
+    filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
+    filter->type = SNP;
+    filter->filter_func = snp_filter;
+    filter->free_func = free_snp_filter;
+    filter->priority = 5;
+
+    snp_filter_args *filter_args = (snp_filter_args*) malloc (sizeof(snp_filter_args));
+    filter_args->include_snps = 1;	// Default: Include SNPs
+
+    if (include_snps != NULL) {
+        if (strcmp("include", include_snps) == 0) {
+            filter_args->include_snps = 1;
+        } else if (strcmp("exclude", include_snps) == 0) {
+            filter_args->include_snps = 0;
+        }
+    }
+
+    filter->args = filter_args;
+
+    return filter;
+}
+
+void free_snp_filter(filter_t *filter) {
+    free(filter->args);
+    free(filter);
 }
 
 
@@ -159,6 +177,54 @@ void free_filter_chain(filter_chain* chain) {
 
 
 
+list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
+    list_t *passed = (list_t*) malloc (sizeof(list_t));
+    list_init("passed", 1, input_records->max_length, passed);
+
+    int min_coverage = ((coverage_filter_args*)f_args)->min_coverage;
+
+    LOG_DEBUG_F("coverage_filter (min coverage = %d) over %zu records\n", min_coverage, input_records->length);
+    vcf_record_t *record;
+    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
+        record = item->data_p;
+        list_item_t *new_item = list_item_new(item->id, item->type, record);
+        
+        char *record_coverage = get_field_value_in_info("DP", record->info);
+        if (record_coverage != NULL && is_numeric(record_coverage)) {
+            if (atoi(record_coverage) >= min_coverage) {
+                list_insert_item(new_item, passed);
+            } else {
+                list_insert_item(new_item, failed);
+            }
+        } else {
+            list_insert_item(new_item, failed);
+        }
+    }
+
+    return passed;
+}
+
+
+list_t* quality_filter(list_t* input_records, list_t* failed, void* f_args) {
+    list_t *passed = (list_t*) malloc (sizeof(list_t));
+    list_init("passed", 1, input_records->max_length, passed);
+
+    int min_quality = ((quality_filter_args*)f_args)->min_quality;
+
+    LOG_DEBUG_F("quality_filter (min quality = %d) over %zu records\n", min_quality, input_records->length);
+    vcf_record_t *record;
+    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
+        record = item->data_p;
+        list_item_t *new_item = list_item_new(item->id, item->type, record);
+        if (record->quality >= min_quality) {
+            list_insert_item(new_item, passed);
+        } else {
+            list_insert_item(new_item, failed);
+        }
+    }
+
+    return passed;
+}
 
 list_t *region_filter(list_t *input_records, list_t *failed, void *f_args) {
     char *field;
@@ -227,25 +293,3 @@ list_t *snp_filter(list_t *input_records, list_t *failed, void *f_args) {
 
     return passed;
 }
-
-list_t* quality_filter(list_t* input_records, list_t* failed, void* f_args) {
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, input_records->max_length, passed);
-
-    int min_quality = ((quality_filter_args*)f_args)->min_quality;
-
-    LOG_DEBUG_F("quality_filter (min quality = %d) over %zu records\n", min_quality, input_records->length);
-    vcf_record_t *record;
-    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
-        record = item->data_p;
-        list_item_t *new_item = list_item_new(item->id, item->type, record);
-        if (record->quality >= min_quality) {
-            list_insert_item(new_item, passed);
-        } else {
-            list_insert_item(new_item, failed);
-        }
-    }
-
-    return passed;
-}
-

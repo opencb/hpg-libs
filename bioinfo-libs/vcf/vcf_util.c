@@ -9,16 +9,40 @@ size_t count_regions(char *regions_string) {
     return ++num_regions;
 }
 
+char *get_field_value_in_info(const char *field, char *info) {
+    char *save_strtok, *token;
+    
+    // Search for field in info
+    token = strtok_r(info, ":", &save_strtok);
+    while (token != NULL && strcmp(token, field)) {
+        token = strtok_r(NULL, ":", &save_strtok);
+    }
+    
+    if (token == NULL) {
+        return NULL;  // Field not found
+    }
+    
+    // Search for the field value
+    char *value = NULL;
+    value = strtok_r(token, "=", &save_strtok);
+    if (strcmp(value, field)) {
+        free(value);
+        value = strtok_r(NULL, "=", &save_strtok);
+    }
+    
+    return value;
+}
+
 int get_field_position_in_format(const char *field, char *format) {
-    int gt_pos = 0, cur_pos = 0;
+    int field_pos = 0, cur_pos = 0;
     char *save_strtok, *token;
     token = strtok_r(format, ":", &save_strtok);
     while (token != NULL && strcmp(token, field)) {
         token = strtok_r(NULL, ":", &save_strtok);
-        gt_pos++;
+        field_pos++;
     }
     
-    return (token == NULL) ? -1 : gt_pos;
+    return (token == NULL) ? -1 : field_pos;
 }
 
 int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2) {
