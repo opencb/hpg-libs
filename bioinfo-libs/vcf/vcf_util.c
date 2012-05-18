@@ -9,11 +9,11 @@ size_t count_regions(char *regions_string) {
     return ++num_regions;
 }
 
-int get_genotype_position_in_format(char *format) {
+int get_field_position_in_format(const char *field, char *format) {
     int gt_pos = 0, cur_pos = 0;
     char *save_strtok, *token;
     token = strtok_r(format, ":", &save_strtok);
-    while (token != NULL && strcmp(token, "GT")) {
+    while (token != NULL && strcmp(token, field)) {
         token = strtok_r(NULL, ":", &save_strtok);
         gt_pos++;
     }

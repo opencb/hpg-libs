@@ -22,7 +22,7 @@ int mmap_vcf;
 
 size_t count_regions(char *regions_string);
 
-int get_genotype_position_in_format(char *format);
+int get_field_position_in_format(const char *field, char *format);
 
 int get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
 
