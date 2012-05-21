@@ -48,7 +48,17 @@ void add_header_entry_value(char *value, vcf_header_entry_t *entry)
 
 void set_record_chromosome(char* chromosome, vcf_record_t* vcf_record)
 {
-    vcf_record->chromosome = chromosome;
+    if (starts_with(chromosome, "chrom")) {
+        vcf_record->chromosome = (char*) calloc (strlen(chromosome)-4, sizeof(char));
+        strncat(vcf_record->chromosome, chromosome+5, strlen(chromosome)-5);
+        free(chromosome);
+    } else if (starts_with(chromosome, "chr")) {
+        vcf_record->chromosome = (char*) calloc (strlen(chromosome)-2, sizeof(char));
+        strncat(vcf_record->chromosome, chromosome+3, strlen(chromosome)-3);
+        free(chromosome);
+    } else {
+        vcf_record->chromosome = chromosome;
+    }
     LOG_DEBUG_F("set chromosome: %s\n", vcf_record->chromosome);
 }
 

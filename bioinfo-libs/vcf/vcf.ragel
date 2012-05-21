@@ -318,11 +318,7 @@ static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t
 
 int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
     int cs;
-//     char *ts, *te;
-//     int stack[4];
-//     int top, act;
     char *p, *pe;
-//     char *eof;
 
     store_samples = read_samples;
     current_header_entry = create_header_entry();

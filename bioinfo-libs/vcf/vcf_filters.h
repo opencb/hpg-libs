@@ -149,6 +149,28 @@ list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filte
 //====================================================================================
 
 /**
+ * Given a list of records, check which ones have a coverage greater or equals than 
+ * the one specified.
+ * 
+ * @param records List of records to filter
+ * @param failed Records that failed the filter's test
+ * 
+ * @return Records that passed the filter's test
+ */
+list_t *coverage_filter(list_t *input_records, list_t *failed, void *args);
+
+/**
+ * Given a list of records, check which ones have a quality greater or equals than 
+ * the one specified.
+ * 
+ * @param records List of records to filter
+ * @param failed Records that failed the filter's test
+ * 
+ * @return Records that passed the filter's test
+ */
+list_t *quality_filter(list_t *input_records, list_t *failed, void *args);
+
+/**
  * Given a list of records, check which ones are positioned in certain genome region.
  * A region is defined by a pair of fields: the chromosome and a position or range 
  * of positions.
@@ -171,17 +193,6 @@ list_t *region_filter(list_t *input_records, list_t *failed, void *args);
  * @return Records that passed the filter's test
  */
 list_t *snp_filter(list_t *input_records, list_t *failed, void *args);
-
-/**
- * Given a list of records, check which ones have a quality greater or equals than 
- * the one specified.
- * 
- * @param records List of records to filter
- * @param failed Records that failed the filter's test
- * 
- * @return Records that passed the filter's test
- */
-list_t *quality_filter(list_t *input_records, list_t *failed, void *args);
 
 
 #endif
