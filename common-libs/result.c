@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <libxml/encoding.h>
-#include <libxml/xmlwriter.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-
 #include "result.h"
 // #include "file_utils.h"
 
