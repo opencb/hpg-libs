@@ -11,22 +11,24 @@ size_t count_regions(char *regions_string) {
 
 char *get_field_value_in_info(const char *field, char *info) {
     char *save_strtok, *token;
+    char *value;
     
-    // Search for field in info
-    token = strtok_r(info, ":", &save_strtok);
-    while (token != NULL && strcmp(token, field)) {
-        token = strtok_r(NULL, ":", &save_strtok);
+    // Search for field in info (has to begin with '<field>=')
+    token = strtok_r(info, ";", &save_strtok);
+    while (token != NULL && !starts_with(token, field) && strlen(token) > strlen(field)+1 && token[strlen(field)] == '=') {
+        token = strtok_r(NULL, ";", &save_strtok);
     }
     
     if (token == NULL) {
         return NULL;  // Field not found
+    } else {
+    value = strtok_r(token, ";", &save_strtok);
     }
     
     // Search for the field value
-    char *value = NULL;
     value = strtok_r(token, "=", &save_strtok);
-    if (strcmp(value, field)) {
-        free(value);
+    if (!strcmp(value, field)) {
+//         free(value);
         value = strtok_r(NULL, "=", &save_strtok);
     }
     

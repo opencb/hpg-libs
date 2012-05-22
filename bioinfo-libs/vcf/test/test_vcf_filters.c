@@ -6,6 +6,7 @@
 #include "vcf_file.h"
 #include "vcf_file_structure.h"
 #include "vcf_filters.h"
+#include "vcf_util.h"
 
 #include "list.h" 
 
@@ -431,6 +432,85 @@ START_TEST (quality_all_included)
 END_TEST
 
 
+START_TEST (coverage_basic)
+{
+    ((coverage_filter_args*) coverage_f->args)->min_coverage = 3000;
+    passed = coverage_f->filter_func(datasuite, failed, coverage_f->args);
+    
+    fail_unless(passed->length == 364, "C3000: The number of coverages found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == datasuite->length,
+            "C3000: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no accepted ID < min_qual
+    for (item = passed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        char *aux_info = calloc (strlen(record->info) + 1, sizeof(char));
+        strcpy(aux_info, record->info);
+        char *dp = get_field_value_in_info("DP", aux_info);
+        fail_if(dp != NULL && atoi(dp) < 3000, "C3000: An accepted record can't have less coverage than specified");
+    }
+    
+    // no rejected ID >= min_qual
+    for (item = failed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        char *aux_info = calloc (strlen(record->info) + 1, sizeof(char));
+        strcpy(aux_info, record->info);
+        char *dp = get_field_value_in_info("DP", aux_info);
+        fail_unless(dp != NULL && atoi(dp) < 3000, "C3000: A rejected record can't have greater or equal coverage than specified");
+    }
+}
+END_TEST
+
+START_TEST (coverage_all_excluded)
+{
+    ((coverage_filter_args*) coverage_f->args)->min_coverage = 20000;
+    passed = coverage_f->filter_func(datasuite, failed, coverage_f->args);
+    
+    fail_unless(passed->length == 0, "C20000: The number of coverages found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == datasuite->length,
+            "C20000: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no rejected ID >= min_qual
+    for (item = failed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        char *aux_info = calloc (strlen(record->info) + 1, sizeof(char));
+        strcpy(aux_info, record->info);
+        char *dp = get_field_value_in_info("DP", aux_info);
+        fail_unless(dp != NULL && atoi(dp) < 20000, "C20000: A rejected record can't have greater or equal coverage than specified");
+    }
+}
+END_TEST
+
+START_TEST (coverage_all_included)
+{
+    ((coverage_filter_args*) coverage_f->args)->min_coverage = 60;
+    passed = coverage_f->filter_func(datasuite, failed, coverage_f->args);
+    
+    fail_unless(passed->length == 389, "C60: The number of coverages found is not correct");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->length + failed->length == datasuite->length,
+            "C60: The sum of the number of accepted and rejected records must be the same as the input records");
+    
+    list_item_t *item = NULL;
+    // no accepted ID < min_qual
+    for (item = passed->first_p; item != NULL; item = item->next_p)
+    {
+        vcf_record_t *record = item->data_p;
+        char *aux_info = calloc (strlen(record->info) + 1, sizeof(char));
+        strcpy(aux_info, record->info);
+        char *dp = get_field_value_in_info("DP", aux_info);
+        fail_if(dp != NULL && atoi(dp) < 60, "C60: An accepted record can't have less coverage than specified");
+    }
+}
+END_TEST
+
 START_TEST (snpinclude_regionchromstartend_chain)
 {
 	int num_filters;
@@ -528,6 +608,14 @@ Suite *create_test_suite()
     tcase_add_test(tc_quality, quality_all_included);
     tcase_add_test(tc_quality, quality_all_excluded);
     
+    // Coverage filter
+    TCase *tc_coverage = tcase_create("Coverage filters");
+    tcase_add_unchecked_fixture(tc_coverage, setup_coverage, teardown_coverage);
+    tcase_add_checked_fixture(tc_coverage, create_passed_failed, free_passed_failed);
+    tcase_add_test(tc_coverage, coverage_basic);
+    tcase_add_test(tc_coverage, coverage_all_included);
+    tcase_add_test(tc_coverage, coverage_all_excluded);
+    
 	// Chains of filter (SNP+region...)
 	TCase *tc_filterchain = tcase_create("Filter chains");
 	tcase_add_unchecked_fixture(tc_filterchain, setup_snp_region, teardown_snp_region);
@@ -539,6 +627,7 @@ Suite *create_test_suite()
 	suite_add_tcase(fs, tc_snp);
 	suite_add_tcase(fs, tc_region);
     suite_add_tcase(fs, tc_quality);
+    suite_add_tcase(fs, tc_coverage);
 	suite_add_tcase(fs, tc_filterchain);
 	
 	return fs;
