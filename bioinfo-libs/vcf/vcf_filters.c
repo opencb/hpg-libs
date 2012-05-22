@@ -185,11 +185,19 @@ list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
 
     LOG_DEBUG_F("coverage_filter (min coverage = %d) over %zu records\n", min_coverage, input_records->length);
     vcf_record_t *record;
+    char *aux_buffer = (char*) calloc (128, sizeof(char));
     for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
         record = item->data_p;
         list_item_t *new_item = list_item_new(item->id, item->type, record);
         
-        char *record_coverage = get_field_value_in_info("DP", record->info);
+        if (strlen(record->info) > strlen(aux_buffer)) {
+            aux_buffer = realloc (aux_buffer, strlen(record->info)+1);
+            memset(aux_buffer, 0, (strlen(record->info)+1) * sizeof(char));
+        }
+        
+        strncpy(aux_buffer, record->info, strlen(record->info));
+        
+        char *record_coverage = get_field_value_in_info("DP", aux_buffer);
         if (record_coverage != NULL && is_numeric(record_coverage)) {
             if (atoi(record_coverage) >= min_coverage) {
                 list_insert_item(new_item, passed);
@@ -199,8 +207,10 @@ list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
         } else {
             list_insert_item(new_item, failed);
         }
+        
     }
 
+    free(aux_buffer);
     return passed;
 }
 
