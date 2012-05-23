@@ -20,6 +20,26 @@ void free_coverage_filter(filter_t *filter) {
     free(filter);
 }
 
+filter_t* create_num_alleles_filter(int num_alleles) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    filter->type = NUM_ALLELES;
+    filter->filter_func = num_alleles_filter;
+    filter->free_func = free_num_alleles_filter;
+    filter->priority = 4;
+    
+    num_alleles_filter_args *filter_args = (num_alleles_filter_args*) malloc (sizeof(num_alleles_filter_args));
+    filter_args->num_alleles = num_alleles;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void free_num_alleles_filter(filter_t* filter) {
+    free(filter->args);
+    free(filter);
+}
+
+
 filter_t *create_quality_filter(int min_quality) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     filter->type = QUALITY;
@@ -211,6 +231,44 @@ list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
     }
 
     free(aux_buffer);
+    return passed;
+}
+
+list_t* num_alleles_filter(list_t* input_records, list_t* failed, void* args) {
+    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
+    list_init("stats", 1, input_records->max_length, input_stats);
+    file_stats_t *file_stats = new_file_stats();
+    
+    list_t *passed = (list_t*) malloc (sizeof(list_t));
+    list_init("passed", 1, input_records->max_length, passed);
+
+    int num_alleles = ((num_alleles_filter_args*)args)->num_alleles;
+
+    // TODO candidate for parallelization
+    get_variants_stats(input_records->first_p, input_records->length, input_stats, file_stats);
+    
+    list_item_t *stats_item = NULL;
+    list_item_t *record_item = input_records->first_p;
+    variant_stats_t *variant_stats;
+    // The stats returned by get_variants_stats are related to the records in the same
+    // position of the input_records list, so when a variant_stats_t fulfills the condition,
+    // it means the related vcf_record_t passes the filter
+    while ((stats_item = list_remove_item(input_stats)) != NULL) {
+        variant_stats = stats_item->data_p;
+        
+        list_item_t *new_item = list_item_new(record_item->id, record_item->type, record_item->data_p);
+        if (variant_stats->alleles_count == num_alleles) {
+            list_insert_item(new_item, passed);
+        } else {
+            list_insert_item(new_item, failed);
+        }
+        
+        free_variant_stats(variant_stats);
+        list_item_free(stats_item);
+        
+        record_item = record_item->next_p;
+    }
+    
     return passed;
 }
 

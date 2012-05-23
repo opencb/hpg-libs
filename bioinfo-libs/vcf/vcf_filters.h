@@ -14,6 +14,7 @@
 #include <region_table_utils.h>
 
 #include "vcf_file_structure.h"
+#include "vcf_stats.h"
 #include "vcf_util.h"
 
 //====================================================================================
@@ -22,11 +23,15 @@
 //  vcf_filter structures and prototypes
 //====================================================================================
 
-enum filter_type { COVERAGE, QUALITY, REGION, SNP  };
+enum filter_type { COVERAGE, NUM_ALLELES, QUALITY, REGION, SNP  };
 
 typedef struct {
     int min_coverage;
 } coverage_filter_args;
+
+typedef struct {
+    int num_alleles;
+} num_alleles_filter_args;
 
 typedef struct {
     int min_quality;
@@ -39,8 +44,6 @@ typedef struct {
 typedef struct {
     int include_snps;	// 1 = preserve SNPs, 0 = remove SNPs
 } snp_filter_args;
-
-
 
 /**
  * A filter selects a subcollection of records which fulfill some condition.
@@ -69,6 +72,14 @@ typedef cp_heap filter_chain;
 filter_t *create_coverage_filter(int min_coverage);
 
 void free_coverage_filter(filter_t *filter);
+
+filter_t *create_coverage_filter(int min_coverage);
+
+void free_coverage_filter(filter_t *filter);
+
+filter_t *create_num_alleles_filter(int num_alleles);
+
+void free_num_alleles_filter(filter_t *filter);
 
 filter_t *create_quality_filter(int min_quality);
 
@@ -158,6 +169,17 @@ list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filte
  * @return Records that passed the filter's test
  */
 list_t *coverage_filter(list_t *input_records, list_t *failed, void *args);
+
+/**
+ * Given a list of records, check which ones have a num_alleles equals to 
+ * the one specified.
+ * 
+ * @param records List of records to filter
+ * @param failed Records that failed the filter's test
+ * 
+ * @return Records that passed the filter's test
+ */
+list_t *num_alleles_filter(list_t *input_records, list_t *failed, void *args);
 
 /**
  * Given a list of records, check which ones have a quality greater or equals than 
