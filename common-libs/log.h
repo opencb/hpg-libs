@@ -17,14 +17,9 @@
 
 #define LOG_DEFAULT_LEVEL	2
 
-/*	define the default verbose	*/
-extern int verbose;// = LOG_DEFAULT_LEVEL;
-
-/*	define the default log_level	*/
-extern int log_level;// = 1;
-
-/*	define the default log_level	*/
-extern char *log_filename;// = NULL;
+/* **********************************************
+ *  		Log macros			*
+ * *********************************************/
 
 #define LOG_VERBOSE(level) {		\
 	set_log_verbose(level);			\
@@ -104,6 +99,14 @@ extern char *log_filename;// = NULL;
 	}														\
 }
 
+/* **********************************************
+ *  		Global variables		*
+ * *********************************************/
+
+extern int verbose;		// verbose (0 [false] by default)
+extern int log_level;		// define the log_level (LOG_DEFAULT_LEVEL by default)
+extern char *log_filename;	// log file name (NULL by default)
+
 /**
  * Initialize the logging system with default values for level, verbosity (show in stdout) and filename.
  * - Default level: INFO
@@ -121,12 +124,46 @@ void init_log();
  */
 void init_log_custom(int level, int verbose, char *log_filename);
 
+/**
+*  @brief Sets the verbose parameter
+*  @param verbose 0 for no verbose, otherwise verbose
+*  @return void
+*  
+*  Sets the verbose parameter for the logger
+*/
 void set_log_verbose(int verbose);
 
+/**
+*  @brief Sets the log level parameter
+*  @param level log level (from 1 [DEBUG] to 5 [FATAL])
+*  @return void
+*  
+*  Sets the log level parameter for the logger
+*  Possible values are: LOG_DEBUG_LEVEL (1), LOG_INFO_LEVEL (2), LOG_WARN_LEVEL (3), LOG_ERROR_LEVEL (4), LOG_FATAL_LEVEL (5)
+*/
 void set_log_level(int level);
 
+/**
+*  @brief Sets the log file name
+*  @param filaneme file name to log output
+*  @return void
+*  
+*  Sets the log filename for the logger
+*/
 void set_log_filename(char *filename);
 
+/**
+*  @brief Prints a log line 
+*  @param level log level (1 to 5)
+*  @param log_level_word log level in characters (DEBUG, WARN, ...)
+*  @param filaneme file name to log output
+*  @param num_line number of the log line in the file 
+*  @param func function where log line is placed 
+*  @param msg message to log
+*  @return void
+*  
+*  Prints a log line in the stdout or in a given file*  
+*/
 void print_log_message(int level, char *log_level_word, char *filename, int num_line, const char *func, char *msg);
 
 void print_log_message_with_format(int level, char *log_level_word, char *filename, int num_line, const char *func, char *msg_format, ...);

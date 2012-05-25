@@ -1,5 +1,9 @@
 #include "log.h"
 
+/* **********************************************
+ *  		Global variables		*
+ * *********************************************/
+
 int log_level;
 int verbose;
 char *log_filename;
@@ -18,11 +22,11 @@ void init_log_custom(int level, int verbose, char* log_filename) {
 }
 
 void set_log_verbose(int v) {
-	verbose = v;
+    verbose = v;
 }
 
 void set_log_level(int level) {
-	log_level = level;
+    log_level = level;
 }
 
 void set_log_filename(char *filename) {
@@ -45,7 +49,7 @@ void print_log_message(int level, char *log_level_word, char *filename, int num_
         }
 
         // if 'log_file' has been set up then logs are printed
-        // logs are ALWAYS printed in log_file independently of 'verbose'		
+        // logs are ALWAYS printed in log_file independently of 'verbose' parameter
         if(log_filename != NULL) {
             FILE *log_file = fopen(log_filename, "a");
             fprintf(log_file, "%s\t%s\t%s [%i] in %s(): %s\n", str_time, log_level_word, filename, num_line, func, msg);
