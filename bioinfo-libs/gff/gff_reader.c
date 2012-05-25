@@ -21,7 +21,7 @@ static const int gff_en_record_scan = 34;
 static const int gff_en_main = 1;
 
 
-#line 137 "gff.ragel"
+#line 142 "gff.ragel"
 
 
 
@@ -151,13 +151,14 @@ _again:
 		case 33: goto st33;
 		case 34: goto st34;
 		case 35: goto st35;
-		case 26: goto st26;
 		case 36: goto st36;
-		case 27: goto st27;
+		case 26: goto st26;
 		case 37: goto st37;
-		case 28: goto st28;
+		case 27: goto st27;
 		case 38: goto st38;
+		case 28: goto st28;
 		case 39: goto st39;
+		case 40: goto st40;
 	default: break;
 	}
 
@@ -172,7 +173,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 176 "gff_reader.c"
+#line 177 "gff_reader.c"
 	if ( (*p) == 35 )
 		goto st2;
 	goto st0;
@@ -187,7 +188,7 @@ case 2:
 		goto tr2;
 	goto st0;
 tr2:
-#line 26 "gff.ragel"
+#line 27 "gff.ragel"
 	{ {stack[top++] = 3; goto st32;} }
 	goto st3;
 st3:
@@ -196,7 +197,7 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 200 "gff_reader.c"
+#line 201 "gff_reader.c"
 	switch( (*p) ) {
 		case 35: goto st2;
 		case 95: goto tr3;
@@ -211,7 +212,7 @@ case 3:
 		goto tr3;
 	goto st0;
 tr3:
-#line 135 "gff.ragel"
+#line 140 "gff.ragel"
 	{ p--; {stack[top++] = 4; goto st34;} }
 	goto st4;
 st4:
@@ -220,7 +221,7 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 224 "gff_reader.c"
+#line 225 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto st5;
 		case 95: goto st4;
@@ -491,7 +492,7 @@ case 25:
 		goto st25;
 	goto st0;
 tr35:
-#line 35 "gff.ragel"
+#line 36 "gff.ragel"
 	{te = p+1;{
             add_gff_header_entry(current_header_entry, file);
             current_header_entry = create_gff_header_entry();
@@ -500,7 +501,7 @@ tr35:
         }}
 	goto st32;
 tr36:
-#line 30 "gff.ragel"
+#line 31 "gff.ragel"
 	{te = p;p--;{
             char *text = get_token(ts, te);
             set_gff_header_entry_text(text, current_header_entry);
@@ -514,7 +515,7 @@ st32:
 case 32:
 #line 1 "NONE"
 	{ts = p;}
-#line 518 "gff_reader.c"
+#line 519 "gff_reader.c"
 	if ( (*p) == 10 )
 		goto tr35;
 	if ( (*p) > 13 ) {
@@ -536,7 +537,7 @@ case 33:
 		goto st33;
 	goto tr36;
 tr27:
-#line 70 "gff.ragel"
+#line 75 "gff.ragel"
 	{{p = ((te))-1;}{
             set_field(ts, te);
         }}
@@ -544,12 +545,12 @@ tr27:
 tr29:
 #line 1 "NONE"
 	{	switch( act ) {
-	case 3:
+	case 4:
 	{{p = ((te))-1;}
             set_field(ts, te);
         }
 	break;
-	case 11:
+	case 12:
 	{{p = ((te))-1;}
             set_field(ts, te);
         }
@@ -558,11 +559,11 @@ tr29:
 	}
 	goto st34;
 tr37:
-#line 127 "gff.ragel"
+#line 132 "gff.ragel"
 	{te = p+1;}
 	goto st34;
 tr38:
-#line 107 "gff.ragel"
+#line 112 "gff.ragel"
 	{te = p+1;{
             // If batch is full, add to the list of batches and create a new, empty one
             if (gff_batch_is_full(current_batch))
@@ -583,32 +584,38 @@ tr38:
             LOG_DEBUG("\n");
         }}
 	goto st34;
-tr39:
-#line 94 "gff.ragel"
-	{te = p+1;{
-            set_field(ts, te);
-        }}
-	goto st34;
 tr40:
-#line 90 "gff.ragel"
+#line 99 "gff.ragel"
 	{te = p+1;{
             set_field(ts, te);
         }}
 	goto st34;
-tr43:
-#line 70 "gff.ragel"
+tr41:
+#line 95 "gff.ragel"
+	{te = p+1;{
+            set_field(ts, te);
+        }}
+	goto st34;
+tr44:
+#line 71 "gff.ragel"
+	{te = p;p--;{
+            LOG_DEBUG("Comment found, nothing to do.");
+        }}
+	goto st34;
+tr45:
+#line 75 "gff.ragel"
 	{te = p;p--;{
             set_field(ts, te);
         }}
 	goto st34;
-tr47:
-#line 82 "gff.ragel"
+tr49:
+#line 87 "gff.ragel"
 	{te = p;p--;{
             set_field(ts, te);
         }}
 	goto st34;
-tr48:
-#line 102 "gff.ragel"
+tr50:
+#line 107 "gff.ragel"
 	{te = p;p--;{
             set_field(ts, te);
         }}
@@ -621,14 +628,15 @@ st34:
 case 34:
 #line 1 "NONE"
 	{ts = p;}
-#line 625 "gff_reader.c"
+#line 632 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr38;
 		case 32: goto tr37;
-		case 43: goto tr39;
-		case 45: goto tr39;
-		case 46: goto tr40;
-		case 95: goto tr42;
+		case 35: goto st35;
+		case 43: goto tr40;
+		case 45: goto tr40;
+		case 46: goto tr41;
+		case 95: goto tr43;
 	}
 	if ( (*p) < 48 ) {
 		if ( 9 <= (*p) && (*p) <= 13 )
@@ -636,52 +644,59 @@ case 34:
 	} else if ( (*p) > 57 ) {
 		if ( (*p) > 90 ) {
 			if ( 97 <= (*p) && (*p) <= 122 )
-				goto tr42;
+				goto tr43;
 		} else if ( (*p) >= 65 )
-			goto tr42;
+			goto tr43;
 	} else
-		goto tr41;
+		goto tr42;
 	goto st0;
-tr41:
-#line 1 "NONE"
-	{te = p+1;}
-#line 70 "gff.ragel"
-	{act = 3;}
-	goto st35;
 st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-#line 656 "gff_reader.c"
+	if ( 32 <= (*p) && (*p) <= 126 )
+		goto st35;
+	goto tr44;
+tr42:
+#line 1 "NONE"
+	{te = p+1;}
+#line 75 "gff.ragel"
+	{act = 4;}
+	goto st36;
+st36:
+	if ( ++p == pe )
+		goto _test_eof36;
+case 36:
+#line 671 "gff_reader.c"
 	switch( (*p) ) {
 		case 46: goto st26;
 		case 59: goto st27;
 		case 61: goto st28;
-		case 95: goto tr42;
+		case 95: goto tr43;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr41;
+			goto tr42;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr42;
+			goto tr43;
 	} else
-		goto tr42;
-	goto tr43;
+		goto tr43;
+	goto tr45;
 st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st36;
+		goto st37;
 	goto tr27;
-st36:
+st37:
 	if ( ++p == pe )
-		goto _test_eof36;
-case 36:
+		goto _test_eof37;
+case 37:
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st36;
-	goto tr47;
+		goto st37;
+	goto tr49;
 st27:
 	if ( ++p == pe )
 		goto _test_eof27;
@@ -700,14 +715,14 @@ case 27:
 tr30:
 #line 1 "NONE"
 	{te = p+1;}
-#line 102 "gff.ragel"
-	{act = 11;}
-	goto st37;
-st37:
+#line 107 "gff.ragel"
+	{act = 12;}
+	goto st38;
+st38:
 	if ( ++p == pe )
-		goto _test_eof37;
-case 37:
-#line 711 "gff_reader.c"
+		goto _test_eof38;
+case 38:
+#line 726 "gff_reader.c"
 	switch( (*p) ) {
 		case 59: goto st27;
 		case 61: goto st28;
@@ -721,46 +736,46 @@ case 37:
 			goto tr30;
 	} else
 		goto tr30;
-	goto tr48;
+	goto tr50;
 st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
 	if ( 33 <= (*p) && (*p) <= 126 )
-		goto st38;
+		goto st39;
 	goto tr29;
-st38:
-	if ( ++p == pe )
-		goto _test_eof38;
-case 38:
-	if ( 33 <= (*p) && (*p) <= 126 )
-		goto st38;
-	goto tr48;
-tr42:
-#line 1 "NONE"
-	{te = p+1;}
-#line 70 "gff.ragel"
-	{act = 3;}
-	goto st39;
 st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-#line 750 "gff_reader.c"
+	if ( 33 <= (*p) && (*p) <= 126 )
+		goto st39;
+	goto tr50;
+tr43:
+#line 1 "NONE"
+	{te = p+1;}
+#line 75 "gff.ragel"
+	{act = 4;}
+	goto st40;
+st40:
+	if ( ++p == pe )
+		goto _test_eof40;
+case 40:
+#line 765 "gff_reader.c"
 	switch( (*p) ) {
 		case 59: goto st27;
 		case 61: goto st28;
-		case 95: goto tr42;
+		case 95: goto tr43;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr42;
+			goto tr43;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr42;
+			goto tr43;
 	} else
-		goto tr42;
-	goto tr43;
+		goto tr43;
+	goto tr45;
 	}
 	_test_eof1: cs = 1; goto _test_eof; 
 	_test_eof2: cs = 2; goto _test_eof; 
@@ -794,34 +809,36 @@ case 39:
 	_test_eof33: cs = 33; goto _test_eof; 
 	_test_eof34: cs = 34; goto _test_eof; 
 	_test_eof35: cs = 35; goto _test_eof; 
-	_test_eof26: cs = 26; goto _test_eof; 
 	_test_eof36: cs = 36; goto _test_eof; 
-	_test_eof27: cs = 27; goto _test_eof; 
+	_test_eof26: cs = 26; goto _test_eof; 
 	_test_eof37: cs = 37; goto _test_eof; 
-	_test_eof28: cs = 28; goto _test_eof; 
+	_test_eof27: cs = 27; goto _test_eof; 
 	_test_eof38: cs = 38; goto _test_eof; 
+	_test_eof28: cs = 28; goto _test_eof; 
 	_test_eof39: cs = 39; goto _test_eof; 
+	_test_eof40: cs = 40; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
 	{
 	switch ( cs ) {
 	case 33: goto tr36;
-	case 35: goto tr43;
+	case 35: goto tr44;
+	case 36: goto tr45;
 	case 26: goto tr27;
-	case 36: goto tr47;
+	case 37: goto tr49;
 	case 27: goto tr29;
-	case 37: goto tr48;
+	case 38: goto tr50;
 	case 28: goto tr29;
-	case 38: goto tr48;
-	case 39: goto tr43;
+	case 39: goto tr50;
+	case 40: goto tr45;
 	}
 	}
 
 	_out: {}
 	}
 
-#line 218 "gff.ragel"
+#line 223 "gff.ragel"
  
 
     // Insert the last batch
@@ -833,16 +850,16 @@ case 39:
     }
 
     if ( cs < 
-#line 837 "gff_reader.c"
+#line 854 "gff_reader.c"
 29
-#line 228 "gff.ragel"
+#line 233 "gff.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 844 "gff_reader.c"
+#line 861 "gff_reader.c"
 29
-#line 231 "gff.ragel"
+#line 236 "gff.ragel"
 );
     } 
 
@@ -852,8 +869,8 @@ case 39:
     gff_header_entry_free(current_header_entry);
 
     return cs < 
-#line 856 "gff_reader.c"
+#line 873 "gff_reader.c"
 29
-#line 239 "gff.ragel"
+#line 244 "gff.ragel"
 ;
 }

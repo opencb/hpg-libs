@@ -15,6 +15,7 @@ static enum GFF_Field current_field = SEQUENCE;
     number		= (digit)+ ("." (digit)+)? ;
     bases		= ("A" | "C" | "G" | "T" | "N")+ ;
     identifier	= (alnum)+ ;
+    comment     = "#" (print)* ;
 
 
     #########################################
@@ -67,6 +68,10 @@ static enum GFF_Field current_field = SEQUENCE;
 
     # Records scanner
     record_scan	:= |*
+        comment @ 6         => {
+            LOG_DEBUG("Comment found, nothing to do.");
+        };
+
         record_seqid  	=> {
             set_field(ts, te);
         };

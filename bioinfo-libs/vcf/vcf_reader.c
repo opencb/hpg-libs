@@ -2149,11 +2149,7 @@ case 117:
 
 int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
     int cs;
-//     char *ts, *te;
-//     int stack[4];
-//     int top, act;
     char *p, *pe;
-//     char *eof;
 
     store_samples = read_samples;
     current_header_entry = create_header_entry();
@@ -2220,16 +2216,16 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 	}
 	
 	if ( cs < 
-#line 2224 "vcf_reader.c"
+#line 2220 "vcf_reader.c"
 78
-#line 391 "vcf.ragel"
+#line 387 "vcf.ragel"
  ) 
 	{
 		LOG_INFO_F("Last state is %d, but %d was expected\n", 
 		       cs, 
-#line 2231 "vcf_reader.c"
+#line 2227 "vcf_reader.c"
 78
-#line 394 "vcf.ragel"
+#line 390 "vcf.ragel"
 );
 	} 
 	
@@ -2240,8 +2236,8 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 	vcf_header_entry_free(current_header_entry);   
 	
 	return cs < 
-#line 2244 "vcf_reader.c"
+#line 2240 "vcf_reader.c"
 78
-#line 403 "vcf.ragel"
+#line 399 "vcf.ragel"
 ;
 }

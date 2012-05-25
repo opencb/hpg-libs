@@ -26,7 +26,17 @@ gff_record_t* create_gff_record() {
 }
 
 void set_gff_record_sequence(char* sequence, gff_record_t* gff_record) {
-    gff_record->sequence = sequence;
+    if (starts_with(sequence, "chrom")) {
+        gff_record->sequence = (char*) calloc (strlen(sequence)-4, sizeof(char));
+        strncat(gff_record->sequence, sequence+5, strlen(sequence)-5);
+        free(sequence);
+    } else if (starts_with(sequence, "chr")) {
+        gff_record->sequence = (char*) calloc (strlen(sequence)-2, sizeof(char));
+        strncat(gff_record->sequence, sequence+3, strlen(sequence)-3);
+        free(sequence);
+    } else {
+        gff_record->sequence = sequence;
+    }
     LOG_DEBUG_F("set sequence: %s\n", gff_record->sequence);
 }
 
