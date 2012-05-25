@@ -34,4 +34,4 @@ test-utils:
 	cd test && make
 
 clean:
-	rm -f *.o
+	-rm -f *.o
