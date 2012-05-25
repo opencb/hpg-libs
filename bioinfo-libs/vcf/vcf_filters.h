@@ -1,5 +1,5 @@
-#ifndef _VCF_FILTERS_H 
-#define _VCF_FILTERS_H
+#ifndef VCF_FILTERS_H 
+#define VCF_FILTERS_H
 
 #include <stdio.h>
 #include <stdarg.h>

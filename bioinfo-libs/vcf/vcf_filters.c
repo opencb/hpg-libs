@@ -253,11 +253,12 @@ list_t* num_alleles_filter(list_t* input_records, list_t* failed, void* args) {
     // The stats returned by get_variants_stats are related to the records in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
     // it means the related vcf_record_t passes the filter
-    while ((stats_item = list_remove_item(input_stats)) != NULL) {
+    while (record_item != NULL) {
+        stats_item = list_remove_item(input_stats);
         variant_stats = stats_item->data_p;
         
         list_item_t *new_item = list_item_new(record_item->id, record_item->type, record_item->data_p);
-        if (variant_stats->alleles_count == num_alleles) {
+        if (variant_stats->num_alleles == num_alleles) {
             list_insert_item(new_item, passed);
         } else {
             list_insert_item(new_item, failed);
@@ -268,6 +269,8 @@ list_t* num_alleles_filter(list_t* input_records, list_t* failed, void* args) {
         
         record_item = record_item->next_p;
     }
+    
+    list_decr_writers(input_stats);
     
     return passed;
 }
