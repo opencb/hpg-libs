@@ -4,6 +4,3 @@
 #include <string.h>
 
 #include "fastq_read.h"
-
-
-

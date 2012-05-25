@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,10 +7,14 @@
 #include "string_utils.h"
 
 
-#define MAX_HEADER_LENGTH	128
-#define MIN_READ_SIZE	(2*35) 		// 70 = 2 * 35
-					// size is splitted in sequence and quality, so divided 2
-					// minimum expected sequence length is 35
+#define MAX_HEADER_LENGTH 128
+#define MIN_READ_SIZE (2*35)   // 70 = 2 * 35
+                               // size is splitted in sequence and quality, so divided 2
+                               // minimum expected sequence length is 35
+
+/* ******************************************************
+ *    		Function implementations  		*
+ * ******************************************************/
 
 fastq_batch_t* fastq_batch_new() {
     fastq_batch_t* batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));
@@ -28,7 +33,7 @@ fastq_batch_t* fastq_batch_init(fastq_batch_t* fastq_batch_p, unsigned long size
 
     fastq_batch_p->seq = (char*) calloc(fastq_batch_p->data_size / 2, sizeof(char));
     fastq_batch_p->quality = (char*) calloc(fastq_batch_p->data_size / 2, sizeof(char));
-    
+
     return fastq_batch_p;
 }
 
@@ -36,35 +41,33 @@ void fastq_batch_free(fastq_batch_t* fastq_batch_p) {
     if (fastq_batch_p == NULL) {
         return;
     }
-    
+
     if (fastq_batch_p->header_indices != NULL) {
-	free(fastq_batch_p->header_indices);
+        free(fastq_batch_p->header_indices);
     }
     if (fastq_batch_p->header != NULL) {
-	free(fastq_batch_p->header);
+        free(fastq_batch_p->header);
     }
     if (fastq_batch_p->data_indices != NULL) {
-	free(fastq_batch_p->data_indices);
+        free(fastq_batch_p->data_indices);
     }
 
     if (fastq_batch_p->seq != NULL) {
-	free(fastq_batch_p->seq);
+        free(fastq_batch_p->seq);
     }
     if (fastq_batch_p->quality != NULL) {
-	free(fastq_batch_p->quality);
+        free(fastq_batch_p->quality);
     }
-   
+
     free(fastq_batch_p);
 }
 
 void fastq_batch_print(fastq_batch_t* fastq_batch_p, FILE* fd) {
-    int i;
-  
-    for(i=0; i<fastq_batch_p->num_reads; i++) {
-	fprintf(fd, "%s\n", &(fastq_batch_p->header[fastq_batch_p->header_indices[i]]));
-	fprintf(fd, "%s\n", &(fastq_batch_p->seq[fastq_batch_p->data_indices[i]]));
-	fprintf(fd, "+\n");
-	fprintf(fd, "%s\n", &(fastq_batch_p->quality[fastq_batch_p->data_indices[i]]));
+    for (int i = 0; i < fastq_batch_p->num_reads; i++) {
+        fprintf(fd, "%s\n", &(fastq_batch_p->header[fastq_batch_p->header_indices[i]]));
+        fprintf(fd, "%s\n", &(fastq_batch_p->seq[fastq_batch_p->data_indices[i]]));
+        fprintf(fd, "+\n");
+        fprintf(fd, "%s\n", &(fastq_batch_p->quality[fastq_batch_p->data_indices[i]]));
     }
 }
 
@@ -94,14 +97,22 @@ void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_le
     fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
 
     str = &(batch_p->seq[batch_p->data_indices[index]]);
-    if (rtrim_length > 0) {  str = rtrim(str, rtrim_length); }
-    if (ltrim_length > 0) {  str = ltrim(str, ltrim_length); }
+    if (rtrim_length > 0) {
+        str = rtrim(str, rtrim_length);
+    }
+    if (ltrim_length > 0) {
+        str = ltrim(str, ltrim_length);
+    }
     fprintf(fd, "%s\n", str);
     fprintf(fd, "+\n");
 
     str = &(batch_p->quality[batch_p->data_indices[index]]);
-    if (rtrim_length > 0) {  str = rtrim(str, rtrim_length); }
-    if (ltrim_length > 0) {  str = ltrim(str, ltrim_length); }
+    if (rtrim_length > 0) {
+        str = rtrim(str, rtrim_length);
+    }
+    if (ltrim_length > 0) {
+        str = ltrim(str, ltrim_length);
+    }
     fprintf(fd, "%s\n", str);
 }
 
