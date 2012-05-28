@@ -22,16 +22,16 @@ GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
 VCF_OBJECTS = ./vcf_*.o
 
 VCF_BASIC_OBJECTS = main_basic.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
-VCF_BATCH_OBJECTS = $(VCF_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
+VCF_BATCH_OBJECTS = main_batch.c $(VCF_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
 VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_OBJECTS) $(GFF_OBJECTS)
 
 
 # Targets
 all: compile_dependencies ragel compile main_batch main_filter
 
-compile:
-# 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
-	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+compile: compile_dependencies
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 ragel:
 	ragel -o vcf_reader.c -C -G2 vcf.ragel
@@ -39,19 +39,13 @@ ragel:
 ragel_graphviz:
 	ragel -o vcf_ragel.dot -V -C -G2 vcf.ragel
 
-main_batch: compile_dependencies compile $(VCF_BATCH_OBJECTS) 
-# 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ main_batch.c $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
-	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ main_batch.c $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+main_batch: compile_dependencies compile
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+# 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
 main_filter: compile_dependencies ragel compile $(VCF_FILTER_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 # 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
-
-main_basic: $(VCF_BASIC_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $(VCF_BASIC_OBJECTS) $(INCLUDES) $(LIBS)
-
-main_sizeof: main_sizeof_structs.c
-	$(CC) $(CFLAGS) -o $@ main_sizeof_structs.c $(INCLUDES)
 
 compile_dependencies:
 	cd $(CONTAINERS_DIR) && make list.o  && \
@@ -67,4 +61,3 @@ clean:
 	rm -f *.o
 	rm main_batch
 	rm main_filter
-
