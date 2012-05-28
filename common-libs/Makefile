@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
 
-LIBS_ROOT = $(PWD)/..
+LIBS_ROOT = ..
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
 COMMONS_DIR = $(LIBS_ROOT)/commons
 
@@ -19,10 +19,9 @@ region_table.o:
 	$(CC) $(CFLAGS) -c region_table.c $(INCLUDES) $(LIBS)
 
 region_table_utils.o:
-	$(CC) $(CFLAGS) -c region_table_utils.c $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c region_table_utils.c $(INCLUDES) $(LIBS)
 
 clean:
 	rm list.o
 	rm region_table.o
 	rm region_table_utils.o
-
