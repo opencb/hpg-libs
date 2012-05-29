@@ -8,8 +8,9 @@
 #include <cprops/hashtable.h>
 #include <cprops/vector.h>
 
-#include "string_utils.h"
-#include "region.h"
+#include <log.h>
+#include <region.h>
+#include <string_utils.h>
 
 
 /**
@@ -35,7 +36,7 @@ typedef struct region_table
  * 	(Optional) File the list of ordered chromosomes is read from
  * @return A structure for a region table
  */
-region_table_t *create_table(const char *chromosome_file);
+region_table_t *create_table(const char *url, const char *species, const char *version);
 
 /**
  * Free the region table given as parameter.

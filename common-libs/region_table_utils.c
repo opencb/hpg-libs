@@ -1,8 +1,8 @@
 #include "region_table_utils.h"
 
 
-region_table_t *parse_regions(char *input_regions, int as_positions) {
-    region_table_t *regions_table = create_table(NULL);
+region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version) {
+    region_table_t *regions_table = create_table(url, species, version);
 
     char *str_1 = input_regions;
     char *str_2 = (char*) malloc (64 * sizeof(char));
@@ -58,13 +58,13 @@ region_table_t *parse_regions(char *input_regions, int as_positions) {
     return regions_table;
 }
 
-region_table_t *parse_regions_from_gff_file(char *filename) {
+region_table_t *parse_regions_from_gff_file(char *filename, const char *url, const char *species, const char *version) {
     gff_file_t *file = gff_open(filename);
     if (file == NULL) {
         return NULL;
     } 
     
-    region_table_t *regions_table = create_table(NULL);
+    region_table_t *regions_table = create_table(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20;
