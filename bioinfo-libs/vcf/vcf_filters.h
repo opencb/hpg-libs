@@ -85,9 +85,9 @@ filter_t *create_quality_filter(int min_quality);
 
 void free_quality_filter(filter_t *filter);
 
-filter_t *create_region_filter(char *region_descriptor, int use_region_file);
+filter_t *create_region_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
 
-filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file);
+filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
 
 void free_region_filter(filter_t *filter);
 

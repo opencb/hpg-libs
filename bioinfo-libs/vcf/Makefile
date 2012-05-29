@@ -12,11 +12,11 @@ REGION_DIR = $(BIOFORMATS_DIR)/features/region
 
 # Include path and libraries
 INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
-LIBS = -lcprops -fopenmp
+LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
 
 # Source and object files
 MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c vcf_stats.c vcf_util.c
-MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
+MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
 VCF_OBJECTS = ./vcf_*.o
@@ -54,6 +54,7 @@ compile_dependencies:
 	cd $(CONTAINERS_DIR) && make region_table.o && \
 	cd $(CONTAINERS_DIR) && make region_table_utils.o && \
 	cd $(COMMONS_DIR) && make string_utils.o && \
+	cd $(COMMONS_DIR) && make http_utils.o && \
 	cd $(COMMONS_DIR) && make file_utils.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile
 

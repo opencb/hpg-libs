@@ -59,7 +59,7 @@ void free_quality_filter(filter_t *filter) {
     free(filter);
 }
 
-filter_t *create_region_filter(char *region_descriptor, int use_region_file) {
+filter_t *create_region_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     filter->type = REGION;
     filter->filter_func = region_filter;
@@ -68,16 +68,16 @@ filter_t *create_region_filter(char *region_descriptor, int use_region_file) {
 
     region_filter_args *filter_args = (region_filter_args*) malloc (sizeof(region_filter_args));
     if (use_region_file) {
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor);
+        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
     } else {
-        filter_args->regions = parse_regions(region_descriptor, 0);
+        filter_args->regions = parse_regions(region_descriptor, 0, url, species, version);
     }
     filter->args = filter_args;
 
     return filter;
 }
 
-filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file) {
+filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     filter->type = REGION;
     filter->filter_func = region_filter;
@@ -86,9 +86,9 @@ filter_t *create_region_exact_filter(char *region_descriptor, int use_region_fil
 
     region_filter_args *filter_args = (region_filter_args*) malloc (sizeof(region_filter_args));
     if (use_region_file) {
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor);
+        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
     } else {
-        filter_args->regions = parse_regions(region_descriptor, 1);
+        filter_args->regions = parse_regions(region_descriptor, 1, url, species, version);
     }
     filter->args = filter_args;
 
