@@ -1,68 +1,123 @@
 #include "region.h"
 
 
-char **get_chromosome_order(const char *chromosome_file, int *num_chromosomes)
+char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes)
 {
-	char **ordering = NULL;
-	int count = 0;
-	if (chromosome_file == NULL)
-	{
-		count = 25;
-		// Use default criteria: 1st numerics, then lexicographic order
-		ordering = (char**) malloc (count * sizeof(char*));
-		for (int i = 0; i < 22; i++)
-		{
-			ordering[i] = (char*) malloc (16 * sizeof(char));
-			sprintf(ordering[i], "%d", i+1);
-		}
-		ordering[22] = (char*) malloc (16 * sizeof(char));
-		ordering[23] = (char*) malloc (16 * sizeof(char));
-		ordering[24] = (char*) malloc (16 * sizeof(char));
-		strcpy(ordering[22], "X");
-		strcpy(ordering[23], "Y");
-		strcpy(ordering[24], "MT");
-	} else
-	{
-		// Use list from file
-		FILE *file = fopen(chromosome_file, "r");
-		if (!file) {
-			*num_chromosomes = 0;
-			return ordering;
-		}
-	
-		// Count chromosomes lines
-		char line[16];
-		while ( fgets(line, sizeof line, file) )
-		{
-			if ( line[0] != '\n' ) { ++count; }
-		}
-		if (count == 0) { 
-			*num_chromosomes = 0;
-			return ordering;
-		}
-		
-		ordering = (char**) malloc (count * sizeof(char*));
-		
-		// Read file
-		rewind(file);
-		int aux_count = 0;
-		while ( fgets(line, sizeof line, file) )
-		{
-			if ( line[0] != '\n' ) { 
-				ordering[aux_count] = (char*) malloc (16 * sizeof(char));
-				strcpy(ordering[aux_count], trim(line));
-				aux_count++;
-			}
-		}
-		
-		// Close file
-		fclose(file);
-	}
-	
-	*num_chromosomes = count;
-	
-	return ordering;
+    int ret_code = init_http_environment(0);
+    if (ret_code != 0) {
+        return NULL;
+    }
+    
+    char **ordering = NULL;
+    
+    // Default species: hsa
+    if (species == NULL || version == NULL) {
+        *num_chromosomes = 25;
+        ordering = (char**) malloc ((*num_chromosomes) * sizeof(char*));
+        for (int i = 0; i < 22; i++)
+        {
+            ordering[i] = (char*) calloc (3, sizeof(char));
+            sprintf(ordering[i], "%d", i+1);
+        }
+        ordering[22] = (char*) calloc (2, sizeof(char));
+        ordering[23] = (char*) calloc (2, sizeof(char));
+        ordering[24] = (char*) calloc (3, sizeof(char));
+        strcat(ordering[22], "X");
+        strcat(ordering[23], "Y");
+        strcat(ordering[24], "MT");
+        
+        return ordering;
+    }
+    
+    CURL *curl;
+    CURLcode res;
+    char *url;
+
+    curl = curl_easy_init();
+    if(curl) {
+        url = compose_chromosomes_ws_request(host_url, species, version);
+        if (!url) { return NULL; }
+
+        chromosome_ws_response s;
+        s.length = 0;
+        s.data = calloc(1, sizeof(char));
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_chromosomes_ws_results);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+        res = curl_easy_perform(curl);
+
+        LOG_DEBUG_F("Species chromosomes = { %s }\n", s.data);
+        ordering = split(s.data, ",", num_chromosomes);
+
+        free(s.data);
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    
+    return ordering;
 }
+
+static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version) {
+    if (host_url == NULL || version == NULL || species == NULL) {
+        return NULL;
+    }
+    
+    // URL Constants
+    const char *ws_root_url = "cellbase/rest/";
+    const char *ws_name_url = "chromosomes";
+    
+    // Length of URL parts
+    const int host_url_len = strlen(host_url);
+    const int ws_root_len = strlen(ws_root_url);
+    const int version_len = strlen(version);
+    const int species_len = strlen(species);
+    const int ws_name_len = strlen(ws_name_url);
+    const int result_len = host_url_len + ws_root_len + version_len + species_len + ws_name_len + 4;
+    
+    char *result_url = (char*) calloc (result_len, sizeof(char));
+    
+    // Host URL
+    strncat(result_url, host_url, host_url_len);
+    if (result_url[host_url_len - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Root of the web service
+    strncat(result_url, ws_root_url, ws_root_len);
+    
+    // Version
+    strncat(result_url, version, version_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Species
+    strncat(result_url, species, species_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_name_url, ws_name_len);
+    
+    return result_url;
+}
+
+static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *s) {
+    size_t new_len = s->length + size*nmemb;
+    s->data = realloc(s->data, new_len+1);
+    if (s->data == NULL) {
+        LOG_FATAL("Can't allocate enough memory for getting chromosomes");
+    }
+    memcpy(s->data+s->length, contents, size*nmemb);
+    s->data[new_len] = '\0';
+    s->length = new_len;
+
+    return size*nmemb;
+}
+
 
 
 int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, int num_chromosomes)
@@ -75,7 +130,7 @@ int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, 
 	region_t *reg_1 = (region_t *) region_1;
 	region_t *reg_2 = (region_t *) region_2;
 	
-	// TODO This could be avoided while inserting, becuase regions are classified by chromosome
+	// TODO This could be avoided while inserting, because regions are classified by chromosome
 	int result = compare_chromosomes(reg_1->chromosome, reg_2->chromosome, chromosome_ordering, num_chromosomes);
 	if (result != 0)
 	{

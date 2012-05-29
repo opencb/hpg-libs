@@ -7,13 +7,21 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "string_utils.h"
+#include <curl/curl.h>
+#include <http_utils.h>
+#include <log.h>
+#include <string_utils.h>
 
 typedef struct region {
 	uint32_t start_position;
 	uint32_t end_position;
 	char *chromosome;
 } region_t;
+
+typedef struct {
+    char *data;
+    size_t length;
+} chromosome_ws_response;
 
 /**
  * Get an ordered list of chromosomes which will be used as reference in 
@@ -23,7 +31,7 @@ typedef struct region {
  * is inserting the numerical chromosomes at the head of the list, then
  * use lexicographical order for textual names.
  * 
- * @param chromosome_file 
+ * @param species
  * 	(Optional) File the list of ordered chromosomes is read from
  * @param num_chromosomes
  * 	(Output) Number of chromosomes present in the list
@@ -31,8 +39,11 @@ typedef struct region {
  * @return
  * 	List containing the names of the chromosomes in order
  */
-char **get_chromosome_order(const char *chromosome_file, int *num_chromosomes);
+char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes);
 
+static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version);
+
+static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *userdata);
 
 /**
  * Compare two regions, considering their chromosome and start position.

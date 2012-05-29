@@ -1,13 +1,13 @@
 
 CC = gcc
-CFLAGS = -std=c99 -O3
+CFLAGS = -std=c99 -O3 -D_BSD_SOURCE -D_XOPEN_SOURCE=600
 
-LIBS_ROOT = ../../..
-SRC_DIR = .
+LIBS_ROOT = $(PWD)/../../..
+SRC_DIR = $(PWD)
 COMMONS_DIR = $(LIBS_ROOT)/commons
 
 INCLUDES = -I $(SRC_DIR) -I $(COMMONS_DIR)
-LIBS = -lcheck -lcprops 
+LIBS = -lcheck -lcprops -lcurl -Wl,-Bsymbolic-functions
 
 
 all: string_utils.o region.o
