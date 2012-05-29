@@ -51,7 +51,7 @@ static enum VCF_Field current_field = CHROM;
 
 
 	#########################################
-	#		Header			#
+	#                 Header                #
 	#########################################
 	
 	# Header rules
@@ -232,7 +232,7 @@ static enum VCF_Field current_field = CHROM;
 	
 
 	#########################################
-	#		Machine			#
+	#               Machine                 #
 	#########################################
 
     main        := (fileformat header delimiter)? (records >{ fhold; fcall record_scan; })? ;
@@ -242,9 +242,7 @@ static enum VCF_Field current_field = CHROM;
 
 static char* get_token(char *ts, char *te)
 {
-	char *field = (char*) calloc ((te-ts+1), sizeof(char));
-    strncat(field, ts, (te-ts));
-	return field;
+	return strndup(ts, te-ts);
 }
 
 static void set_field(char* ts, char *te) {
