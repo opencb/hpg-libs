@@ -32,10 +32,9 @@ bam_data_batch_t* bam_data_batch_init(bam_data_batch_t* bam_data_batch_p, bam_ba
     int cigar_operations = 0, id_seq_length = 0, last_alignments_position = 0, first_chromosome_position = 0;
     short int num_chromosomes_in_batch = 0;
 
-    short int chromosomes[25];
-    //int chromosome_indices[25];
-    int start_positions[25];
-    int end_positions[25];
+    short int chromosomes[num_of_chromosomes];
+    int start_positions[num_of_chromosomes];
+    int end_positions[num_of_chromosomes];
 
     bam_data_core_t* core_data_p;
 

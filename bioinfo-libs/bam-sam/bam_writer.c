@@ -17,7 +17,7 @@ bam_writer_t* bam_writer_new(char* filename, alignments_list_t* alignments_list_
     pthread_mutex_init(&(writer_p->alive_lock), NULL);
 
     writer_p->alignments_list_p = alignments_list_p;
-    writer_p->bam_write_alignment_count = (int*) calloc(NUM_OF_CHROMOSOMES, sizeof(int));
+    writer_p->bam_write_alignment_count = (int*) calloc(num_of_chromosomes, sizeof(int));
 
     bam_fwrite_header(bam_header_p, writer_p->bam_file_p);
 
@@ -150,7 +150,7 @@ void* bam_writer_sequential_thread_function(void* param_p) {
     }
 
     while (1) {
-        if ((current_chromosome < NUM_OF_CHROMOSOMES) && (chrom_alignments_is_complete(chrom_alignments_p))) {
+        if ((current_chromosome < num_of_chromosomes) && (chrom_alignments_is_complete(chrom_alignments_p))) {
 
             if (time_flag) {
                 start_timer(t1_write);
@@ -165,11 +165,11 @@ void* bam_writer_sequential_thread_function(void* param_p) {
 
             current_chromosome++;
 
-            while ((chrom_alignments_p = alignments_list_get_chrom_alignment(current_chromosome, writer_p->alignments_list_p)) == NULL) {
+            while (((chrom_alignments_p = alignments_list_get_chrom_alignment(current_chromosome, writer_p->alignments_list_p)) == NULL) && (current_chromosome < num_of_chromosomes)) {
                 sched_yield();
                 usleep(10000);
             }
-        } else if (current_chromosome == NUM_OF_CHROMOSOMES) {
+        } else if (current_chromosome == num_of_chromosomes) {  
             break;
         } else {
             sched_yield();

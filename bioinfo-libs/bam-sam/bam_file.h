@@ -26,6 +26,8 @@
 #define SINGLE_CHROM_BATCH 	0
 #define MULTIPLE_CHROM_BATCH 	1
 
+#define TEMPORARY_HEADER_PATH	"/tmp/header.tmp.bam"
+
 /* **************************************
  *      	Structures    		*
  * *************************************/
@@ -149,6 +151,23 @@ int bam_fread_max_size_by_chromosome(bam_batch_t* batch_p, size_t batch_size, in
 void bam_fwrite_header(bam_header_t* bam_header_p, bam_file_t* bam_file_p);
 
 /**
+*  @brief Writes header in a temporary file for further recovery
+*  @param bam_header_p pointer to the bam_header
+*  @return void
+*  
+*  Writes header in a temporary file for further recovery (TEMPORARY_HEADER_PATH)
+*/
+void bam_fwrite_temporary_header(bam_header_t* bam_header_p);
+
+/**
+*  @brief Reads header from a temporary file
+*  @return bam_header_t* pointer to the bam_header
+*  
+*  Reads header form a temporary file (TEMPORARY_HEADER_PATH)
+*/
+bam_header_t* bam_fread_temporary_header();
+
+/**
 *  @brief Writes a bam1_t alignment to a BAM file
 *  @param alignment_p pointer to bam1_t alignment
 *  @param bam_file_p bam file handler 
@@ -247,6 +266,15 @@ int bam_validate_header(bam_file_t* bam_file_p);
 *  Counts the number of alignments in the BAM file
 */
 unsigned int bam_fcount(bam_file_t* bam_file);
+
+/**
+*  @brief Gets number of chromosomes/targets declared in BAM file header
+*  @param filename BAM file name
+*  @return number of chromosomes/targets declared in BAM file header
+*  
+*  Gets number of chromosomes/targets declared in BAM file header
+*/
+int bam_fread_num_chromosomes(char* filename);
 
 /* **********************************************
  *      	BAM batch functions    		*

@@ -32,9 +32,18 @@ bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mod
     // bam header is read once and stored in read mode
     // bam header is written in write mode if is not null
     if (mode[0] == 'r') {
-        bam_file->bam_header_p = bam_header_read(bam_fd);
+        bam_file->bam_header_p = bam_header_read(bam_fd);	
     } else {
-        bam_file->bam_header_p = NULL;
+        //bam_file->bam_header_p = NULL;
+        bam_file->bam_header_p = bam_header_p;
+    }
+    
+    if (num_of_chromosomes == 0) {
+        if (bam_file->bam_header_p != NULL) {
+            num_of_chromosomes = bam_file->bam_header_p->n_targets;
+        } else {
+            num_of_chromosomes = DEFAULT_NUM_OF_CHROMOSOMES;
+        }
     }
 
     return bam_file;
@@ -43,6 +52,7 @@ bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mod
 void bam_fclose(bam_file_t* bam_file) {
     if (bam_file->bam_header_p != NULL) {
         bam_header_destroy(bam_file->bam_header_p);
+        bam_file->bam_header_p = NULL;
     }
 
     bam_close(bam_file->bam_fd);
@@ -146,6 +156,20 @@ void bam_fwrite_header(bam_header_t* bam_header_p, bam_file_t* bam_file_p) {
     bam_header_write(bam_file_p->bam_fd, bam_header_p);
 }
 
+void bam_fwrite_temporary_header(bam_header_t* bam_header_p) {
+    bamFile bam_fd = bam_open(TEMPORARY_HEADER_PATH, "w");
+    bam_header_write(bam_fd, bam_header_p);
+    bam_close(bam_fd);    
+}
+
+bam_header_t* bam_fread_temporary_header() {
+    bamFile bam_fd = bam_open(TEMPORARY_HEADER_PATH, "r");
+    bam_header_t* bam_header_p = bam_header_read(bam_fd);
+    bam_close(bam_fd);
+    
+    return bam_header_p;
+}
+
 int bam_fwrite(bam1_t* alignment_p, bam_file_t* bam_file_p) {
     return bam_write1(bam_file_p->bam_fd, alignment_p);
 }
@@ -247,6 +271,14 @@ unsigned int bam_fcount(bam_file_t* bam_file) {
     }
 
     return bam_file->num_alignments;
+}
+
+int bam_fread_num_chromosomes(char* filename) {
+    bam_file_t* bam_file_p = bam_fopen(filename);
+    int num_of_chromosomes_in_header = bam_file_p->bam_header_p->n_targets;
+    bam_fclose(bam_file_p);
+
+    return num_of_chromosomes_in_header;
 }
 
 /* **********************************************

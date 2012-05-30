@@ -163,7 +163,7 @@ void* bam_reader_sequential_thread_function(void* param_p) {
             current_chromosome++;
             bam_batch_free(batch_p, 1);
 
-            if ((reader_p->chromosome == ALL_CHROMOSOMES) && (current_chromosome == NUM_OF_CHROMOSOMES)) {
+            if ((reader_p->chromosome == ALL_CHROMOSOMES) && (current_chromosome == num_of_chromosomes)) {  
                 break;
             } else if ((reader_p->chromosome != ALL_CHROMOSOMES) && (current_chromosome == (reader_p->chromosome + 1))) {
                 break;
@@ -187,7 +187,7 @@ void* bam_reader_sequential_thread_function(void* param_p) {
     bam_fclose(reader_p->bam_file_p);
 
     if (reader_p->chromosome == ALL_CHROMOSOMES) {
-        for (int i = 0; i < NUM_OF_CHROMOSOMES; i++) {
+        for (int i = 0; i < num_of_chromosomes; i++) {  
             chrom_alignments_set_complete(alignments_list_get_chrom_alignment(i, reader_p->alignments_list_p), 1);
         }
     } else {
@@ -215,8 +215,8 @@ void* bam_reader_chromosome_thread_function(void* param_p) {
     int current_chromosome = 0;
     bam_batch_t* batch_p;
 
-    for (int i = 0; i < NUM_OF_CHROMOSOMES; i++) {
-        alignments_list_new_chrom_alignment(i, reader_p->max_estimated_alignments, reader_p->alignments_list_p);
+    for (int i = 0; i < num_of_chromosomes; i++) {      
+        alignments_list_new_chrom_alignment(i, reader_p->max_estimated_alignments, reader_p->alignments_list_p);	
     }
 
     while (1) {
@@ -264,7 +264,7 @@ void* bam_reader_chromosome_thread_function(void* param_p) {
 
     bam_fclose(reader_p->bam_file_p);
 
-    for (int i = 0; i < NUM_OF_CHROMOSOMES; i++) {
+    for (int i = 0; i < num_of_chromosomes; i++) {      
         chrom_alignments_set_complete(alignments_list_get_chrom_alignment(i, reader_p->alignments_list_p), 1);
     }
 
