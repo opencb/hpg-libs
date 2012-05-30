@@ -4,32 +4,8 @@
 #include "system_utils.h"
 
 /* **************************************************************
- *      Functions implementations     *
+ *      	Functions implementations     			*
  * **************************************************************/
-
-// unsigned long int get_free_memory() {
-//     FILE* fd_memory = NULL;
-//
-//     long int free_memory;
-//     char str_memory[15];
-//
-//     fd_memory = popen("free | grep Mem | awk '{ print $4 }'", "r");
-//
-//     if (fd_memory == NULL) {
-//         LOG_FATAL("Free memory cannot be obtained.\n");
-//     }
-//
-//     fgets(str_memory, 15, fd_memory);
-//
-//     sscanf(str_memory, "%lu", &free_memory);
-//
-//     char log_message[50];
-//     sprintf(log_message, "free memory (KB): %li\n", free_memory);
-//     LOG_DEBUG(log_message);
-//
-//     pclose(fd_memory);
-//     return free_memory;
-// }
 
 unsigned long int get_free_memory() {
     FILE* fd_memory = NULL;
