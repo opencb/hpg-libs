@@ -6,7 +6,7 @@ BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
 COMMONS_DIR = $(LIBS_ROOT)/commons
 
 INCLUDES = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff
-LIBS = -lcprops -lcheck
+LIBS = -lcprops
 
 
 all: list.o region_table.o region_table_utils.o
