@@ -1,15 +1,15 @@
 #include "region_table.h"
 
-region_table_t *create_table(const char *chromosome_file)
+region_table_t *create_table(const char *url, const char *species, const char *version)
 {
-	int max_chromosomes;
+	int num_chromosomes;
 	region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
 	
-	table->ordering = get_chromosome_order(chromosome_file, &max_chromosomes);
-	table->max_chromosomes = max_chromosomes;
+    table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
+	table->max_chromosomes = num_chromosomes;
 	
 	table->storage = cp_hashtable_create_by_option( COLLECTION_MODE_NOSYNC | COLLECTION_MODE_DEEP,
-							max_chromosomes * 2,
+							num_chromosomes * 2,
 							cp_hash_istring,			// Hash function
 							(cp_compare_fn) strcasecmp,		// Key comparison function
 							NULL,					// Key copy function
@@ -44,7 +44,19 @@ int insert_region(region_t *region, region_table_t *table)
 	cp_avltree *chr = NULL;
 	if (!cp_hashtable_contains(table->storage, region->chromosome))
 	{
-		// Insert new chromosome (return -1 in error)
+        // Check if the chromosome is valid for the species
+        int valid = 0;
+        for (int i = 0; i < table->max_chromosomes && !valid; i++) {
+            if (!strcasecmp(region->chromosome, table->ordering[i])) {
+                valid = 1;
+            }
+        }
+        if (!valid) {
+            LOG_WARN_F("Chromosome %s does not match the species to analyze\n", region->chromosome);
+            return -1;
+        }
+        
+		// Insert new chromosome
 		if ((chr = insert_chromosome(region->chromosome, table)) == NULL)
 		{
 			return 1;
