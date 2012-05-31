@@ -48,10 +48,6 @@ void* fastq_batch_reader_thread_function(void* param_p) {
     unsigned int total_reads = 0;
     char log_message[100];
 
-    unsigned int usecs = 1000; // microseconds to wait (1 ms.)
-
-    timevars();
-
     // Cast param_p to 'fastq_batch_reader_t'
     fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) param_p;
 

@@ -99,8 +99,6 @@ void* fastq_batch_reader_thread_function(void* param_p) {
 
     unsigned int usecs = 1000; // micro seconds to wait (1 ms.)
 
-    timevars();
-
     fastq_batch_reader_t* fastq_batch_reader_p = (fastq_batch_reader_t*) param_p;    // cast void* param_p to fastq_batch_reader_t
 
     sprintf(log_message, "Thread-READ: START, for file %s\n", fastq_batch_reader_p->fastq_file_p->filename);

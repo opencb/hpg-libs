@@ -24,7 +24,7 @@ fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
 
     if (fd == NULL) {
         sprintf(log_message, "Error opening file: %s, mode (%s) !!!!!\n", filename, mode);
-        LOG_ERROR(log_message);
+        LOG_FATAL(log_message);
         return NULL;
     }
 
