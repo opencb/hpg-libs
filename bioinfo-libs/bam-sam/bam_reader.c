@@ -212,7 +212,6 @@ void* bam_reader_chromosome_thread_function(void* param_p) {
     LOG_DEBUG(log_message);
 
     int num_alignments = 0, total_alignments = 0;
-    int current_chromosome = 0;
     bam_batch_t* batch_p;
 
     for (int i = 0; i < num_of_chromosomes; i++) {      
@@ -293,7 +292,6 @@ void* bam_reader_list_insert_thread_function(void* param_p) {
     LOG_DEBUG(log_message);
 
     int num_alignments = 0, total_alignments = 0;
-    int current_chromosome = 0;
     int counter = 0;
     bam_batch_t* bam_batch_p;
     bam_data_batch_t* bam_data_batch_p;
@@ -370,7 +368,6 @@ void* bam_reader_list_insert_by_chromosome_thread_function(void* param_p) {
     LOG_DEBUG(log_message);
 
     int num_alignments = 0, total_alignments = 0;
-    int current_chromosome = 0;
     int counter = 0;
     bam_batch_t* bam_batch_p;
     bam_data_batch_t* bam_data_batch_p;

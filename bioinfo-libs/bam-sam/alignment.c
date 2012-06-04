@@ -428,10 +428,8 @@ char* convert_to_quality_string(uint8_t* quality_p) {
 }
 
 char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
-    int cigar_string_length = sizeof(cigar_p);  //asumming not more than 3 digits per operation
-
+    //asumming not more than 3 digits per operation
     char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 4 * num_cigar_operations), sizeof(char));
-    char cigar_num_operation_string[4];
     uint32_t cigar_int;
 
     for (int i = 0; i < num_cigar_operations; i++) {
@@ -476,7 +474,7 @@ char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
 void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations) {
     int cigar_string_length = strlen(cigar);
     uint32_t cigar_uint32_position;
-    int cigar_position, cigar_operation, cigar_acc_num_operations = 0, actual_num_cigar_operation = 0;
+    int cigar_position, cigar_operation, cigar_acc_num_operations = 0;
 
     for (int i = 0; i < cigar_string_length; i++) {
         cigar_position = (int) cigar[i];

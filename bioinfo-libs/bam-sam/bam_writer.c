@@ -130,7 +130,6 @@ void* bam_writer_sequential_thread_function(void* param_p) {
     ts.tv_nsec = 1000000;
 
     bam_writer_t* writer_p = (bam_writer_t*) param_p;
-    bam1_t* alignment_p;
 
     bam_writer_set_alive(writer_p, 1);
 
@@ -140,7 +139,7 @@ void* bam_writer_sequential_thread_function(void* param_p) {
 
     int current_chromosome = 0;
     int num_alignments = 0;
-    int write_bytes = 0, total_write_bytes = 0;
+    int total_write_bytes = 0;
 
     chrom_alignments_t* chrom_alignments_p;
 
