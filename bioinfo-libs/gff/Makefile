@@ -13,6 +13,9 @@ REGION_DIR = $(LIBS_ROOT)/bioformats/features/region
 INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/vcf/
 LIBS = -lcprops -fopenmp
 
+INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/vcf/ -I $(LIBS_ROOT)/../include
+LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
+
 # Source and object files
 MAIN_OBJECTS = gff_file.c gff_read.c gff_reader.c gff_write.c gff_batch.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o
@@ -21,10 +24,13 @@ GFF_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABLE_
 
 
 # Targets
-all: compile_dependencies ragel compile main_batch
+all: compile-dependencies ragel compile main_batch
 
-compile:
+compile: compile-dependencies
 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+
+compile-static: compile-dependencies-static
+	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES_STATIC) $(LIBS_STATIC)
 
 ragel:
 	ragel -o gff_reader.c -C -G2 gff.ragel
@@ -32,17 +38,19 @@ ragel:
 ragel_graphviz:
 	ragel -o gff_ragel.dot -V -C -G2 gff.ragel
 
-main_batch: compile_dependencies compile ragel $(GFF_BATCH_OBJECTS)
+main_batch: compile-dependencies compile ragel $(GFF_BATCH_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(GFF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 #	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(GFF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
-compile_dependencies:
-	cd $(COMMONS_DIR) && make file_utils.o && \
-	cd $(CONTAINERS_DIR) && make list.o  && \
-	cd $(COMMONS_DIR) && make log.o && \
-	cd $(REGION_DIR) && make region.o && \
-	cd $(CONTAINERS_DIR) && make region_table.o && \
-	cd $(COMMONS_DIR) && make string_utils.o	
+compile-dependencies:
+	cd $(COMMONS_DIR) && make file_utils.o log.o string_utils.o && \
+	cd $(CONTAINERS_DIR) && make compile  && \
+	cd $(REGION_DIR) && make region.o
+
+compile-dependencies-static:
+	cd $(COMMONS_DIR) && make file_utils.o log.o string_utils.o && \
+	cd $(CONTAINERS_DIR) && make compile-static  && \
+	cd $(REGION_DIR) && make region.o
 
 clean:
 	rm -f *.o

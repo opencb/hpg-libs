@@ -14,6 +14,9 @@ REGION_DIR = $(BIOFORMATS_DIR)/features/region
 INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
 LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
 
+INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/gff/ -I $(LIBS_ROOT)/../include
+LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
+
 # Source and object files
 MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c vcf_stats.c vcf_util.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
@@ -27,11 +30,14 @@ VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABL
 
 
 # Targets
-all: compile_dependencies ragel compile main_batch main_filter
+all: compile-dependencies ragel compile main_batch main_filter
 
-compile: compile_dependencies
+compile: compile-dependencies
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 # 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+
+compile-static: compile-dependencies-static
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES_STATIC) $(LIBS_STATIC)
 
 ragel:
 	ragel -o vcf_reader.c -C -G2 vcf.ragel
@@ -39,26 +45,28 @@ ragel:
 ragel_graphviz:
 	ragel -o vcf_ragel.dot -V -C -G2 vcf.ragel
 
-main_batch: compile_dependencies compile
+main_batch: compile-dependencies compile
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 # 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
-main_filter: compile_dependencies ragel compile $(VCF_FILTER_OBJECTS)
+main_filter: compile-dependencies ragel compile $(VCF_FILTER_OBJECTS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 # 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 
-compile_dependencies:
-	cd $(CONTAINERS_DIR) && make list.o  && \
-	cd $(COMMONS_DIR) && make log.o && \
+compile-dependencies:
+	cd $(CONTAINERS_DIR) && make compile && \
+	cd $(COMMONS_DIR) && make compile && \
 	cd $(REGION_DIR) && make region.o && \
-	cd $(CONTAINERS_DIR) && make region_table.o && \
-	cd $(CONTAINERS_DIR) && make region_table_utils.o && \
-	cd $(COMMONS_DIR) && make string_utils.o && \
-	cd $(COMMONS_DIR) && make http_utils.o && \
-	cd $(COMMONS_DIR) && make file_utils.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile
+
+compile-dependencies-static:
+	cd $(CONTAINERS_DIR) && make compile-static && \
+	cd $(COMMONS_DIR) && make compile && \
+	cd $(REGION_DIR) && make region.o && \
+	cd $(BIOFORMATS_DIR)/gff && make compile-static
 
 clean:
 	rm -f *.o
 	rm main_batch
 	rm main_filter
+
