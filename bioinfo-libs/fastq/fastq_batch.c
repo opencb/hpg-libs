@@ -80,16 +80,16 @@ void fprintf_read(FILE* fd, fastq_batch_t* batch_p, int index) {
 
 void fprintf_rtrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length) {
     fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
-    fprintf(fd, "%i\n", rtrim(&(batch_p->seq[batch_p->data_indices[index]]), rtrim_length));
+    fprintf(fd, "%s\n", rtrim(&(batch_p->seq[batch_p->data_indices[index]]), rtrim_length));
     fprintf(fd, "+\n");
-    fprintf(fd, "%i\n", rtrim(&(batch_p->quality[batch_p->data_indices[index]]), rtrim_length));
+    fprintf(fd, "%s\n", rtrim(&(batch_p->quality[batch_p->data_indices[index]]), rtrim_length));
 }
 
 void fprintf_ltrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int ltrim_length) {
     fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
-    fprintf(fd, "%i\n", ltrim(&(batch_p->seq[batch_p->data_indices[index]]), ltrim_length));
+    fprintf(fd, "%s\n", ltrim(&(batch_p->seq[batch_p->data_indices[index]]), ltrim_length));
     fprintf(fd, "+\n");
-    fprintf(fd, "%i\n", ltrim(&(batch_p->quality[batch_p->data_indices[index]]), ltrim_length));
+    fprintf(fd, "%s\n", ltrim(&(batch_p->quality[batch_p->data_indices[index]]), ltrim_length));
 }
 
 void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length, int ltrim_length) {
@@ -97,22 +97,25 @@ void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_le
     fprintf(fd, "%s\n", &(batch_p->header[batch_p->header_indices[index]]));
 
     str = &(batch_p->seq[batch_p->data_indices[index]]);
+
     if (rtrim_length > 0) {
         str = (char*) rtrim(str, rtrim_length);
     }
     if (ltrim_length > 0) {
         str = (char*) ltrim(str, ltrim_length);
     }
+
     fprintf(fd, "%s\n", str);
     fprintf(fd, "+\n");
-
     str = &(batch_p->quality[batch_p->data_indices[index]]);
+
     if (rtrim_length > 0) {
         str = (char*) rtrim(str, rtrim_length);
     }
+
     if (ltrim_length > 0) {
         str = (char*) ltrim(str, ltrim_length);
     }
+
     fprintf(fd, "%s\n", str);
 }
-
