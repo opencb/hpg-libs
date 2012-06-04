@@ -13,6 +13,7 @@ LIBS = -lcurl -Wl,-Bsymbolic-functions
 all: file_utils.o http_utils.o log.o string_utils.o result.o
 test: file_utils.o http_utils.o log.o string_utils.o result.o test-utils
 
+compile: file_utils.o http_utils.o log.o string_utils.o result.o
 
 file_utils.o: file_utils.h file_utils.c string_utils.o
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c file_utils.c
