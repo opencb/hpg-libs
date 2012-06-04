@@ -321,13 +321,11 @@ char* rstrip(char* str) {
 }
 
 char* ltrim(char* string, int num_chars) {
-    int length = strlen(string) - num_chars;
-    char* cut_string = (char*) malloc(length * sizeof(char));
-
-    strncpy(cut_string, string + num_chars, length);
-    string = cut_string;
-
-    return string;
+     int substring_length = strlen(string) - num_chars;
+     memcpy(string, string + num_chars, substring_length);
+     string[substring_length] = '\0';
+     
+     return string;     
 }
 
 char* rtrim(char* string, int num_chars) {

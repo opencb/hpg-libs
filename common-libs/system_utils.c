@@ -4,7 +4,7 @@
 #include "system_utils.h"
 
 /* **************************************************************
- *      	Functions implementations     			*
+ *      Functions implementations     *
  * **************************************************************/
 
 unsigned long int get_free_memory() {
@@ -28,7 +28,7 @@ unsigned long int get_free_memory() {
     sprintf(log_message, "free memory (KB): %li\n", free_memory);
     LOG_DEBUG(log_message);
 
-    pclose(fd_memory);
+    fclose(fd_memory);
     return free_memory;
 }
 
@@ -86,9 +86,9 @@ int get_optimal_cpu_num_threads() {
 int get_optimal_gpu_num_threads() {
     int optimal_gpu_num_threads = 0;
 
-#ifdef CUDA_VERSION
+    #ifdef CUDA_VERSION
     optimal_gpu_num_threads = 16 * get_cuda_device_warp_size();
-#endif
+    #endif
 
     return optimal_gpu_num_threads;
 }
@@ -97,9 +97,9 @@ int get_optimal_batch_size(int process, int max_list_length) {
     unsigned long int optimal_batch_size;
     unsigned long int gpu_global_memory = ULLONG_MAX;
 
-#ifdef CUDA_VERSION
+    #ifdef CUDA_VERSION
     gpu_global_memory = get_cuda_device_global_memory();
-#endif
+    #endif
 
     unsigned long int free_memory = get_free_memory();
 

@@ -252,6 +252,26 @@ char* ltrim2(char *str);
 char* rtrim2(char *str);
 
 /**
+*  @brief Cuts from left side of a string the given number or characters
+*  @param string string to trim
+*  @param num_chars number of characters to trim
+*  @return processed string
+*  
+*  Cuts from left side of a string the given number or characters
+*/
+char* ltrim(char* string, int num_chars);
+
+/**
+*  @brief Cuts from right side of a string the given number or characters
+*  @param string string to trim
+*  @param num_chars number of characters to trim
+*  @return processed string
+*  
+*  Cuts from right side of a string the given number or characters
+*/
+char* rtrim(char* string, int num_chars);
+
+/**
 *  @brief Removes blank spaces from left and right side of the string
 *  @param str string to strip
 *  @return processed string
