@@ -8,12 +8,11 @@
 #include <limits.h>
 #include <omp.h>
 
-#include <gff_file.h>
-#include <gff_file_structure.h>
-#include <log.h>
-
-#include <region.h>
-#include <region_table.h>
+#include <bioformats/features/region/region.h>
+#include <bioformats/gff/gff_file.h>
+#include <bioformats/gff/gff_file_structure.h>
+#include <commons/log.h>
+#include <containers/region_table.h>
 
 // region_table_t *parse_regions(char *input_regions, int as_positions);
 region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version);

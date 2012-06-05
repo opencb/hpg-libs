@@ -8,9 +8,9 @@
 #include <cprops/hashtable.h>
 #include <cprops/vector.h>
 
-#include <log.h>
-#include <region.h>
-#include <string_utils.h>
+#include <bioformats/features/region/region.h>
+#include <commons/log.h>
+#include <commons/string_utils.h>
 
 
 /**

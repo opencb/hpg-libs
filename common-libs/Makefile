@@ -2,16 +2,18 @@ CC = gcc
 CFLAGS = -std=c99 -O3
 
 LIBS_ROOT = $(PWD)/..
-BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
-COMMONS_DIR = $(LIBS_ROOT)/commons
+#BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
+#COMMONS_DIR = $(LIBS_ROOT)/commons
 
-INCLUDES = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff
+#INCLUDES = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff
+INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops
 
-INCLUDES_STATIC = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff -I $(LIBS_ROOT)/../include
+#INCLUDES_STATIC = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff -I $(LIBS_ROOT)/../include
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = $(LIBS_ROOT) -lcprops
 
-MISC_FILES = $(COMMONS_DIR)/log.c
+MISC_FILES = $(LIBS_ROOT)/commons/log.c
 
 all: list.o region_table.o region_table_utils.o
 
