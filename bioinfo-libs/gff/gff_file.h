@@ -12,8 +12,8 @@
 
 #include <cprops/linked_list.h>
 
-#include <file_utils.h>
-#include <log.h>
+#include <commons/file_utils.h>
+#include <commons/log.h>
 
 #include "gff_file_structure.h"
 #include "gff_reader.h"

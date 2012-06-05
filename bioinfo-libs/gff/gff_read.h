@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include <log.h>
+#include <commons/log.h>
 
 #include "gff_file_structure.h"
 

@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#include <log.h>
+#include <commons/log.h>
+#include "containers/list.h"
 
 #include "gff_batch.h"
 #include "gff_file_structure.h"
@@ -11,7 +12,6 @@
 #include "gff_reader.h"
 #include "gff_write.h"
 
-#include "list.h"
 
 int main (int argc, char *argv[])
 {

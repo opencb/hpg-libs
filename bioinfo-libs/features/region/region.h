@@ -8,9 +8,10 @@
 #include <limits.h>
 
 #include <curl/curl.h>
-#include <http_utils.h>
-#include <log.h>
-#include <string_utils.h>
+
+#include <commons/http_utils.h>
+#include <commons/log.h>
+#include <commons/string_utils.h>
 
 typedef struct region {
 	uint32_t start_position;
