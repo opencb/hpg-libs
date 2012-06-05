@@ -14,9 +14,9 @@
 #include <cprops/linked_list.h>
 #include <omp.h>
 
-#include <family.h>
-#include <file_utils.h>
-#include <log.h>
+#include <bioformats/family.h>
+#include <commons/file_utils.h>
+#include <commons/log.h>
 
 #include "ped_batch.h"
 #include "ped_error.h"

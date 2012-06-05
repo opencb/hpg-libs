@@ -9,10 +9,12 @@ COMMONS_DIR = $(LIBS_ROOT)/commons
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
 
 # Inclusion paths and libraries
-INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(BIOFORMATS_DIR)/vcf/
+# INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(BIOFORMATS_DIR)/vcf/
+INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops -fopenmp
 
-INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(LIBS_ROOT)/bioformats/vcf/ -I $(LIBS_ROOT)/../include
+# INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(LIBS_ROOT)/bioformats/vcf/ -I $(LIBS_ROOT)/../include
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
 
 # Source and object files

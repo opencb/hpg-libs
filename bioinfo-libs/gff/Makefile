@@ -15,7 +15,7 @@ INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
 
 # INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/vcf/ -I $(LIBS_ROOT)/../include
-INCLUDES_STATIC = -I . -I $(LIBS_ROOT)
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
 
 # Source and object files

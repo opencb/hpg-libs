@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#include <list.h>
-#include <log.h>
+#include <containers/list.h>
+#include <commons/log.h>
 
 #include "vcf_util.h"
 #include "vcf_file_structure.h"

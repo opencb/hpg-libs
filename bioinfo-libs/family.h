@@ -6,8 +6,8 @@
 
 #include <cprops/linked_list.h>
 
-#include <log.h>
-#include <string_utils.h>
+#include <commons/log.h>
+#include <commons/string_utils.h>
 
 
 enum Sex { UNKNOWN, MALE, FEMALE };

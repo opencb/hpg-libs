@@ -7,13 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include <log.h>
-
-// static int debug = 0;
-// static int benchmark = 1;
-// 
-// #define dprintf(...) { if (debug) { fprintf(stderr, __VA_ARGS__); } }
-// #define bprintf(...) { if (benchmark) { fprintf(stderr, __VA_ARGS__); } }
+#include <commons/log.h>
 
 /**
  * Flag which defines whether VCF files will be loaded using mmap.

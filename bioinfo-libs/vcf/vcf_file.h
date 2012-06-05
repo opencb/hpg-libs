@@ -10,9 +10,9 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include <file_utils.h>
-#include <list.h>
-#include <log.h>
+#include <commons/file_utils.h>
+#include <commons/log.h>
+#include <containers/list.h>
 
 #include "vcf_util.h"
 #include "vcf_file_structure.h"

@@ -7,7 +7,7 @@
 
 #include <cprops/linked_list.h>
 
-#include <list.h>
+#include <containers/list.h>
 
 #include "ped_error.h"
 #include "ped_file_structure.h"

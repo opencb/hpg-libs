@@ -11,10 +11,12 @@ BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
 REGION_DIR = $(BIOFORMATS_DIR)/features/region
 
 # Include path and libraries
-INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
+# INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
+INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
 
-INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/gff/ -I $(LIBS_ROOT)/../include
+# INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/gff/ -I $(LIBS_ROOT)/../include
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
 
 # Source and object files

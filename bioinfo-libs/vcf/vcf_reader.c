@@ -2176,7 +2176,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
             for (int i = 0; i < batch_size && !eof_found; i++) {
                 line_len = getline(&line, &line_len, file->fd);
                 if (line_len != -1) {
-//                    LOG_INFO_F("Line (len %zu): %s", line_len, line);
+    //                LOG_DEBUG_F("Line (len %zu): %s", line_len, line);
                     // Line too long to be stored in data, realloc
                     if (file->data_len + line_len + 1 > max_len) {
                         aux = realloc(data, max_len + line_len * 20);

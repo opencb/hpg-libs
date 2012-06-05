@@ -9,9 +9,9 @@
 
 #include <cprops/heap.h>
 
-#include <list.h>
-#include <log.h>
-#include <region_table_utils.h>
+#include <containers/list.h>
+#include <containers/region_table_utils.h>
+#include <commons/log.h>
 
 #include "vcf_file_structure.h"
 #include "vcf_stats.h"

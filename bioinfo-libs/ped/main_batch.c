@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#include <log.h>
+#include <commons/log.h>
+#include <containers/list.h>
 
 #include "ped_batch.h"
 #include "ped_file_structure.h"
@@ -11,7 +12,6 @@
 #include "ped_reader.h"
 #include "ped_write.h"
 
-#include "list.h"
 
 int main (int argc, char *argv[])
 {

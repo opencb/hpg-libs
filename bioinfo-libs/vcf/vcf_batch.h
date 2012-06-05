@@ -1,7 +1,7 @@
 #ifndef VCF_BATCH_H
 #define VCF_BATCH_H
 
-#include <log.h>
+#include <commons/log.h>
 
 #include <stdio.h>
 #include <stdlib.h>

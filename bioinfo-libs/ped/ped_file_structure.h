@@ -5,8 +5,8 @@
 
 #include <cprops/hashtable.h>
 
-#include <family.h>
-#include <file_utils.h>
+#include <bioformats/family.h>
+#include <commons/file_utils.h>
 
 /**
  * Entry in the PED document body.

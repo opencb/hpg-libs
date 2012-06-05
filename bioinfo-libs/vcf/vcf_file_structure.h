@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-#include "list.h"
+#include <containers/list.h>
 
 /**
  * Entry in the VCF document header.
