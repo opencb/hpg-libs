@@ -30,7 +30,7 @@ static enum PED_Field current_field = FAMILY_ID;
     record_mother   = empty | (alnum | "_")+ ;
     record_sex      = empty | number ;
     record_phenot   = empty | number ;
-    record_genotype = (bases)+ ;
+    record_genotype = (bases | "." )+ ;
 
 
     #########################################
@@ -70,7 +70,7 @@ static enum PED_Field current_field = FAMILY_ID;
             LOG_DEBUG("Genotypes found, nothing to do.");
         };
         
-        "\n"		=> {
+        "\n"        => {
             // If batch is full, add to the list of batches and create a new, empty one
             if (ped_batch_is_full(current_batch))
             {
@@ -131,11 +131,15 @@ static void set_field(char* ts, char *te) {
         case FATHER_ID:
             if (strncmp("0", field, 1) != 0) {
                 set_ped_record_father_id(field, current_record);
+            } else {
+                free(field);    // Not set as ped_record_t variable -> not freed later
             }
         break;
         case MOTHER_ID:
             if (strncmp("0", field, 1) != 0) {
                 set_ped_record_mother_id(field, current_record);
+            } else {
+                free(field);    // Not set as ped_record_t variable -> not freed later
             }
         break;
         case SEX:
@@ -153,11 +157,14 @@ static void set_field(char* ts, char *te) {
                 float_val = atof(field);
             }
             set_ped_record_phenotype(float_val, current_record);
-            free(field);	// Not set as ped_record_t variable -> not freed later
+            free(field);    // Not set as ped_record_t variable -> not freed later
         break;
+        default:
+            LOG_DEBUG_F("Field with unknown structure: '%s'\n", field);
+            free(field);
     }
 
-//     LOG_DEBUG_F("Line %zu, current_field = %d\n", lines, current_field);
+    LOG_DEBUG_F("Line %zu, current_field = %d\n", lines, current_field);
     current_field++;
 }
 
