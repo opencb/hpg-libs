@@ -44,22 +44,28 @@ void fastq_batch_free(fastq_batch_t* fastq_batch_p) {
 
     if (fastq_batch_p->header_indices != NULL) {
         free(fastq_batch_p->header_indices);
+        fastq_batch_p->header_indices = NULL;
     }
     if (fastq_batch_p->header != NULL) {
         free(fastq_batch_p->header);
+        fastq_batch_p->header = NULL;
     }
     if (fastq_batch_p->data_indices != NULL) {
         free(fastq_batch_p->data_indices);
+        fastq_batch_p->data_indices = NULL;
     }
 
     if (fastq_batch_p->seq != NULL) {
         free(fastq_batch_p->seq);
+        fastq_batch_p->seq = NULL;
     }
     if (fastq_batch_p->quality != NULL) {
         free(fastq_batch_p->quality);
+        fastq_batch_p->quality = NULL;
     }
 
     free(fastq_batch_p);
+    fastq_batch_p = NULL;
 }
 
 void fastq_batch_print(fastq_batch_t* fastq_batch_p, FILE* fd) {
