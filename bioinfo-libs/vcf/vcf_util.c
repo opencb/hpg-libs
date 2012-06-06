@@ -50,6 +50,17 @@ int get_field_position_in_format(const char *field, char *format) {
 int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2) {
     char *aux_buffer, *allele, *genotype;
     int ret_code = 0, cur_pos = -1;
+    
+    // If the sample is not in a form that can contain a genotype, mark both alleles as missing
+    if (strlen(sample) < 3) {
+        *allele1 = -1;
+        *allele2 = -1;
+        ret_code = 3;
+        return ret_code;
+    }
+    
+    // Process a correct sample, at least in length terms
+    
     while (cur_pos < genotype_position) {
         genotype = strtok_r(sample, ":", &aux_buffer);
         sample = NULL;

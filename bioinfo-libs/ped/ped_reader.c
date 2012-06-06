@@ -26,9 +26,7 @@ static const int ped_en_main = 1;
 
 
 
-static char* get_token(char *ts, char *te)
-{
-//    char *field = strndup(ts, te-ts);
+static char* get_token(char *ts, char *te) {
     char *field = (char*) malloc ((te-ts+1) * sizeof(char));
     strncpy(field, ts, (te-ts));
     field[te-ts] = '\0';
@@ -36,6 +34,10 @@ static char* get_token(char *ts, char *te)
 }
 
 static void set_field(char* ts, char *te) {
+    if (current_field == OTHER) {
+        return;
+    }
+
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
@@ -105,7 +107,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     current_batch = ped_batch_new(batch_size);
 
     
-#line 109 "ped_reader.c"
+#line 111 "ped_reader.c"
 	{
 	cs = ped_start;
 	ts = 0;
@@ -113,7 +115,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
 	act = 0;
 	}
 
-#line 117 "ped_reader.c"
+#line 119 "ped_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -149,7 +151,7 @@ tr2:
             lines++;
             current_field = FAMILY_ID;
             record_error = 0;
-            LOG_DEBUG("End of line\n");
+            LOG_DEBUG_F("End of line %d\n", lines);
         }}
 	goto st1;
 tr8:
@@ -178,7 +180,7 @@ st1:
 case 1:
 #line 1 "NONE"
 	{ts = p;}
-#line 182 "ped_reader.c"
+#line 184 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 32: goto tr0;
@@ -341,7 +343,7 @@ case 7:
 	_out: {}
 	}
 
-#line 187 "ped.ragel"
+#line 189 "ped.ragel"
  
 
     // Insert the last batch
@@ -353,25 +355,25 @@ case 7:
     }
 
     if ( cs < 
-#line 357 "ped_reader.c"
+#line 359 "ped_reader.c"
 1
-#line 197 "ped.ragel"
+#line 199 "ped.ragel"
  ) 
     {
         LOG_ERROR("The file was not successfully read\n");
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 365 "ped_reader.c"
+#line 367 "ped_reader.c"
 1
-#line 201 "ped.ragel"
+#line 203 "ped.ragel"
 );
     } 
 
     LOG_INFO_F("Records read = %zu\n", records);
 
     return cs < 
-#line 374 "ped_reader.c"
+#line 376 "ped_reader.c"
 1
-#line 206 "ped.ragel"
+#line 208 "ped.ragel"
 ;
 }

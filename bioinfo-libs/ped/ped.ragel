@@ -94,7 +94,7 @@ static enum PED_Field current_field = FAMILY_ID;
             lines++;
             current_field = FAMILY_ID;
             record_error = 0;
-            LOG_DEBUG("End of line\n");
+            LOG_DEBUG_F("End of line %d\n", lines);
         };
         
         space;
@@ -103,8 +103,7 @@ static enum PED_Field current_field = FAMILY_ID;
 }%%
 
 
-static char* get_token(char *ts, char *te)
-{
+static char* get_token(char *ts, char *te) {
     char *field = (char*) malloc ((te-ts+1) * sizeof(char));
     strncpy(field, ts, (te-ts));
     field[te-ts] = '\0';
@@ -112,6 +111,10 @@ static char* get_token(char *ts, char *te)
 }
 
 static void set_field(char* ts, char *te) {
+    if (current_field == OTHER) {
+        return;
+    }
+
     char *field = get_token(ts, te);
     float float_val = -1.0f;
     enum Sex sex;
