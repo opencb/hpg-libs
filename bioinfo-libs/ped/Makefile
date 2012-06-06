@@ -18,8 +18,8 @@ INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
 
 # Source and object files
-MAIN_OBJECTS = ped_file.c ped_read.c ped_reader.c ped_write.c ped_batch.c ped_error.c $(BIOFORMATS_DIR)/family.c
-MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o
+MAIN_OBJECTS = ped_file.c ped_read.c ped_reader.c ped_write.c ped_batch.c ped_error.c ped_util.c
+MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/string_utils.o $(BIOFORMATS_DIR)/family.c
 PED_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
 
 

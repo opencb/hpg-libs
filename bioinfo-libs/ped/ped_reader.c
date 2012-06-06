@@ -69,7 +69,7 @@ static void set_field(char* ts, char *te) {
             }
         break;
         case SEX:
-            sex = UNKNOWN;
+            sex = UNKNOWN_SEX;
             if (atoi(field) == 1) {
                sex = MALE;
             } else if (atoi(field) == 2) {

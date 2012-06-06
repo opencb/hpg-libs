@@ -74,7 +74,7 @@ int family_set_parent(individual_t *parent, family_t *family) {
     if (family == NULL) {
         return -2;
     }
-    if (parent->sex == UNKNOWN) {
+    if (parent->sex == UNKNOWN_SEX) {
         return -3;
     }
     if (family_contains_individual(parent, family) != NULL) {

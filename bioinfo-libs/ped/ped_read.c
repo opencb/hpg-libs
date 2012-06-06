@@ -10,7 +10,7 @@ ped_record_t* create_ped_record() {
     record->individual_id = NULL;
     record->father_id = NULL;
     record->mother_id = NULL;
-    record->sex = UNKNOWN;
+    record->sex = UNKNOWN_SEX;
     record->phenotype = -9;
     return record;
 }

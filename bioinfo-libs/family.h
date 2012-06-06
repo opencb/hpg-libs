@@ -10,8 +10,15 @@
 #include <commons/string_utils.h>
 
 
-enum Sex { UNKNOWN, MALE, FEMALE };
-enum Condition { MISSING, AFFECTED, UNAFFECTED };
+enum Sex { MALE, FEMALE, UNKNOWN_SEX };
+
+/**
+ * Missing: Created because one of his child was read before, but this individual has no information available.
+ * Affected: This individual is affected by a disease.
+ * Unaffected: This individual is not affected by a disease.
+ * Unknown: The condition of the individual is unknown (phenotype value is not valid).
+ */
+enum Condition { MISSING, AFFECTED, UNAFFECTED, UNKNOWN_CONDITION };
 
 /**
  * Entry in the PED document body, representing an individual and member of a family.

@@ -22,6 +22,7 @@
 #include "ped_error.h"
 #include "ped_file_structure.h"
 #include "ped_reader.h"
+#include "ped_util.h"
 #include "ped_write.h"
 
 #define INIT_RECORD_SIZE    100
