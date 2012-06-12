@@ -50,12 +50,20 @@ bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mod
 }
 
 void bam_fclose(bam_file_t* bam_file) {
+    if (bam_file == NULL) {
+        return;
+    }
+  
     if (bam_file->bam_header_p != NULL) {
         bam_header_destroy(bam_file->bam_header_p);
         bam_file->bam_header_p = NULL;
     }
-
-    bam_close(bam_file->bam_fd);
+    
+    if (bam_file->bam_fd != NULL) {
+        bam_close(bam_file->bam_fd);
+        bam_file->bam_fd == NULL;
+    }
+    
     free(bam_file);
 }
 
@@ -93,7 +101,6 @@ int bam_fread_max_size_no_duplicates(bam_batch_t* batch_p, size_t batch_size, in
     long current_size = 0;
 
     bam1_t* alignment_p = bam_init1();
-
     while ((current_size < batch_size) && ((read_bytes = bam_read1(bam_file_p->bam_fd, alignment_p)) > 0)) {
         if (prev_seq != NULL) {
             if (bam_batch_compare_seq(prev_seq, *prev_seq_length, *prev_seq_start_coordinate, alignment_p->data, alignment_p->core.l_qseq, alignment_p->core.pos) != 0) continue;
@@ -129,7 +136,7 @@ int bam_fread_max_size_by_chromosome(bam_batch_t* batch_p, size_t batch_size, in
 
     long current_size = 0;
 
-    bam1_t* alignment_p = bam_init1();
+    bam1_t* alignment_p = bam_init1();    
     while ((current_size < batch_size) && ((read_bytes = bam_read1(bam_file_p->bam_fd, alignment_p)) > 0)) {
         if (alignment_p->core.tid == chromosome) {
             batch_p->alignments_p[num_alignments] = alignment_p;
@@ -138,9 +145,9 @@ int bam_fread_max_size_by_chromosome(bam_batch_t* batch_p, size_t batch_size, in
             if (batch_p->allocated_alignments <= num_alignments) {
                 break;
             }
-
-            alignment_p = bam_init1();
         }
+
+        alignment_p = bam_init1();
     }
 
     batch_p->num_alignments = num_alignments;
@@ -285,7 +292,7 @@ int bam_fread_num_chromosomes(char* filename) {
  *      	BAM batch functions    		*
  * *********************************************/
 
-bam_batch_t* bam_batch_new(size_t batch_size, int type) {
+bam_batch_t* bam_batch_new(size_t batch_size, int type) { 
     bam_batch_t* batch_p = (bam_batch_t*) calloc(1, sizeof(bam_batch_t));
 
     batch_p->allocated_alignments = (int)(1.4 * (batch_size / MEAN_COMPRESSED_ALIGNMENT_SIZE / 12));
@@ -298,12 +305,15 @@ bam_batch_t* bam_batch_new(size_t batch_size, int type) {
 
 void bam_batch_free(bam_batch_t* batch_p, int free_alignments) {
     if (batch_p != NULL) {
-
         if (batch_p->alignments_p != NULL) {
             if (free_alignments) {
                 free_bam1(batch_p->alignments_p, batch_p->num_alignments);
-                batch_p->alignments_p = NULL;
             }
+        }
+
+        if (batch_p->alignments_p != NULL) {
+            free(batch_p->alignments_p);
+            batch_p->alignments_p = NULL;
         }
 
         free(batch_p);
@@ -341,7 +351,8 @@ void free_bam1(bam1_t** alignments_p, int num_alignments) {
                 bam_destroy1(alignments_p[i]);
             }
         }
-
-        free(alignments_p);
     }
 }
+
+
+

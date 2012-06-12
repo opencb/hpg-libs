@@ -56,6 +56,10 @@ bam_reader_t* bam_reader_by_batch_new(char * filename, size_t batch_size, int ba
 }
 
 void bam_reader_free(bam_reader_t* reader_p) {
+    if (reader_p == NULL) {
+        return;
+    }
+    
     // close the input file and exiting....
     list_item_t* item_p;
 
@@ -65,7 +69,12 @@ void bam_reader_free(bam_reader_t* reader_p) {
             list_item_free(item_p);
         }
     } else {
-        free(reader_p->alignments_list_p);
+        //free(reader_p->alignments_list_p);
+    }
+    
+    if (reader_p->bam_file_p != NULL) {
+        bam_fclose(reader_p->bam_file_p);
+        reader_p->bam_file_p = NULL;
     }
 
     free(reader_p);
@@ -185,6 +194,7 @@ void* bam_reader_sequential_thread_function(void* param_p) {
     }
 
     bam_fclose(reader_p->bam_file_p);
+    reader_p->bam_file_p = NULL;
 
     if (reader_p->chromosome == ALL_CHROMOSOMES) {
         for (int i = 0; i < num_of_chromosomes; i++) {  
@@ -262,6 +272,7 @@ void* bam_reader_chromosome_thread_function(void* param_p) {
     }
 
     bam_fclose(reader_p->bam_file_p);
+    reader_p->bam_file_p = NULL;
 
     for (int i = 0; i < num_of_chromosomes; i++) {      
         chrom_alignments_set_complete(alignments_list_get_chrom_alignment(i, reader_p->alignments_list_p), 1);
@@ -341,6 +352,7 @@ void* bam_reader_list_insert_thread_function(void* param_p) {
     }
 
     bam_fclose(reader_p->bam_file_p);
+    reader_p->bam_file_p = NULL;
 
     list_decr_writers(reader_p->bam_data_batch_list_p);
     bam_reader_set_alive(reader_p, 0);
@@ -418,6 +430,7 @@ void* bam_reader_list_insert_by_chromosome_thread_function(void* param_p) {
     }
 
     bam_fclose(reader_p->bam_file_p);
+    reader_p->bam_file_p = NULL;    
 
     list_decr_writers(reader_p->bam_data_batch_list_p);
     bam_reader_set_alive(reader_p, 0);

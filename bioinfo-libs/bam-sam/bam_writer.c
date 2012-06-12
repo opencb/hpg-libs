@@ -24,10 +24,31 @@ bam_writer_t* bam_writer_new(char* filename, alignments_list_t* alignments_list_
     return writer_p;
 }
 
-void bam_writer_free(bam_writer_t* writer_p) {
+void bam_writer_free(bam_writer_t* writer_p, int all) {
+    if (writer_p == NULL) {
+        return;
+    }
+
     // close the output file and exiting....
-    bam_fclose(writer_p->bam_file_p);
-    free(writer_p->alignments_list_p);
+    if (writer_p->bam_file_p != NULL) {
+        bam_fclose(writer_p->bam_file_p);
+        writer_p->bam_file_p = NULL;
+    }
+    
+    if (all) {
+        if (writer_p->alignments_list_p != NULL) {
+            free(writer_p->alignments_list_p);
+            writer_p->alignments_list_p = NULL;
+        }
+    }
+    
+    if (writer_p->bam_write_alignment_count != NULL) {
+        free(writer_p->bam_write_alignment_count);
+        writer_p->bam_write_alignment_count = NULL;
+    }
+    
+    free(writer_p);
+    writer_p = NULL;
 }
 
 void bam_writer_start(bam_writer_t* writer_p) {
@@ -115,6 +136,7 @@ void* bam_writer_chromosome_thread_function(void* param_p) {
     }
 
     bam_fclose(writer_p->bam_file_p);
+    writer_p->bam_file_p = NULL;
 
     bam_writer_set_alive(writer_p, 0);
 
@@ -177,6 +199,7 @@ void* bam_writer_sequential_thread_function(void* param_p) {
     }
 
     bam_fclose(writer_p->bam_file_p);
+    writer_p->bam_file_p = NULL;
 
     bam_writer_set_alive(writer_p, 0);
 
