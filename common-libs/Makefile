@@ -5,7 +5,7 @@ ALL = io
 
 CC = gcc
 CFLAGS = -Wall -O3 -std=c99
-CFLAGS_DEBUG = -Wall -pg
+CFLAGS_DEBUG = -Wall -g
 
 LIBS = -lcurl -Wl,-Bsymbolic-functions
 
@@ -26,7 +26,6 @@ log.o: log.h log.c string_utils.o
 
 string_utils.o: string_utils.h string_utils.c
 	$(CC) $(CFLAGS) -D_BSD_SOURCE -D_XOPEN_SOURCE=600 -c string_utils.c
-#	$(CC) $(CFLAGS_DEBUG) -c string_utils.c
 
 result.o: result.h result.c
 	$(CC) $(CFLAGS) -c result.c -I/usr/include/libxml2 -lxml2
