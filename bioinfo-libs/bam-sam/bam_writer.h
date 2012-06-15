@@ -56,11 +56,12 @@ bam_writer_t* bam_writer_new(char* filename, alignments_list_t* alignments_list_
 /**
 *  @brief Frees a bam writer
 *  @param writer_p pointer to the writer
+*  @param all flag to free inner structures (0: not free, 1: free)
 *  @return void
 *  
 *  Frees a bam writer and its inner resources
 */
-void bam_writer_free(bam_writer_t* writer_p);
+void bam_writer_free(bam_writer_t* writer_p, int all);
 
 /**
 *  @brief Starts a bam writer

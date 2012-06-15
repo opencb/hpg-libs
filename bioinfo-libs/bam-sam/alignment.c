@@ -247,7 +247,7 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     if (alignment_p->is_paired_end)   bam_p->core.flag += BAM_FPAIRED;
     if (alignment_p->is_paired_end_mapped) bam_p->core.flag += BAM_FPROPER_PAIR;
     if (!alignment_p->is_seq_mapped)   bam_p->core.flag += BAM_FUNMAP;   //in bam structure is negative flag!!!
-    if (!alignment_p->is_mate_mapped)   bam_p->core.flag += BAM_FMUNMAP; //in bam structure is negative flag!!!
+    if ((!alignment_p->is_mate_mapped) && (alignment_p->is_paired_end))   bam_p->core.flag += BAM_FMUNMAP; //in bam structure is negative flag!!!
     if (alignment_p->seq_strand)    bam_p->core.flag += BAM_FREVERSE;
     if (alignment_p->mate_strand)   bam_p->core.flag += BAM_FMREVERSE;
 
