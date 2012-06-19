@@ -5,6 +5,8 @@ COMMONS_DIR = $(LIBS_DIR)/commons
 COMMONS_CUDA_DIR = $(LIBS_DIR)/commons-cuda
 CONTAINERS_DIR = $(LIBS_DIR)/containers
 FASTQ_DIR = $(LIBS_DIR)/bioformats/fastq
+SAM_DIR = $(LIBS_DIR)/bioformats/bam-sam
+SAMTOOLS_DIR = /home/jtarraga/softs/samtools-0.1.17
 
 ALL = test1-cpu
 
@@ -18,8 +20,8 @@ NVCC = nvcc
 NVCCFLAGS = -g -G -Xptxas -v  -arch=sm_12 -DVECTOR_O_COMPRESSION
 #NVCCFLAGS = -g -G -Xptxas -v
 
-CINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) 
-CUINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) -I/opt/cuda/include -I./samtools-0.1.18/
+CINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) -I$(SAM_DIR) -I$(SAMTOOLS_DIR) 
+CUINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) -I$(SAM_DIR) I$(SAMTOOLS_DIR) -I/opt/cuda/include
 
 FASTQ-SRCS = $(FASTQ_DIR)/fastq_file.c $(FASTQ_DIR)/fastq_read.c $(FASTQ_DIR)/fastq_batch.c
 

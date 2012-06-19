@@ -41,7 +41,7 @@ void main(int argc, char *argv[]) {
                            "CTTGTCGAAGTACTGCCGCTTGGTTCGTTGGGATCCTCAGCCTCGCGCACCTTTTCGGCAATCT",
 			   "################################################################");
 
-  num_mappings = bwt_single_read_cpu(fq_read, NULL, bwt_index, NULL);
+  num_mappings = bwt_map_read_cpu(fq_read, NULL, bwt_index, NULL);
   printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);
   fastq_read_free(fq_read);
   /*
