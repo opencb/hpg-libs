@@ -2,738 +2,568 @@
 #include "alignment.h"
 #include "bam_file.h"
 
+/* ******************************************************
+ *      	Function implementations    		*
+ * *****************************************************/
 
-//====================================================================================
-//  map_alignments.c
-//
-//  convertion functions between high level aligment record and bam1_t structure
-//====================================================================================
-
-char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length);
-char* convert_to_quality_string_(uint8_t* quality_p, int quality_length, int base_quality);
-char* convert_from_uint8_to_string_(uint8_t* sequence_p, int sequence_length);
-char* convert_to_quality_string_(uint8_t* quality_p);
-char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations);
-void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operations);
-void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length);
-void convert_to_quality_uint8_t_(uint8_t* data, char* quality_p, int quality_length, int base_quality);
-
-//-----------------------------------------------------
-// alignment_new
-//-----------------------------------------------------
-
-alignment_t* alignment_new() {  
-  alignment_t* alignment_p = (alignment_t*) calloc(1, sizeof(alignment_t));
-  return alignment_p;  
+alignment_t* alignment_new() {
+    alignment_t* alignment_p = (alignment_t*) calloc(1, sizeof(alignment_t));
+    return alignment_p;
 }
 
-//-----------------------------------------------------
-// alignment_init_single_end
-//-----------------------------------------------------
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p) {
+    alignment_p->query_name = query_name;
+    alignment_p->sequence = sequence;
+    alignment_p->quality = quality;
+    alignment_p->cigar = cigar;
 
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, alignment_t* alignment_p) {  
-  
-  alignment_p->query_name = query_name;
-  alignment_p->sequence = sequence;
-  alignment_p->quality = quality;
-  alignment_p->cigar = cigar;
+    alignment_p->chromosome = chromosome;
+    alignment_p->position = position;
+    alignment_p->mate_position = 0;
+    alignment_p->mate_chromosome = 0;
+    alignment_p->template_length = 0; //single end, no template
+    alignment_p->map_quality = map_quality;
+    alignment_p->num_cigar_operations = num_cigar_operations;
 
-  alignment_p->chromosome = chromosome;
-  alignment_p->position = position;
-  alignment_p->mate_position = 0;
-  alignment_p->mate_chromosome = 0;
-  alignment_p->template_length = 0;	//single end
-  alignment_p->map_quality = map_quality;
-  alignment_p->num_cigar_operations = num_cigar_operations;
-
-  alignment_p->is_paired_end = 0;
-  alignment_p->is_paired_end_mapped = 0;
-  alignment_p->is_seq_mapped = 1;
-  alignment_p->is_mate_mapped = 0;  
-  alignment_p->seq_strand = strand;
-  alignment_p->mate_strand = 0;		//unused value in single end
-  alignment_p->pair_num = 0;		//unused value in single end
-  alignment_p->primary_alignment = 0;
-  alignment_p->fails_quality_check = 0;
-  alignment_p->pc_optical_duplicate = 0;
+    alignment_p->is_paired_end = 0;
+    alignment_p->is_paired_end_mapped = 0;
+    alignment_p->is_seq_mapped = is_seq_mapped;
+    alignment_p->is_mate_mapped = 0;
+    alignment_p->seq_strand = strand;
+    alignment_p->mate_strand = 0; //unused value in single end
+    alignment_p->pair_num = 0;    //unused value in single end
+    alignment_p->primary_alignment = primary_alignment;
+    alignment_p->fails_quality_check = 0;
+    alignment_p->pc_optical_duplicate = 0;
 }
 
-//-----------------------------------------------------
-// alignment_init_paired_end
-//-----------------------------------------------------
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p) {
+    //pair 1 init
+    alignment1_p->query_name = query_name;
+    alignment1_p->sequence = sequence1;
+    alignment1_p->quality = quality1;
+    alignment1_p->cigar = cigar1;
 
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, alignment_t* alignment1_p, alignment_t* alignment2_p) {
+    alignment1_p->chromosome = chromosome1;
+    alignment1_p->position = position1;
+    alignment1_p->mate_position = position2;
+    alignment1_p->mate_chromosome = chromosome2;
+    alignment1_p->template_length = 0;
+    alignment1_p->map_quality = map_quality1;
+    alignment1_p->num_cigar_operations = num_cigar_operations1;
 
-  //pair 1
-  alignment1_p->query_name = query_name;
-  alignment1_p->sequence = sequence1;
-  alignment1_p->quality = quality1;
-  alignment1_p->cigar = cigar1;
+    alignment1_p->is_paired_end = 1;
 
-  alignment1_p->chromosome = chromosome1;
-  alignment1_p->position = position1;
-  alignment1_p->mate_position = position2;
-  alignment1_p->mate_chromosome = chromosome2;
-  alignment1_p->template_length = 0;
-  alignment1_p->map_quality = map_quality1;
-  alignment1_p->num_cigar_operations = num_cigar_operations1;
+    if ((position1) && (position2)) {
+        alignment1_p->is_paired_end_mapped = 1;
+        alignment1_p->is_seq_mapped = 1;
+        alignment1_p->is_mate_mapped = 1;
+    } else if (position1) {
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 1;
+        alignment1_p->is_mate_mapped = 0;
+    } else if (position2) {
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 0;
+        alignment1_p->is_mate_mapped = 1;
+    } else {
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 0;
+        alignment1_p->is_mate_mapped = 0;
+    }
 
-  alignment1_p->is_paired_end = 1;
-  
-  if ((position1) && (position2)) {
-    alignment1_p->is_paired_end_mapped = 1;
-    alignment1_p->is_seq_mapped = 1;
-    alignment1_p->is_mate_mapped = 1;   
-  } else if (position1) {
-    alignment1_p->is_paired_end_mapped = 0;
-    alignment1_p->is_seq_mapped = 1;
-    alignment1_p->is_mate_mapped = 0;
-  } else if (position2) {
-    alignment1_p->is_paired_end_mapped = 0;
-    alignment1_p->is_seq_mapped = 0;
-    alignment1_p->is_mate_mapped = 1;
-  } else {
-    alignment1_p->is_paired_end_mapped = 0;
-    alignment1_p->is_seq_mapped = 0;
-    alignment1_p->is_mate_mapped = 0;
-  }
-  
-  alignment1_p->seq_strand = strand1;
-  alignment1_p->mate_strand = strand2;
-  alignment1_p->pair_num = 1;
-  alignment1_p->primary_alignment = 0;
-  alignment1_p->fails_quality_check = 0;
-  alignment1_p->pc_optical_duplicate = 0;
-  
-  //pair 2
-  alignment2_p->query_name = query_name;
-  alignment2_p->sequence = sequence2;
-  alignment2_p->quality = quality2;
-  alignment2_p->cigar = cigar2;
+    alignment1_p->seq_strand = strand1;
+    alignment1_p->mate_strand = strand2;
+    alignment1_p->pair_num = 1;
+    alignment1_p->primary_alignment = primary_alignment1;
+    alignment1_p->fails_quality_check = 0;
+    alignment1_p->pc_optical_duplicate = 0;
 
-  alignment2_p->chromosome = chromosome2;
-  alignment2_p->position = position2;
-  alignment2_p->mate_position = position1;
-  alignment2_p->mate_chromosome = chromosome1;
-  alignment2_p->template_length = 0;
-  alignment2_p->map_quality = map_quality2;
-  alignment2_p->num_cigar_operations = num_cigar_operations2;
+    //pair 2 init
+    alignment2_p->query_name = query_name;
+    alignment2_p->sequence = sequence2;
+    alignment2_p->quality = quality2;
+    alignment2_p->cigar = cigar2;
 
-  alignment2_p->is_paired_end = 1;
-  
-  if ((position1) && (position2)) {
-    alignment2_p->is_paired_end_mapped = 1;
-    alignment2_p->is_seq_mapped = 1;
-    alignment2_p->is_mate_mapped = 1;   
-  } else if (position1) {
-    alignment2_p->is_paired_end_mapped = 0;
-    alignment2_p->is_seq_mapped = 0;
-    alignment2_p->is_mate_mapped = 1;
-  } else if (position2) {
-    alignment2_p->is_paired_end_mapped = 0;
-    alignment2_p->is_seq_mapped = 1;
-    alignment2_p->is_mate_mapped = 0;
-  } else {
-    alignment2_p->is_paired_end_mapped = 0;
-    alignment2_p->is_seq_mapped = 0;
-    alignment2_p->is_mate_mapped = 0;
-  }
-  
-  alignment2_p->seq_strand = strand2;
-  alignment2_p->mate_strand = strand1;
-  alignment2_p->pair_num = 2;
-  alignment2_p->primary_alignment = 0;
-  alignment2_p->fails_quality_check = 0;
-  alignment2_p->pc_optical_duplicate = 0;  
+    alignment2_p->chromosome = chromosome2;
+    alignment2_p->position = position2;
+    alignment2_p->mate_position = position1;
+    alignment2_p->mate_chromosome = chromosome1;
+    alignment2_p->template_length = 0;
+    alignment2_p->map_quality = map_quality2;
+    alignment2_p->num_cigar_operations = num_cigar_operations2;
+
+    alignment2_p->is_paired_end = 1;
+
+    if ((position1) && (position2)) {
+        alignment2_p->is_paired_end_mapped = 1;
+        alignment2_p->is_seq_mapped = 1;
+        alignment2_p->is_mate_mapped = 1;
+    } else if (position1) {
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 0;
+        alignment2_p->is_mate_mapped = 1;
+    } else if (position2) {
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 1;
+        alignment2_p->is_mate_mapped = 0;
+    } else {
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 0;
+        alignment2_p->is_mate_mapped = 0;
+    }
+
+    alignment2_p->seq_strand = strand2;
+    alignment2_p->mate_strand = strand1;
+    alignment2_p->pair_num = 2;
+    alignment2_p->primary_alignment = primary_alignment2;
+    alignment2_p->fails_quality_check = 0;
+    alignment2_p->pc_optical_duplicate = 0;
 }
 
-//-----------------------------------------------------
-// aligment_new_by_bam
-//-----------------------------------------------------
+alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
+    //memory allocation for the structure
+    alignment_t* alignment_p = (alignment_t*) calloc(1, sizeof(alignment_t));
 
-alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {  
+    //numeric data
+    alignment_p->num_cigar_operations = (int) bam_p->core.n_cigar;
+    alignment_p->chromosome = bam_p->core.tid;
+    alignment_p->position = bam_p->core.pos;
+    alignment_p->mate_chromosome = bam_p->core.mtid;
+    alignment_p->mate_position = bam_p->core.mpos;
+    alignment_p->map_quality = bam_p->core.qual;
+    alignment_p->template_length = bam_p->core.isize;
 
-  //memory allocation for the structure
-  alignment_t* alignment_p = (alignment_t*) calloc(1, sizeof(alignment_t));
+    //memory allocation for inner fields according to indicated sizes
+    alignment_p->query_name = (char*) calloc(bam_p->core.l_qname, sizeof(char));
+    alignment_p->sequence = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));
+    alignment_p->quality = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));   //same length as sequence
+    alignment_p->cigar = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, alignment_p->num_cigar_operations << 2), sizeof(char));
+    alignment_p->optional_fields = (uint8_t*) calloc(bam_p->l_aux, sizeof(uint8_t));
+    alignment_p->optional_fields_length = bam_p->l_aux;
 
-  //numeric data
-  alignment_p->num_cigar_operations = (int) bam_p->core.n_cigar;
-  alignment_p->chromosome = bam_p->core.tid;
-  alignment_p->position = bam_p->core.pos;
-  alignment_p->mate_chromosome = bam_p->core.mtid;
-  alignment_p->mate_position = bam_p->core.mpos;
-  alignment_p->map_quality = bam_p->core.qual;
-  alignment_p->template_length = bam_p->core.isize;
- 
-  //memory allocation for inner fields according to indicated sizes
-  alignment_p->query_name = (char*) calloc(bam_p->core.l_qname, sizeof(char));
-  alignment_p->sequence = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));
-  alignment_p->quality = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));			//same length as sequence
-  alignment_p->cigar = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, alignment_p->num_cigar_operations<<2), sizeof(char));
-  alignment_p->optional_fields = (uint8_t*) calloc(bam_p->l_aux, sizeof(uint8_t));
-  alignment_p->optional_fields_length = bam_p->l_aux;
-   
-  //copy the data between structures 
-    
-  strcpy(alignment_p->query_name, bam1_qname(bam_p));
-  strcpy(alignment_p->sequence, convert_to_sequence_string_(bam1_seq(bam_p), bam_p->core.l_qseq));
-  strcpy(alignment_p->quality, convert_to_quality_string_(bam1_qual(bam_p), bam_p->core.l_qseq, base_quality));
-  strcpy(alignment_p->cigar, convert_to_cigar_string_(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
-  memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);  
+    //copy the data between structures
 
-  //flags  
-  uint32_t flag = (uint32_t) bam_p->core.flag;
-  alignment_p->is_paired_end = (flag & BAM_FPAIRED) ? 1 : 0;
-  alignment_p->is_paired_end_mapped = (flag & BAM_FPROPER_PAIR) ? 1 : 0;
-  alignment_p->is_seq_mapped = (flag & BAM_FUNMAP) ? 0 : 1;	//in bam structure is negative flag!!!
-  alignment_p->is_mate_mapped = (flag & BAM_FMUNMAP) ? 0 : 1;	//in bam structure is negative flag!!!
-  alignment_p->seq_strand = (flag & BAM_FREVERSE) ? 1 : 0;
-  alignment_p->mate_strand = (flag & BAM_FMREVERSE) ? 1 : 0;
- 
-  if (flag & BAM_FREAD1) {
-    alignment_p->pair_num = 1;
-  } else if (flag & BAM_FREAD2) {
-    alignment_p->pair_num = 2;
-  } else {
-    alignment_p->pair_num = 0;
-  }
-  
-  alignment_p->primary_alignment = (flag & BAM_FSECONDARY) ? 1 : 0;
-  alignment_p->fails_quality_check = (flag & BAM_FQCFAIL) ? 1 : 0;
-  alignment_p->pc_optical_duplicate = (flag & BAM_FDUP) ? 1 : 0;
-  
-  return alignment_p;  
+    strcpy(alignment_p->query_name, bam1_qname(bam_p));
+    strcpy(alignment_p->sequence, convert_to_sequence_string(bam1_seq(bam_p), bam_p->core.l_qseq));
+    strcpy(alignment_p->quality, convert_to_quality_string_length(bam1_qual(bam_p), bam_p->core.l_qseq, base_quality));
+    strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
+    memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);
+
+    //flags
+    uint32_t flag = (uint32_t) bam_p->core.flag;
+    alignment_p->is_paired_end = (flag & BAM_FPAIRED) ? 1 : 0;
+    alignment_p->is_paired_end_mapped = (flag & BAM_FPROPER_PAIR) ? 1 : 0;
+    alignment_p->is_seq_mapped = (flag & BAM_FUNMAP) ? 0 : 1; //in bam structure is negative flag!!!
+    alignment_p->is_mate_mapped = (flag & BAM_FMUNMAP) ? 0 : 1; //in bam structure is negative flag!!!
+    alignment_p->seq_strand = (flag & BAM_FREVERSE) ? 1 : 0;
+    alignment_p->mate_strand = (flag & BAM_FMREVERSE) ? 1 : 0;
+
+    if (flag & BAM_FREAD1) {
+        alignment_p->pair_num = 1;
+    } else if (flag & BAM_FREAD2) {
+        alignment_p->pair_num = 2;
+    } else {
+        alignment_p->pair_num = 0;
+    }
+
+    alignment_p->primary_alignment = (flag & BAM_FSECONDARY) ? 1 : 0;
+    alignment_p->fails_quality_check = (flag & BAM_FQCFAIL) ? 1 : 0;
+    alignment_p->pc_optical_duplicate = (flag & BAM_FDUP) ? 1 : 0;
+
+    return alignment_p;
 }
-
-//-----------------------------------------------------
-// alignment_free
-//-----------------------------------------------------
 
 void alignment_free(alignment_t* alignment_p) {
-
-  free(alignment_p->query_name);
-  //free(alignment_p->sequence_name);
-  free(alignment_p->sequence);
-  free(alignment_p->quality);
-  free(alignment_p->cigar);
-  //free(alignment_p->mate_sequence_name);
-  free(alignment_p->optional_fields);
-  free(alignment_p);
+    free(alignment_p->query_name);
+    free(alignment_p->sequence);
+    free(alignment_p->quality);
+    free(alignment_p->cigar);
+    free(alignment_p->optional_fields);
+    free(alignment_p);
 }
-
-//-----------------------------------------------------
-// convert_to_bam1_t
-//-----------------------------------------------------
 
 bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
- 
-  bam1_t* bam_p = bam_init1();  // -------------------------> 0s.
+    bam1_t* bam_p = bam_init1();  // -------------------------> 0s.
 
-  int data_length, sequence_length, copy_length, index_to_data = 0;
-  uint8_t* data;   
+    int data_length, sequence_length, copy_length, index_to_data = 0;
+    uint8_t* data;
 
-  sequence_length = strlen(alignment_p->sequence);
-  
-  //data length is the sum of lengths if five codified fields (cigar, query name, sequence, quality and optional info)
-  data_length = (4 * alignment_p->num_cigar_operations) + strlen(alignment_p->query_name) + 1 +  ((sequence_length + 1) / 2) + sequence_length + alignment_p->optional_fields_length;
-  
-  //memory allocation for data vector from data length
-  data = (uint8_t*) calloc(data_length, sizeof(uint8_t));  // -------------------------> 1,7 s.
+    sequence_length = strlen(alignment_p->sequence);
 
-  //copy query name
-  copy_length = strlen(alignment_p->query_name) + 1;
-  strcat(alignment_p->query_name, "\0");
-  memcpy(&data[index_to_data], alignment_p->query_name, copy_length);
-  index_to_data += copy_length;  
-  
-  //convert cigar to uint32_t format 
-  convert_to_cigar_uint32_t_(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);  // -------------------------> 2,1 s.
+    //data length is the sum of lengths if five codified fields (cigar, query name, sequence, quality and optional info)
+    data_length = (4 * alignment_p->num_cigar_operations) + strlen(alignment_p->query_name) + 1 + ((sequence_length + 1) / 2) + sequence_length + alignment_p->optional_fields_length;
 
-  copy_length = (4 * alignment_p->num_cigar_operations);
-  index_to_data += copy_length;
+    //memory allocation for data vector from data length
+    data = (uint8_t*) calloc(data_length, sizeof(uint8_t));
 
-  //convert sequence to uint8_t format
-//if (time_flag) { start_timer(t1_sort); }
-  convert_to_sequence_uint8_t_(&data[index_to_data], alignment_p->sequence, sequence_length);  // -------------------------> 4,8 s.
-//if (time_flag) { stop_timer(t1_sort, t2_sort, sort_time); }
-  
-  copy_length = ((sequence_length + 1) / 2);
-  index_to_data += copy_length;
-  
-  //convert quality to uint8_t format 
-  convert_to_quality_uint8_t_(&data[index_to_data], alignment_p->quality, sequence_length, base_quality);
+    //copy query name
+    copy_length = strlen(alignment_p->query_name) + 1;
+    strcat(alignment_p->query_name, "\0");
+    memcpy(&data[index_to_data], alignment_p->query_name, copy_length);
+    index_to_data += copy_length;
 
-  copy_length = sequence_length;
-  index_to_data += copy_length;
- 
-  //copy optional fields
-  memcpy(&data[index_to_data], alignment_p->optional_fields, alignment_p->optional_fields_length);
-  
-  //finally data is assigned
-  bam_p->data = data;
+    //convert cigar to uint32_t format
+    convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
 
-  //filling bam1_t (not core data)
-  bam_p->l_aux = alignment_p->optional_fields_length;
-  bam_p->data_len = data_length;
-  bam_p->m_data = data_length;
+    copy_length = (4 * alignment_p->num_cigar_operations);
+    index_to_data += copy_length;
 
-  //filling bam1_core_t structure
-  bam_p->core.tid = (int32_t) alignment_p->chromosome;
-  bam_p->core.pos = (int32_t) alignment_p->position;  
-  bam_p->core.mtid = (int32_t) alignment_p->mate_chromosome;
-  bam_p->core.mpos = (int32_t) alignment_p->mate_position;  
-  bam_p->core.qual = (uint32_t) alignment_p->map_quality;
-  bam_p->core.isize = (int32_t) alignment_p->template_length;
-  bam_p->core.l_qname = strlen(alignment_p->query_name) + 1;  
-  bam_p->core.n_cigar = (uint32_t) alignment_p->num_cigar_operations;
-  bam_p->core.l_qseq = (int32_t) (int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p));		//from CIGAR  
-    
-  //setting flags  
-  if (alignment_p->is_paired_end) 	 bam_p->core.flag += BAM_FPAIRED;  
-  if (alignment_p->is_paired_end_mapped) bam_p->core.flag += BAM_FPROPER_PAIR;  
-  if (!alignment_p->is_seq_mapped) 	 bam_p->core.flag += BAM_FUNMAP;  	//in bam structure is negative flag!!!
-  if (!alignment_p->is_mate_mapped) 	 bam_p->core.flag += BAM_FMUNMAP;	//in bam structure is negative flag!!!
-  if (alignment_p->seq_strand) 		 bam_p->core.flag += BAM_FREVERSE; 
-  if (alignment_p->mate_strand) 	 bam_p->core.flag += BAM_FMREVERSE;
+    //convert sequence to uint8_t format
+    convert_to_sequence_uint8_t(&data[index_to_data], alignment_p->sequence, sequence_length);
 
-  if (alignment_p->pair_num == 1) {
-    bam_p->core.flag += BAM_FREAD1;
-  } else if (alignment_p->pair_num == 2) {
-    bam_p->core.flag += BAM_FREAD2;
-  }
-  
-  if (alignment_p->primary_alignment)    bam_p->core.flag += BAM_FSECONDARY;
-  if (alignment_p->fails_quality_check)  bam_p->core.flag += BAM_FQCFAIL;  
-  if (alignment_p->pc_optical_duplicate) bam_p->core.flag += BAM_FDUP;
-  
-  //bin field requieres core
-  bam_p->core.bin = bam_reg2bin(alignment_p->position, bam_calend(&bam_p->core, bam1_cigar(bam_p)));
-  
-  return bam_p;
+    copy_length = ((sequence_length + 1) / 2);
+    index_to_data += copy_length;
+
+    //convert quality to uint8_t format
+    convert_to_quality_uint8_t(&data[index_to_data], alignment_p->quality, sequence_length, base_quality);
+
+    copy_length = sequence_length;
+    index_to_data += copy_length;
+
+    //copy optional fields
+    memcpy(&data[index_to_data], alignment_p->optional_fields, alignment_p->optional_fields_length);
+
+    //finally data is assigned
+    bam_p->data = data;
+
+    //filling bam1_t (not core data)
+    bam_p->l_aux = alignment_p->optional_fields_length;
+    bam_p->data_len = data_length;
+    bam_p->m_data = data_length;
+
+    //filling bam1_core_t structure
+    bam_p->core.tid = (int32_t) alignment_p->chromosome;
+    bam_p->core.pos = (int32_t) alignment_p->position;
+    bam_p->core.mtid = (int32_t) alignment_p->mate_chromosome;
+    bam_p->core.mpos = (int32_t) alignment_p->mate_position;
+    bam_p->core.qual = (uint32_t) alignment_p->map_quality;
+    bam_p->core.isize = (int32_t) alignment_p->template_length;
+    bam_p->core.l_qname = strlen(alignment_p->query_name) + 1;
+    bam_p->core.n_cigar = (uint32_t) alignment_p->num_cigar_operations;
+    bam_p->core.l_qseq = (int32_t)(int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p)); //lenght from CIGAR
+
+    //setting flags
+    if (alignment_p->is_paired_end)   bam_p->core.flag += BAM_FPAIRED;
+    if (alignment_p->is_paired_end_mapped) bam_p->core.flag += BAM_FPROPER_PAIR;
+    if (!alignment_p->is_seq_mapped)   bam_p->core.flag += BAM_FUNMAP;   //in bam structure is negative flag!!!
+    if ((!alignment_p->is_mate_mapped) && (alignment_p->is_paired_end))   bam_p->core.flag += BAM_FMUNMAP; //in bam structure is negative flag!!!
+    if (alignment_p->seq_strand)    bam_p->core.flag += BAM_FREVERSE;
+    if (alignment_p->mate_strand)   bam_p->core.flag += BAM_FMREVERSE;
+
+    if (alignment_p->pair_num == 1) {
+        bam_p->core.flag += BAM_FREAD1;
+    } else if (alignment_p->pair_num == 2) {
+        bam_p->core.flag += BAM_FREAD2;
+    }
+
+    if (alignment_p->primary_alignment)    bam_p->core.flag += BAM_FSECONDARY;
+    if (alignment_p->fails_quality_check)  bam_p->core.flag += BAM_FQCFAIL;
+    if (alignment_p->pc_optical_duplicate) bam_p->core.flag += BAM_FDUP;
+
+    //bin field requieres core
+    bam_p->core.bin = bam_reg2bin(alignment_p->position, bam_calend(&bam_p->core, bam1_cigar(bam_p)));
+
+    return bam_p;
 }
-
-
-//-----------------------------------------------------
-// alignment_print
-//-----------------------------------------------------
 
 void alignment_print(alignment_t* alignment_p) {
-  
-  printf("\n------------------------------------------------------------------->\n");
-  printf("alignment_p->query_name: %s\n", alignment_p->query_name);
-  //printf("alignment_p->sequence_name: %s\n", alignment_p->sequence_name);
-  printf("alignment_p->sequence: %s\n", alignment_p->sequence);
-  printf("alignment_p->quality:  %s\n", alignment_p->quality);
-  printf("alignment_p->cigar: %s\n", alignment_p->cigar);
-  //printf("alignment_p->mate_sequence_name: %s\n", alignment_p->mate_sequence_name);
-  printf("alignment_p->optional_fields: ");
-  
-  int i;
-  for (i=0; i < alignment_p->optional_fields_length; i++) {    
-    printf("%c", alignment_p->optional_fields[i]);    
-  }
-  printf("\n");
-  
-  printf("alignment_p->optional_fields_length: %i\n", alignment_p->optional_fields_length);  
-  printf("alignment_p->chromosome: %i\n", alignment_p->chromosome);
-  printf("alignment_p->position: %i\n", alignment_p->position); 
-  printf("alignment_p->mate_chromosome: %i\n", alignment_p->mate_chromosome);
-  printf("alignment_p->mate_position: %i\n", alignment_p->mate_position);
-  printf("alignment_p->map_quality: %i\n", alignment_p->map_quality);
-  printf("alignment_p->template_length: %i\n", alignment_p->template_length);
-  printf("alignment_p->num_cigar_operations: %i\n", alignment_p->num_cigar_operations);
-  
-  printf("alignment_p->is_paired_end: %i\n", alignment_p->is_paired_end);
-  printf("alignment_p->is_paired_end_mapped: %i\n", alignment_p->is_paired_end_mapped);
-  printf("alignment_p->is_seq_mapped: %i\n", alignment_p->is_seq_mapped);	//in bam structure is negative flag!!!
-  printf("alignment_p->is_mate_mapped: %i\n", alignment_p->is_mate_mapped);	//in bam structure is negative flag!!!
-  printf("alignment_p->seq_strand: %i\n", alignment_p->seq_strand);
-  printf("alignment_p->mate_strand: %i\n", alignment_p->mate_strand);
-  printf("alignment_p->pair_num: %i\n", alignment_p->pair_num);
-  printf("alignment_p->primary_alignment: %i\n", alignment_p->primary_alignment);
-  printf("alignment_p->fails_quality_check: %i\n", alignment_p->fails_quality_check);
-  printf("alignment_p->pc_optical_duplicate: %i\n", alignment_p->pc_optical_duplicate);
-}
+    printf("\n------------------------------------------------------------------->\n");
+    printf("alignment_p->query_name: %s\n", alignment_p->query_name);
+    printf("alignment_p->sequence: %s\n", alignment_p->sequence);
+    printf("alignment_p->quality:  %s\n", alignment_p->quality);
+    printf("alignment_p->cigar: %s\n", alignment_p->cigar);
+    printf("alignment_p->optional_fields: ");
 
-//-----------------------------------------------------
-// bam_print
-//-----------------------------------------------------
+    for (int i = 0; i < alignment_p->optional_fields_length; i++) {
+        printf("%c", alignment_p->optional_fields[i]);
+    }
+    printf("\n");
+
+    printf("alignment_p->optional_fields_length: %i\n", alignment_p->optional_fields_length);
+    printf("alignment_p->chromosome: %i\n", alignment_p->chromosome);
+    printf("alignment_p->position: %i\n", alignment_p->position);
+    printf("alignment_p->mate_chromosome: %i\n", alignment_p->mate_chromosome);
+    printf("alignment_p->mate_position: %i\n", alignment_p->mate_position);
+    printf("alignment_p->map_quality: %i\n", alignment_p->map_quality);
+    printf("alignment_p->template_length: %i\n", alignment_p->template_length);
+    printf("alignment_p->num_cigar_operations: %i\n", alignment_p->num_cigar_operations);
+
+    printf("alignment_p->is_paired_end: %i\n", alignment_p->is_paired_end);
+    printf("alignment_p->is_paired_end_mapped: %i\n", alignment_p->is_paired_end_mapped);
+    printf("alignment_p->is_seq_mapped: %i\n", alignment_p->is_seq_mapped); //in bam structure is negative flag!!!
+    printf("alignment_p->is_mate_mapped: %i\n", alignment_p->is_mate_mapped); //in bam structure is negative flag!!!
+    printf("alignment_p->seq_strand: %i\n", alignment_p->seq_strand);
+    printf("alignment_p->mate_strand: %i\n", alignment_p->mate_strand);
+    printf("alignment_p->pair_num: %i\n", alignment_p->pair_num);
+    printf("alignment_p->primary_alignment: %i\n", alignment_p->primary_alignment);
+    printf("alignment_p->fails_quality_check: %i\n", alignment_p->fails_quality_check);
+    printf("alignment_p->pc_optical_duplicate: %i\n", alignment_p->pc_optical_duplicate);
+}
 
 void bam_print(bam1_t* bam_p, int base_quality) {
-  
-  printf("\n------------------------------------------------------------------->\n");
-  printf("bam_p->data (qname): %s\n", bam1_qname(bam_p));
-  printf("bam_p->data (seq):  %s\n", convert_to_sequence_string_(bam1_seq(bam_p), bam_p->core.l_qseq));
+    printf("\n------------------------------------------------------------------->\n");
+    printf("bam_p->data (qname): %s\n", bam1_qname(bam_p));
+    printf("bam_p->data (seq):  %s\n", convert_to_sequence_string(bam1_seq(bam_p), bam_p->core.l_qseq));
 
-  //quality
-  printf("bam_p->data (qual): ");
-  
-  char* quality = (char*) bam1_qual(bam_p);
-  
-  int i;
-  for (i=0; i < bam_p->core.l_qseq; i++) {
-    printf("%c", (quality[i] + base_quality));
-  }
-  printf("\n");  
+    //quality
+    printf("bam_p->data (qual): ");
 
-  printf("bam_p->data (cigar): %s\n", convert_to_cigar_string_(bam1_cigar(bam_p), bam_p->core.n_cigar));
-  
-  //aux(optional) data
-  printf("bam_p->data (aux): ");  
-  
-  char* optional_fields = (char*) bam1_aux(bam_p);
-  
-  for (i=0; i < bam_p->l_aux; i++) {
-    printf("%c", optional_fields[i]);
-  }
-  printf("\n");
+    char* quality = (char*) bam1_qual(bam_p);
 
-  //lengths
-  printf("bam_p->l_aux: %i\n", bam_p->l_aux);
-  printf("bam_p->data_len: %i\n", bam_p->data_len);
-  printf("bam_p->m_data: %i\n", bam_p->m_data);  
-  
-  //core
-  printf("bam_p->core.tid: %i\n", bam_p->core.tid);
-  printf("bam_p->core.pos: %i\n", bam_p->core.pos);
-  printf("bam_p->core.bin: %u\n", bam_p->core.bin);
-  printf("bam_p->core.qual: %u\n", bam_p->core.qual);
-  printf("bam_p->core.l_qname: %u\n", bam_p->core.l_qname);
-  printf("bam_p->core.flag (16 bits): %u\n", bam_p->core.flag);
-  printf("bam_p->core.n_cigar: %u\n", bam_p->core.n_cigar);
-  printf("bam_p->core.l_qseq: %i\n", bam_p->core.l_qseq);
-  printf("bam_p->core.mtid: %i\n", bam_p->core.mtid);
-  printf("bam_p->core.mpos: %i\n", bam_p->core.mpos);
-  printf("bam_p->core.isize: %i\n", bam_p->core.isize);
-    
-  printf("\nbam1_t.core flags\n");
-  printf("-----------------------\n");
-  printf("flag (is_paired_end): %i\n", (bam_p->core.flag & BAM_FPAIRED) ? 1 : 0);
-  printf("flag (is_paired_end_mapped): %i\n", (bam_p->core.flag & BAM_FPROPER_PAIR) ? 1 : 0);
-  printf("flag (is_seq_unmapped): %i\n", (bam_p->core.flag & BAM_FUNMAP) ? 1 : 0);
-  printf("flag (is_mate_unmapped): %i\n", (bam_p->core.flag & BAM_FMUNMAP) ? 1 : 0);
-  printf("flag (seq_strand): %i\n", (bam_p->core.flag & BAM_FREVERSE) ? 1 : 0);
-  printf("flag (mate_strand): %i\n", (bam_p->core.flag & BAM_FMREVERSE) ? 1 : 0);
-  printf("flag (pair_num_1): %i\n", (bam_p->core.flag & BAM_FREAD1) ? 1 : 0);
-  printf("flag (pair_num_2): %i\n", (bam_p->core.flag & BAM_FREAD2) ? 1 : 0);
-  printf("flag (primary_alignment): %i\n", (bam_p->core.flag & BAM_FSECONDARY) ? 1 : 0);
-  printf("flag (fails_quality_check): %i\n", (bam_p->core.flag & BAM_FQCFAIL) ? 1 : 0);
-  printf("flag (pc_optical_duplicate): %i\n", (bam_p->core.flag & BAM_FDUP) ? 1 : 0);
+    for (int i = 0; i < bam_p->core.l_qseq; i++) {
+        printf("%c", (quality[i] + base_quality));
+    }
+    printf("\n");
+
+    printf("bam_p->data (cigar): %s\n", convert_to_cigar_string(bam1_cigar(bam_p), bam_p->core.n_cigar));
+
+    //aux(optional) data
+    printf("bam_p->data (aux): ");
+
+    char* optional_fields = (char*) bam1_aux(bam_p);
+
+    for (int i = 0; i < bam_p->l_aux; i++) {
+        printf("%c", optional_fields[i]);
+    }
+    printf("\n");
+
+    //lengths
+    printf("bam_p->l_aux: %i\n", bam_p->l_aux);
+    printf("bam_p->data_len: %i\n", bam_p->data_len);
+    printf("bam_p->m_data: %i\n", bam_p->m_data);
+
+    //core
+    printf("bam_p->core.tid: %i\n", bam_p->core.tid);
+    printf("bam_p->core.pos: %i\n", bam_p->core.pos);
+    printf("bam_p->core.bin: %u\n", bam_p->core.bin);
+    printf("bam_p->core.qual: %u\n", bam_p->core.qual);
+    printf("bam_p->core.l_qname: %u\n", bam_p->core.l_qname);
+    printf("bam_p->core.flag (16 bits): %u\n", bam_p->core.flag);
+    printf("bam_p->core.n_cigar: %u\n", bam_p->core.n_cigar);
+    printf("bam_p->core.l_qseq: %i\n", bam_p->core.l_qseq);
+    printf("bam_p->core.mtid: %i\n", bam_p->core.mtid);
+    printf("bam_p->core.mpos: %i\n", bam_p->core.mpos);
+    printf("bam_p->core.isize: %i\n", bam_p->core.isize);
+
+    printf("\nbam1_t.core flags\n");
+    printf("-----------------------\n");
+    printf("flag (is_paired_end): %i\n", (bam_p->core.flag & BAM_FPAIRED) ? 1 : 0);
+    printf("flag (is_paired_end_mapped): %i\n", (bam_p->core.flag & BAM_FPROPER_PAIR) ? 1 : 0);
+    printf("flag (is_seq_unmapped): %i\n", (bam_p->core.flag & BAM_FUNMAP) ? 1 : 0);
+    printf("flag (is_mate_unmapped): %i\n", (bam_p->core.flag & BAM_FMUNMAP) ? 1 : 0);
+    printf("flag (seq_strand): %i\n", (bam_p->core.flag & BAM_FREVERSE) ? 1 : 0);
+    printf("flag (mate_strand): %i\n", (bam_p->core.flag & BAM_FMREVERSE) ? 1 : 0);
+    printf("flag (pair_num_1): %i\n", (bam_p->core.flag & BAM_FREAD1) ? 1 : 0);
+    printf("flag (pair_num_2): %i\n", (bam_p->core.flag & BAM_FREAD2) ? 1 : 0);
+    printf("flag (primary_alignment): %i\n", (bam_p->core.flag & BAM_FSECONDARY) ? 1 : 0);
+    printf("flag (fails_quality_check): %i\n", (bam_p->core.flag & BAM_FQCFAIL) ? 1 : 0);
+    printf("flag (pc_optical_duplicate): %i\n", (bam_p->core.flag & BAM_FDUP) ? 1 : 0);
 }
 
-//-----------------------------------------------------
-// bam_print
-//-----------------------------------------------------
-
 bam_header_t* bam_header_new(int specie, int assembly) {
-
     bamFile bam_header_file;
     bam_header_t* bam_header_p;
-  
+
     if ((specie == HUMAN) && (assembly == NCBI37)) {
-      bam_header_file = bam_open("./bam_headers/Human_NCBI37.hbam", "r");
-      bam_header_p = bam_header_read(bam_header_file);      
+        bam_header_file = bam_open("./bam_headers/Human_NCBI37.hbam", "r");
+        bam_header_p = bam_header_read(bam_header_file);
     }
-  
+
     return bam_header_p;
 }
 
+/* **********************************************************************
+ *      	Functions to manage bam1_t coded fields    		*
+ * *********************************************************************/
 
-//-----------------------------------------------------
-// private_functions 
-//-----------------------------------------------------
+char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length) {
+    char* sequence_string = (char*) calloc(1, sequence_length + 1); //each byte codes two nts ( 1 nt = 4 bits)
 
-//-----------------------------------------------------
-// convert_to_sequence_string_
-//-----------------------------------------------------
+    for (int i = 0; i < sequence_length; i++) {
+        switch (bam1_seqi(sequence_p, i)) {
+            case 1:
+                sequence_string[i] = 'A';
+                break;
+            case 2:
+                sequence_string[i] = 'C';
+                break;
+            case 4:
+                sequence_string[i] = 'G';
+                break;
+            case 8:
+                sequence_string[i] = 'T';
+                break;
+            case 15:
+                sequence_string[i] = 'N';
+                break;
+        }
 
-char* convert_to_sequence_string_(uint8_t* sequence_p, int sequence_length) {
+    }
+    sequence_string[sequence_length] = '\0';
 
-//  char sequence_string[sequence_length + 1];	//each byte codes two nts ( 1 nt = 4 bits)
-  char* sequence_string = (char*) calloc(1, sequence_length + 1);	//each byte codes two nts ( 1 nt = 4 bits)
-  
-  int i;
-  for (i=0; i < sequence_length; i++) {
-    
-    switch (bam1_seqi(sequence_p, i)) {
-      case 1: 
-      sequence_string[i] = 'A';
-      break;
-      case 2: 
-      sequence_string[i] = 'C';
-      break;
-      case 4: 
-      sequence_string[i] = 'G';
-      break;
-      case 8: 
-      sequence_string[i] = 'T';
-      break;
-      case 15: 
-      sequence_string[i] = 'N';
-      break;      
+    return sequence_string;
+}
+
+char* convert_to_quality_string_length(uint8_t* quality_p, int quality_length, int base_quality) {
+    char quality_string[quality_length + 1]; //each byte codes two nts ( 1 nt = 4 bits)
+
+    for (int i = 0; i < quality_length; i++) {
+        quality_string[i] = quality_p[i] + base_quality;
+    }
+    quality_string[quality_length] = '\0';
+
+    return quality_string;
+}
+
+char* convert_to_quality_string(uint8_t* quality_p) {
+    int num_of_nts = sizeof(quality_p);
+    char quality_string[num_of_nts];
+
+    for (int i = 0; i < num_of_nts; i++) {
+        quality_string[i] = (char) quality_string[i];
     }
 
-  }
-  sequence_string[sequence_length] = '\0';
-
-  return sequence_string;
+    return quality_string;
 }
 
-//-----------------------------------------------------
-// convert_to_quality_string_
-//-----------------------------------------------------
+char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
+    //asumming not more than 3 digits per operation
+    char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 4 * num_cigar_operations), sizeof(char));
+    uint32_t cigar_int;
 
-char* convert_to_quality_string_(uint8_t* quality_p, int quality_length, int base_quality) {
+    for (int i = 0; i < num_cigar_operations; i++) {
+        cigar_int = cigar_p[i];
 
-  char quality_string[quality_length + 1];	//each byte codes two nts ( 1 nt = 4 bits)
-  
-  int i;
-  for (i=0; i < quality_length; i++) {
-    quality_string[i] = quality_p[i] + base_quality;
-  }
-  quality_string[quality_length] = '\0';
-
-  return quality_string;
-}
-
-//-----------------------------------------------------
-// convert_to_quality_string_
-//-----------------------------------------------------
-
-char* convert_to_quality_string_(uint8_t* quality_p) {
-  
-  int num_of_nts = sizeof(quality_p);
-  char quality_string[num_of_nts];
-  
-  int i;
-  for (i=0; i < num_of_nts; i++) {
-    quality_string[i] = (char) quality_string[i];  
-  }
-  
-  return quality_string;
-}
-
-//-----------------------------------------------------
-// convert_to_cigar_string_int_
-//-----------------------------------------------------
-
-char* convert_to_cigar_string_(uint32_t* cigar_p, int num_cigar_operations) {
-  
-  int cigar_string_length = sizeof(cigar_p);		//asumming not more than 3 digits per operation
-
-  char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 4 * num_cigar_operations), sizeof(char));
-  char cigar_num_operation_string[4];
-  uint32_t cigar_int;
-
-  int i;
-  for (i=0; i < num_cigar_operations; i++) {
-    cigar_int = cigar_p[i];
-    
-    switch (cigar_int&BAM_CIGAR_MASK) {
-      case BAM_CMATCH:		//M: match or mismatch
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'M');
-      break;
-      case BAM_CINS:		//I: insertion to the reference
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'I');
-      break;	
-      case BAM_CDEL:		//D: deletion from the reference
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'D');
-      break;	
-      case BAM_CREF_SKIP:	//N: skip on the reference
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'N');
-      break;
-      case BAM_CSOFT_CLIP:	//S: clip on the read with clipped sequence
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'S');
-      break;
-      case BAM_CHARD_CLIP:	//H: clip on the read with clipped sequence trimmed off
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'H');
-      break;
-      case BAM_CPAD:		//P: padding
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'P');
-      break;
-      case BAM_CEQUAL:		//=: match
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, '=');
-      break;
-      case BAM_CDIFF:		//X: mismatch
-      sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int>>BAM_CIGAR_SHIFT, 'X');
-      break;
-    }
-  }
-
-  sprintf(cigar_string, "%s%s", cigar_string, "\0");
-  
-  return cigar_string;
-}
-
-//-----------------------------------------------------
-// convert_to_cigar_int_
-//-----------------------------------------------------
-
-void convert_to_cigar_uint32_t_(uint8_t* data, char* cigar, int num_cigar_operations) {
-  
-  int cigar_string_length = strlen(cigar);
-  uint32_t cigar_uint32_position;
-  int cigar_position, cigar_operation, cigar_acc_num_operations = 0, actual_num_cigar_operation = 0;
-  
-  int i;
-  for (i=0; i < cigar_string_length; i++) {
-    cigar_position = (int) cigar[i];
-   
-    if (cigar_position < 58) {		//numeric
-      if (cigar_acc_num_operations == 0) cigar_acc_num_operations += atoi(&cigar[i]);            
-    } else {				//character: cigar operation
-
-      switch(cigar_position) {
-	case 77:		//M: match or mismatch
-	cigar_operation = BAM_CMATCH;
-	break;
-	case 73:		//I: insertion to the reference
-	cigar_operation = BAM_CINS;
-	break;	
-	case 68:		//D: deletion from the reference
-	cigar_operation = BAM_CDEL;
-	break;	
-	case 78:		//N: skip on the reference
-	cigar_operation = BAM_CREF_SKIP;
-	break;
-	case 83:		//S: clip on the read with clipped sequence
-	cigar_operation = BAM_CSOFT_CLIP;
-	break;
-	case 72:		//H: clip on the read with clipped sequence trimmed off
-	cigar_operation = BAM_CHARD_CLIP;
-	break;
-	case 80:		//P: padding
-	cigar_operation = BAM_CPAD;
-	break;
-	case 61:		//=: match
-	cigar_operation = BAM_CEQUAL;
-	break;
-	case 88:		//X: mismatch
-	cigar_operation = BAM_CDIFF;
-	break;	
-      }
-
-      //printf("cigar_acc_num_operations: %i, cigar_operation: %i\n", cigar_acc_num_operations, cigar_operation);
-      cigar_uint32_position = (uint32_t) ((cigar_acc_num_operations<<4) + cigar_operation);
-
-      memcpy(data, &cigar_uint32_position, 4);
-      data += 4;
-      
-      cigar_acc_num_operations = 0;     
-    }    
-
-  }   
-}
-
-//-----------------------------------------------------
-// convert_to_sequence_uint8_t
-//-----------------------------------------------------
-
-// void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length) {
-// 
-//   uint8_t nts_uint8 = 0;
-//   
-//   int i;
-//   for (i=0; i < sequence_length; i++) {    
-//     switch (sequence_p[i]) {
-//       case 65: 		// 'A'
-//       nts_uint8 = nts_uint8 + 1;
-//       break;
-//       case 67: 		// 'C' 
-//       nts_uint8 = nts_uint8 + 2;
-//       break;
-//       case 71: 		// 'G' 
-//       nts_uint8 = nts_uint8 + 4;
-//       break;
-//       case 84: 		// 'T' 
-//       nts_uint8 = nts_uint8 + 8;
-//       break;
-//       case 78: 		// 'N'
-//       nts_uint8 = nts_uint8 + 15;
-//       break;      
-//     }    
-//     
-//     if (i & 1) {	//even number
-//       *data++ = nts_uint8;
-//       nts_uint8 = 0;
-//     } else {
-//       nts_uint8 = nts_uint8<<4;
-//     }    
-//   }
-//   
-//   //if the last position is odd
-//   if (sequence_length & 1) {
-//     *data++ = nts_uint8;
-//   }
-// }
-
-void convert_to_sequence_uint8_t_(uint8_t* data, char* sequence_p, int sequence_length) {
-
-  uint8_t nts_uint8 = 0;
-  
-  int i, nt_int;
-  for (i=0; i < sequence_length; i++) {    
-    nt_int = (int) sequence_p[i];
-
-    switch (nt_int) {
-      case 65: 		// 'A'
-      nts_uint8 = nts_uint8 + 1;
-      break;
-      case 84: 		// 'T' 
-      nts_uint8 = nts_uint8 + 8;
-      break;      
-      case 67: 		// 'C' 
-      nts_uint8 = nts_uint8 + 2;
-      break;
-      case 71: 		// 'G' 
-      nts_uint8 = nts_uint8 + 4;
-      break;
-      case 78: 		// 'N'
-      nts_uint8 = nts_uint8 + 15;
-      break;      
+        switch (cigar_int&BAM_CIGAR_MASK) {
+            case BAM_CMATCH:  //M: match or mismatch
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'M');
+                break;
+            case BAM_CINS:  //I: insertion to the reference
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'I');
+                break;
+            case BAM_CDEL:  //D: deletion from the reference
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'D');
+                break;
+            case BAM_CREF_SKIP: //N: skip on the reference
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'N');
+                break;
+            case BAM_CSOFT_CLIP: //S: clip on the read with clipped sequence
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'S');
+                break;
+            case BAM_CHARD_CLIP: //H: clip on the read with clipped sequence trimmed off
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'H');
+                break;
+            case BAM_CPAD:  //P: padding
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'P');
+                break;
+            case BAM_CEQUAL:  //=: match
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, '=');
+                break;
+            case BAM_CDIFF:  //X: mismatch
+                sprintf(cigar_string, "%s%u%c", cigar_string, cigar_int >> BAM_CIGAR_SHIFT, 'X');
+                break;
+        }
     }
 
-    if (i & 1) {	//even number
-      *data++ = nts_uint8;
-      nts_uint8 = 0;
-    } else {
-      nts_uint8 = nts_uint8<<4;
-    }    
-  }
-  
-  //if the last position is odd
-  if (sequence_length & 1) {
-    *data++ = nts_uint8;
-  }
+    sprintf(cigar_string, "%s%s", cigar_string, "\0");
+
+    return cigar_string;
 }
 
-//-----------------------------------------------------
-// convert_to_quality_uint8_t
-//-----------------------------------------------------
+void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations) {
+    int cigar_string_length = strlen(cigar);
+    uint32_t cigar_uint32_position;
+    int cigar_position, cigar_operation, cigar_acc_num_operations = 0;
 
-void convert_to_quality_uint8_t_(uint8_t* data, char* quality_p, int quality_length, int base_quality) {
-  
-  int i;
-  for (i=0; i < quality_length; i++) {
-    *data++ = (uint8_t) (quality_p[i] - base_quality);
-  }  
+    for (int i = 0; i < cigar_string_length; i++) {
+        cigar_position = (int) cigar[i];
+
+        if (cigar_position < 58) {  //numeric
+            if (cigar_acc_num_operations == 0) cigar_acc_num_operations += atoi(&cigar[i]);
+        } else {    //character: cigar operation
+            switch (cigar_position) {
+                case 77:  //M: match or mismatch
+                    cigar_operation = BAM_CMATCH;
+                    break;
+                case 73:  //I: insertion to the reference
+                    cigar_operation = BAM_CINS;
+                    break;
+                case 68:  //D: deletion from the reference
+                    cigar_operation = BAM_CDEL;
+                    break;
+                case 78:  //N: skip on the reference
+                    cigar_operation = BAM_CREF_SKIP;
+                    break;
+                case 83:  //S: clip on the read with clipped sequence
+                    cigar_operation = BAM_CSOFT_CLIP;
+                    break;
+                case 72:  //H: clip on the read with clipped sequence trimmed off
+                    cigar_operation = BAM_CHARD_CLIP;
+                    break;
+                case 80:  //P: padding
+                    cigar_operation = BAM_CPAD;
+                    break;
+                case 61:  //=: match
+                    cigar_operation = BAM_CEQUAL;
+                    break;
+                case 88:  //X: mismatch
+                    cigar_operation = BAM_CDIFF;
+                    break;
+            }
+
+            cigar_uint32_position = (uint32_t)((cigar_acc_num_operations << 4) + cigar_operation);
+
+            memcpy(data, &cigar_uint32_position, 4);
+            data += 4;
+
+            cigar_acc_num_operations = 0;
+        }
+    }
 }
 
+void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_length) {
+    uint8_t nts_uint8 = 0;
 
+    int nt_int;
+    for (int i = 0; i < sequence_length; i++) {
+        nt_int = (int) sequence_p[i];
 
+        switch (nt_int) {
+            case 65:   // 'A'
+                nts_uint8 = nts_uint8 + 1;
+                break;
+            case 84:   // 'T'
+                nts_uint8 = nts_uint8 + 8;
+                break;
+            case 67:   // 'C'
+                nts_uint8 = nts_uint8 + 2;
+                break;
+            case 71:   // 'G'
+                nts_uint8 = nts_uint8 + 4;
+                break;
+            case 78:   // 'N'
+                nts_uint8 = nts_uint8 + 15;
+                break;
+        }
 
+        if (i & 1) { //even number
+            *data++ = nts_uint8;
+            nts_uint8 = 0;
+        } else {
+            nts_uint8 = nts_uint8 << 4;
+        }
+    }
 
+    //if the last position is odd
+    if (sequence_length & 1) {
+        *data++ = nts_uint8;
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_length, int base_quality) {
+    for (int i = 0; i < quality_length; i++) {
+        *data++ = (uint8_t)(quality_p[i] - base_quality);
+    }
+}
 
