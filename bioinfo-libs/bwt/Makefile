@@ -6,7 +6,7 @@ COMMONS_CUDA_DIR = $(LIBS_DIR)/commons-cuda
 CONTAINERS_DIR = $(LIBS_DIR)/containers
 FASTQ_DIR = $(LIBS_DIR)/bioformats/fastq
 SAM_DIR = $(LIBS_DIR)/bioformats/bam-sam
-SAMTOOLS_DIR = /home/jtarraga/softs/samtools-0.1.17
+SAMTOOLS_DIR = /home/hmartinez/Bio/Samtools/include/bam
 
 ALL = test1-cpu
 
