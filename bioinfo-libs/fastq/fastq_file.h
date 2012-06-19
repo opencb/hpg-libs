@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#include "qc_batch.h"
+//#include "qc_batch.h"
 #include "file_utils.h"
 
 #include "fastq_batch.h"
@@ -154,7 +154,7 @@ unsigned int fastq_fcount(fastq_file_t *fq_file);
 *  Removes from the buffer_reads those reads with more N than max_N_per_read parameter.
 *  N is the representation of an undefined nucleotide
 */
-void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read);
+//void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read);
 
 /**
 *  @brief Closes a fastq file handler and the associated file
