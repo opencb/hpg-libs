@@ -86,12 +86,14 @@ alignment_t* alignment_new();
 *  @param cigar cigar (string format)
 *  @param num_cigar_operations number of cigar operations
 *  @param map_quality quality of the mapping 
+*  @param is_seq_mapped flag indicating if sequence is mapped
+*  @param primary_alignment flag indicating if alignment is primary
 *  @param[in,out] alignment_p pointer to the alignment to init
 *  @return pointer to the created qc hash list item
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -112,13 +114,15 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 *  @param num_cigar_operations2 number of cigar operations for paired end 2
 *  @param map_quality1 quality of the mapping for paired end 1
 *  @param map_quality2 quality of the mapping for paired end 2
+*  @param primary_alignment1 flag indicating if alignment is primary for paired end 1
+*  @param primary_alignment1 flag indicating if alignment is primary for paired end 2
 *  @param[in,out] alignment1_p pointer to the alignment to init for paired end 1
 *  @param[in,out] alignment2_p pointer to the alignment to init for paired end 2
 *  @return pointer to the created qc hash list item
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, alignment_t* alignment1_p, alignment_t* alignment2_p);
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
 
 /**
 *  @brief Creates an alignment from a bam1_t structure

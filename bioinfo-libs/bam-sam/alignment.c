@@ -11,7 +11,7 @@ alignment_t* alignment_new() {
     return alignment_p;
 }
 
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, alignment_t* alignment_p) {
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p) {
     alignment_p->query_name = query_name;
     alignment_p->sequence = sequence;
     alignment_p->quality = quality;
@@ -27,17 +27,17 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 
     alignment_p->is_paired_end = 0;
     alignment_p->is_paired_end_mapped = 0;
-    alignment_p->is_seq_mapped = 1;
+    alignment_p->is_seq_mapped = is_seq_mapped;
     alignment_p->is_mate_mapped = 0;
     alignment_p->seq_strand = strand;
     alignment_p->mate_strand = 0; //unused value in single end
     alignment_p->pair_num = 0;    //unused value in single end
-    alignment_p->primary_alignment = 0;
+    alignment_p->primary_alignment = primary_alignment;
     alignment_p->fails_quality_check = 0;
     alignment_p->pc_optical_duplicate = 0;
 }
 
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, alignment_t* alignment1_p, alignment_t* alignment2_p) {
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p) {
     //pair 1 init
     alignment1_p->query_name = query_name;
     alignment1_p->sequence = sequence1;
@@ -75,7 +75,7 @@ void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence
     alignment1_p->seq_strand = strand1;
     alignment1_p->mate_strand = strand2;
     alignment1_p->pair_num = 1;
-    alignment1_p->primary_alignment = 0;
+    alignment1_p->primary_alignment = primary_alignment1;
     alignment1_p->fails_quality_check = 0;
     alignment1_p->pc_optical_duplicate = 0;
 
@@ -116,7 +116,7 @@ void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence
     alignment2_p->seq_strand = strand2;
     alignment2_p->mate_strand = strand1;
     alignment2_p->pair_num = 2;
-    alignment2_p->primary_alignment = 0;
+    alignment2_p->primary_alignment = primary_alignment2;
     alignment2_p->fails_quality_check = 0;
     alignment2_p->pc_optical_duplicate = 0;
 }
