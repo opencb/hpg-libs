@@ -24,6 +24,7 @@ CINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(F
 CUINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) -I$(SAM_DIR) I$(SAMTOOLS_DIR) -I/opt/cuda/include
 
 FASTQ-SRCS = $(FASTQ_DIR)/fastq_file.c $(FASTQ_DIR)/fastq_read.c $(FASTQ_DIR)/fastq_batch.c
+CONTAINERS-SRCS = $(CONTAINERS_DIR)/array_list.c
 
 COMMONS-SRCS = $(COMMONS_DIR)/log.c $(COMMONS_DIR)/system_utils.c $(COMMONS_DIR)/string_utils.c
 #CONTAINERS-SRCS = $(CONTAINERS_DIR)/list.c
@@ -31,7 +32,7 @@ COMMONS-SRCS = $(COMMONS_DIR)/log.c $(COMMONS_DIR)/system_utils.c $(COMMONS_DIR)
 #ALIGNER-SRCS = main.c alignment_batch.c fastq_batch_reader.c result_server.c timing.c BW_io.c BW_search.c
 #GPU-ALIGNER-OBJ = *.o #main.o fastq_batch_reader.o timing.c $(FASTQ_DIR)/*.o $(CONTAINERS_DIR)/list.o 
 
-SRCS = burrows_wheeler.c BW_io.c BW_search.c $(FASTQ-SRCS) $(COMMONS-SRCS)
+SRCS = burrows_wheeler.c BW_io.c BW_search.c $(FASTQ-SRCS) $(COMMONS-SRCS) $(CONTAINERS-SRCS)
 OBJS = *.o #burrows_wheeler.o BW_io.o 
 
 all: $(ALL)
