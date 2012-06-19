@@ -9,6 +9,8 @@
 #include "fastq_file.h"
 #include "fastq_read.h"
 
+#include "alignment.h"
+
 #include "burrows_wheeler.h"
 
 

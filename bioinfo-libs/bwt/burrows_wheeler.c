@@ -209,11 +209,14 @@ unsigned int bwt_map_inexact_seq_cpu(char *seq,
 
   // compare the vectors k and l to get mappings in the genome
   unsigned int num_mappings = 0;
-  unsigned int found = 0, found2 = 0;
   char plusminus[2] = "-+";
-  int idx, key, direction;
+  int idx, key, direction, error, pos;
   results_list *r_list;
   result *r;
+  alignment_t *alignment;
+
+  char cigar[1024];
+  unsigned int num_cigar_ops;
 
   for (int type = 1; type >= 0; type--) {
 
@@ -229,8 +232,6 @@ unsigned int bwt_map_inexact_seq_cpu(char *seq,
       BWIterativeSearch1(codeSeq, start, end, ki0, li0, k0, l0, 
      			 &index->h_rC, &index->h_rC1, &index->h_rOi, &index->h_rO, r_list);
     }
-
-    found2 = 0;
 
     for (size_t ii = 0; ii < r_list->n; ii++) {
       r = &r_list->list[ii];
@@ -253,7 +254,6 @@ unsigned int bwt_map_inexact_seq_cpu(char *seq,
 	}
 	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
 	if(key + len <= index->karyotype.offset[idx]) {
-	  found2 = 1;
 	  /*
 	  alignment_p->flags = CODED_SEQ_FLAG;
 	  alignment_p->header_p = &read_batch_p->header[read_batch_p->header_indices[i]];
@@ -268,6 +268,7 @@ unsigned int bwt_map_inexact_seq_cpu(char *seq,
 	  list_insert_item(mapping_item_p, &alignment_p->mapping_list);
 	  */
 
+	  
 
 	  printf("%s\t%c\t%s %u %s error: %i, pos: %i, base: %i\n",
 		 "nothing", plusminus[type],
@@ -275,12 +276,67 @@ unsigned int bwt_map_inexact_seq_cpu(char *seq,
 		 index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
 		 seq, r->err_kind[0], r->position[0], r->base[0]);
 
+	  // cigar processing
+	  error = r->err_kind[0];
+	  pos = r->position[0];
+
+	  if (error == 0) {
+	    sprintf(cigar, "%i=", len);
+	    num_cigar_ops = 1;
+
+	  } else if (error == MISMATCH) {
+
+	    if (pos == 0) {
+	      sprintf(cigar, "1S%iM", len-1);
+	      num_cigar_ops = 2;
+	    } else if (pos == len - 1) {
+	      sprintf(cigar, "%iM1S", len-1);
+	      num_cigar_ops = 2;
+	    } else {
+	      sprintf(cigar, "%iM", len);
+	      num_cigar_ops = 1;
+	    }
+
+	  } else if (error == DELETION) {
+
+	    if (pos == 0) {
+	      sprintf(cigar, "1H%iM", len-1);
+	      num_cigar_ops = 2;
+	    } else if (pos == len - 1) {
+	      sprintf(cigar, "%iM1H", len-1);
+	      num_cigar_ops = 2;
+	    } else {
+	      sprintf(cigar, "%iM1D%iM", pos, len - pos - 1);
+	      num_cigar_ops = 3;
+	    }
+
+	  } else if (error == INSERTION) {
+
+	    if (pos == 0) {
+	      sprintf(cigar, "1I%iM", len);
+	      num_cigar_ops = 2;
+	    } else if (pos == len - 1) {
+	      sprintf(cigar, "%iM1I", len);
+	      num_cigar_ops = 2;
+	    } else {
+	      sprintf(cigar, "%iM1I%iM", pos, len - pos);
+	      num_cigar_ops = 3;
+	    }
+
+	  }
+
+	  // save all into one alignment structure and insert to the list
+	  alignment = alignment_new();
+	  alignment_init_single_end(NULL, seq, NULL, type, 
+				    idx, //index->karyotype.chromosome + (idx-1) * IDMAX,
+				    index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+				    strdup(cigar), num_cigar_ops, 255, 1, (num_mappings > 0), alignment);
+
+	  array_list_insert((void*) alignment, mapping_list);
 	  num_mappings++;
 	}
       }
     }
-    found = found || found2;
-
     free(r_list);
   } // end for type 
   
@@ -295,7 +351,17 @@ unsigned int bwt_map_inexact_read_cpu(fastq_read_t *read,
 				      bwt_index_t *index, 
 				      array_list_t *mapping_list) {
 
-  return bwt_map_inexact_seq_cpu(read->sequence, bwt_optarg, index, mapping_list);
+  unsigned int num_mappings = bwt_map_inexact_seq_cpu(read->sequence, 
+						      bwt_optarg, index, 
+						      mapping_list);
+  alignment_t *mapping;
+  for (int i = 0; i < num_mappings; i++) {
+    mapping = (alignment_t *) array_list_get(i, mapping_list);
+    mapping->query_name = read->id;
+    mapping->quality = read->quality;
+  }
+
+  return num_mappings;
 }
 
 //-----------------------------------------------------------------------------

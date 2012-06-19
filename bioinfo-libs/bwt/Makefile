@@ -1,4 +1,3 @@
-LIB = -L/usr/local/cuda/lib64/
 
 LIBS_DIR = ../../../libs
 COMMONS_DIR = $(LIBS_DIR)/commons
@@ -6,7 +5,9 @@ COMMONS_CUDA_DIR = $(LIBS_DIR)/commons-cuda
 CONTAINERS_DIR = $(LIBS_DIR)/containers
 FASTQ_DIR = $(LIBS_DIR)/bioformats/fastq
 SAM_DIR = $(LIBS_DIR)/bioformats/bam-sam
-SAMTOOLS_DIR = /home/jtarraga/softs/samtools-0.1.17
+SAMTOOLS_DIR = /home/jtarraga/appl/bioinfo-c-old/ngs-hpc-pipeline/bam-hpc-tools/samtools-0.1.18
+
+LIB = -L/usr/local/cuda/lib64/ -lm -lz -L$(SAM_DIR) -lbam
 
 ALL = test1-cpu
 
@@ -24,6 +25,7 @@ CINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(F
 CUINCLUDES = -I. -I$(COMMONS_DIR) -I$(COMMONS_CUDA_DIR) -I$(CONTAINERS_DIR) -I$(FASTQ_DIR) -I$(SAM_DIR) I$(SAMTOOLS_DIR) -I/opt/cuda/include
 
 FASTQ-SRCS = $(FASTQ_DIR)/fastq_file.c $(FASTQ_DIR)/fastq_read.c $(FASTQ_DIR)/fastq_batch.c
+SAM-SRCS = $(SAM_DIR)/alignment.c
 CONTAINERS-SRCS = $(CONTAINERS_DIR)/array_list.c
 
 COMMONS-SRCS = $(COMMONS_DIR)/log.c $(COMMONS_DIR)/system_utils.c $(COMMONS_DIR)/string_utils.c
@@ -32,13 +34,13 @@ COMMONS-SRCS = $(COMMONS_DIR)/log.c $(COMMONS_DIR)/system_utils.c $(COMMONS_DIR)
 #ALIGNER-SRCS = main.c alignment_batch.c fastq_batch_reader.c result_server.c timing.c BW_io.c BW_search.c
 #GPU-ALIGNER-OBJ = *.o #main.o fastq_batch_reader.o timing.c $(FASTQ_DIR)/*.o $(CONTAINERS_DIR)/list.o 
 
-SRCS = burrows_wheeler.c BW_io.c BW_search.c $(FASTQ-SRCS) $(COMMONS-SRCS) $(CONTAINERS-SRCS)
+SRCS = burrows_wheeler.c BW_io.c BW_search.c $(FASTQ-SRCS) $(SAM-SRCS) $(COMMONS-SRCS) $(CONTAINERS-SRCS)
 OBJS = *.o #burrows_wheeler.o BW_io.o 
 
 all: $(ALL)
 
 test1-cpu: objects test1.c test1.h
-	$(CC) $(CFLAGS) $(CINCLUDES) $(OBJS) test1.c -o test1-cpu $(LIB)
+	$(CC) $(CFLAGS) $(CINCLUDES) $(OBJS) test1.c -o test1-cpu $(LIB) 
 
 objects: $(SRCS)
 	$(CC) $(CFLAGS) $(CINCLUDES) -c $^

@@ -44,6 +44,13 @@ void main(int argc, char *argv[]) {
 
   num_mappings = bwt_map_read_cpu(fq_read, NULL, bwt_index, mappings);
   printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);
+
+  alignment_t *mapping;
+  for (int i = 0; i < array_list_size(mappings); i++) {
+    mapping = (alignment_t *) array_list_get(i, mappings);
+    printf("%s %s %s\n", mapping->query_name, mapping->sequence, mapping->cigar);
+  }
+
   fastq_read_free(fq_read);
   /*
   fq_read = fastq_read_new("@read_4 2L_253017_253081/1",

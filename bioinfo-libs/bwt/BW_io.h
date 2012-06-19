@@ -47,9 +47,9 @@
 #define TRUE            1
 #define FALSE           0
 
-#define DELETION  0
-#define MISMATCH  1
-#define INSERTION 2
+#define DELETION  1
+#define MISMATCH  2
+#define INSERTION 3
 
 #define DD  -1
 #define AA  0
