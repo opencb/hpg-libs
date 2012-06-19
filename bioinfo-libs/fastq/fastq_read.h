@@ -21,6 +21,14 @@ typedef struct fastq_read {
     char *quality;		/**< Qualities. */
 } fastq_read_t;
 
+//--------------------------------------------
+
+fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
+void fastq_read_free(fastq_read_t *fq_read);
+
+//--------------------------------------------
+//--------------------------------------------
+
 /**
 * @brief Fastq read statistics
 * 

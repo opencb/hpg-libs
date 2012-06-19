@@ -1,4 +1,3 @@
-
 #ifndef BAM_COMMONS_H
 #define BAM_COMMONS_H
 

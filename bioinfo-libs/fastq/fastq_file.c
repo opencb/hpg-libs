@@ -235,6 +235,10 @@ int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_fi
 unsigned int fastq_fcount(fastq_file_t *fq_file) {
     return fq_file->num_reads;
 }
+
+//-----------------------------------------------------
+// fastq_remove_Ns
+//-----------------------------------------------------
 /*
 void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read) {
     int count = 0;
@@ -254,6 +258,9 @@ void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_p
     }
 }
 */
+//-----------------------------------------------------
+// fastq_fclose
+//-----------------------------------------------------
 
 void fastq_fclose(fastq_file_t* fq_file) {
     fclose(fq_file->fd);
