@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <math.h>
+#include <limits.h>
 
 #include "string_utils.h"
 #include "log.h"

@@ -19,7 +19,7 @@ list.o:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
 
 array_list.o: array_list.h array_list.c
-	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(MISC_FILES) $(INCLUDES)
+	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(MISC_FILES) $(INCLUDES) $(LIBS)
 
 region_table.o:
 	$(CC) $(CFLAGS) -c region_table.c $(MISC_FILES) $(INCLUDES) $(LIBS)
