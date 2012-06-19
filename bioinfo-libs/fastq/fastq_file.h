@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#include "qc_batch.h"
+//#include "qc_batch.h"
 #include "file_utils.h"
 
 #include "fastq_batch.h"
@@ -62,7 +62,7 @@ int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_fi
 
 unsigned int fastq_fcount(fastq_file_t *fq_file);
 
-void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read);
+//void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read);
 
 void fastq_fclose(fastq_file_t *fq_file);
 

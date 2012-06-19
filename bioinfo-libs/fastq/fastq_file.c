@@ -280,7 +280,7 @@ unsigned int fastq_fcount(fastq_file_t *fq_file) {
 //-----------------------------------------------------
 // fastq_remove_Ns
 //-----------------------------------------------------
-
+/*
 void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_per_read) {
 	int count = 0;
 	int index = 0;
@@ -298,7 +298,7 @@ void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_p
 		index++;
 	}
 }
-
+*/
 //-----------------------------------------------------
 // fastq_fclose
 //-----------------------------------------------------

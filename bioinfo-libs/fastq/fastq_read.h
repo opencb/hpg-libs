@@ -16,6 +16,15 @@ typedef struct fastq_read {
   char *quality;
 } fastq_read_t;
 
+//--------------------------------------------
+
+fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
+void fastq_read_free(fastq_read_t *fq_read);
+
+//--------------------------------------------
+//--------------------------------------------
+
+
 typedef struct fastq_read_stats {
   char *id;
   short int seq_length;
