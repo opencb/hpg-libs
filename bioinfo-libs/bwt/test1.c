@@ -24,6 +24,7 @@ void main(int argc, char *argv[]) {
   printf("**** index_dirname = %s\n", bwt_index->dirname);
 
 
+  array_list_t *mappings = array_list_new(100000, 0.25f, COLLECTION_MODE_SYNCHRONIZED);
   fastq_read_t *fq_read;
   unsigned int num_mappings;
 
@@ -41,7 +42,7 @@ void main(int argc, char *argv[]) {
                            "CTTGTCGAAGTACTGCCGCTTGGTTCGTTGGGATCCTCAGCCTCGCGCACCTTTTCGGCAATCT",
 			   "################################################################");
 
-  num_mappings = bwt_map_read_cpu(fq_read, NULL, bwt_index, NULL);
+  num_mappings = bwt_map_read_cpu(fq_read, NULL, bwt_index, mappings);
   printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);
   fastq_read_free(fq_read);
   /*
