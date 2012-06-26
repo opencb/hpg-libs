@@ -2,19 +2,8 @@
 #line 1 "vcf.ragel"
 #include "vcf_reader.h"
 
-static int store_samples;
 
-static size_t samples = 0;
-static size_t records = 0;
-
-static vcf_record_t *current_record;
-static vcf_header_entry_t *current_header_entry;
-static vcf_batch_t *current_batch;
-
-static enum VCF_Field current_field = CHROM;
-
-
-#line 18 "vcf_reader.c"
+#line 7 "vcf_reader.c"
 static const int vcf_start = 82;
 static const int vcf_first_final = 82;
 static const int vcf_error = 0;
@@ -26,78 +15,78 @@ static const int vcf_en_record_scan = 106;
 static const int vcf_en_main = 82;
 
 
-#line 241 "vcf.ragel"
+#line 230 "vcf.ragel"
 
 
 static char* get_token(char *ts, char *te) {
     return strndup(ts, te-ts);
 }
 
-static void set_field(char* ts, char *te) {
+static void set_field(char* ts, char *te, vcf_reader_status *status) {
     char *field = get_token(ts, te);
     float quality = -1.0f;
 
-    switch (current_field) {
+    switch (status->current_field) {
         case CHROM:
-            current_record = create_record();
-            set_record_chromosome(field, current_record);
+            status->current_record = create_record();
+            set_record_chromosome(field, status->current_record);
         break;
         case POS:
-            set_record_position(atol(field), current_record);
+            set_record_position(atol(field), status->current_record);
             free(field);	// Not set as vcf_record_t variable -> not freed later
         break;
         case ID:
-            set_record_id(field, current_record);
+            set_record_id(field, status->current_record);
         break;
         case REF:
-            set_record_reference(field, current_record);
+            set_record_reference(field, status->current_record);
         break;
         case ALT:
             if (!strcmp("0", field) || !strcmp("<DEL>", field)) {
                 free(field);
                 field = strdup(".");
             }
-            set_record_alternate(field, current_record);
+            set_record_alternate(field, status->current_record);
         break;
         case QUAL:
             if (strncmp(".", field, 1) != 0) {
                 quality = atof(field);
             }
-            set_record_quality(quality, current_record);
+            set_record_quality(quality, status->current_record);
             free(field);	// Not set as vcf_record_t variable -> not freed later
         break;
         case FILTER:
-            set_record_filter(field, current_record);
+            set_record_filter(field, status->current_record);
         break;
         case INFO:
-            set_record_info(field, current_record);
+            set_record_info(field, status->current_record);
         break;
         case FORMAT:
-            set_record_format(field, current_record);
+            set_record_format(field, status->current_record);
         break;
         case SAMPLE:
-            if(store_samples) { 
-                add_record_sample(field, current_record, &samples); 
+            if(status->store_samples) { 
+                add_record_sample(field, status->current_record, &(status->num_samples)); 
             } else {
                 free(field);    // Not added to samples -> not freed later
             }
         break;
     }
 
-    if (current_field < SAMPLE) {
-        current_field++;
+    if (status->current_field < SAMPLE) {
+        status->current_field++;
     }
 }
 
-static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
     int cs;
     char *ts, *te;
     int stack[4];
     int top, act;
     char *eof = pe;
+
     
-    
-#line 101 "vcf_reader.c"
+#line 90 "vcf_reader.c"
 	{
 	cs = vcf_start;
 	top = 0;
@@ -106,7 +95,7 @@ static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t
 	act = 0;
 	}
 
-#line 110 "vcf_reader.c"
+#line 99 "vcf_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -254,7 +243,7 @@ st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
-#line 258 "vcf_reader.c"
+#line 247 "vcf_reader.c"
 	switch( (*p) ) {
 		case 35: goto st1;
 		case 95: goto tr86;
@@ -279,7 +268,7 @@ case 1:
 		goto tr0;
 	goto st0;
 tr0:
-#line 31 "vcf.ragel"
+#line 20 "vcf.ragel"
 	{ {stack[top++] = 2; goto st86;} }
 	goto st2;
 st2:
@@ -288,7 +277,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 292 "vcf_reader.c"
+#line 281 "vcf_reader.c"
 	if ( (*p) == 35 )
 		goto st3;
 	goto st0;
@@ -300,7 +289,7 @@ case 3:
 		goto tr3;
 	goto st0;
 tr3:
-#line 61 "vcf.ragel"
+#line 50 "vcf.ragel"
 	{ {stack[top++] = 4; goto st97;} }
 	goto st4;
 st4:
@@ -309,7 +298,7 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 313 "vcf_reader.c"
+#line 302 "vcf_reader.c"
 	if ( (*p) == 35 )
 		goto st5;
 	goto st0;
@@ -624,7 +613,7 @@ case 48:
 		goto tr48;
 	goto st0;
 tr48:
-#line 122 "vcf.ragel"
+#line 111 "vcf.ragel"
 	{ {stack[top++] = 83; goto st104;} }
 	goto st83;
 st83:
@@ -633,7 +622,7 @@ st83:
 	if ( ++p == pe )
 		goto _test_eof83;
 case 83:
-#line 637 "vcf_reader.c"
+#line 626 "vcf_reader.c"
 	if ( (*p) == 95 )
 		goto tr86;
 	if ( (*p) < 65 ) {
@@ -646,7 +635,7 @@ case 83:
 		goto tr86;
 	goto st0;
 tr86:
-#line 238 "vcf.ragel"
+#line 227 "vcf.ragel"
 	{ p--; {stack[top++] = 49; goto st106;} }
 	goto st49;
 st49:
@@ -655,7 +644,7 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 659 "vcf_reader.c"
+#line 648 "vcf_reader.c"
 	switch( (*p) ) {
 		case 9: goto st50;
 		case 95: goto st49;
@@ -1038,23 +1027,23 @@ case 80:
 		goto st80;
 	goto st0;
 tr88:
-#line 49 "vcf.ragel"
+#line 38 "vcf.ragel"
 	{te = p+1;}
 	goto st86;
 tr89:
-#line 47 "vcf.ragel"
+#line 36 "vcf.ragel"
 	{te = p+1;{ {cs = stack[--top];goto _again;} }}
 	goto st86;
 tr91:
-#line 43 "vcf.ragel"
+#line 32 "vcf.ragel"
 	{te = p+1;}
 	goto st86;
 tr92:
-#line 45 "vcf.ragel"
+#line 34 "vcf.ragel"
 	{te = p+1;}
 	goto st86;
 tr94:
-#line 37 "vcf.ragel"
+#line 26 "vcf.ragel"
 	{te = p;p--;{ 
             char *fileformat = (char*) calloc (te-ts+1, sizeof(char));
             strncat(fileformat, ts, te-ts);
@@ -1062,7 +1051,7 @@ tr94:
         }}
 	goto st86;
 tr103:
-#line 35 "vcf.ragel"
+#line 24 "vcf.ragel"
 	{te = p+1;}
 	goto st86;
 st86:
@@ -1073,7 +1062,7 @@ st86:
 case 86:
 #line 1 "NONE"
 	{ts = p;}
-#line 1077 "vcf_reader.c"
+#line 1066 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr89;
 		case 32: goto tr88;
@@ -1176,7 +1165,7 @@ case 96:
 		goto st87;
 	goto tr94;
 tr82:
-#line 82 "vcf.ragel"
+#line 71 "vcf.ragel"
 	{{p = ((te))-1;}{
             // Remove quotation marks if necessary
             char *start = ts, *end = te;
@@ -1184,36 +1173,36 @@ tr82:
             if (*(te-1) == '"') end = te - 1;
             
             char *field_value = get_token(start, end);
-            add_header_entry_value(field_value, current_header_entry);
+            add_header_entry_value(field_value, status->current_header_entry);
         }}
 	goto st97;
 tr104:
-#line 111 "vcf.ragel"
+#line 100 "vcf.ragel"
 	{te = p+1;}
 	goto st97;
 tr105:
-#line 104 "vcf.ragel"
+#line 93 "vcf.ragel"
 	{te = p+1;{
-            add_header_entry(current_header_entry, file);
-            current_header_entry = create_header_entry();
+            add_header_entry(status->current_header_entry, file);
+            status->current_header_entry = create_header_entry();
             LOG_DEBUG("\n");
             {cs = stack[--top];goto _again;}
         }}
 	goto st97;
 tr108:
-#line 100 "vcf.ragel"
+#line 89 "vcf.ragel"
 	{te = p+1;{
             LOG_DEBUG(" , ");
         }}
 	goto st97;
 tr111:
-#line 96 "vcf.ragel"
+#line 85 "vcf.ragel"
 	{te = p+1;{
             LOG_DEBUG(" } ");
         }}
 	goto st97;
 tr112:
-#line 82 "vcf.ragel"
+#line 71 "vcf.ragel"
 	{te = p;p--;{
             // Remove quotation marks if necessary
             char *start = ts, *end = te;
@@ -1221,32 +1210,32 @@ tr112:
             if (*(te-1) == '"') end = te - 1;
             
             char *field_value = get_token(start, end);
-            add_header_entry_value(field_value, current_header_entry);
+            add_header_entry_value(field_value, status->current_header_entry);
         }}
 	goto st97;
 tr114:
-#line 70 "vcf.ragel"
+#line 59 "vcf.ragel"
 	{te = p;p--;{
             char *field_id = get_token(ts, te-1);
-            if (current_header_entry->name != NULL)
+            if (status->current_header_entry->name != NULL)
             {
-                add_header_entry_key(field_id, current_header_entry);
+                add_header_entry_key(field_id, status->current_header_entry);
             } else {
                 // Entries like ##reference=some_text_here
-                current_header_entry = create_header_entry();
-                set_header_entry_name(field_id, current_header_entry);
+                status->current_header_entry = create_header_entry();
+                set_header_entry_name(field_id, status->current_header_entry);
             }
         }}
 	goto st97;
 tr115:
-#line 65 "vcf.ragel"
+#line 54 "vcf.ragel"
 	{te = p+1;{
             char *header_id = get_token(ts, te-2);
-            set_header_entry_name(header_id, current_header_entry);
+            set_header_entry_name(header_id, status->current_header_entry);
         }}
 	goto st97;
 tr116:
-#line 92 "vcf.ragel"
+#line 81 "vcf.ragel"
 	{te = p+1;{
             LOG_DEBUG(" =< ");
         }}
@@ -1259,7 +1248,7 @@ st97:
 case 97:
 #line 1 "NONE"
 	{ts = p;}
-#line 1263 "vcf_reader.c"
+#line 1252 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr105;
 		case 34: goto tr107;
@@ -1312,7 +1301,7 @@ st99:
 	if ( ++p == pe )
 		goto _test_eof99;
 case 99:
-#line 1316 "vcf_reader.c"
+#line 1305 "vcf_reader.c"
 	if ( (*p) == 44 )
 		goto st81;
 	if ( (*p) > 61 ) {
@@ -1341,7 +1330,7 @@ st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1345 "vcf_reader.c"
+#line 1334 "vcf_reader.c"
 	if ( (*p) == 34 )
 		goto tr84;
 	if ( (*p) > 61 ) {
@@ -1406,18 +1395,18 @@ case 103:
 		goto st98;
 	goto tr112;
 tr117:
-#line 136 "vcf.ragel"
+#line 125 "vcf.ragel"
 	{te = p+1;}
 	goto st104;
 tr118:
-#line 131 "vcf.ragel"
+#line 120 "vcf.ragel"
 	{te = p+1;{
             LOG_DEBUG("\n");
             {cs = stack[--top];goto _again;} 
         }}
 	goto st104;
 tr120:
-#line 126 "vcf.ragel"
+#line 115 "vcf.ragel"
 	{te = p;p--;{
             char *sname = get_token(ts, te);
             add_sample_name(sname, file);
@@ -1431,7 +1420,7 @@ st104:
 case 104:
 #line 1 "NONE"
 	{ts = p;}
-#line 1435 "vcf_reader.c"
+#line 1424 "vcf_reader.c"
 	if ( (*p) == 10 )
 		goto tr118;
 	if ( (*p) > 13 ) {
@@ -1448,29 +1437,29 @@ case 105:
 		goto st105;
 	goto tr120;
 tr121:
-#line 230 "vcf.ragel"
+#line 219 "vcf.ragel"
 	{te = p+1;}
 	goto st106;
 tr122:
-#line 209 "vcf.ragel"
+#line 198 "vcf.ragel"
 	{te = p+1;{
             // If batch is full, add to the list of batches and create a new, empty one
-            if (vcf_batch_is_full(current_batch))
+            if (vcf_batch_is_full(status->current_batch))
             {
-                list_item_t *item = list_item_new(file->num_records, 1, current_batch); 
+                list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
                 list_insert_item(item, batches_list);
-                LOG_DEBUG_F("Batch added - %zu records\n", current_batch->length);
-                current_batch = vcf_batch_new(batch_size);
+                LOG_DEBUG_F("Batch added - %zu records\n", status->current_batch->length);
+                status->current_batch = vcf_batch_new(batch_size);
             }
 
-            // If not a blank line, add current record to current batch
-            if (current_field != CHROM) {
-                add_record_to_vcf_batch(current_record, current_batch);
-                records++;
+            // If not a blank line, add status->current record to status->current batch
+            if (status->current_field != CHROM) {
+                add_record_to_vcf_batch(status->current_record, status->current_batch);
+                status->num_records++;
             }
             
-            current_field = CHROM;
-            samples = 0;
+            status->current_field = CHROM;
+            status->num_samples = 0;
             LOG_DEBUG("\n");
         }}
 	goto st106;
@@ -1479,60 +1468,60 @@ tr130:
 	{	switch( act ) {
 	case 20:
 	{{p = ((te))-1;}
-            set_field(ts, te);
+            set_field(ts, te, status);
         }
 	break;
 	case 22:
 	{{p = ((te))-1;}
-            set_field(ts, te);
+            set_field(ts, te, status);
         }
 	break;
 	case 23:
 	{{p = ((te))-1;}
-            set_field(ts, te);
+            set_field(ts, te, status);
         }
 	break;
 	case 25:
 	{{p = ((te))-1;}
-            set_field(ts, te);
+            set_field(ts, te, status);
         }
 	break;
 	case 27:
 	{{p = ((te))-1;}
-            set_field(ts, te);
+            set_field(ts, te, status);
         }
 	break;
 	}
 	}
 	goto st106;
 tr131:
-#line 169 "vcf.ragel"
+#line 158 "vcf.ragel"
 	{te = p;p--;{
-            set_field(ts, te);
+            set_field(ts, te, status);
         }}
 	goto st106;
 tr137:
-#line 205 "vcf.ragel"
+#line 194 "vcf.ragel"
 	{te = p;p--;{
-            set_field(ts, te);
+            set_field(ts, te, status);
         }}
 	goto st106;
 tr139:
-#line 193 "vcf.ragel"
+#line 182 "vcf.ragel"
 	{te = p;p--;{
-            set_field(ts, te);
+            set_field(ts, te, status);
         }}
 	goto st106;
 tr142:
-#line 201 "vcf.ragel"
+#line 190 "vcf.ragel"
 	{te = p;p--;{
-            set_field(ts, te);
+            set_field(ts, te, status);
         }}
 	goto st106;
 tr151:
-#line 185 "vcf.ragel"
+#line 174 "vcf.ragel"
 	{te = p;p--;{
-            set_field(ts, te);
+            set_field(ts, te, status);
         }}
 	goto st106;
 st106:
@@ -1543,7 +1532,7 @@ st106:
 case 106:
 #line 1 "NONE"
 	{ts = p;}
-#line 1547 "vcf_reader.c"
+#line 1536 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr122;
 		case 32: goto tr121;
@@ -1585,26 +1574,26 @@ case 106:
 tr123:
 #line 1 "NONE"
 	{te = p+1;}
-#line 205 "vcf.ragel"
+#line 194 "vcf.ragel"
 	{act = 27;}
 	goto st107;
 tr124:
 #line 1 "NONE"
 	{te = p+1;}
-#line 177 "vcf.ragel"
+#line 166 "vcf.ragel"
 	{act = 20;}
 	goto st107;
 tr148:
 #line 1 "NONE"
 	{te = p+1;}
-#line 185 "vcf.ragel"
+#line 174 "vcf.ragel"
 	{act = 22;}
 	goto st107;
 st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1608 "vcf_reader.c"
+#line 1597 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr123;
 	goto tr130;
@@ -1701,20 +1690,20 @@ case 110:
 tr133:
 #line 1 "NONE"
 	{te = p+1;}
-#line 205 "vcf.ragel"
+#line 194 "vcf.ragel"
 	{act = 27;}
 	goto st111;
 tr140:
 #line 1 "NONE"
 	{te = p+1;}
-#line 189 "vcf.ragel"
+#line 178 "vcf.ragel"
 	{act = 23;}
 	goto st111;
 st111:
 	if ( ++p == pe )
 		goto _test_eof111;
 case 111:
-#line 1718 "vcf_reader.c"
+#line 1707 "vcf_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 33 <= (*p) && (*p) <= 47 )
 			goto tr123;
@@ -1837,20 +1826,20 @@ case 115:
 tr136:
 #line 1 "NONE"
 	{te = p+1;}
-#line 205 "vcf.ragel"
+#line 194 "vcf.ragel"
 	{act = 27;}
 	goto st116;
 tr144:
 #line 1 "NONE"
 	{te = p+1;}
-#line 197 "vcf.ragel"
+#line 186 "vcf.ragel"
 	{act = 25;}
 	goto st116;
 st116:
 	if ( ++p == pe )
 		goto _test_eof116;
 case 116:
-#line 1854 "vcf_reader.c"
+#line 1843 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr144;
 	goto tr130;
@@ -2238,7 +2227,7 @@ case 125:
 	_out: {}
 	}
 
-#line 313 "vcf.ragel"
+#line 302 "vcf.ragel"
 
     
     return cs;
@@ -2249,15 +2238,13 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     int cs;
     char *p, *pe;
 
-    store_samples = read_samples;
-    current_header_entry = create_header_entry();
-    current_batch = vcf_batch_new(batch_size);
-
+    vcf_reader_status *status = new_vcf_reader_status(batch_size, read_samples);
+    
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_ragel_machine(p, pe, batches_list, batch_size, file);
+        cs = execute_ragel_machine(p, pe, batches_list, batch_size, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -2297,7 +2284,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 
             p = data;
             pe = p + file->data_len;
-            cs = execute_ragel_machine(p, pe, batches_list, batch_size, file);
+            cs = execute_ragel_machine(p, pe, batches_list, batch_size, file, status);
             file->data_len = 0;
         }
         
@@ -2305,37 +2292,54 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
         if (data != NULL) { free(data); }
     }
 
-	// Insert the last batch
-	if (!vcf_batch_is_empty(current_batch))
-	{
-		list_item_t *item = list_item_new(file->num_records, 1, current_batch);
-		list_insert_item(item, batches_list);
-		LOG_DEBUG_F("Batch added - %zu records (last)\n", current_batch->length);
-	}
-	
-	if ( cs < 
-#line 2318 "vcf_reader.c"
+    // Insert the last batch
+    if (!vcf_batch_is_empty(status->current_batch))
+    {
+        list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
+        list_insert_item(item, batches_list);
+        LOG_DEBUG_F("Batch added - %zu records (last)\n", status->current_batch->length);
+    }
+
+    if ( cs < 
+#line 2305 "vcf_reader.c"
 82
-#line 387 "vcf.ragel"
+#line 374 "vcf.ragel"
  ) 
-	{
-		LOG_INFO_F("Last state is %d, but %d was expected\n", 
-		       cs, 
+    {
+        LOG_INFO_F("Last state is %d, but %d was expected\n", 
+                cs, 
+#line 2312 "vcf_reader.c"
+82
+#line 377 "vcf.ragel"
+);
+    } 
+
+    LOG_INFO_F("Records read = %zu\n", status->num_records);
+    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+
+    // Free status->current_xxx pointers if not needed in another module
+    vcf_header_entry_free(status->current_header_entry);   
+
+    return cs < 
 #line 2325 "vcf_reader.c"
 82
-#line 390 "vcf.ragel"
-);
-	} 
-	
-	LOG_INFO_F("Records read = %zu\n", records);
-	LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
-	
-	// Free current_xxx pointers if not needed in another module
-	vcf_header_entry_free(current_header_entry);   
-	
-	return cs < 
-#line 2338 "vcf_reader.c"
-82
-#line 399 "vcf.ragel"
+#line 386 "vcf.ragel"
 ;
+}
+
+// vcf_reader_status *new_vcf_reader_status(size_t batch_size, int self_contained) {
+vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples) {
+    vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
+    status->current_record = NULL;
+    status->current_header_entry = create_header_entry();
+    status->current_batch = vcf_batch_new(batch_size);
+    status->current_field = CHROM;
+
+    status->num_samples = 0;
+    status->num_records = 0;
+
+    status->store_samples = store_samples;
+//     status->self_contained = self_contained;
+
+    return status;
 }
