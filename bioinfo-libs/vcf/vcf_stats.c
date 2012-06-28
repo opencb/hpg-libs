@@ -25,7 +25,8 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
     stats->biallelics_count += biallelics_count;
     stats->multiallelics_count += multiallelics_count;
     stats->pass_count += pass_count;
-    stats->accum_quality = accum_quality;
+    stats->accum_quality += accum_quality;
+    stats->mean_quality = accum_quality / variants_count;
 }
 
 
@@ -40,9 +41,12 @@ variant_stats_t* new_variant_stats(char *chromosome, unsigned long position, cha
     stats->position = position;
     stats->ref_allele = ref_allele;
     stats->alternates = NULL;
+    
     stats->num_alleles = 1;
     stats->alleles_count = NULL;
     stats->genotypes_count = NULL;
+    stats->alleles_freq = NULL;
+    stats->genotypes_freq = NULL;
     
     stats->missing_alleles = 0;
     stats->missing_genotypes = 0;
@@ -61,6 +65,8 @@ void free_variant_stats(variant_stats_t* stats) {
     }
     if (stats->alleles_count) { free(stats->alleles_count); }
     if (stats->genotypes_count) { free(stats->genotypes_count); }
+    if (stats->alleles_freq) { free(stats->alleles_freq); }
+    if (stats->genotypes_freq) { free(stats->genotypes_freq); }
     free(stats);
 }
 
@@ -74,6 +80,7 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
     // Temporary variables for file stats updating
     int variants_count = 0, samples_count = 0, snps_count = 0, indels_count = 0, pass_count = 0;
     int transitions_count = 0, transversions_count = 0, biallelics_count = 0, multiallelics_count = 0;
+    int total_alleles_count = 0, total_genotypes_count = 0;
     float accum_quality = 0;
     
     // Variant stats management
@@ -102,9 +109,11 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
         }
         LOG_DEBUG_F("num alternates = %d\tnum_alleles = %d\n", num_alternates, stats->num_alleles);
         
-        // Create lists of allele and genotypes counters
+        // Create lists of allele and genotypes counters and frequencies
         stats->alleles_count = (int*) calloc (stats->num_alleles, sizeof(int));
         stats->genotypes_count = (int*) calloc (stats->num_alleles * stats->num_alleles, sizeof(int));
+        stats->alleles_freq = (int*) calloc (stats->num_alleles, sizeof(int));
+        stats->genotypes_freq = (int*) calloc (stats->num_alleles * stats->num_alleles, sizeof(int));
         
         // Get position where GT is in sample
         copy_buf = (char*) calloc (strlen(record->format)+1, sizeof(char));
@@ -130,12 +139,14 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
                     stats->missing_alleles++; 
                 } else {
                     stats->alleles_count[allele1]++;
+                    total_alleles_count++;
                 }
                     
                 if (allele2 < 0) { 
                     stats->missing_alleles++;
                 } else {
                     stats->alleles_count[allele2]++;
+                    total_alleles_count++;
                 }
             } else {
                 // Both alleles set
@@ -143,7 +154,17 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
                 stats->alleles_count[allele1]++;
                 stats->alleles_count[allele2]++;
                 stats->genotypes_count[cur_pos]++;
+                total_alleles_count += 2;
+                total_genotypes_count++;
             }
+        }
+        
+        // Get allele and genotype frequencies
+        for (int j = 0; j < stats->num_alleles; j++) {
+            stats->alleles_freq[j] = (float) stats->alleles_count[j] / total_alleles_count;
+        }
+        for (int j = 0; j < stats->num_alleles * stats->num_alleles; j++) {
+            stats->genotypes_freq[j] = (float) stats->genotypes_count[j] / total_genotypes_count;
         }
         
         // Update variables finally used to update file_stats_t structure

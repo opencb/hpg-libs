@@ -26,6 +26,7 @@ typedef struct {
     
     int pass_count;
     float accum_quality;
+    float mean_quality;
 } file_stats_t;
 
 
@@ -39,6 +40,8 @@ typedef struct {
     int num_alleles;
     int *alleles_count;
     int *genotypes_count;
+    float *alleles_freq;
+    float *genotypes_freq;
     
     int missing_alleles;
     int missing_genotypes;
