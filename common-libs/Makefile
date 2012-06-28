@@ -1,21 +1,18 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
+CFLAGS_DEBUG = -std=c99 -g
 
 LIBS_ROOT = $(PWD)/..
-#BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
-#COMMONS_DIR = $(LIBS_ROOT)/commons
 
-#INCLUDES = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff
 INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops
 
-#INCLUDES_STATIC = -I . -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR)/features/region -I $(BIOFORMATS_DIR)/gff -I $(LIBS_ROOT)/../include
 INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = $(LIBS_ROOT) -lcprops
 
 MISC_FILES = $(LIBS_ROOT)/commons/log.c
 
-all: list.o region_table.o region_table_utils.o
+all: list.o array_list.o region_table.o region_table_utils.o
 
 compile:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
@@ -30,6 +27,9 @@ compile-static:
 list.o:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
 
+array_list.o: array_list.h array_list.c
+	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(MISC_FILES) $(INCLUDES)
+
 region_table.o:
 	$(CC) $(CFLAGS) -c region_table.c $(MISC_FILES) $(INCLUDES) $(LIBS)
 
@@ -38,5 +38,6 @@ region_table_utils.o:
 
 clean:
 	rm list.o
+	rm array_list.o
 	rm region_table.o
 	rm region_table_utils.o
