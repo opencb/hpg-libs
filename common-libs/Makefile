@@ -16,10 +16,12 @@ all: list.o array_list.o region_table.o region_table_utils.o
 
 compile:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -c array_list.c $(INCLUDES) $(LIBS)
 	$(CC) $(CFLAGS) -c region_table.c $(MISC_FILES) $(INCLUDES) $(LIBS)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c region_table_utils.c $(INCLUDES) $(LIBS)
 
 compile-static:
+	$(CC) $(CFLAGS) -c array_list.c $(INCLUDES_STATIC) $(LIBS_STATIC)
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES_STATIC) $(LIBS_STATIC)
 	$(CC) $(CFLAGS) -c region_table.c $(MISC_FILES) $(INCLUDES_STATIC) $(LIBS_STATIC)
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c region_table_utils.c $(INCLUDES_STATIC) $(LIBS_STATIC)
