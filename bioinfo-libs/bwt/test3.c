@@ -1,45 +1,6 @@
 #include "test3.h"
 
-const int n = 10;
-
-void fh(int *a) {
-  a = (int *) malloc(n * sizeof(int));
-  printf("fh - aa = %x\n", a);
-  for (int i  = 0; i < n; i++) {
-    a[i] = i * 10;
-  }
-  for (int i  = 0; i < n; i++) {
-    printf("fh - %i\n", a[i]);
-  }
-}
-
-void fj(int **a) {
-  int *b = (int *) malloc(n * sizeof(int));
-  printf("fj - b = %x\n", b);
-  for (int i  = 0; i < n; i++) {
-    b[i] = i * 10;
-  }
-  for (int i  = 0; i < n; i++) {
-    printf("fj - %i\n", b[i]);
-  }
-  *a = b;
-}
-
-
-
 void main(int argc, char *argv[]) {
-
-  int *aa;
-  printf("main - aa = %x\n", aa);
-  //fh(aa);
-  fj(&aa);
-  printf("main - aa = %x\n", aa);
-  for (int i  = 0; i < n; i++) {
-    printf("main - %i\n", aa[i]);
-  }
-
-  exit(-1);
-
 
   char *input_filename, *index_dirname;
 

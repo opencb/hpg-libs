@@ -5,62 +5,66 @@
 // exact functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_exact_seq(char *seq, 
-				   bwt_optarg_t *bwt_optarg, 
-				   bwt_index_t *index, 
-				   array_list_t *mapping_list);
+size_t bwt_map_exact_seq(char *seq, 
+			 bwt_optarg_t *bwt_optarg, 
+			 bwt_index_t *index, 
+			 array_list_t *mapping_list);
 
-unsigned int bwt_map_exact_read(fastq_read_t *read, 
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list);
+size_t bwt_map_exact_read(fastq_read_t *read, 
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  array_list_t *mapping_list);
 
-unsigned int bwt_map_exact_seqs(char **seqs, 
-				    unsigned int num_reads,
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list);
+size_t bwt_map_exact_seqs(char **seqs, 
+			  size_t num_reads,
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  char *out_status,
+			  array_list_t *mapping_list);
 
-unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     fastq_batch_t *unmapped_batch,
-				     array_list_t *mapping_list);
+size_t bwt_map_exact_batch(fastq_batch_t *batch,
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   fastq_batch_t *unmapped_batch,
+			   array_list_t *mapping_list);
 
 //-----------------------------------------------------------------------------
 // inexact functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_seeds_seq(char *seq, seed_t *seeds, unsigned int num_seeds,
-					bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
-					array_list_t *mapping_list);
+size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list);
 
-unsigned int bwt_map_inexact_seed(char *seq,
-                                     bwt_optarg_t *bwt_optarg,
-                                     bwt_index_t *index,
-                                     array_list_t *mapping_list);
+size_t bwt_map_inexact_seed(char *seq, size_t start, size_t end,
+			    bwt_optarg_t *bwt_optarg,
+			    bwt_index_t *index,
+			    array_list_t *mapping_list);
 
-unsigned int bwt_map_inexact_seq(char *seq, 
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     array_list_t *mapping_list);
+//-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_read(fastq_read_t *read, 
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list);
+size_t bwt_map_inexact_seq(char *seq, 
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   array_list_t *mapping_list);
 
-unsigned int bwt_map_inexact_seqs(char **seqs, 
-				      unsigned int num_reads,
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list);
+size_t bwt_map_inexact_read(fastq_read_t *read, 
+			    bwt_optarg_t *bwt_optarg, 
+			    bwt_index_t *index, 
+			    array_list_t *mapping_list);
 
-unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
-				       bwt_optarg_t *bwt_optarg, 
-				       bwt_index_t *index, 
-				       fastq_batch_t *unmapped_batch,
-				       array_list_t *mapping_list);
+size_t bwt_map_inexact_seqs(char **seqs, 
+			    size_t num_reads,
+			    bwt_optarg_t *bwt_optarg, 
+			    bwt_index_t *index, 
+			    char *out_status,
+			    array_list_t *mapping_list);
+
+size_t bwt_map_inexact_batch(fastq_batch_t *batch,
+			     bwt_optarg_t *bwt_optarg, 
+			     bwt_index_t *index, 
+			     fastq_batch_t *unmapped_batch,
+			     array_list_t *mapping_list);
 
 
 //------------------------------------------------------------------------------
@@ -68,26 +72,13 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
 char *bwt_error_type(char error_kind);
 
 //------------------------------------------------------------------------------
-// Parameters for seed
-//------------------------------------------------------------------------------
-
-void seed_init(unsigned int starts, unsigned int end, seed_t *seed_p){
-  seed_p->starts = starts;
-  seed_p->end = end;
-}
-
-//------------------------------------------------------------------------------
-
-
-
-//------------------------------------------------------------------------------
 // Paratemers for the candidate alignment localizations (CALs)
 //------------------------------------------------------------------------------
 
-cal_optarg_t *cal_optarg_new(const unsigned int min_cal_size, 
-			     const unsigned int max_cal_distance, 
-			     const unsigned int seed_size,
-			     const unsigned int min_seed_size){
+cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
+			     const size_t max_cal_distance, 
+			     const size_t seed_size,
+			     const size_t min_seed_size){
 			       
   cal_optarg_t *cal_optarg_p = (cal_optarg_t *)malloc(sizeof(cal_optarg_t));
   cal_optarg_p->min_cal_size = min_cal_size;
@@ -98,28 +89,26 @@ cal_optarg_t *cal_optarg_new(const unsigned int min_cal_size,
   return cal_optarg_p;
 }
     
-   
 void cal_optarg_free(cal_optarg_t *optarg){
   free(optarg);
 }
 
 //------------------------------------------------------------------------------
 
-cal_t *cal_new(const unsigned int chromosome_id, 
+cal_t *cal_new(const size_t chromosome_id, 
 	       const short int strand,
 	       const size_t start, 
-	       const size_t end){
+	       const size_t end) {
 		 
-  cal_t *cal_p = (cal_t *)malloc(sizeof(cal_t));  
+  cal_t *cal = (cal_t *)malloc(sizeof(cal_t));  
 
-  cal_p->chromosome_id = chromosome_id;
-  cal_p->end = end;
-  cal_p->start = start;
-  cal_p->strand = strand;
+  cal->chromosome_id = chromosome_id;
+  cal->end = end;
+  cal->start = start;
+  cal->strand = strand;
   
-  return cal_p;
+  return cal;
 }
-
 
 
 void cal_free(cal_t *cal){
@@ -128,31 +117,36 @@ void cal_free(cal_t *cal){
 
 //------------------------------------------------------------------------------
 
-region_t *region_new(const unsigned int chromosome_id, 
-	       const short int strand,
-	       const size_t start, 
-	       const size_t end){
+region_t *region_new(const size_t chromosome_id, 
+		     const short int strand,
+		     const size_t start, 
+		     const size_t end){
 		 
-  region_t *region_p = (region_t *)malloc(sizeof(region_t));  
-  region_p->chromosome_id = chromosome_id;
-  region_p->end = end;
-  region_p->start = start;
-  region_p->strand = strand;
+  region_t *region = (region_t *) malloc(sizeof(region_t));  
+
+  region->chromosome_id = chromosome_id;
+  region->end = end;
+  region->start = start;
+  region->strand = strand;
   
-  return region_p;
+  return region;
 }
 
 
-void region_free(region_t *region_p){
-  free(region_p);
+void region_free(region_t *region){
+  free(region);
 }
 
 //------------------------------------------------------------------------------
 
-read_cals_t *read_cals_new(const fastq_read_t *read){
-    read_cals_t *read_p = (read_cals_t *)malloc(sizeof(read_cals_t));
-    read_p->cal_list = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
-    read_p->read = read;
+read_cals_t *read_cals_new(const fastq_read_t *read) {
+
+    read_cals_t *read_cals = (read_cals_t *) malloc(sizeof(read_cals_t));
+
+    read_cals->cal_list = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+    read_cals->read = read;
+
+    return read_cals;
 }
 
 void read_cals_free(read_cals_t *read_cals){
@@ -161,32 +155,33 @@ void read_cals_free(read_cals_t *read_cals){
   free(read_cals);
 }
 
-
 //------------------------------------------------------------------------------
 //Options settings Burrows-Wheeler Transform 
 //------------------------------------------------------------------------------
-bwt_optarg_t *bwt_optarg_new(const unsigned int num_errors,
-			     const unsigned int num_threads,
-			     const unsigned int max_alginments_per_read){
+
+bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
+			     const size_t num_threads,
+			     const size_t max_alginments_per_read){
   
-  bwt_optarg_t *bwt_optarg_p = (bwt_optarg_t *)malloc(sizeof(bwt_optarg_t));
+  bwt_optarg_t *bwt_optarg = (bwt_optarg_t *)malloc(sizeof(bwt_optarg_t));
   
-  bwt_optarg_p->num_errors = num_errors;
-  bwt_optarg_p->num_threads = num_threads;
-  bwt_optarg_p->max_alignments_per_read = max_alginments_per_read;
+  bwt_optarg->num_errors = num_errors;
+  bwt_optarg->num_threads = num_threads;
+  bwt_optarg->max_alignments_per_read = max_alginments_per_read;
   
-  return bwt_optarg_p;
+  return bwt_optarg;
 }
 
 void bwt_optarg_free(bwt_optarg_t *optarg){
   free(optarg);
 }
-//-------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Index for the Burrows-Wheeler transform
 //-----------------------------------------------------------------------------
-char * bwt_error_type(char error_kind){
+
+char *bwt_error_type(char error_kind){
+
   char *msg_eror;
   switch(error_kind){
     case DELETION:
@@ -205,7 +200,10 @@ char * bwt_error_type(char error_kind){
   return msg_eror;
 }
 
+//-----------------------------------------------------------------------------
+
 bwt_index_t *bwt_index_new(const char *dirname) {
+
   bwt_index_t *index = (bwt_index_t*) calloc(1, sizeof(bwt_index_t));
 
   index->dirname = strdup(dirname);
@@ -260,11 +258,11 @@ void bwt_index_free(bwt_index_t *index) {
 // general functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_seq(char *seq, 
-			     bwt_optarg_t *bwt_optarg, 
-			     bwt_index_t *index, 
-			     array_list_t *mapping_list) {
-
+size_t bwt_map_seq(char *seq, 
+		   bwt_optarg_t *bwt_optarg, 
+		   bwt_index_t *index, 
+		   array_list_t *mapping_list) {
+  
   if (bwt_optarg != NULL && bwt_optarg->num_errors == 0) {
     return bwt_map_exact_seq(seq, bwt_optarg, index, mapping_list);
   }
@@ -274,11 +272,11 @@ unsigned int bwt_map_seq(char *seq,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_read(fastq_read_t *read, 
-			      bwt_optarg_t *bwt_optarg, 
-			      bwt_index_t *index, 
-			      array_list_t *mapping_list) {
-
+size_t bwt_map_read(fastq_read_t *read, 
+		    bwt_optarg_t *bwt_optarg, 
+		    bwt_index_t *index, 
+		    array_list_t *mapping_list) {
+  
   if (bwt_optarg != NULL && bwt_optarg->num_errors == 0) {
     return bwt_map_exact_read(read, bwt_optarg, index, mapping_list);
   }
@@ -288,48 +286,47 @@ unsigned int bwt_map_read(fastq_read_t *read,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_seqs(char **seqs, 
-			      unsigned int num_reads,
-			      bwt_optarg_t *bwt_optarg, 
-			      bwt_index_t *index, 
-			      array_list_t *mapping_list) {
+size_t bwt_map_seqs(char **seqs, 
+		    size_t num_reads,
+		    bwt_optarg_t *bwt_optarg, 
+		    bwt_index_t *index, 
+		    char *out_status,
+		    array_list_t *mapping_list) {
 
   if (bwt_optarg != NULL && bwt_optarg->num_errors == 0) {
-    return bwt_map_exact_seqs(seqs, num_reads, 
-				  bwt_optarg, index, mapping_list);
+    return bwt_map_exact_seqs(seqs, num_reads, bwt_optarg, index, 
+			      out_status, mapping_list);
   }
-
-  return bwt_map_inexact_seqs(seqs, num_reads, 
-				  bwt_optarg, index, mapping_list);  
+  
+  return bwt_map_inexact_seqs(seqs, num_reads, bwt_optarg, index, 
+			      out_status, mapping_list);  
 }
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_batch(fastq_batch_t *batch,
-			       bwt_optarg_t *bwt_optarg, 
-			       bwt_index_t *index, 
-			       fastq_batch_t *unmapped_batch,
-			       array_list_t *mapping_list) {
-
+size_t bwt_map_batch(fastq_batch_t *batch,
+		     bwt_optarg_t *bwt_optarg, 
+		     bwt_index_t *index, 
+		     fastq_batch_t *unmapped_batch,
+		     array_list_t *mapping_list) {
+  
   if (bwt_optarg != NULL && bwt_optarg->num_errors == 0) {
-    return bwt_map_exact_batch(batch, bwt_optarg, 
-				   index, unmapped_batch, mapping_list);
+    return bwt_map_exact_batch(batch, bwt_optarg, index, 
+			       unmapped_batch, mapping_list);
   }
 
-  return bwt_map_inexact_batch(batch, bwt_optarg, 
-				   index, unmapped_batch, mapping_list);  
+  return bwt_map_inexact_batch(batch, bwt_optarg, index, 
+			       unmapped_batch, mapping_list);  
 }
 
 //-----------------------------------------------------------------------------
 // exact functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_exact_seq(char *seq, 
-				   bwt_optarg_t *bwt_optarg, 
-				   bwt_index_t *index, 
-				   array_list_t *mapping_list) {
-  
-  
+size_t bwt_map_exact_seq(char *seq, 
+			 bwt_optarg_t *bwt_optarg, 
+			 bwt_index_t *index, 
+			 array_list_t *mapping_list) {
   
   unsigned int len = strlen(seq);
   int start = 0;
@@ -411,26 +408,26 @@ unsigned int bwt_map_exact_seq(char *seq,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_exact_read(fastq_read_t *read, 
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list) {
+size_t bwt_map_exact_read(fastq_read_t *read, 
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  array_list_t *mapping_list) {
   
-  unsigned int padding = array_list_size(mapping_list);
+  size_t padding = array_list_size(mapping_list);
   
-  unsigned int num_mappings = bwt_map_exact_seq(read->sequence, 
-						    bwt_optarg, index, 
-						    mapping_list);
+  size_t num_mappings = bwt_map_exact_seq(read->sequence, 
+					  bwt_optarg, index, 
+					  mapping_list);
   alignment_t *mapping;
   
   
   for (int i = 0; i < num_mappings ; i++) {
     //printf("access to pos:%d-padding:%d\n", i + padding, padding);
     mapping = (alignment_t *) array_list_get(i + padding, mapping_list);
-    if(mapping != NULL){
+    if (mapping != NULL) {
       mapping->query_name = read->id;
       mapping->quality = read->quality;
-    }else{
+    } else {
       printf("Error to extract item\n");
     }
     //printf("Store Ok!\n"); 
@@ -442,21 +439,20 @@ unsigned int bwt_map_exact_read(fastq_read_t *read,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_exact_seqs(char **seqs, 
-				    unsigned int num_reads,
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list) {
+size_t bwt_map_exact_seqs(char **seqs, 
+			  size_t num_reads,
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  char *out_status,
+			  array_list_t *mapping_list) {
   
   unsigned int num_threads = bwt_optarg->num_threads;
   array_list_t **individual_mapping_list_p = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
-  const unsigned int chunk = MAX(1, num_reads/( num_threads*10));
-  unsigned int num_mappings = 0; 
-  unsigned int num_mappings_tot = 0;
+  const size_t chunk = MAX(1, num_reads/( num_threads*10));
+  size_t num_mappings = 0; 
+  size_t num_mappings_tot = 0;
   short int th_id;
   alignment_t *mapping;
-  
-  
   
   for(int i = 0; i < num_threads; i++){
    individual_mapping_list_p[i]  = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
@@ -493,22 +489,22 @@ unsigned int bwt_map_exact_seqs(char **seqs,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     fastq_batch_t *unmapped_batch,
-				     array_list_t *mapping_list) {
+size_t bwt_map_exact_batch(fastq_batch_t *batch,
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   fastq_batch_t *unmapped_batch,
+			   array_list_t *mapping_list) {
   
-  unsigned int length_header, length_seq;
+  size_t length_header, length_seq;
   fastq_read_t *fq_read;
   char header[1024], seq[1024], quality[1024]; 
-  unsigned int num_mappings, num_mappings_tot, num_unmapped;
-  unsigned int read_pos;
-  unsigned int num_threads = bwt_optarg->num_threads;
-  unsigned int th_id;
-  unsigned int num_reads = batch->num_reads;
-  unsigned int batch_individual_size = batch->data_size / num_threads;
-  const unsigned int chunk = MAX(1, num_reads/(num_threads*10));
+  size_t num_mappings, num_mappings_tot, num_unmapped;
+  size_t read_pos;
+  size_t num_threads = bwt_optarg->num_threads;
+  short int th_id;
+  size_t num_reads = batch->num_reads;
+  size_t batch_individual_size = batch->data_size / num_threads;
+  const size_t chunk = MAX(1, num_reads/(num_threads*10));
   
   array_list_t **individual_mapping_list_p   = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
   array_list_t **individual_unmapping_list_p = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
@@ -519,7 +515,7 @@ unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
   double timer, parallel_t, sequential_t;
   
   //#pragma omp parallel for  
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
    individual_mapping_list_p[i]   = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
    individual_unmapping_list_p[i] = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   }
@@ -530,37 +526,38 @@ unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
   
   start_timer(start_time);
   #pragma omp parallel for private(th_id, fq_read, num_mappings) schedule(dynamic, chunk)
-  for(int i = 0; i < num_reads; i++){
+  for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
     
-    fq_read = fastq_read_new(&(batch->header[batch->header_indices[i]]),  &(batch->seq[batch->data_indices[i]]), &(batch->quality[batch->data_indices[i]]));
+    fq_read = fastq_read_new(&(batch->header[batch->header_indices[i]]), 
+			     &(batch->seq[batch->data_indices[i]]),
+			     &(batch->quality[batch->data_indices[i]]));
     //fq_read = fastq_read_new(&header, &seq, &quality);
     //printf("Soy Thread %d and I process read %i : %s\n", th_id, i, fq_read->sequence);
     num_mappings = bwt_map_exact_read(fq_read, bwt_optarg, index, individual_mapping_list_p[th_id]);
     
-    if(!num_mappings){
+    if (!num_mappings) {
       //Read not mapped. Store in unmapped_batch
       //printf("Insert Error Read\n");
-      if(!array_list_insert((void*)fq_read, individual_unmapping_list_p[th_id])){
-         printf("Error to insert item into array list\n");
+      if (!array_list_insert((void*)fq_read, individual_unmapping_list_p[th_id])) {
+	printf("Error to insert item into array list\n");
       }
     }
   }
   stop_timer(start_time, end_time, timer);
   parallel_t = timer;
   
-  
   start_timer(start_time);
   //printf("Join Results\n");
   num_mappings_tot = 0;
   
   //Join results
-  for(int i = 0; i < num_threads; i++ ){
+  for (int i = 0; i < num_threads; i++) {
     num_mappings = array_list_size(individual_mapping_list_p[i]);
     num_mappings_tot += num_mappings;
-    for(int j = 0; j < num_mappings; j++){
+    for (int j = 0; j < num_mappings; j++) {
       mapping = (alignment_t *)array_list_get(j, individual_mapping_list_p[i]);
-      array_list_insert( mapping, mapping_list);
+      array_list_insert(mapping, mapping_list);
     }
   }
 
@@ -570,9 +567,9 @@ unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
   read_pos = 0;
   unmapped_batch->header_indices[read_pos] = 0;
   unmapped_batch->data_indices[read_pos] = 0;
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
     num_unmapped = array_list_size(individual_unmapping_list_p[i]);
-    for(int j = 0; j < num_unmapped; j++){
+    for (int j = 0; j < num_unmapped; j++) {
       fq_read = (fastq_read_t *)array_list_get(j, individual_unmapping_list_p[i]);
       read_pos++;
       length_header = strlen(fq_read->id) + 1;
@@ -590,7 +587,7 @@ unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
   
   //printf("Free\n");
   
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
     array_list_free(individual_unmapping_list_p[i], fastq_read_free);
     //array_list_free(individual_mapping_list_p[i], alignment_free);
   }
@@ -616,19 +613,26 @@ unsigned int bwt_map_exact_batch(fastq_batch_t *batch,
 // inexact functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_seed(char *seq, 
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list) {
+size_t bwt_map_inexact_seed(char *seq, 
+			    size_t seq_start, size_t seq_end,
+			    bwt_optarg_t *bwt_optarg, 
+			    bwt_index_t *index, 
+			    array_list_t *mapping_list) {
     
-  region_t *region_p; 
-  unsigned int len = strlen(seq);
-  int start = 0;
-  int end = len - 1;
-  size_t start_mapping;
-  char *code_seq = (char *) calloc(len, sizeof(char));
+  region_t *region; 
 
-  replaceBases(seq, code_seq, len);
+  char *code_seq = &seq[seq_start];
+  size_t start = 0;
+  size_t end = seq_end - seq_start;
+  size_t len = end + 1;
+
+  //  size_t len = strlen(seq);
+  //  size_t start = 0;
+  //  size_t end = len - 1;
+  size_t start_mapping;
+  //  char *code_seq = (char *) calloc(len, sizeof(char));
+
+  //  replaceBases(seq, code_seq, len);
 
   // calculate vectors k and l
   size_t *k0, *l0, *k1, *l1;
@@ -701,9 +705,9 @@ unsigned int bwt_map_inexact_seed(char *seq,
 		  
 	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	  // save all into one alignment structure and insert to the list
-	  region_p = region_new(idx, type, start_mapping, start_mapping + end);
+	  region = region_new(idx, type, start_mapping, start_mapping + end);
 	  
-	  if(!array_list_insert((void*) region_p, mapping_list)){
+	  if(!array_list_insert((void*) region, mapping_list)){
 	    printf("Error to insert item into array list\n");
 	  }
 	  num_mappings++;
@@ -713,7 +717,7 @@ unsigned int bwt_map_inexact_seed(char *seq,
     free_results_list(r_list);
   } // end for type 
 
-  free(code_seq);
+  //free(code_seq);
   free(k0);
   free(l0);
   free(k1);
@@ -729,11 +733,11 @@ unsigned int bwt_map_inexact_seed(char *seq,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_seq(char *seq, 
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     array_list_t *mapping_list) {
-
+size_t bwt_map_inexact_seq(char *seq, 
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   array_list_t *mapping_list) {
+  
 
   /*unsigned int len = strlen(seq);
   unsigned int start = 0;
@@ -745,9 +749,9 @@ unsigned int bwt_map_inexact_seq(char *seq,
   //return bwt_map_inexact_seq_by_pos(seq, start, end,
   //					bwt_optarg, index, mapping_list);
   
-  unsigned int len = strlen(seq);
-  int start = 0;
-  int end = len - 1;
+  size_t len = strlen(seq);
+  size_t start = 0;
+  size_t end = len - 1;
 
   char *code_seq = (char *) calloc(len, sizeof(char));
 
@@ -771,17 +775,16 @@ unsigned int bwt_map_inexact_seq(char *seq,
   
 
   // compare the vectors k and l to get mappings in the genome
-  unsigned int num_mappings = 0;
+  size_t num_mappings = 0;
   char plusminus[2] = "-+";
   int idx, key, direction, error, pos;
   results_list *r_list;
   result *r;
   alignment_t *alignment;
   
-  unsigned int cigar_len;
   char *cigar_dup;
   char cigar[1024];
-  unsigned int num_cigar_ops;
+  size_t cigar_len, num_cigar_ops;
 
   for (int type = 1; type >= 0; type--) {
 
@@ -925,14 +928,14 @@ unsigned int bwt_map_inexact_seq(char *seq,
 }
 
 //-----------------------------------------------------------------------------
-
-unsigned int bwt_map_inexact_seqs_by_pos(char *seqs, 
-					     unsigned int num_reads,
-					     unsigned int starts,
-					     unsigned int ends,
-					     bwt_optarg_t *bwt_optarg, 
-					     bwt_index_t *index, 
-					     array_list_t *mapping_list) {
+/*
+size_t bwt_map_inexact_seqs_by_pos(char *seqs, 
+				   unsigned int num_reads,
+				   unsigned int starts,
+				   unsigned int ends,
+				   bwt_optarg_t *bwt_optarg, 
+				   bwt_index_t *index, 
+				   array_list_t *mapping_list) {
 
   unsigned int num_threads = bwt_optarg->num_threads;
   array_list_t **th_mapping_list = (array_list_t**) calloc(num_threads, sizeof(array_list_t*));
@@ -974,19 +977,19 @@ unsigned int bwt_map_inexact_seqs_by_pos(char *seqs,
   
   return num_mappings_tot;
 }
-	  
+*/	  
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_read(fastq_read_t *read, 
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list) {
+size_t bwt_map_inexact_read(fastq_read_t *read, 
+			    bwt_optarg_t *bwt_optarg, 
+			    bwt_index_t *index, 
+			    array_list_t *mapping_list) {
   
-  unsigned int padding = array_list_size(mapping_list);
+  size_t padding = array_list_size(mapping_list);
   
-  unsigned int num_mappings = bwt_map_inexact_seq(read->sequence, 
-						      bwt_optarg, index, 
-						      mapping_list);
+  size_t num_mappings = bwt_map_inexact_seq(read->sequence, 
+					    bwt_optarg, index, 
+					    mapping_list);
   //printf("padding:%d - num_mappings:%d\n", padding, num_mappings);
   alignment_t *mapping;
   for (int i = 0; i < num_mappings; i++) {
@@ -1005,24 +1008,24 @@ unsigned int bwt_map_inexact_read(fastq_read_t *read,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_seqs(char **seqs, 
-				      unsigned int num_reads,
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list) {
+size_t bwt_map_inexact_seqs(char **seqs, 
+			    size_t num_reads,
+			    bwt_optarg_t *bwt_optarg, 
+			    bwt_index_t *index, 
+			    char *out_status,
+			    array_list_t *mapping_list) {
   
   unsigned int num_threads = bwt_optarg->num_threads;
   array_list_t **individual_mapping_list_p = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
   const unsigned int chunk = MAX(1, num_reads/( num_threads*10));
-  unsigned int num_mappings = 0; 
-  unsigned int num_mappings_tot = 0;
+  size_t num_mappings = 0; 
+  size_t num_mappings_tot = 0;
   short int th_id;
   alignment_t *mapping;
   
   
-  
-  for(int i = 0; i < num_threads; i++){
-   individual_mapping_list_p[i]  = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+  for (int i = 0; i < num_threads; i++) {
+    individual_mapping_list_p[i]  = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   }
   
   omp_set_num_threads(num_threads);
@@ -1030,7 +1033,7 @@ unsigned int bwt_map_inexact_seqs(char **seqs,
   //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
   
   #pragma omp parallel for private(th_id) schedule(dynamic, chunk) reduction(+:num_mappings_tot)
-  for(int i = 0; i < num_reads; i++){
+  for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
     //printf("I'm thread %d and process read %d\n", th_id,  i);
     num_mappings_tot += bwt_map_inexact_seq(seqs[i], bwt_optarg, index, individual_mapping_list_p[th_id]);
@@ -1039,10 +1042,10 @@ unsigned int bwt_map_inexact_seqs(char **seqs,
   //printf("Process reads ok! Total mappings %d\n\n", num_mappings_tot);
   
   //Join results
-  for(int i = 0; i < num_threads; i++ ){
+  for (int i = 0; i < num_threads; i++) {
     num_mappings = array_list_size(individual_mapping_list_p[i]);
    
-    for(int j = 0; j < num_mappings; j++){
+    for (int j = 0; j < num_mappings; j++) {
       mapping = (alignment_t *)array_list_get(j, individual_mapping_list_p[i]);
       array_list_insert( mapping, mapping_list);
     }
@@ -1055,22 +1058,22 @@ unsigned int bwt_map_inexact_seqs(char **seqs,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
-				       bwt_optarg_t *bwt_optarg, 
-				       bwt_index_t *index, 
-				       fastq_batch_t *unmapped_batch,
-				       array_list_t *mapping_list) {
+size_t bwt_map_inexact_batch(fastq_batch_t *batch,
+			     bwt_optarg_t *bwt_optarg, 
+			     bwt_index_t *index, 
+			     fastq_batch_t *unmapped_batch,
+			     array_list_t *mapping_list) {
   
-  unsigned int length_header, length_seq;
+  size_t length_header, length_seq;
   fastq_read_t *fq_read;
   char header[1024], seq[1024], quality[1024]; 
-  unsigned int num_mappings, num_mappings_tot, num_unmapped;
-  unsigned int read_pos;
-  unsigned int num_threads = bwt_optarg->num_threads;
+  size_t num_mappings, num_mappings_tot, num_unmapped;
+  size_t read_pos;
+  size_t num_threads = bwt_optarg->num_threads;
   unsigned int th_id;
-  unsigned int num_reads = batch->num_reads;
-  unsigned int batch_individual_size = batch->data_size / num_threads;
-  unsigned int chunk = MAX(1, num_reads/(num_threads*10));
+  size_t num_reads = batch->num_reads;
+  size_t batch_individual_size = batch->data_size / num_threads;
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
   array_list_t **individual_mapping_list_p   = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
   array_list_t **individual_unmapping_list_p = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
   
@@ -1079,7 +1082,7 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   struct timeval start_time, end_time;
   double timer, parallel_t, sequential_t;
   
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
    individual_mapping_list_p[i]   = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
    individual_unmapping_list_p[i] = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   }  
@@ -1090,7 +1093,7 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   
   start_timer(start_time);
   #pragma omp parallel for private(th_id, fq_read, num_mappings) schedule(dynamic, chunk)
-  for(int i = 0; i < num_reads; i++){
+  for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
     //th_id = 0;
     //printf("I'm Thread %d of %d\n", th_id, omp_get_thread_num());
@@ -1112,10 +1115,10 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   //printf("Join Results\n");
   num_mappings_tot = 0;
   //Join results
-  for(int i = 0; i < num_threads; i++ ){
+  for (int i = 0; i < num_threads; i++) {
     num_mappings = array_list_size(individual_mapping_list_p[i]);
     num_mappings_tot += num_mappings;
-    for(int j = 0; j < num_mappings; j++){
+    for (int j = 0; j < num_mappings; j++) {
       mapping = (alignment_t *)array_list_get(j, individual_mapping_list_p[i]);
       array_list_insert( mapping, mapping_list);
     }
@@ -1125,9 +1128,9 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   read_pos = 0;
   unmapped_batch->header_indices[read_pos] = 0;
   unmapped_batch->data_indices[read_pos] = 0;
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
     num_unmapped = array_list_size(individual_unmapping_list_p[i]);
-    for(int j = 0; j < num_unmapped; j++){
+    for (int j = 0; j < num_unmapped; j++) {
       fq_read = (fastq_read_t *)array_list_get(j, individual_unmapping_list_p[i]);
       read_pos++;
       length_header = strlen(fq_read->id) + 1;
@@ -1144,7 +1147,7 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   unmapped_batch->num_reads = read_pos;
   //printf("Free\n");
   
-  for(int i = 0; i < num_threads; i++){
+  for (int i = 0; i < num_threads; i++) {
     array_list_free(individual_unmapping_list_p[i], fastq_read_free);
     //array_list_free(individual_mapping_list_p[i], alignment_free);
   }
@@ -1162,15 +1165,16 @@ unsigned int bwt_map_inexact_batch(fastq_batch_t *batch,
   //printf("Parallel %d\n", parallel_t);
   
   printf("%4.06f\t%4.06f\t%4.06f\n", parallel_t / 1000000, sequential_t / 1000000, timer / 1000000);
-  return num_mappings_tot;
 
+  return num_mappings_tot;
 }
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_inexact_seeds_seq2(char *seq, bwt_optarg_t *bwt_optarg, 
-					bwt_index_t *index, array_list_t *mapping_list) {
-
+size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list) {
+  
   size_t len = strlen(seq);
   size_t offset, num_seeds = len / seed_size;
 
@@ -1181,13 +1185,15 @@ unsigned int bwt_map_inexact_seeds_seq2(char *seq, bwt_optarg_t *bwt_optarg,
   // first 'pasada'
   offset = 0;
   for (size_t i = 0; i < num_seeds; i++) {
+    printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_inexact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
     offset += seed_size;
   }
 
   // special processing for the last seed !!
-  if (len % seed_size >= bwt_optarg->min_seed_size) {
+  if (len % seed_size >= min_seed_size) {
+    printf("1', : start = %d, end = %d\n", offset, len - 1);
     bwt_map_inexact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
   }
@@ -1196,192 +1202,23 @@ unsigned int bwt_map_inexact_seeds_seq2(char *seq, bwt_optarg_t *bwt_optarg,
   offset = seed_size / 2;
   num_seeds = (len - seed_size / 2) / seed_size;
   for (size_t i = 0; i < num_seeds; i++) {
+    printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_inexact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
     offset += seed_size;
   }
 
   // again, special processing for the last seed !!
-  if ((len - seed_size / 2) % seed_size >= bwt_optarg->min_seed_size) {
+  if ((len - seed_size / 2) % seed_size >= min_seed_size) {
+    printf("2',: start = %d, end = %d\n", offset, len - 1);
     bwt_map_inexact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
   }
 
+  printf("mapping list size = %d\n", array_list_size(mapping_list));
+
+  //  exit(-1);
   return array_list_size(mapping_list);
-  
-}
-
-//-----------------------------------------------------------------------------
-
-unsigned int bwt_map_inexact_seeds_seq(char *seq, seed_t *seeds, unsigned int num_seeds,
-					bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
-					array_list_t *mapping_list){
-  
-  printf("Process Read(%d): %s\n", strlen(seq), seq);
-  char *seq_seed = (char *) calloc(sizeof(char), strlen(seq));
-  
-  unsigned int num_mappings = 0;
-  unsigned int mappings_tot = 0;
-  unsigned int len, end;
-  
-  for(int i = 0; i < num_seeds; i++){
-    printf("Process read_seed([%d-%d])\n", seeds[i].starts, seeds[i].end);
-    len = seeds[i].end - seeds[i].starts + 1;
-    memcpy(seq_seed, seq + seeds[i].starts, len);
-    seq_seed[len] = '\0';
-    printf("\tSeed: %s (len = %d)\n",   seq_seed, len);
-    num_mappings = bwt_map_inexact_seed(seq_seed, bwt_optarg, index, mapping_list);
-    mappings_tot += num_mappings;
-    printf("\tMappings : %d (total = %d, mapping list size = %d)\n", num_mappings, mappings_tot, 
-	   array_list_size(mapping_list));
-  }
-  
-  printf("End Mapping seeds\n");
-  return mappings_tot;
-  
-}
-
-unsigned int bwt_map_inexact_seeds_read(fastq_read_t *read, seed_t *seeds, unsigned int num_seeds,
-					    bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
-					    array_list_t *mapping_list){
-  
-	return bwt_map_inexact_seeds_seq(read->sequence, seeds, num_seeds, bwt_optarg, index, mapping_list);				  
-}
-
-//-----------------------------------------------------------------------------
-// Seed functions
-//-----------------------------------------------------------------------------
-
-seed_t *create_seeds_from_seq(char *seq, 
-				  unsigned int seed_size,
-				  unsigned int min_seed_size,
-				  unsigned int *num_seeds) {
-
-  unsigned int end_acum = 0;
-  unsigned int nb_seeds = 0;
-  unsigned int len = strlen(seq);
-  double res = ceil((double)len / (double)seed_size);
-  unsigned int max_num_seeds = (unsigned int)res * 2;
-  
-  
-  printf("seq(%d):%s \n", len, seq);
-  printf("\t seed_size = %d :: len = %d :: max_num_seeds = %d :: min_seed_size = %d\n", seed_size, len,  max_num_seeds, min_seed_size);
-  
-  seed_t *seed, *seeds = (seed_t*) calloc(max_num_seeds, sizeof(seed_t));
-    
-  // generate seeds by splitting read into seeds
-  // first set of seeds starting at position 0
-  for (unsigned int i = 0; i < len; i += seed_size) {
-    seed_init(i, i + seed_size - 1, &seeds[nb_seeds++]);
-   // printf("1º-[%d-%d]\n", i, i + seed_size);
-  }
-  
-  if (nb_seeds > 0) {
-    seed = &seeds[nb_seeds - 1];
-    if ( seed->end >= len) {
-      if (len - seed->starts >= min_seed_size) {
-	seed->end = len - 1;
-      } else {
-	nb_seeds--;
-      }
-    }
-  }
-  
-  // second set of seeds starting at position (seed_size / 2)
-  for (unsigned int i = (seed_size / 2); i < len; i += seed_size) {
-    seed_init(i, i + seed_size - 1, &seeds[nb_seeds++]);
-    //printf("2º-[%d-%d]\n", i, i + seed_size);
-  }
-  
-  if (nb_seeds > 0) {
-    seed = &seeds[nb_seeds - 1];
-    if ( seed->end >= len) {
-      if ((len - seed->starts) >= min_seed_size) {
-	seed->end = len - 1;
-      } else {
-	nb_seeds--;
-      }
-    }
-  }
-
-  *num_seeds = nb_seeds;
-  
-  return seeds;
-}
-
-//-----------------------------------------------------------------------------
-
-seed_t *create_seeds_from_read(fastq_read_t *read, 
-				   unsigned int seed_size,
-				   unsigned int min_seed_size,
-				   unsigned int *num_seeds) {
-  
-    return create_seeds_from_seq(read->sequence,  
-				     seed_size,
-				     min_seed_size,
-				     num_seeds);
-}
-
-//-----------------------------------------------------------------------------
-
-seed_t **create_seeds_from_seqs(char **seqs, 
-				    unsigned int seed_size,
-				    unsigned int min_seed_size,
-				    unsigned int *num_seeds,
-				    unsigned int num_reads,
-				    bwt_optarg_t *bwt_optarg){
-  
-    unsigned int num_threads = bwt_optarg->num_threads;
-    const unsigned int chunk = MAX(1, num_reads / (num_threads * 10));
-    seed_t **seeds = (seed_t **) calloc(num_reads, sizeof(seed_t *));
-    
-    omp_set_num_threads(num_threads);
-    
-    //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
-    
-    #pragma omp parallel for private(num_seeds) schedule(dynamic, chunk)
-    for (int i = 0; i < num_reads; i++) {
-      seeds[i] = create_seeds_from_seq(seqs[i], 
-					   seed_size,
-					   min_seed_size,
-					   &num_seeds[i]);
-    }
-    
-    return seeds;
-}
-
-//-----------------------------------------------------------------------------
-
-//TODO: Generate batch of seeds? complete implementation, seed_batch_t??
-seed_t **create_seeds_from_batch(fastq_batch_t *batch, 
-				     unsigned int seed_size,
-				     unsigned int min_seed_size,
-				     unsigned int *num_seeds,
-				     bwt_optarg_t *bwt_optarg){
-  
-    unsigned int num_threads = bwt_optarg->num_threads;
-    unsigned int num_reads = batch->num_reads;
-    const unsigned int chunk = MAX(1, num_reads / (num_threads * 10));
-    seed_t **seeds = (seed_t **) calloc(num_reads, sizeof(seed_t *));
-    
-    //fastq_read_t fq_read;
-    omp_set_num_threads(num_threads);
-    
-    //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
-    
-    #pragma omp parallel for private(num_seeds) schedule(dynamic, chunk)
-    for(int i = 0; i < num_reads; i++){
-       //fq_read = fastq_read_new(&(batch->header[batch->header_indices[i]]),  &(batch->seq[batch->data_indices[i]]), &(batch->quality[batch->data_indices[i]]));
-       seeds[i] = create_seeds_from_seq(&(batch->seq[batch->data_indices[i]]), 
-					    seed_size,
-					    min_seed_size,
-					    &num_seeds[i]);
-       if(num_seeds[i] != 0) {
-          //Insert to split reads batch
-       }
-    }
-    
-    return seeds;
   
 }
 
@@ -1389,17 +1226,18 @@ seed_t **create_seeds_from_batch(fastq_batch_t *batch,
 // CAL functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_generate_cal_list(array_list_t *mapping_list,
-				       cal_optarg_t *cal_optarg,
-				       array_list_t *cal_list) {
+size_t bwt_generate_cal_list(array_list_t *mapping_list,
+			     cal_optarg_t *cal_optarg,
+			     array_list_t *cal_list) {
   cal_t *cal, *cal1;
-  region_t *region_p;
-  unsigned int extend, added, cal_idx;
-  unsigned int min_cal_size = cal_optarg->min_cal_size;
-  unsigned int max_cal_distance  = cal_optarg->max_cal_distance;
-  unsigned int num_mappings = array_list_size(mapping_list);
-  unsigned int num_cals;
-  unsigned int chromosome_id;
+  region_t *region;
+  short int extend, added;
+  size_t cal_idx;
+  size_t min_cal_size = cal_optarg->min_cal_size;
+  size_t max_cal_distance  = cal_optarg->max_cal_distance;
+  size_t num_mappings = array_list_size(mapping_list);
+  size_t num_cals;
+  size_t chromosome_id;
   short int strand;
   size_t start, end;
   
@@ -1408,12 +1246,12 @@ unsigned int bwt_generate_cal_list(array_list_t *mapping_list,
   printf("Start generate CALs: %d mappings\n", num_mappings);
   // from the results mappings, generates CALs
   for (unsigned int m = 0; m < num_mappings; m++) {
-    region_p = array_list_get(m, mapping_list);
+    region = array_list_get(m, mapping_list);
 
-    chromosome_id = region_p->chromosome_id;
-    strand = region_p->strand;
-    start = region_p->start;
-    end = region_p->end;
+    chromosome_id = region->chromosome_id;
+    strand = region->strand;
+    start = region->start;
+    end = region->end;
 
       if ( (strand == 1 && chromosome_id == 1 && (start >= 21010025 && start <= 21210025)) ||
 	   (strand == 1 && chromosome_id == 1 && (end >= 21010078 && end <= 21210078)) ) {
@@ -1539,32 +1377,21 @@ unsigned int bwt_generate_cal_list(array_list_t *mapping_list,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_seq(char *seq, 
-					bwt_optarg_t *bwt_optarg, 
-					bwt_index_t *index, 
-					cal_optarg_t *cal_optarg, 
-					array_list_t *cal_list) {
-  // generate the seeds
-  unsigned int num_seeds = 0;
-  seed_t *seeds = create_seeds_from_seq(seq,
-					cal_optarg->seed_size,
-					cal_optarg->min_seed_size,
-					&num_seeds);
-  
-  for(int i = 0; i < num_seeds; i++){
-    printf("Seed %d: [%d-%d]\n", i, seeds[i].starts, seeds[i].end);
-  }
-
+size_t bwt_find_cals_from_seq(char *seq, 
+			      bwt_optarg_t *bwt_optarg, 
+			      bwt_index_t *index, 
+			      cal_optarg_t *cal_optarg, 
+			      array_list_t *cal_list) {
   // create list where to store the seed mappings
   array_list_t *mapping_list = array_list_new(100000, 
 					      1.25f, 
 					      COLLECTION_MODE_SYNCHRONIZED); 
- printf("Array list complete\n");
+  printf("Array list complete\n");
 
   // map seeds
-  unsigned int num_mappings = bwt_map_inexact_seeds_seq(seq, seeds, num_seeds,
-							bwt_optarg, index, 
-							mapping_list);
+  unsigned int num_mappings = bwt_map_inexact_seeds_seq(seq, cal_optarg->seed_size,
+							cal_optarg->min_seed_size,
+							bwt_optarg, index, mapping_list);
   
 
   printf("num_mappings = %d, mapping_list_size = %d\n", num_mappings, array_list_size(mapping_list));
@@ -1580,11 +1407,11 @@ unsigned int bwt_find_cals_from_seq(char *seq,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_read(fastq_read_t *read, 
-					 bwt_optarg_t *bwt_optarg, 
-					 bwt_index_t *index, 
-					 cal_optarg_t *cal_optarg, 
-					 array_list_t *cal_list) {
+size_t bwt_find_cals_from_read(fastq_read_t *read, 
+			       bwt_optarg_t *bwt_optarg, 
+			       bwt_index_t *index, 
+			       cal_optarg_t *cal_optarg, 
+			       array_list_t *cal_list) {
 
   return bwt_find_cals_from_seq(read->sequence, 
 				    bwt_optarg, index,
@@ -1593,31 +1420,29 @@ unsigned int bwt_find_cals_from_read(fastq_read_t *read,
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_seqs(char **seqs, 
-					 unsigned int num_reads,
-					 bwt_optarg_t *bwt_optarg, 
-					 bwt_index_t *index, 
-					 unsigned int *num_unmapped,
-					 int *unmapped_array,
-					 cal_optarg_t *cal_optarg, 
-					 array_list_t *cal_list) {
+size_t bwt_find_cals_from_seqs(char **seqs, 
+			       size_t num_reads,
+			       bwt_optarg_t *bwt_optarg, 
+			       bwt_index_t *index, 
+			       cal_optarg_t *cal_optarg, 
+			       char *out_status,
+			       array_list_t *cal_list) {
   
     unsigned int num_seeds = 0;
     unsigned int num_threads = bwt_optarg->num_threads;
     const unsigned int chunk = MAX(1, num_reads/( num_threads*10));
-    seed_t **seeds_p = (seed_t **) calloc(num_reads, sizeof(seed_t *));
-    unsigned int num_mappings;
+    //    seed_t **seeds_p = (seed_t **) calloc(num_reads, sizeof(seed_t *));
+    size_t num_mappings;
     fastq_read_t fq_read;
-    seed_t *seeds;
+    //    seed_t *seeds;
     unsigned int th_id;
-    unsigned int num_cals;
-    unsigned int total_cals;
+    size_t num_cals, total_cals;
     cal_t *cal;
     // create list where to store the seed mappings
     array_list_t **mapping_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
     array_list_t **cal_individual_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
     
-    for(int i = 0; i < num_threads; i++){
+    for (int i = 0; i < num_threads; i++) {
 	mapping_list[i] = array_list_new(100000, 
 		                         1.25f, 
 		                         COLLECTION_MODE_SYNCHRONIZED);
@@ -1626,22 +1451,22 @@ unsigned int bwt_find_cals_from_seqs(char **seqs,
 		                         1.25f, 
 		                         COLLECTION_MODE_SYNCHRONIZED);
     }
-
+    /*
     omp_set_num_threads(num_threads);
     
     //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
     num_unmapped = 0;
     #pragma omp parallel for firstprivate(num_seeds) private(th_id, seeds, num_mappings, num_cals) schedule(dynamic, chunk)
-    for(int i = 0; i < num_reads; i++){
+    for (int i = 0; i < num_reads; i++) {
        th_id = omp_get_thread_num();
        // generate the seeds
        seeds = create_seeds_from_seq(seqs[i],
 				         cal_optarg->seed_size,
 				         cal_optarg->min_seed_size,
 				         &num_seeds);
-       /*for(int i = 0; i < num_seeds; i++){
-          printf("Seed %d: [%d-%d]\n", i, seeds[i].starts, seeds[i].end);
-         }*/
+       //for(int i = 0; i < num_seeds; i++){
+       //printf("Seed %d: [%d-%d]\n", i, seeds[i].starts, seeds[i].end);
+       //}
 
         //printf("Array list complete\n");
        // map seeds
@@ -1672,18 +1497,18 @@ unsigned int bwt_find_cals_from_seqs(char **seqs,
             array_list_insert(cal, cal_list);
 	}
     }
-
+    */
     return total_cals;
 }
 
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_batch(fastq_batch_t *batch,
-					  bwt_optarg_t *bwt_optarg, 
-					  bwt_index_t *index, 
-					  fastq_batch_t *unmapped_batch,
-					  cal_optarg_t *cal_optarg, 
-					  array_list_t *cal_list) {
+size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
+				bwt_optarg_t *bwt_optarg, 
+				bwt_index_t *index, 
+				fastq_batch_t *unmapped_batch,
+				cal_optarg_t *cal_optarg, 
+				array_list_t *cal_list) {
   return 0;
 }
 

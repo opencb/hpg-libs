@@ -38,53 +38,69 @@ In file included from ../../../libs/bioformats/bam-sam/alignment.h:9,
                  from bwt.c:1:
 ../../../libs/commons/commons.h:72:1: warning: this is the location of the previous definition
 bwt.c: In function ‘read_cals_new’:
-bwt.c:155: warning: assignment discards qualifiers from pointer target type
+bwt.c:147: warning: assignment discards qualifiers from pointer target type
 bwt.c: In function ‘read_cals_free’:
-bwt.c:160: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
+bwt.c:154: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
 ../../../libs/containers/array_list.h:65: note: expected ‘void (*)(void *)’ but argument is of type ‘void (*)(struct cal_t *)’
 bwt.c: In function ‘bwt_index_new’:
-bwt.c:211: warning: implicit declaration of function ‘strdup’
-bwt.c:211: warning: assignment makes pointer from integer without a cast
+bwt.c:209: warning: implicit declaration of function ‘strdup’
+bwt.c:209: warning: assignment makes pointer from integer without a cast
 bwt.c: In function ‘bwt_map_exact_batch’:
-bwt.c:594: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
+bwt.c:591: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
 ../../../libs/containers/array_list.h:65: note: expected ‘void (*)(void *)’ but argument is of type ‘void (*)(struct fastq_read_t *)’
-bwt.c: In function ‘bwt_map_inexact_seqs_by_pos’:
-bwt.c:960: warning: passing argument 1 of ‘bwt_map_inexact_seq’ makes pointer from integer without a cast
-bwt.c:732: note: expected ‘char *’ but argument is of type ‘char’
+bwt.c: In function ‘bwt_map_inexact_seq’:
+bwt.c:844: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:850: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:853: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:856: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:863: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:866: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:869: warning: format ‘%i’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:876: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:879: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:882: warning: format ‘%i’ expects type ‘int’, but argument 4 has type ‘size_t’
 bwt.c: In function ‘bwt_map_inexact_batch’:
-bwt.c:1148: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
+bwt.c:1151: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
 ../../../libs/containers/array_list.h:65: note: expected ‘void (*)(void *)’ but argument is of type ‘void (*)(struct fastq_read_t *)’
 bwt.c: In function ‘bwt_map_inexact_seeds_seq’:
-bwt.c:1175: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
-bwt.c:1191: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1188: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1188: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1188: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1196: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1196: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1205: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1205: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1205: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1213: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1213: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1218: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
 bwt.c: In function ‘bwt_generate_cal_list’:
-bwt.c:1375: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
-bwt.c:1375: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c:1409: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
-bwt.c:1409: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c:1413: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
-bwt.c:1413: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
-bwt.c:1413: warning: format ‘%d’ expects type ‘int’, but argument 6 has type ‘size_t’
-bwt.c:1418: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
-bwt.c:1418: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
-bwt.c:1418: warning: format ‘%d’ expects type ‘int’, but argument 6 has type ‘size_t’
-bwt.c:1422: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c:1422: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
-bwt.c:1451: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
-bwt.c:1451: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c:1451: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
-bwt.c:1451: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
-bwt.c:1461: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
-bwt.c:1461: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c:1486: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
-bwt.c:1486: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+bwt.c:1246: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1258: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1258: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1292: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1292: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1296: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1296: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1296: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+bwt.c:1296: warning: format ‘%d’ expects type ‘int’, but argument 6 has type ‘size_t’
+bwt.c:1301: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1301: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1301: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+bwt.c:1301: warning: format ‘%d’ expects type ‘int’, but argument 6 has type ‘size_t’
+bwt.c:1305: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1305: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1334: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1334: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1334: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1334: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+bwt.c:1344: warning: format ‘%d’ expects type ‘int’, but argument 2 has type ‘size_t’
+bwt.c:1344: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1369: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+bwt.c:1369: warning: format ‘%d’ expects type ‘int’, but argument 4 has type ‘size_t’
+bwt.c:1369: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
 bwt.c: In function ‘bwt_find_cals_from_seq’:
-bwt.c:1525: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-bwt.c: In function ‘bwt_find_cals_from_seqs’:
-bwt.c:1617: warning: passing argument 1 of ‘array_list_free’ from incompatible pointer type
-../../../libs/containers/array_list.h:65: note: expected ‘struct array_list_t *’ but argument is of type ‘struct array_list_t **’
-bwt.c:1624: warning: passing argument 2 of ‘array_list_free’ from incompatible pointer type
-../../../libs/containers/array_list.h:65: note: expected ‘void (*)(void *)’ but argument is of type ‘void (*)(struct region_t *)’
+bwt.c:1397: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
 BW_io.c: In function ‘load_exome_file’:
 BW_io.c:651: warning: initialization makes integer from pointer without a cast
 In file included from ../../../libs/commons/log.h:10,
@@ -218,13 +234,8 @@ In file included from ../../../libs/bioformats/bam-sam/alignment.h:9,
                  from test3.h:12,
                  from test3.c:1:
 ../../../libs/commons/commons.h:72:1: warning: this is the location of the previous definition
-test3.c: In function ‘fh’:
-test3.c:7: warning: format ‘%x’ expects type ‘unsigned int’, but argument 2 has type ‘int *’
-test3.c: In function ‘fj’:
-test3.c:18: warning: format ‘%x’ expects type ‘unsigned int’, but argument 2 has type ‘int *’
 test3.c: In function ‘main’:
-test3.c:33: warning: format ‘%x’ expects type ‘unsigned int’, but argument 2 has type ‘int *’
-test3.c:36: warning: format ‘%x’ expects type ‘unsigned int’, but argument 2 has type ‘int *’
-test3.c:94: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
-test3.c:94: warning: format ‘%i’ expects type ‘int’, but argument 6 has type ‘size_t’
-test3.c:94: warning: format ‘%i’ expects type ‘int’, but argument 7 has type ‘size_t’
+test3.c:55: warning: format ‘%i’ expects type ‘int’, but argument 3 has type ‘size_t’
+test3.c:55: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+test3.c:55: warning: format ‘%i’ expects type ‘int’, but argument 6 has type ‘size_t’
+test3.c:55: warning: format ‘%i’ expects type ‘int’, but argument 7 has type ‘size_t’

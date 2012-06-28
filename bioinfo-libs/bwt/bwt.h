@@ -18,46 +18,34 @@
 double global_parallel, global_sequential;
 
 //-----------------------------------------------------------------------------
-// Parameters for seed
-//-----------------------------------------------------------------------------
-typedef struct seed {
-  unsigned int starts;
-  unsigned int end;
-}seed_t;
-
-void seed_init(unsigned int start, unsigned int end, seed_t *seed_p);
-
-//------------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Paratemers for the candidate alignment localizations (CALs)
 //-----------------------------------------------------------------------------
 
 
 typedef struct cal_optarg {
-  unsigned int min_cal_size;
-  unsigned int max_cal_distance;
-  unsigned int seed_size;
-  unsigned int min_seed_size;
+  size_t min_cal_size;
+  size_t max_cal_distance;
+  size_t seed_size;
+  size_t min_seed_size;
 } cal_optarg_t;
 
-cal_optarg_t *cal_optarg_new(const unsigned int min_cal_size, 
-			     const unsigned int max_cal_distance, 
-			     const unsigned int seed_size,
-			     const unsigned int min_seed_size);
+cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
+			     const size_t max_cal_distance, 
+			     const size_t seed_size,
+			     const size_t min_seed_size);
 
 void cal_optarg_free(cal_optarg_t *optarg);
 
 //-----------------------------------------------------------------------------
 
 typedef struct cal {
-  unsigned int chromosome_id;
+  size_t chromosome_id;
   short int strand;
   size_t start;
   size_t end;
 } cal_t;
 
-cal_t *cal_new(const unsigned int chromosome_id, 
+cal_t *cal_new(const size_t chromosome_id, 
 	       const short int strand,
 	       const size_t start, 
 	       const size_t end);
@@ -68,7 +56,7 @@ void cal_free(cal_t *cal);
 
 typedef cal_t region_t;
 
-region_t *region_new(const unsigned int chromosome_id, 
+region_t *region_new(const size_t chromosome_id, 
 	             const short int strand,
 	             const size_t start, 
 	             const size_t end);
@@ -91,14 +79,14 @@ void read_cals_free(read_cals_t *read_cals);
 //-----------------------------------------------------------------------------
 
 typedef struct bwt_optarg {
-  unsigned int num_errors;
-  unsigned int num_threads;
-  unsigned int max_alignments_per_read;
+  size_t num_errors;
+  size_t num_threads;
+  size_t max_alignments_per_read;
 } bwt_optarg_t;
 
-bwt_optarg_t *bwt_optarg_new(const unsigned int num_errors,
-			     const unsigned int num_threads,
-			     const unsigned int max_alginments_per_read);
+bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
+			     const size_t num_threads,
+			     const size_t max_alginments_per_read);
 void bwt_optarg_free(bwt_optarg_t *optarg);
 
 //-----------------------------------------------------------------------------
@@ -135,72 +123,72 @@ void read_cals_free(read_cals_t *read_cals);
 // general functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_map_seq(char *seq, 
-			 bwt_optarg_t *bwt_optarg, 
-			 bwt_index_t *index, 
-			 array_list_t *mapping_list);
+size_t bwt_map_seq(char *seq, 
+		   bwt_optarg_t *bwt_optarg, 
+		   bwt_index_t *index, 
+		   array_list_t *mapping_list);
 
-unsigned int bwt_map_read(fastq_read_t *read, 
-			  bwt_optarg_t *bwt_optarg, 
-			  bwt_index_t *index, 
-			  array_list_t *mapping_list);
+size_t bwt_map_read(fastq_read_t *read, 
+		    bwt_optarg_t *bwt_optarg, 
+		    bwt_index_t *index, 
+		    array_list_t *mapping_list);
 
-unsigned int bwt_map_seqs(char **seqs, 
-			  unsigned int num_reads,
-			  bwt_optarg_t *bwt_optarg, 
-			  bwt_index_t *index, 
-			  int *out_status,
-			  array_list_t *mapping_list);
+size_t bwt_map_seqs(char **seqs, 
+		    size_t num_reads,
+		    bwt_optarg_t *bwt_optarg, 
+		    bwt_index_t *index, 
+		    char *out_status,
+		    array_list_t *mapping_list);
 
-unsigned int bwt_map_reads(fastq_read_t **reads, 
-			   bwt_optarg_t *bwt_optarg, 
-			   bwt_index_t *index, 
-			   int *out_status,
-			   array_list_t *mapping_list);
+size_t bwt_map_reads(fastq_read_t **reads, 
+		     bwt_optarg_t *bwt_optarg, 
+		     bwt_index_t *index, 
+		     char *out_status,
+		     array_list_t *mapping_list);
 
-unsigned int bwt_map_batch(fastq_batch_t *batch,
-			   bwt_optarg_t *bwt_optarg, 
-			   bwt_index_t *index, 
-			   fastq_batch_t *unmapped_batch,
-			   array_list_t *mapping_list);
+size_t bwt_map_batch(fastq_batch_t *batch,
+		     bwt_optarg_t *bwt_optarg, 
+		     bwt_index_t *index, 
+		     fastq_batch_t *unmapped_batch,
+		     array_list_t *mapping_list);
 
 //-----------------------------------------------------------------------------
 // cal functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_seq(char *seq, 
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    cal_optarg_t *cal_optarg, 
-				    array_list_t *cal_list);
+size_t bwt_find_cals_from_seq(char *seq, 
+			      bwt_optarg_t *bwt_optarg, 
+			      bwt_index_t *index, 
+			      cal_optarg_t *cal_optarg, 
+			      array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_read(fastq_read_t *read, 
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     cal_optarg_t *cal_optarg, 
-				     array_list_t *cal_list);
+size_t bwt_find_cals_from_read(fastq_read_t *read, 
+			       bwt_optarg_t *bwt_optarg, 
+			       bwt_index_t *index, 
+			       cal_optarg_t *cal_optarg, 
+			       array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_seqs(char **seqs, 
-				     unsigned int num_reads,
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     cal_optarg_t *cal_optarg, 
-				     int *out_status,
-				     array_list_t *cal_list);
+size_t bwt_find_cals_from_seqs(char **seqs, 
+			       size_t num_reads,
+			       bwt_optarg_t *bwt_optarg, 
+			       bwt_index_t *index, 
+			       cal_optarg_t *cal_optarg, 
+			       char *out_status,
+			       array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_reads(fastq_read_t **reads, 
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      cal_optarg_t *cal_optarg, 
-				      int *out_status,
-				      array_list_t *cal_list);
+size_t bwt_find_cals_from_reads(fastq_read_t **reads, 
+				bwt_optarg_t *bwt_optarg, 
+				bwt_index_t *index, 
+				cal_optarg_t *cal_optarg, 
+				char *out_status,
+				array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_batch(fastq_batch_t *batch,
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      fastq_batch_t *unmapped_batch,
-				      cal_optarg_t *cal_optarg, 
-				      array_list_t *cal_list);
+size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
+				bwt_optarg_t *bwt_optarg, 
+				bwt_index_t *index, 
+				fastq_batch_t *unmapped_batch,
+				cal_optarg_t *cal_optarg, 
+				array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
