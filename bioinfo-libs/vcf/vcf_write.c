@@ -115,19 +115,17 @@ void write_record(vcf_record_t* vcf_record, FILE *fd) {
         return;
     }
     
-	fprintf(fd, "%s\t%ld\t%s\t%s\t%s\t", vcf_record->chromosome, vcf_record->position, vcf_record->id, vcf_record->reference, vcf_record->alternate);
-	if (vcf_record->quality < 0) {
-		fprintf(fd, ".\t");
-	} else {
-		fprintf(fd, "%.2f\t", vcf_record->quality);
-	}
-	fprintf(fd, "%s\t%s\t%s", vcf_record->filter, vcf_record->info, vcf_record->format);
-	
-	list_item_t *item = vcf_record->samples->first_p;
-	while (item != NULL) {
-		fprintf(fd, "\t%s", (char*) item->data_p);
-		item = item->next_p;
-	}
-	
-	fprintf(fd, "\n");
+    fprintf(fd, "%s\t%ld\t%s\t%s\t%s\t", vcf_record->chromosome, vcf_record->position, vcf_record->id, vcf_record->reference, vcf_record->alternate);
+    if (vcf_record->quality < 0) {
+        fprintf(fd, ".\t");
+    } else {
+        fprintf(fd, "%.2f\t", vcf_record->quality);
+    }
+    fprintf(fd, "%s\t%s\t%s", vcf_record->filter, vcf_record->info, vcf_record->format);
+
+    for (int i = 0; i < vcf_record->samples->size; i++) {
+        fprintf(fd, "\t%s", (char*) array_list_get(i, vcf_record->samples));
+    }
+
+    fprintf(fd, "\n");
 }

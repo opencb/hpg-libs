@@ -13,15 +13,15 @@ REGION_DIR = $(BIOFORMATS_DIR)/features/region
 # Include path and libraries
 # INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(BIOFORMATS_DIR)/gff
 INCLUDES = -I . -I $(LIBS_ROOT)
-LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions
+LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm
 
 # INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR) -I $(LIBS_ROOT)/bioformats/gff/ -I $(LIBS_ROOT)/../include
 INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
-LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
+LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp -lm
 
 # Source and object files
 MAIN_OBJECTS = vcf_file.c vcf_read.c vcf_reader.c vcf_write.c vcf_batch.c vcf_filters.c vcf_stats.c vcf_util.c
-MISC_OBJECTS = $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
+MISC_OBJECTS = $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o
 VCF_OBJECTS = ./vcf_*.o

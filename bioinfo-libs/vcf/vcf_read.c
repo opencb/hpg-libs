@@ -110,14 +110,12 @@ void set_record_format(char* format, vcf_record_t* vcf_record)
     LOG_DEBUG_F("set format: %s\n", vcf_record->format);
 }
 
-void add_record_sample(char* sample, vcf_record_t* vcf_record, size_t *sample_idx)
+void add_record_sample(char* sample, vcf_record_t* vcf_record)
 {
-    list_item_t *item = list_item_new(*sample_idx, 1, sample);
-    int result = list_insert_item(item, vcf_record->samples);
+    int result = array_list_insert(sample, vcf_record->samples);
     if (result) {
-        (*sample_idx)++;
-        LOG_DEBUG_F("sample %zu = %s\n", *sample_idx, (char*) item->data_p);
+        LOG_DEBUG_F("sample %s inserted\n", sample);
     } else {
-        LOG_DEBUG_F("sample %zu not inserted\n", *sample_idx);
+        LOG_DEBUG_F("sample %s not inserted\n", sample);
     }
 }

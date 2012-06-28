@@ -277,7 +277,8 @@ static void set_field(char* ts, char *te, vcf_reader_status *status) {
         break;
         case SAMPLE:
             if(status->store_samples) { 
-                add_record_sample(field, status->current_record, &(status->num_samples)); 
+                add_record_sample(field, status->current_record); 
+                (status->num_samples)++;
             } else {
                 free(field);    // Not added to samples -> not freed later
             }

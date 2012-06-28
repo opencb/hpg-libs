@@ -90,12 +90,7 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
     
     for (int i = 0; i < num_variants && cur_variant != NULL; i++, cur_variant = cur_variant->next_p) {
         record = (vcf_record_t*) cur_variant->data_p;
-        
-        copy_buf = (char*) calloc (strlen(record->chromosome)+1, sizeof(char));
-        strncat(copy_buf, record->chromosome, strlen(record->chromosome));
-        copy_buf2 = (char*) calloc (strlen(record->reference)+1, sizeof(char));
-        strncat(copy_buf2, record->reference, strlen(record->reference));
-        stats = new_variant_stats(copy_buf, record->position, copy_buf2);
+        stats = new_variant_stats(strdup(record->chromosome), record->position, strdup(record->reference));
         
         // Create list of alternates
         copy_buf = (char*) calloc (strlen(record->alternate)+1, sizeof(char));
@@ -112,24 +107,20 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
         // Create lists of allele and genotypes counters and frequencies
         stats->alleles_count = (int*) calloc (stats->num_alleles, sizeof(int));
         stats->genotypes_count = (int*) calloc (stats->num_alleles * stats->num_alleles, sizeof(int));
-        stats->alleles_freq = (int*) calloc (stats->num_alleles, sizeof(int));
-        stats->genotypes_freq = (int*) calloc (stats->num_alleles * stats->num_alleles, sizeof(int));
+        stats->alleles_freq = (float*) calloc (stats->num_alleles, sizeof(float));
+        stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
         // Get position where GT is in sample
-        copy_buf = (char*) calloc (strlen(record->format)+1, sizeof(char));
-        strcat(copy_buf, record->format);
-        gt_pos = get_field_position_in_format("GT", copy_buf);
+        gt_pos = get_field_position_in_format("GT", strdup(record->format));
         LOG_DEBUG_F("Genotype position = %d\n", gt_pos);
         if (gt_pos < 0) { continue; }   // This variant has no GT field
         
         // Traverse samples and find the present and missing alleles
-        for(list_item_t *cur_sample = record->samples->first_p; cur_sample != NULL; cur_sample = cur_sample->next_p) {
-            sample = (char*) cur_sample->data_p;
+        for(int j = 0; j < record->samples->size; j++) {
+            sample = (char*) array_list_get(j, record->samples);
             
             // Get to GT position
-            copy_buf = (char*) calloc (strlen(sample)+1, sizeof(char));
-            strcat(copy_buf, sample);
-            alleles_code = get_alleles(copy_buf, gt_pos, &allele1, &allele2);
+            alleles_code = get_alleles(strdup(sample), gt_pos, &allele1, &allele2);
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
             if (allele1 < 0 || allele2 < 0) {
@@ -169,7 +160,7 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
         
         // Update variables finally used to update file_stats_t structure
         variants_count++;
-        if (i == 0) { samples_count = record->samples->length; }  // Just once per batch
+        if (i == 0) { samples_count = record->samples->size; }  // Just once per batch
         if (strcmp(record->id, ".")) { snps_count++; }
         if (!strcmp(record->filter, "PASS")) { pass_count++; }
         if (record->quality >= 0) { accum_quality += record->quality; } // -1 = N/A

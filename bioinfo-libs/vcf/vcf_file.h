@@ -12,6 +12,7 @@
 
 #include <commons/file_utils.h>
 #include <commons/log.h>
+#include <containers/array_list.h>
 #include <containers/list.h>
 
 #include "vcf_util.h"

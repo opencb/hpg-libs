@@ -6,7 +6,8 @@
 #include <limits.h>
 
 #include <commons/log.h>
-#include "containers/list.h"
+#include <containers/array_list.h>
+#include <containers/list.h>
 
 #include "vcf_file_structure.h"
 
@@ -48,6 +49,6 @@ void set_record_info(char* info, vcf_record_t* vcf_record);
 
 void set_record_format(char* format, vcf_record_t* vcf_record);
 
-void add_record_sample(char* sample, vcf_record_t* vcf_record, size_t *sample_idx);
+void add_record_sample(char* sample, vcf_record_t* vcf_record);
 
 #endif

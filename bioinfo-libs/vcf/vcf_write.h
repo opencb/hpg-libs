@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <containers/array_list.h>
+
 #include "vcf_file_structure.h"
 #include "vcf_batch.h"
 

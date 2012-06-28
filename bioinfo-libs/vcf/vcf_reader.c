@@ -66,7 +66,8 @@ static void set_field(char* ts, char *te, vcf_reader_status *status) {
         break;
         case SAMPLE:
             if(status->store_samples) { 
-                add_record_sample(field, status->current_record, &(status->num_samples)); 
+                add_record_sample(field, status->current_record); 
+                (status->num_samples)++;
             } else {
                 free(field);    // Not added to samples -> not freed later
             }
@@ -86,7 +87,7 @@ int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t ba
     char *eof = pe;
 
     
-#line 90 "vcf_reader.c"
+#line 91 "vcf_reader.c"
 	{
 	cs = vcf_start;
 	top = 0;
@@ -95,7 +96,7 @@ int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t ba
 	act = 0;
 	}
 
-#line 99 "vcf_reader.c"
+#line 100 "vcf_reader.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -243,7 +244,7 @@ st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
-#line 247 "vcf_reader.c"
+#line 248 "vcf_reader.c"
 	switch( (*p) ) {
 		case 35: goto st1;
 		case 95: goto tr86;
@@ -277,7 +278,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 281 "vcf_reader.c"
+#line 282 "vcf_reader.c"
 	if ( (*p) == 35 )
 		goto st3;
 	goto st0;
@@ -298,7 +299,7 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 302 "vcf_reader.c"
+#line 303 "vcf_reader.c"
 	if ( (*p) == 35 )
 		goto st5;
 	goto st0;
@@ -622,7 +623,7 @@ st83:
 	if ( ++p == pe )
 		goto _test_eof83;
 case 83:
-#line 626 "vcf_reader.c"
+#line 627 "vcf_reader.c"
 	if ( (*p) == 95 )
 		goto tr86;
 	if ( (*p) < 65 ) {
@@ -644,7 +645,7 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 648 "vcf_reader.c"
+#line 649 "vcf_reader.c"
 	switch( (*p) ) {
 		case 9: goto st50;
 		case 95: goto st49;
@@ -1062,7 +1063,7 @@ st86:
 case 86:
 #line 1 "NONE"
 	{ts = p;}
-#line 1066 "vcf_reader.c"
+#line 1067 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr89;
 		case 32: goto tr88;
@@ -1248,7 +1249,7 @@ st97:
 case 97:
 #line 1 "NONE"
 	{ts = p;}
-#line 1252 "vcf_reader.c"
+#line 1253 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr105;
 		case 34: goto tr107;
@@ -1301,7 +1302,7 @@ st99:
 	if ( ++p == pe )
 		goto _test_eof99;
 case 99:
-#line 1305 "vcf_reader.c"
+#line 1306 "vcf_reader.c"
 	if ( (*p) == 44 )
 		goto st81;
 	if ( (*p) > 61 ) {
@@ -1330,7 +1331,7 @@ st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1334 "vcf_reader.c"
+#line 1335 "vcf_reader.c"
 	if ( (*p) == 34 )
 		goto tr84;
 	if ( (*p) > 61 ) {
@@ -1420,7 +1421,7 @@ st104:
 case 104:
 #line 1 "NONE"
 	{ts = p;}
-#line 1424 "vcf_reader.c"
+#line 1425 "vcf_reader.c"
 	if ( (*p) == 10 )
 		goto tr118;
 	if ( (*p) > 13 ) {
@@ -1532,7 +1533,7 @@ st106:
 case 106:
 #line 1 "NONE"
 	{ts = p;}
-#line 1536 "vcf_reader.c"
+#line 1537 "vcf_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr122;
 		case 32: goto tr121;
@@ -1593,7 +1594,7 @@ st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1597 "vcf_reader.c"
+#line 1598 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr123;
 	goto tr130;
@@ -1703,7 +1704,7 @@ st111:
 	if ( ++p == pe )
 		goto _test_eof111;
 case 111:
-#line 1707 "vcf_reader.c"
+#line 1708 "vcf_reader.c"
 	if ( (*p) < 48 ) {
 		if ( 33 <= (*p) && (*p) <= 47 )
 			goto tr123;
@@ -1839,7 +1840,7 @@ st116:
 	if ( ++p == pe )
 		goto _test_eof116;
 case 116:
-#line 1843 "vcf_reader.c"
+#line 1844 "vcf_reader.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr144;
 	goto tr130;
@@ -2227,7 +2228,7 @@ case 125:
 	_out: {}
 	}
 
-#line 302 "vcf.ragel"
+#line 303 "vcf.ragel"
 
     
     if (status->self_contained && !vcf_batch_is_empty(status->current_batch)) {
@@ -2307,16 +2308,16 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     }
 
     if ( cs < 
-#line 2311 "vcf_reader.c"
+#line 2312 "vcf_reader.c"
 82
-#line 380 "vcf.ragel"
+#line 381 "vcf.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 2318 "vcf_reader.c"
+#line 2319 "vcf_reader.c"
 82
-#line 383 "vcf.ragel"
+#line 384 "vcf.ragel"
 );
     } 
 
@@ -2327,9 +2328,9 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     vcf_header_entry_free(status->current_header_entry);   
 
     return cs < 
-#line 2331 "vcf_reader.c"
+#line 2332 "vcf_reader.c"
 82
-#line 392 "vcf.ragel"
+#line 393 "vcf.ragel"
 ;
 }
 

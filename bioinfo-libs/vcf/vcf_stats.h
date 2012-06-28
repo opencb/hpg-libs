@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <containers/array_list.h>
 #include <containers/list.h>
 #include <commons/log.h>
 

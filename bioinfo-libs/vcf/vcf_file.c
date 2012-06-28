@@ -136,30 +136,20 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 
 vcf_record_t* create_record() {
     vcf_record_t *record = (vcf_record_t*) malloc (sizeof(vcf_record_t));
-    record->samples = (list_t*) malloc (sizeof(list_t));
-    list_init("samples", 1, INT_MAX, record->samples);
+    record->samples = array_list_new(32, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
     return record;
 }
 
 void vcf_record_free(vcf_record_t *vcf_record) {
-	free(vcf_record->chromosome);
-	free(vcf_record->id);
-	free(vcf_record->reference);
-	free(vcf_record->alternate);
-	free(vcf_record->filter);
-	free(vcf_record->info);
-	free(vcf_record->format);
-	
-	// Free list of samples
-	list_item_t *item = NULL;
-	while ( (item = list_remove_item_async(vcf_record->samples)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_record->samples);
-	
-	free(vcf_record);
+    free(vcf_record->chromosome);
+    free(vcf_record->id);
+    free(vcf_record->reference);
+    free(vcf_record->alternate);
+    free(vcf_record->filter);
+    free(vcf_record->info);
+    free(vcf_record->format);
+    array_list_free(vcf_record->samples, free);
+    free(vcf_record);
 }
 
 
