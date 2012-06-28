@@ -107,10 +107,10 @@ void* array_list_set(size_t index, void* new_item, array_list_t *array_list_p);
 
 void array_list_print(array_list_t *array_list_p);
 
-void **list_to_array(array_list_t *array_list_p);
+//void **list_to_array(array_list_t *array_list_p);
 
 
-static array_list_t *reallocate(array_list_t * array_list_t, size_t inc_size);
+static array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size);
 
 static int compare_items(const void *item1, const void *item2);
 
