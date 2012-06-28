@@ -23,14 +23,23 @@ void main(int argc, char *argv[]) {
 
   printf("**** index_dirname = %s\n", bwt_index->dirname);
 
-
-  array_list_t *mappings = array_list_new(100000, 0.25f, COLLECTION_MODE_SYNCHRONIZED);
+  unsigned int n_reads = 8;
+  array_list_t *mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   fastq_read_t *fq_read;
   unsigned int num_mappings;
-
-
-
-  fq_read = fastq_read_new("@read_0 2L_11177498_11177561/1", 
+  
+  char **sequences = (char **)malloc(sizeof(char *)*n_reads);
+  sequences[0] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[1] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[2] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[3] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[4] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[5] = "CATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[6] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  sequences[7] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
+  
+  bwt_optarg_t * bwt_optarg_p = bwt_optarg_new(1, 4, 50);
+  /*fq_read = fastq_read_new("@read_0 2L_11177498_11177561/1", 
 			   "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC", 
 			   "################################################################");
 
@@ -43,8 +52,22 @@ void main(int argc, char *argv[]) {
 			   "################################################################");
 
   num_mappings = bwt_map_read_cpu(fq_read, NULL, bwt_index, mappings);
-  printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);
+  printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);*/
+  
+  
+  //num_mappings = bwt_map_exact_seqs_cpu(sequences, n_reads, bwt_optarg_p, bwt_index, mappings);
+  num_mappings = bwt_map_inexact_seq_cpu("TTTATTCGCAAATGCAGAAACTTGAAA", bwt_optarg_p, bwt_index, mappings);
+  alignment_t *mapping;
+  printf("Solutions for %d reads:\n", num_mappings);
+  for (int i = 0; i < num_mappings; i++) {
+    mapping = (alignment_t *) array_list_get(i, mappings);
+    printf("Sequence:%s - Cigar:%s - Read(%d/%d)\n", mapping->sequence, mapping->cigar, i, num_mappings);
+  }
+
   fastq_read_free(fq_read);
+  
+  
+  
   /*
   fq_read = fastq_read_new("@read_4 2L_253017_253081/1",
 			   "CTTGTCGAAGTACTGCCGCTTGGTTCGTTGGGATCCTCAGCCTCGCGCACCTTTTCGGCAATCT",

@@ -47,9 +47,9 @@
 #define TRUE            1
 #define FALSE           0
 
-#define DELETION  0
-#define MISMATCH  1
-#define INSERTION 2
+#define DELETION  1
+#define MISMATCH  2
+#define INSERTION 3
 
 #define DD  -1
 #define AA  0
@@ -243,6 +243,7 @@ inline void new_results_list(results_list *r_list, size_t max_results) {
   r_list->max_results = max_results;
 
 }
+
 
 inline void new_result(result *r, size_t k, size_t l, int start, int end, char dir) {
     r->k = k;
@@ -468,6 +469,7 @@ unsigned int binsearch(unsigned int *array, unsigned int size, size_t key);
 void load_exome_file(exome *ex, const char *name);
 void initialize_init_mask();
 int write_results(results_list *r_list, exome* ex, comp_vector *S, comp_vector *Si, vector *C, comp_matrix *O, comp_matrix *Oi, char *mapping, int nW, int type, FILE *fp);
+void free_results_list(results_list *r_list);
 
 
 
