@@ -2,6 +2,14 @@
 #define RESULT_H
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <libxml/encoding.h>
+#include <libxml/xmlwriter.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+
 
 // int META_ITEMS_SIZE	= 10;
 // int INPUT_ITEMS_SIZE	= 10;

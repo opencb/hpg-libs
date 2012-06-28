@@ -1,12 +1,35 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "file_utils.h"
 
 /* **************************************************************
  *    		Functions implementations  			*
  * **************************************************************/
+ 
+void *mmap_file(size_t *len, const char *filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        LOG_FATAL_F("Error opening file: %s\n", filename);
+    }
+    
+    struct stat st[1];
+    if (fstat(fd, st)) {
+        LOG_FATAL_F("Error while getting file information: %s\n", filename);
+    }
+    *len = (size_t) st->st_size;
+
+    if (!*len) {
+        close(fd);
+        return NULL;
+    }
+
+    void *map = mmap(NULL, *len, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (MAP_FAILED == map) {
+        LOG_FATAL_F("mmap failed for %s\n", filename);
+    }
+    close(fd);
+    
+    return map;
+}
+
 
 char *fgets_no_ln(char *s, int n, FILE *f) {
     int c = 0;
@@ -23,6 +46,15 @@ char *fgets_no_ln(char *s, int n, FILE *f) {
         return NULL;
     *cs++ = '\0';
     return s;
+}
+
+int exists(const char * filename) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
 }
 
 unsigned long count_lines(const char *filename) {

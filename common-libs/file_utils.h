@@ -1,12 +1,16 @@
-
 #ifndef FILE_UTILS_H
 #define FILE_UTILS_H
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "log.h"
 #include "string_utils.h"
 
 #define MAX_LENGTH_CONFIG_LINE 		256
@@ -31,6 +35,8 @@ typedef struct launch_option {
  *  		Functions		*
  * *************************************/
 
+void *mmap_file(size_t *len, const char *filename);
+ 
 /**
 *  @brief Returns n characters from a file with no break line characters
 *  @param s pointer to the char array to store the read characters
@@ -87,7 +93,7 @@ unsigned long count_lines(const char *filename);
 *  Copy the content from a char array to another char array, 
 *  the origin content is preserved
 */
-int copy(const char *dest, const char *ori);
+int copy(const char *dest, const char *src);
 
 /**
 *  @brief Moves the content from a char array to another char array
@@ -98,7 +104,7 @@ int copy(const char *dest, const char *ori);
 *  Move the content from a char array to another char array, 
 *  the origin content is removed
 */
-int move(const char *dest, const char *ori);
+int move(const char *dest, const char *src);
 
 /**
 *  @brief Changes file timestamp (touch command)
@@ -170,7 +176,7 @@ int parse_conf_file2(char **argvs, char *filename);
 *  @param filename_p pointer to the file name
 *  @return pointer to the file name
 *  
-*  Obtains stored size in a given path
+*  Given a path with a filename at the end, gets only the filename
 */
 char* get_filename_from_path(char* path, char* filename_p);
 

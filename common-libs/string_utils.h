@@ -1,11 +1,21 @@
-
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
 
+#include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
+//========CIGAR AUTOMATA STATUS========//
+#define MATCH_MISMATCH  0
+#define INSERTION  	1
+#define DELETION  	2
+#define BIG_DELETION    3
+#define SKIPPED  	4
+#define PADDING 	5
+#define PERFECT_MATCH   6
+#define PADDING         7
+//=====================================//
 
 /* **************************************
  *  		Functions		*
@@ -20,6 +30,7 @@
 *  
 *  Compares lexicographically two given strings
 */
+
 int equals(const char *str1, const char *str2);
 
 /**
@@ -305,7 +316,7 @@ char* rstrip(char *str);
 *  
 *  Splits a string into string fragments using a blank space separator (' ')
 */
-char** split(const char *str);
+char** split(char *str, const char *delimiters, int *num_substrings);
 
 /**
 *  @brief Splits a string into string fragments using a blank space separator (' ')
@@ -316,7 +327,10 @@ char** split(const char *str);
 *  Splits a string into string fragments using a blank space separator (' ')
 *  No more than limit splitted fragments will be returned
 */
-char** splitn(const char *str, int limit);
+char** splitn(char *str, const char *delimiters, int limit, int *num_substrings);
+
+unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_p);
+char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot);
 
 /**
  * @brief Case-insensitive string comparison. Inspired in non-standard function:
