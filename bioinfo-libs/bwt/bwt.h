@@ -52,22 +52,24 @@ void cal_optarg_free(cal_optarg_t *optarg);
 
 typedef struct cal {
   unsigned int chromosome_id;
-  unsigned int strand;
+  short int strand;
   size_t start;
   size_t end;
 } cal_t;
 
 cal_t *cal_new(const unsigned int chromosome_id, 
-	       const unsigned int strand,
+	       const short int strand,
 	       const size_t start, 
 	       const size_t end);
 
 void cal_free(cal_t *cal);
 
+//-----------------------------------------------------------------------------
+
 typedef cal_t region_t;
 
 region_t *region_new(const unsigned int chromosome_id, 
-	             const unsigned int strand,
+	             const short int strand,
 	             const size_t start, 
 	             const size_t end);
 
@@ -129,128 +131,76 @@ typedef struct read_mappings {
 read_cals_t *read_cals_new(const fastq_read_t *read);
 void read_cals_free(read_cals_t *read_cals);
 
-//-------------------------------------------------------------------
-
 //-----------------------------------------------------------------------------
 // general functions
 //-----------------------------------------------------------------------------
 
-char * bwt_error_type(char error_kind);
+unsigned int bwt_map_seq(char *seq, 
+			 bwt_optarg_t *bwt_optarg, 
+			 bwt_index_t *index, 
+			 array_list_t *mapping_list);
 
-unsigned int bwt_map_seq_cpu(char *seq, 
-			     bwt_optarg_t *bwt_optarg, 
-			     bwt_index_t *index, 
-			     array_list_t *mapping_list);
+unsigned int bwt_map_read(fastq_read_t *read, 
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  array_list_t *mapping_list);
 
-unsigned int bwt_map_read_cpu(fastq_read_t *read, 
-			      bwt_optarg_t *bwt_optarg, 
-			      bwt_index_t *index, 
-			      array_list_t *mapping_list);
+unsigned int bwt_map_seqs(char **seqs, 
+			  unsigned int num_reads,
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  int *out_status,
+			  array_list_t *mapping_list);
 
-unsigned int bwt_map_seqs_cpu(char **seqs, 
-			      unsigned int num_reads,
-			      bwt_optarg_t *bwt_optarg, 
-			      bwt_index_t *index, 
-			      array_list_t *mapping_list);
+unsigned int bwt_map_reads(fastq_read_t **reads, 
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   int *out_status,
+			   array_list_t *mapping_list);
 
-unsigned int bwt_map_batch_cpu(fastq_batch_t *batch,
-			       bwt_optarg_t *bwt_optarg, 
-			       bwt_index_t *index, 
-			       fastq_batch_t *unmapped_batch,
-			       array_list_t *mapping_list);
-
-//-----------------------------------------------------------------------------
-// exact functions
-//-----------------------------------------------------------------------------
-
-unsigned int bwt_map_exact_seq_cpu(char *seq, 
-				   bwt_optarg_t *bwt_optarg, 
-				   bwt_index_t *index, 
-				   array_list_t *mapping_list);
-
-unsigned int bwt_map_exact_read_cpu(fastq_read_t *read, 
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list);
-
-unsigned int bwt_map_exact_seqs_cpu(char **seqs, 
-				    unsigned int num_reads,
-				    bwt_optarg_t *bwt_optarg, 
-				    bwt_index_t *index, 
-				    array_list_t *mapping_list);
-
-unsigned int bwt_map_exact_batch_cpu(fastq_batch_t *batch,
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     fastq_batch_t *unmapped_batch,
-				     array_list_t *mapping_list);
-
-//-----------------------------------------------------------------------------
-// inexact functions
-//-----------------------------------------------------------------------------
-
-unsigned int bwt_map_inexact_seeds_seq_cpu(char *seq, seed_t *seeds, unsigned int num_seeds,
-					bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
-					array_list_t *mapping_list);
-
-unsigned int bwt_map_inexact_seed_cpu(char *seq,
-                                     bwt_optarg_t *bwt_optarg,
-                                     bwt_index_t *index,
-                                     array_list_t *mapping_list);
-
-unsigned int bwt_map_inexact_seq_cpu(char *seq, 
-				     bwt_optarg_t *bwt_optarg, 
-				     bwt_index_t *index, 
-				     array_list_t *mapping_list);
-
-unsigned int bwt_map_inexact_read_cpu(fastq_read_t *read, 
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list);
-
-unsigned int bwt_map_inexact_seqs_cpu(char **seqs, 
-				      unsigned int num_reads,
-				      bwt_optarg_t *bwt_optarg, 
-				      bwt_index_t *index, 
-				      array_list_t *mapping_list);
-
-unsigned int bwt_map_inexact_batch_cpu(fastq_batch_t *batch,
-				       bwt_optarg_t *bwt_optarg, 
-				       bwt_index_t *index, 
-				       fastq_batch_t *unmapped_batch,
-				       array_list_t *mapping_list);
+unsigned int bwt_map_batch(fastq_batch_t *batch,
+			   bwt_optarg_t *bwt_optarg, 
+			   bwt_index_t *index, 
+			   fastq_batch_t *unmapped_batch,
+			   array_list_t *mapping_list);
 
 //-----------------------------------------------------------------------------
 // cal functions
 //-----------------------------------------------------------------------------
 
-unsigned int bwt_find_cals_from_seq_cpu(char *seq, 
-					bwt_optarg_t *bwt_optarg, 
-					bwt_index_t *index, 
-					cal_optarg_t *cal_optarg, 
-					array_list_t *cal_list);
+unsigned int bwt_find_cals_from_seq(char *seq, 
+				    bwt_optarg_t *bwt_optarg, 
+				    bwt_index_t *index, 
+				    cal_optarg_t *cal_optarg, 
+				    array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_read_cpu(fastq_read_t *read, 
-					 bwt_optarg_t *bwt_optarg, 
-					 bwt_index_t *index, 
-					 cal_optarg_t *cal_optarg, 
-					 array_list_t *cal_list);
+unsigned int bwt_find_cals_from_read(fastq_read_t *read, 
+				     bwt_optarg_t *bwt_optarg, 
+				     bwt_index_t *index, 
+				     cal_optarg_t *cal_optarg, 
+				     array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_seqs_cpu(char **seqs, 
-					 unsigned int num_reads,
-					 bwt_optarg_t *bwt_optarg, 
-					 bwt_index_t *index, 
-					 unsigned int *num_unmapped,
-					 int *unmapped_array,
-					 cal_optarg_t *cal_optarg, 
-					 array_list_t *cal_list);
+unsigned int bwt_find_cals_from_seqs(char **seqs, 
+				     unsigned int num_reads,
+				     bwt_optarg_t *bwt_optarg, 
+				     bwt_index_t *index, 
+				     cal_optarg_t *cal_optarg, 
+				     int *out_status,
+				     array_list_t *cal_list);
 
-unsigned int bwt_find_cals_from_batch_cpu(fastq_batch_t *batch,
-					  bwt_optarg_t *bwt_optarg, 
-					  bwt_index_t *index, 
-					  fastq_batch_t *unmapped_batch,
-					  cal_optarg_t *cal_optarg, 
-					  array_list_t *cal_list);
+unsigned int bwt_find_cals_from_reads(fastq_read_t **reads, 
+				      bwt_optarg_t *bwt_optarg, 
+				      bwt_index_t *index, 
+				      cal_optarg_t *cal_optarg, 
+				      int *out_status,
+				      array_list_t *cal_list);
+
+unsigned int bwt_find_cals_from_batch(fastq_batch_t *batch,
+				      bwt_optarg_t *bwt_optarg, 
+				      bwt_index_t *index, 
+				      fastq_batch_t *unmapped_batch,
+				      cal_optarg_t *cal_optarg, 
+				      array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

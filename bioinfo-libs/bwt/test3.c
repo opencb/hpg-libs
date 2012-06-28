@@ -1,7 +1,45 @@
 #include "test3.h"
 
+const int n = 10;
+
+void fh(int *a) {
+  a = (int *) malloc(n * sizeof(int));
+  printf("fh - aa = %x\n", a);
+  for (int i  = 0; i < n; i++) {
+    a[i] = i * 10;
+  }
+  for (int i  = 0; i < n; i++) {
+    printf("fh - %i\n", a[i]);
+  }
+}
+
+void fj(int **a) {
+  int *b = (int *) malloc(n * sizeof(int));
+  printf("fj - b = %x\n", b);
+  for (int i  = 0; i < n; i++) {
+    b[i] = i * 10;
+  }
+  for (int i  = 0; i < n; i++) {
+    printf("fj - %i\n", b[i]);
+  }
+  *a = b;
+}
+
+
 
 void main(int argc, char *argv[]) {
+
+  int *aa;
+  printf("main - aa = %x\n", aa);
+  //fh(aa);
+  fj(&aa);
+  printf("main - aa = %x\n", aa);
+  for (int i  = 0; i < n; i++) {
+    printf("main - %i\n", aa[i]);
+  }
+
+  exit(-1);
+
 
   char *input_filename, *index_dirname;
 
@@ -46,7 +84,7 @@ void main(int argc, char *argv[]) {
 
   
   
-  num_mappings = bwt_find_cals_from_seq_cpu(seq, bwt_optarg_p, bwt_index, bwt_caloptarg_p, cal_list_p);
+  num_mappings = bwt_find_cals_from_seq(seq, bwt_optarg_p, bwt_index, bwt_caloptarg_p, cal_list_p);
   cal_t *cal_p;
   unsigned int cals_found = array_list_size(cal_list_p);
   printf("Found %d CALs:\n", cals_found);
@@ -63,7 +101,7 @@ void main(int argc, char *argv[]) {
 			   "CTTGTCGAAGTACTGCCGCTTGGTTCGTTGGGATCCTCAGCCTCGCGCACCTTTTCGGCAATCT",
 			   "################################################################");
 
-  num_mappings = bwt_single_read_cpu(fq_read, NULL, bwt_index, NULL);
+  num_mappings = bwt_single_read(fq_read, NULL, bwt_index, NULL);
   printf("num_mappings %i found for %s\n", num_mappings, fq_read->id);
   fastq_read_free(fq_read);
   */
