@@ -762,7 +762,7 @@ list_t *read_test_datasuite(vcf_file_t *file)
 	list_t *batches = (list_t*) malloc (sizeof(list_t));
 	list_init("batches", 1, 2, batches);
 	
-	int read = vcf_read_batches(batches, MAX_RECORDS, file, 0);
+	int read = vcf_parse_batches(batches, MAX_RECORDS, file, 0);
 	if (read != 0)
 	{
 		fprintf(stderr, "Error reading file\n");

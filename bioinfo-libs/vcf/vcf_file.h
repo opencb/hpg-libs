@@ -83,6 +83,8 @@ int vcf_read(vcf_file_t *vcf_file);
 
 int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
 
+int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
+
 /**
  * Write the contents of the vcf_file_t given as argument to the given path.
  * 

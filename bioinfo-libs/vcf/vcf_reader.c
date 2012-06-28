@@ -78,7 +78,7 @@ static void set_field(char* ts, char *te, vcf_reader_status *status) {
     }
 }
 
-static int execute_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
+int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
     int cs;
     char *ts, *te;
     int stack[4];
@@ -2230,6 +2230,12 @@ case 125:
 #line 302 "vcf.ragel"
 
     
+    if (status->self_contained && !vcf_batch_is_empty(status->current_batch)) {
+        list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
+        list_insert_item(item, batches_list);
+        LOG_DEBUG_F("Batch added - %zu records (self-contained)\n", status->current_batch->length);
+    }
+
     return cs;
 }
 
@@ -2238,13 +2244,13 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     int cs;
     char *p, *pe;
 
-    vcf_reader_status *status = new_vcf_reader_status(batch_size, read_samples);
+    vcf_reader_status *status = new_vcf_reader_status(batch_size, read_samples, 0);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_ragel_machine(p, pe, batches_list, batch_size, file, status);
+        cs = execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -2284,7 +2290,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 
             p = data;
             pe = p + file->data_len;
-            cs = execute_ragel_machine(p, pe, batches_list, batch_size, file, status);
+            cs = execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
             file->data_len = 0;
         }
         
@@ -2301,16 +2307,16 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     }
 
     if ( cs < 
-#line 2305 "vcf_reader.c"
+#line 2311 "vcf_reader.c"
 82
-#line 374 "vcf.ragel"
+#line 380 "vcf.ragel"
  ) 
     {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 2312 "vcf_reader.c"
+#line 2318 "vcf_reader.c"
 82
-#line 377 "vcf.ragel"
+#line 383 "vcf.ragel"
 );
     } 
 
@@ -2321,14 +2327,69 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     vcf_header_entry_free(status->current_header_entry);   
 
     return cs < 
-#line 2325 "vcf_reader.c"
+#line 2331 "vcf_reader.c"
 82
-#line 386 "vcf.ragel"
+#line 392 "vcf.ragel"
 ;
 }
 
-// vcf_reader_status *new_vcf_reader_status(size_t batch_size, int self_contained) {
-vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples) {
+int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+//     if (mmap_vcf) {
+//         LOG_DEBUG("Using mmap for file loading\n");
+//         TODO Use functions for getting the batch-size-th index of linebreak
+//     } else {
+    LOG_DEBUG("Using file-IO functions for file loading\n");
+    size_t max_len = 256;
+    __ssize_t line_len = 0;
+    file->data_len = 0;
+
+    char *data = NULL;
+    char *line = NULL;
+    char *aux;
+    
+    int eof_found = 0;
+
+    // Read text of a batch and call ragel parser in a loop
+    while (!eof_found) {
+        char *data = (char*) calloc (max_len, sizeof(char));
+//             memset(data, 0, max_len * sizeof(char));
+
+        for (int i = 0; i < batch_size && !eof_found; i++) {
+            line_len = getline(&line, &line_len, file->fd);
+            if (line_len != -1) {
+                LOG_DEBUG_F("#%d Line (len %zu): %s", i, line_len, line);
+                // Line too long to be stored in data, realloc
+                if (file->data_len + line_len + 1 > max_len) {
+                    aux = realloc(data, max_len + line_len * 20);
+                    if (aux) {
+                        data = aux;
+                        max_len += line_len * 20;
+                    } else {
+                        LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                    }
+                }
+                // Concat previous data with new line
+                strncat(data, line, line_len);
+                file->data_len += line_len;
+            } else {
+                eof_found = 1;
+            }
+        }
+
+        file->data_len = 0;
+
+        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_insert_item(item, batches_list);
+//             printf("Text batch inserted = '%s'\n", data);
+
+    }
+    
+    if (line != NULL) { free(line); }
+
+    return 0;
+}
+
+vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples, int self_contained) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
     status->current_header_entry = create_header_entry();
@@ -2339,7 +2400,7 @@ vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples) {
     status->num_records = 0;
 
     status->store_samples = store_samples;
-//     status->self_contained = self_contained;
+    status->self_contained = self_contained;
 
     return status;
 }

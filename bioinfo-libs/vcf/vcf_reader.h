@@ -35,9 +35,13 @@ typedef struct {
     int self_contained;
 } vcf_reader_status;
 
+int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status);
 
 int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples);
 
-vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples);
+int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file);
+
+
+vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples, int self_contained);
 
 #endif

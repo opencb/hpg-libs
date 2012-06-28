@@ -172,6 +172,10 @@ int vcf_read(vcf_file_t *vcf_file) {
 }
 
 int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
+    return vcf_light_read(batches_list, batch_size, vcf_file);
+}
+
+int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
 	return vcf_ragel_read(batches_list, batch_size, vcf_file, read_samples);
 }
 

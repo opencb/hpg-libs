@@ -40,7 +40,7 @@ int main (int argc, char *argv[])
         start = omp_get_wtime();
         
         file = vcf_open(argv[1]);
-        ret_code = vcf_read_batches(read_list, batch_size, file, 1);
+        ret_code = vcf_parse_batches(read_list, batch_size, file, 1);
         
         stop = omp_get_wtime();
         total = (stop - start);
