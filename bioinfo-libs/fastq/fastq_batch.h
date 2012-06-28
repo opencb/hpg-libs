@@ -35,7 +35,7 @@ typedef struct fastq_batch {
 *  
 *  Creates a fastq_batch_t structure
 */
-fastq_batch_t* fastq_batch_new();
+fastq_batch_t* fastq_batch_new(unsigned long size);
 
 /**
 *  @brief Inits fastq_batch_t structure
@@ -45,7 +45,7 @@ fastq_batch_t* fastq_batch_new();
 *  
 *  Initializes and returns fastq_batch structure
 */
-fastq_batch_t* fastq_batch_init(fastq_batch_t *fastq_batch_p, unsigned long size);
+//fastq_batch_t* fastq_batch_init(fastq_batch_t *fastq_batch_p, unsigned long size);
 
 /**
 *  @brief Frees fastq batch 

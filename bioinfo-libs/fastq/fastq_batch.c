@@ -16,12 +16,8 @@
  *    		Function implementations  		*
  * ******************************************************/
 
-fastq_batch_t* fastq_batch_new() {
-    fastq_batch_t* batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));
-    return batch_p;
-}
-
-fastq_batch_t* fastq_batch_init(fastq_batch_t* fastq_batch_p, unsigned long size) {
+fastq_batch_t* fastq_batch_new(unsigned long size) {
+    fastq_batch_t* fastq_batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));
     fastq_batch_p->num_reads = 0;
     fastq_batch_p->data_size = size;
     fastq_batch_p->data_indices_size = sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE;
@@ -36,6 +32,22 @@ fastq_batch_t* fastq_batch_init(fastq_batch_t* fastq_batch_p, unsigned long size
 
     return fastq_batch_p;
 }
+/*
+fastq_batch_t* fastq_batch_init(fastq_batch_t* fastq_batch_p, unsigned long size) {
+    fastq_batch_p->num_reads = 0;
+    fastq_batch_p->data_size = size;
+    fastq_batch_p->data_indices_size = sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE;
+
+    fastq_batch_p->header_indices = (int*) calloc(fastq_batch_p->data_indices_size, 1);
+    fastq_batch_p->header = (char*) calloc(MAX_HEADER_LENGTH * fastq_batch_p->data_size / MIN_READ_SIZE, sizeof(char));
+
+    fastq_batch_p->data_indices = (int*) calloc(fastq_batch_p->data_indices_size, 1);
+
+    fastq_batch_p->seq = (char*) calloc(fastq_batch_p->data_size / 2, sizeof(char));
+    fastq_batch_p->quality = (char*) calloc(fastq_batch_p->data_size / 2, sizeof(char));
+
+    return fastq_batch_p;
+}*/
 
 void fastq_batch_free(fastq_batch_t* fastq_batch_p) {
     if (fastq_batch_p == NULL) {
