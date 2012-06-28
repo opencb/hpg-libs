@@ -58,8 +58,9 @@
 void calculateD(vector *D, byte_vector *W, vector *C, vector *C1, comp_matrix *Oi);
 void BWRecursiveSearch(char *W, size_t i, unsigned int z, size_t k, size_t l, vector *D, vector *C, vector *C1, comp_matrix *O, results_list *r_list);
 
-inline void BWExactSearchBackward(char *W, int start, int end, vector *C, vector *C1, comp_matrix *O, result *r) {
+inline void BWExactSearchBackward(char *W, int start, int end, vector *C, vector *C1, comp_matrix *O, result *r){
 
+  //printf("CALL Backward\n");
   BWiterationVariables();
   size_t k2, l2;
   int i;
@@ -83,6 +84,7 @@ inline void BWExactSearchBackward(char *W, int start, int end, vector *C, vector
 }
 
 inline void BWExactSearchForward(char *W, int start, int end, vector *C, vector *C1, comp_matrix *Oi, result *r) {
+  //printf("CALL Forward\n");
 
   BWiterationVariables();
   size_t k2, l2;
@@ -90,7 +92,7 @@ inline void BWExactSearchForward(char *W, int start, int end, vector *C, vector 
 
   k2 = r->k;  l2 = r->l;
 
-  //printf("F1º -> %lu - %lu", k2, l2);
+  //printf("F1º -> %lu - %lu\n", k2, l2);
 
   for(i=start; i<=end; i++) {
 

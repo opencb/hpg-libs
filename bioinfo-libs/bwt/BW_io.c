@@ -770,6 +770,10 @@ int write_results(results_list *r_list, exome* ex, comp_vector *S, comp_vector *
 }
 
 
+void free_results_list(results_list *r_list){
+  free(r_list->list);
+  free(r_list);
+}
 
 
 
