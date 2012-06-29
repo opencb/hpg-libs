@@ -1,12 +1,13 @@
 #ifndef VCF_BATCH_H
 #define VCF_BATCH_H
 
-#include <commons/log.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+
+#include <containers/array_list.h>
+#include <commons/log.h>
 
 #include "vcf_file_structure.h"
 
@@ -19,7 +20,8 @@
 /**
  * List who is equivalent to a batch of VCF records.
  */
-typedef list_t vcf_batch_t;
+// typedef list_t vcf_batch_t;
+typedef array_list_t vcf_batch_t;
 
 
 vcf_batch_t* vcf_batch_new(size_t size);

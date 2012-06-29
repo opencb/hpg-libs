@@ -9,6 +9,7 @@
 
 #include <cprops/heap.h>
 
+#include <containers/array_list.h>
 #include <containers/list.h>
 #include <containers/region_table_utils.h>
 #include <commons/log.h>
@@ -57,7 +58,7 @@ typedef struct {
 typedef struct filter {
 	unsigned int priority;
 	enum filter_type type;
-	list_t* (*filter_func) (list_t *input_records, list_t *failed, void *args);
+	array_list_t* (*filter_func) (array_list_t *input_records, array_list_t *failed, void *args);
 	void (*free_func) (struct filter *f);
 	void *args;
 } filter_t;
@@ -152,7 +153,7 @@ void free_filter_chain(filter_chain *chain);
  * 
  * @return Records that passed the filters' tests
  */
-list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filters, int num_filters);
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
 
 
 //====================================================================================
@@ -168,7 +169,7 @@ list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filte
  * 
  * @return Records that passed the filter's test
  */
-list_t *coverage_filter(list_t *input_records, list_t *failed, void *args);
+array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 /**
  * Given a list of records, check which ones have a num_alleles equals to 
@@ -179,7 +180,7 @@ list_t *coverage_filter(list_t *input_records, list_t *failed, void *args);
  * 
  * @return Records that passed the filter's test
  */
-list_t *num_alleles_filter(list_t *input_records, list_t *failed, void *args);
+array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 /**
  * Given a list of records, check which ones have a quality greater or equals than 
@@ -190,7 +191,7 @@ list_t *num_alleles_filter(list_t *input_records, list_t *failed, void *args);
  * 
  * @return Records that passed the filter's test
  */
-list_t *quality_filter(list_t *input_records, list_t *failed, void *args);
+array_list_t *quality_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 /**
  * Given a list of records, check which ones are positioned in certain genome region.
@@ -204,7 +205,7 @@ list_t *quality_filter(list_t *input_records, list_t *failed, void *args);
  * 
  * @return Records that passed the filter's test
  */
-list_t *region_filter(list_t *input_records, list_t *failed, void *args);
+array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 /**
  * Given a list of records, check which ones represent a SNP.
@@ -214,7 +215,7 @@ list_t *region_filter(list_t *input_records, list_t *failed, void *args);
  * 
  * @return Records that passed the filter's test
  */
-list_t *snp_filter(list_t *input_records, list_t *failed, void *args);
+array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 
 #endif

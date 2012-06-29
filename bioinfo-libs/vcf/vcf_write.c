@@ -105,8 +105,10 @@ void write_batch(vcf_batch_t *vcf_batch, FILE *fd) {
         return;
     }
     
-    for (list_item_t *i = vcf_batch->first_p; i != NULL; i = i->next_p) {
-        write_record(i->data_p, fd);
+    vcf_record_t *record;
+    for (int i = 0; i < vcf_batch->size; i++) {
+        record = array_list_get(i, vcf_batch);
+        write_record(record, fd);
     }
 }
 

@@ -80,7 +80,7 @@ void free_variant_stats(variant_stats_t *variant_stats);
  *           Execution          *
  * ******************************/
 
-int get_variants_stats(list_item_t *variants, int num_variants, list_t *output_list, file_stats_t *file_stats);
+int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * Given a file_stats_t with some values, perform their sum with the arguments.

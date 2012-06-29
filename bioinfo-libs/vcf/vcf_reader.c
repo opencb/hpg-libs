@@ -33,7 +33,7 @@ static void set_field(char* ts, char *te, vcf_reader_status *status) {
         break;
         case POS:
             set_record_position(atol(field), status->current_record);
-            free(field);	// Not set as vcf_record_t variable -> not freed later
+            free(field);    // Not set as vcf_record_t variable -> not freed later
         break;
         case ID:
             set_record_id(field, status->current_record);
@@ -53,7 +53,7 @@ static void set_field(char* ts, char *te, vcf_reader_status *status) {
                 quality = atof(field);
             }
             set_record_quality(quality, status->current_record);
-            free(field);	// Not set as vcf_record_t variable -> not freed later
+            free(field);    // Not set as vcf_record_t variable -> not freed later
         break;
         case FILTER:
             set_record_filter(field, status->current_record);
@@ -1449,7 +1449,7 @@ tr122:
             {
                 list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
                 list_insert_item(item, batches_list);
-                LOG_DEBUG_F("Batch added - %zu records\n", status->current_batch->length);
+                LOG_DEBUG_F("Batch added - %zu records\n", status->current_batch->size);
                 status->current_batch = vcf_batch_new(batch_size);
             }
 
@@ -2234,7 +2234,7 @@ case 125:
     if (status->self_contained && !vcf_batch_is_empty(status->current_batch)) {
         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
         list_insert_item(item, batches_list);
-        LOG_DEBUG_F("Batch added - %zu records (self-contained)\n", status->current_batch->length);
+        LOG_DEBUG_F("Batch added - %zu records (self-contained)\n", status->current_batch->size);
     }
 
     return cs;
@@ -2304,7 +2304,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
     {
         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
         list_insert_item(item, batches_list);
-        LOG_DEBUG_F("Batch added - %zu records (last)\n", status->current_batch->length);
+        LOG_DEBUG_F("Batch added - %zu records (last)\n", status->current_batch->size);
     }
 
     if ( cs < 

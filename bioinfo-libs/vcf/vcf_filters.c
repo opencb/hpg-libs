@@ -174,9 +174,9 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters) {
     return filters;
 }
 
-list_t *run_filter_chain(list_t *input_records, list_t *failed, filter_t **filters, int num_filters) {
-    list_t *passed = input_records;
-    list_t *aux_passed;
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters) {
+    array_list_t *passed = input_records;
+    array_list_t *aux_passed;
 
     LOG_DEBUG_F("Applying filter chain of %d filters\n", num_filters);
 
@@ -197,18 +197,16 @@ void free_filter_chain(filter_chain* chain) {
 
 
 
-list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, input_records->max_length, passed);
+array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int min_coverage = ((coverage_filter_args*)f_args)->min_coverage;
 
-    LOG_DEBUG_F("coverage_filter (min coverage = %d) over %zu records\n", min_coverage, input_records->length);
-    vcf_record_t *record;
+    LOG_DEBUG_F("coverage_filter (min coverage = %d) over %zu records\n", min_coverage, input_records->size);
     char *aux_buffer = (char*) calloc (128, sizeof(char));
-    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
-        record = item->data_p;
-        list_item_t *new_item = list_item_new(item->id, item->type, record);
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
         
         if (strlen(record->info) > strlen(aux_buffer)) {
             aux_buffer = realloc (aux_buffer, strlen(record->info)+1);
@@ -220,12 +218,12 @@ list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
         char *record_coverage = get_field_value_in_info("DP", aux_buffer);
         if (record_coverage != NULL && is_numeric(record_coverage)) {
             if (atoi(record_coverage) >= min_coverage) {
-                list_insert_item(new_item, passed);
+                array_list_insert(record, passed);
             } else {
-                list_insert_item(new_item, failed);
+                array_list_insert(record, failed);
             }
         } else {
-            list_insert_item(new_item, failed);
+            array_list_insert(record, failed);
         }
         
     }
@@ -234,40 +232,37 @@ list_t* coverage_filter(list_t* input_records, list_t* failed, void* f_args) {
     return passed;
 }
 
-list_t* num_alleles_filter(list_t* input_records, list_t* failed, void* args) {
+array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, void* args) {
     list_t *input_stats = (list_t*) malloc (sizeof(list_t));
-    list_init("stats", 1, input_records->max_length, input_stats);
+    list_init("stats", 1, input_records->size + 1, input_stats);
     file_stats_t *file_stats = new_file_stats();
     
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, input_records->max_length, passed);
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int num_alleles = ((num_alleles_filter_args*)args)->num_alleles;
 
     // TODO candidate for parallelization
-    get_variants_stats(input_records->first_p, input_records->length, input_stats, file_stats);
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
     
     list_item_t *stats_item = NULL;
-    list_item_t *record_item = input_records->first_p;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to the records in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
     // it means the related vcf_record_t passes the filter
-    while (record_item != NULL) {
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
         stats_item = list_remove_item(input_stats);
         variant_stats = stats_item->data_p;
         
-        list_item_t *new_item = list_item_new(record_item->id, record_item->type, record_item->data_p);
         if (variant_stats->num_alleles == num_alleles) {
-            list_insert_item(new_item, passed);
+            array_list_insert(record, passed);
         } else {
-            list_insert_item(new_item, failed);
+            array_list_insert(record, failed);
         }
         
         free_variant_stats(variant_stats);
         list_item_free(stats_item);
-        
-        record_item = record_item->next_p;
     }
     
     list_decr_writers(input_stats);
@@ -276,42 +271,39 @@ list_t* num_alleles_filter(list_t* input_records, list_t* failed, void* args) {
 }
 
 
-list_t* quality_filter(list_t* input_records, list_t* failed, void* f_args) {
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, input_records->max_length, passed);
+array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int min_quality = ((quality_filter_args*)f_args)->min_quality;
 
-    LOG_DEBUG_F("quality_filter (min quality = %d) over %zu records\n", min_quality, input_records->length);
+    LOG_DEBUG_F("quality_filter (min quality = %d) over %zu records\n", min_quality, input_records->size);
     vcf_record_t *record;
-    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
-        record = item->data_p;
-        list_item_t *new_item = list_item_new(item->id, item->type, record);
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
         if (record->quality >= min_quality) {
-            list_insert_item(new_item, passed);
+            array_list_insert(record, passed);
         } else {
-            list_insert_item(new_item, failed);
+            array_list_insert(record, failed);
         }
     }
 
     return passed;
 }
 
-list_t *region_filter(list_t *input_records, list_t *failed, void *f_args) {
+array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
     char *field;
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, INT_MAX, passed);
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     region_filter_args *args = (region_filter_args*) f_args;
     region_table_t *regions = args->regions;
 
-    LOG_DEBUG_F("region_filter over %zu records\n", input_records->length);
+    LOG_DEBUG_F("region_filter over %zu records\n", input_records->size);
 
     int i = 0;
+    vcf_record_t *record;
     region_t *region = (region_t*) malloc (sizeof(region_t));
-    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
-        vcf_record_t *record = item->data_p;
-        list_item_t *new_item = list_item_new(item->id, item->type, record);
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
         
         LOG_DEBUG_F("record = %s, %ld\n", record->chromosome, record->position);
         
@@ -321,14 +313,12 @@ list_t *region_filter(list_t *input_records, list_t *failed, void *f_args) {
         
         if (find_region(region, regions)) {
             // Add to the list of records that pass all checks for at least one region
-            list_insert_item(new_item, passed);
+            array_list_insert(record, passed);
             LOG_DEBUG_F("%s, %ld passed\n", record->chromosome, record->position);
         } else {
             // Add to the list of records that fail all checks for all regions
-            list_insert_item(new_item, failed);
+            array_list_insert(record, failed);
         }
-        
-        i++;
     }
 
     free(region);
@@ -336,28 +326,26 @@ list_t *region_filter(list_t *input_records, list_t *failed, void *f_args) {
     return passed;
 }
 
-list_t *snp_filter(list_t *input_records, list_t *failed, void *f_args) {
-    list_t *passed = (list_t*) malloc (sizeof(list_t));
-    list_init("passed", 1, input_records->max_length, passed);
+array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int include_snps = ((snp_filter_args*)f_args)->include_snps;
 
-    LOG_DEBUG_F("snp_filter (preserve SNPs = %d) over %zu records\n", include_snps, input_records->length);
-    for (list_item_t *item = input_records->first_p; item != NULL; item = item->next_p) {
-        vcf_record_t *record = item->data_p;
-        list_item_t *new_item = list_item_new(item->id, item->type, record);
-        // TODO check 'id' field is not empty (modifications to the parser needed!)
+    LOG_DEBUG_F("snp_filter (preserve SNPs = %d) over %zu records\n", include_snps, input_records->size);
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
         if (strcmp(".", record->id) == 0) {
             if (include_snps) {
-                list_insert_item(new_item, failed);
+                array_list_insert(record, failed);
             } else {
-                list_insert_item(new_item, passed);
+                array_list_insert(record, passed);
             }
         } else {
             if (include_snps) {
-                list_insert_item(new_item, passed);
+                array_list_insert(record, passed);
             } else {
-                list_insert_item(new_item, failed);
+                array_list_insert(record, failed);
             }
         }
     }

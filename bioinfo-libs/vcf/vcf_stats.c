@@ -70,7 +70,7 @@ void free_variant_stats(variant_stats_t* stats) {
     free(stats);
 }
 
-int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_list, file_stats_t *file_stats) {
+int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats) {
     char *copy_buf, *copy_buf2, *token, *sample;
     char *save_strtok;
     
@@ -86,10 +86,8 @@ int get_variants_stats(list_item_t* variants, int num_variants, list_t* output_l
     // Variant stats management
     vcf_record_t *record;
     variant_stats_t *stats;
-    list_item_t *cur_variant = variants;
-    
-    for (int i = 0; i < num_variants && cur_variant != NULL; i++, cur_variant = cur_variant->next_p) {
-        record = (vcf_record_t*) cur_variant->data_p;
+    for (int i = 0; i < num_variants; i++) {
+        record = variants[i];
         stats = new_variant_stats(strdup(record->chromosome), record->position, strdup(record->reference));
         
         // Create list of alternates
