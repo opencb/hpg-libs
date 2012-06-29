@@ -38,8 +38,7 @@ vcf_file_t *vcf_open(char *filename) {
 	vcf_file->num_header_entries = 0;
 	
 	// Initialize samples names list
-	vcf_file->samples_names = (list_t*) malloc (sizeof(list_t));
-	list_init("samples", 1, INT_MAX, vcf_file->samples_names);
+    vcf_file->samples_names = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
 	vcf_file->num_samples = 0;
 	
 	// Initialize records
@@ -58,23 +57,18 @@ vcf_file_t *vcf_open(char *filename) {
 void vcf_close(vcf_file_t *vcf_file) {
 	// Free file format
 	free(vcf_file->format);
+    
 	// Free samples names
-	list_item_t* item = NULL;
-	while ( (item = list_remove_item_async(vcf_file->samples_names)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
+    array_list_free(vcf_file->samples_names, free);
+    
 	// Free header entries
-	item = NULL;
+    list_item_t* item = NULL;
 	while ( (item = list_remove_item_async(vcf_file->header_entries)) != NULL ) 
 	{
 		vcf_header_entry_free(item->data_p);
 		list_item_free(item);
 	}
 	free(vcf_file->header_entries);
-	// Free samples names
-	free(vcf_file->samples_names);
 	
 	// TODO Free records list? they are freed via batches
 // 	item = NULL;
@@ -205,8 +199,7 @@ int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
 }
 
 int add_sample_name(char *name, vcf_file_t *vcf_file) {
-	list_item_t *item = list_item_new(vcf_file->num_samples, 1, name);
-	int result = list_insert_item(item, vcf_file->samples_names);
+    int result = array_list_insert(name, vcf_file->samples_names);
 	if (result) {
 		(vcf_file->num_samples)++;
 		LOG_DEBUG_F("sample %zu is %s\n", vcf_file->num_samples, name);

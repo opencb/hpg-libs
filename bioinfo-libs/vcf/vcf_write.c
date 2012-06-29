@@ -5,22 +5,22 @@ int vcf_write_to_file(vcf_file_t *vcf_file, FILE *fd) {
         return -1;
     }
     
-	// Write fileformat
-	write_file_format(vcf_file, fd);
-	// Write header entries
-	for (list_item_t *i = vcf_file->header_entries->first_p; i != NULL; i = i->next_p) {
-		vcf_header_entry_t *entry = i->data_p;
-		write_header_entry(entry, fd);
-	}
-	// Write delimiter
-	write_delimiter(vcf_file, fd);
-	// Write records
-	for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
-		vcf_record_t *record = i->data_p;
-		write_record(record, fd);
-	}
-	
-	return 0;
+    // Write fileformat
+    write_file_format(vcf_file, fd);
+    // Write header entries
+    for (list_item_t *i = vcf_file->header_entries->first_p; i != NULL; i = i->next_p) {
+        vcf_header_entry_t *entry = i->data_p;
+        write_header_entry(entry, fd);
+    }
+    // Write delimiter
+    write_delimiter(vcf_file, fd);
+    // Write records
+    for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
+        vcf_record_t *record = i->data_p;
+        write_record(record, fd);
+    }
+
+    return 0;
 }
 
 void write_file_format(vcf_file_t *vcf_file, FILE *fd) {
@@ -36,53 +36,53 @@ void write_header_entry(vcf_header_entry_t *entry, FILE *fd) {
         return;
     }
 
-	fprintf(fd, "##");
-	
-	// Entries with the form ##value
-	if (entry->name == NULL) {
-		char *value = entry->values->first_p->data_p; // Just first (and only) value
-		fprintf(fd, "%s\n", value);
-		return;
-	}
-	
-	fprintf(fd, "%s", entry->name);
-	// Entries with the form ##name=value
-	if (entry->num_keys == 0 && entry->num_values > 0) {
-		char *value = entry->values->first_p->data_p; // Just first (and only) value
-		fprintf(fd, "=%s\n", value);
-	}	
-	// Entries with the form ##name=<field_id=value,field_id=value,...>
-	else if (entry->num_keys > 0 && entry->num_keys == entry->num_values) {
-		fprintf(fd, "=<");
-		list_item_t *key = entry->keys->first_p;
-		list_item_t *value = entry->values->first_p;
-		
-		if (strcmp("Description", (char*) key->data_p) != 0)
-		{
-			fprintf(fd, "%s=%s", (char*) key->data_p, (char*) value->data_p);
-		} else 
-		{
-			fprintf(fd, "%s=\"%s\"", (char*) key->data_p, (char*) value->data_p);
-		}
-		
-		// Get next pair key-value
-		key = key->next_p;
-		value = value->next_p;
-		
-		while (key != NULL && value != NULL) {
-			if (strcmp("Description", (char*) key->data_p) != 0) {
-				fprintf(fd, ",%s=%s", (char*) key->data_p, (char*) value->data_p);
-			} else {
-				fprintf(fd, ",%s=\"%s\"", (char*) key->data_p, (char*) value->data_p);
-			}
-			
-			// Get next pair key-value
-			key = key->next_p;
-			value = value->next_p;
-		} 
-		
-		fprintf(fd, ">\n");
-	}
+    fprintf(fd, "##");
+
+    // Entries with the form ##value
+    if (entry->name == NULL) {
+        char *value = entry->values->first_p->data_p; // Just first (and only) value
+        fprintf(fd, "%s\n", value);
+        return;
+    }
+
+    fprintf(fd, "%s", entry->name);
+    // Entries with the form ##name=value
+    if (entry->num_keys == 0 && entry->num_values > 0) {
+        char *value = entry->values->first_p->data_p; // Just first (and only) value
+        fprintf(fd, "=%s\n", value);
+    }
+    // Entries with the form ##name=<field_id=value,field_id=value,...>
+    else if (entry->num_keys > 0 && entry->num_keys == entry->num_values) {
+        fprintf(fd, "=<");
+        list_item_t *key = entry->keys->first_p;
+        list_item_t *value = entry->values->first_p;
+        
+        if (strcmp("Description", (char*) key->data_p) != 0)
+        {
+            fprintf(fd, "%s=%s", (char*) key->data_p, (char*) value->data_p);
+        } else 
+        {
+            fprintf(fd, "%s=\"%s\"", (char*) key->data_p, (char*) value->data_p);
+        }
+        
+        // Get next pair key-value
+        key = key->next_p;
+        value = value->next_p;
+        
+        while (key != NULL && value != NULL) {
+            if (strcmp("Description", (char*) key->data_p) != 0) {
+                fprintf(fd, ",%s=%s", (char*) key->data_p, (char*) value->data_p);
+            } else {
+                fprintf(fd, ",%s=\"%s\"", (char*) key->data_p, (char*) value->data_p);
+            }
+            
+            // Get next pair key-value
+            key = key->next_p;
+            value = value->next_p;
+        } 
+        
+        fprintf(fd, ">\n");
+    }
 }
 
 void write_delimiter(vcf_file_t *vcf_file, FILE *fd) {
@@ -90,14 +90,13 @@ void write_delimiter(vcf_file_t *vcf_file, FILE *fd) {
         return;
     }
     
-	fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT");
-	
-	list_item_t *item = vcf_file->samples_names->first_p;
-	while (item != NULL) {
-		fprintf(fd, "\t%s", (char*) item->data_p);
-		item = item->next_p;
-	}
-	fprintf(fd, "\n");
+    fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT");
+
+    for (int i = 0; i < vcf_file->samples_names->size; i++) {
+        fprintf(fd, "\t%s", vcf_file->samples_names->items[i]);
+    }
+       
+    fprintf(fd, "\n");
 }
 
 void write_batch(vcf_batch_t *vcf_batch, FILE *fd) {

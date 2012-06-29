@@ -35,7 +35,6 @@ typedef struct vcf_record {
     char* format;
 
     array_list_t *samples;
-//     list_t *samples;
 } vcf_record_t;
 
 /**
@@ -56,7 +55,7 @@ typedef struct vcf_file {
     char* format;
     list_t *header_entries;
     size_t num_header_entries;
-    list_t *samples_names;
+    array_list_t *samples_names;
     size_t num_samples;
     list_t *records;
     size_t num_records;
