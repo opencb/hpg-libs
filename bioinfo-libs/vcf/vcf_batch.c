@@ -2,7 +2,7 @@
 #include "vcf_file.h"
 
 vcf_batch_t* vcf_batch_new(size_t size) {
-    return (vcf_batch_t*) array_list_new(size, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    return (vcf_batch_t*) array_list_new(size, 1.2, COLLECTION_MODE_ASYNCHRONIZED);
 }
 
 void vcf_batch_free(vcf_batch_t* vcf_batch) {

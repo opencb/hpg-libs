@@ -8,16 +8,18 @@ int vcf_write_to_file(vcf_file_t *vcf_file, FILE *fd) {
     // Write fileformat
     write_file_format(vcf_file, fd);
     // Write header entries
-    for (list_item_t *i = vcf_file->header_entries->first_p; i != NULL; i = i->next_p) {
-        vcf_header_entry_t *entry = i->data_p;
-        write_header_entry(entry, fd);
+    for (int i = 0; i < vcf_file->header_entries->size; i++) {
+        write_header_entry((vcf_header_entry_t*) array_list_get(i, vcf_file->header_entries), fd);
     }
     // Write delimiter
     write_delimiter(vcf_file, fd);
     // Write records
-    for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
-        vcf_record_t *record = i->data_p;
-        write_record(record, fd);
+//     for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
+//         vcf_record_t *record = i->data_p;
+//         write_record(record, fd);
+//     }
+    for (int i = 0; i < vcf_file->records->size; i++) {
+        write_record((vcf_record_t*) array_list_get(i, vcf_file->records), fd);
     }
 
     return 0;
@@ -93,7 +95,7 @@ void write_delimiter(vcf_file_t *vcf_file, FILE *fd) {
     fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT");
 
     for (int i = 0; i < vcf_file->samples_names->size; i++) {
-        fprintf(fd, "\t%s", vcf_file->samples_names->items[i]);
+        fprintf(fd, "\t%s", (char*) vcf_file->samples_names->items[i]);
     }
        
     fprintf(fd, "\n");

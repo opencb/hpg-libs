@@ -53,11 +53,11 @@ typedef struct vcf_file {
     size_t data_len;
 
     char* format;
-    list_t *header_entries;
+    array_list_t *header_entries;
     size_t num_header_entries;
     array_list_t *samples_names;
     size_t num_samples;
-    list_t *records;
+    array_list_t *records;
     size_t num_records;
 } vcf_file_t;
 

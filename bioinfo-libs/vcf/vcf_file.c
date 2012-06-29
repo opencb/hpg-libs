@@ -33,8 +33,7 @@ vcf_file_t *vcf_open(char *filename) {
     }
 
 	// Initialize header
-	vcf_file->header_entries = (list_t*) malloc (sizeof(list_t));
-	list_init("headers", 1, INT_MAX, vcf_file->header_entries);
+    vcf_file->header_entries = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
 	vcf_file->num_header_entries = 0;
 	
 	// Initialize samples names list
@@ -42,8 +41,7 @@ vcf_file_t *vcf_open(char *filename) {
 	vcf_file->num_samples = 0;
 	
 	// Initialize records
-	vcf_file->records = (list_t*) malloc (sizeof(list_t));
-	list_init("records", 1, INT_MAX, vcf_file->records);
+    vcf_file->records = array_list_new(100, 1.2, COLLECTION_MODE_SYNCHRONIZED);
 	vcf_file->num_records = 0;
 	
 	return vcf_file;
@@ -62,13 +60,7 @@ void vcf_close(vcf_file_t *vcf_file) {
     array_list_free(vcf_file->samples_names, free);
     
 	// Free header entries
-    list_item_t* item = NULL;
-	while ( (item = list_remove_item_async(vcf_file->header_entries)) != NULL ) 
-	{
-		vcf_header_entry_free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_file->header_entries);
+    array_list_free(vcf_file->header_entries, vcf_header_entry_free);
 	
 	// TODO Free records list? they are freed via batches
 // 	item = NULL;
@@ -130,7 +122,7 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 
 vcf_record_t* create_record() {
     vcf_record_t *record = (vcf_record_t*) malloc (sizeof(vcf_record_t));
-    record->samples = array_list_new(32, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
+    record->samples = array_list_new(16, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
     return record;
 }
 
@@ -187,11 +179,9 @@ int vcf_write(vcf_file_t *vcf_file, char *filename) {
 //-----------------------------------------------------
 
 int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
-	list_item_t *item = list_item_new(vcf_file->num_header_entries, 1, header_entry);
-	int result = list_insert_item(item, vcf_file->header_entries);
+    int result = array_list_insert(header_entry, vcf_file->header_entries);
 	if (result) {
-		vcf_file->num_header_entries++;
-		LOG_DEBUG_F("header entry %zu\n", vcf_file->num_header_entries);
+        LOG_DEBUG_F("header entry %zu\n", vcf_file->header_entries->size);
 	} else {
 		LOG_DEBUG_F("header entry %zu not inserted\n", vcf_file->num_header_entries);
 	}
@@ -201,8 +191,7 @@ int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
 int add_sample_name(char *name, vcf_file_t *vcf_file) {
     int result = array_list_insert(name, vcf_file->samples_names);
 	if (result) {
-		(vcf_file->num_samples)++;
-		LOG_DEBUG_F("sample %zu is %s\n", vcf_file->num_samples, name);
+        LOG_DEBUG_F("sample %zu is %s\n", vcf_file->samples_names->size, name);
 	} else {
 		LOG_DEBUG_F("sample %zu not inserted\n", vcf_file->num_samples);
 	}
@@ -210,8 +199,7 @@ int add_sample_name(char *name, vcf_file_t *vcf_file) {
 }
 
 int add_record(vcf_record_t* record, vcf_file_t *vcf_file) {
-	list_item_t *item = list_item_new(vcf_file->num_records, 1, record);
-	int result = list_insert_item(item, vcf_file->records);
+    int result = array_list_insert(record, vcf_file->records);
 	if (result) {
 		vcf_file->num_records++;
 		LOG_DEBUG_F("record %zu\n", vcf_file->num_records);
