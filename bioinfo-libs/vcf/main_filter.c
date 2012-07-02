@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
                 if (i % 200 == 0) {
                     LOG_DEBUG_F("Batch %d reached by thread %d - %zu/%zu records \n", 
                             i, omp_get_thread_num(),
-                            batch->length, batch->max_length);
+                            batch->size, batch->capacity);
                 }
 
                 passed_records = run_filter_chain(input_records, failed_records, 

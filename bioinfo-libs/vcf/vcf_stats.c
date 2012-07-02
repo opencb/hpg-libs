@@ -80,8 +80,9 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     // Temporary variables for file stats updating
     int variants_count = 0, samples_count = 0, snps_count = 0, indels_count = 0, pass_count = 0;
     int transitions_count = 0, transversions_count = 0, biallelics_count = 0, multiallelics_count = 0;
-    int total_alleles_count = 0, total_genotypes_count = 0;
     float accum_quality = 0;
+    // Temporary variables for variant stats updating
+    int total_alleles_count = 0, total_genotypes_count = 0;
     
     // Variant stats management
     vcf_record_t *record;
@@ -90,16 +91,21 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         record = variants[i];
         stats = new_variant_stats(strdup(record->chromosome), record->position, strdup(record->reference));
         
+        // Reset counters
+        total_alleles_count = 0;
+        total_genotypes_count = 0;
+        
         // Create list of alternates
         copy_buf = (char*) calloc (strlen(record->alternate)+1, sizeof(char));
         strcat(copy_buf, record->alternate);
         stats->alternates = split(copy_buf, ",", &num_alternates);
         
-        if (!strncmp(stats->alternates[0], ".", 1)) {
-            stats->num_alleles = 1;
-        } else {
-            stats->num_alleles = num_alternates + 1;
-        }
+        stats->num_alleles = num_alternates + 1;
+//         if (!strncmp(stats->alternates[0], ".", 1)) {
+//             stats->num_alleles = 1;
+//         } else {
+//             stats->num_alleles = num_alternates + 1;
+//         }
         LOG_DEBUG_F("num alternates = %d\tnum_alleles = %d\n", num_alternates, stats->num_alleles);
         
         // Create lists of allele and genotypes counters and frequencies
@@ -140,9 +146,18 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
             } else {
                 // Both alleles set
                 cur_pos = allele1 * (stats->num_alleles) + allele2;
-                stats->alleles_count[allele1]++;
-                stats->alleles_count[allele2]++;
-                stats->genotypes_count[cur_pos]++;
+                if (allele1 > stats->num_alleles) {
+                    printf("num alleles = %d\tallele_1 = %d\n", stats->num_alleles, allele1);
+                }
+                if (allele2 > stats->num_alleles) {
+                    printf("num alleles = %d\tallele_2 = %d\n", stats->num_alleles, allele2);
+                }
+                if (cur_pos > stats->num_alleles * stats->num_alleles) {
+                    printf("num alleles = %d\tcur_pos = %d\n", stats->num_alleles, cur_pos);
+                }
+                stats->alleles_count[allele1] += 1;
+                stats->alleles_count[allele2] += 1;
+                stats->genotypes_count[cur_pos] += 1;
                 total_alleles_count += 2;
                 total_genotypes_count++;
             }
@@ -153,6 +168,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
             stats->alleles_freq[j] = (float) stats->alleles_count[j] / total_alleles_count;
         }
         for (int j = 0; j < stats->num_alleles * stats->num_alleles; j++) {
+            printf("");
             stats->genotypes_freq[j] = (float) stats->genotypes_count[j] / total_genotypes_count;
         }
         
