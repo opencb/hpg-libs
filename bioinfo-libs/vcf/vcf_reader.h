@@ -41,6 +41,7 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
 
 int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file);
 
+int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files);
 
 vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples, int self_contained);
 

@@ -102,16 +102,14 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 	free(vcf_header_entry->name);
 	// Free list of keys
 	list_item_t* item = NULL;
-	while ( (item = list_remove_item_async(vcf_header_entry->keys)) != NULL ) 
-	{
+	while ( (item = list_remove_item_async(vcf_header_entry->keys)) != NULL )  {
 		free(item->data_p);
 		list_item_free(item);
 	}
 	free(vcf_header_entry->keys);
 	// Free list of values
 	item = NULL;
-	while ( (item = list_remove_item_async(vcf_header_entry->values)) != NULL ) 
-	{
+	while ( (item = list_remove_item_async(vcf_header_entry->values)) != NULL ) {
 		free(item->data_p);
 		list_item_free(item);
 	}
@@ -143,12 +141,16 @@ void vcf_record_free(vcf_record_t *vcf_record) {
 // I/O operations (read and write) in various ways
 //-----------------------------------------------------
 
-int vcf_read(vcf_file_t *vcf_file) {
-	return vcf_ragel_read(NULL, 1, vcf_file, 0);
+// int vcf_read(vcf_file_t *vcf_file) {
+// 	return vcf_ragel_read(NULL, 1, vcf_file, 0);
+// }
+
+int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file) {
+    return vcf_light_read(batches_list, batch_size, vcf_file);
 }
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
-    return vcf_light_read(batches_list, batch_size, vcf_file);
+int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files) {
+    return vcf_light_multiread(batches_list, batch_size, vcf_files, num_files);
 }
 
 int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
@@ -157,14 +159,12 @@ int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_f
 
 int vcf_write(vcf_file_t *vcf_file, char *filename) {
 	FILE *fd = fopen(filename, "w");
-	if (fd < 0) 
-	{
+	if (fd < 0) {
 		fprintf(stderr, "Error opening file: %s\n", filename);
 		exit(1);
 	}
 	
-	if (vcf_write_to_file(vcf_file, fd))
-	{
+	if (vcf_write_to_file(vcf_file, fd)) {
 		fprintf(stderr, "Error writing file: %s\n", filename);
 		fclose(fd);
 		exit(1);

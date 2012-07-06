@@ -72,17 +72,19 @@ void vcf_record_free(vcf_record_t *vcf_record);
  * File reading
  */
 
-/**
- * Fill the fields of the vcf_file_t given as argument reading data from a file.
- * 
- * TODO breaks because a batches list isn't provided! 
- * a solution would be creating a temp batches list, then copying its contents to the vcf_file_t
- * 
- * @param vcf_file The vcf_file_t whose fields will be set
- */
-int vcf_read(vcf_file_t *vcf_file);
+// /**
+//  * Fill the fields of the vcf_file_t given as argument reading data from a file.
+//  * 
+//  * TODO breaks because a batches list isn't provided! 
+//  * a solution would be creating a temp batches list, then copying its contents to the vcf_file_t
+//  * 
+//  * @param vcf_file The vcf_file_t whose fields will be set
+//  */
+// int vcf_read(vcf_file_t *vcf_file);
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
+int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file);
+
+int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files);
 
 int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
 
