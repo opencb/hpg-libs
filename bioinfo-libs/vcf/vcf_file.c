@@ -180,32 +180,33 @@ int vcf_write(vcf_file_t *vcf_file, char *filename) {
 
 int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
     int result = array_list_insert(header_entry, vcf_file->header_entries);
-	if (result) {
+    if (result) {
+        (vcf_file->num_header_entries)++;
         LOG_DEBUG_F("header entry %zu\n", vcf_file->header_entries->size);
-	} else {
-		LOG_DEBUG_F("header entry %zu not inserted\n", vcf_file->num_header_entries);
-	}
-	return result;
+    } else {
+        LOG_DEBUG_F("header entry %zu not inserted\n", vcf_file->num_header_entries);
+    }
+    return result;
 }
 
 int add_sample_name(char *name, vcf_file_t *vcf_file) {
     int result = array_list_insert(name, vcf_file->samples_names);
-	if (result) {
+    if (result) {
+        (vcf_file->num_samples)++;
         LOG_DEBUG_F("sample %zu is %s\n", vcf_file->samples_names->size, name);
-	} else {
-		LOG_DEBUG_F("sample %zu not inserted\n", vcf_file->num_samples);
-	}
-	return result;
+    } else {
+        LOG_DEBUG_F("sample %zu not inserted\n", vcf_file->num_samples);
+    }
+    return result;
 }
 
 int add_record(vcf_record_t* record, vcf_file_t *vcf_file) {
     int result = array_list_insert(record, vcf_file->records);
-	if (result) {
-		vcf_file->num_records++;
-		LOG_DEBUG_F("record %zu\n", vcf_file->num_records);
-	} else {
-		LOG_DEBUG_F("record %zu not inserted\n", vcf_file->num_records);
-	}
-	return result;
+    if (result) {
+        (vcf_file->num_records)++;
+        LOG_DEBUG_F("record %zu\n", vcf_file->num_records);
+    } else {
+        LOG_DEBUG_F("record %zu not inserted\n", vcf_file->num_records);
+    }
+    return result;
 }
-
