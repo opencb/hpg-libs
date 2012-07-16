@@ -53,30 +53,22 @@ vcf_file_t *vcf_open(char *filename) {
 //-----------------------------------------------------
 
 void vcf_close(vcf_file_t *vcf_file) {
-	// Free file format
-	free(vcf_file->format);
-    
-	// Free samples names
+    // Free file format
+    free(vcf_file->format);
+
+    // Free samples names
     array_list_free(vcf_file->samples_names, free);
-    
-	// Free header entries
+    // Free header entries
     array_list_free(vcf_file->header_entries, vcf_header_entry_free);
-	
-	// TODO Free records list? they are freed via batches
-// 	item = NULL;
-// 	while ( (item = list_remove_item_async(vcf_file->records)) != NULL ) 
-// 	{
-// 		vcf_record_free(item->data_p);
-// 		list_item_free(item);
-// 	}
-	free(vcf_file->records);
+    // Free records list
+    array_list_free(vcf_file->records, vcf_record_free);
 
     if (mmap_file) {
         munmap((void*) vcf_file->data, vcf_file->data_len);
     } else {
         fclose(vcf_file->fd);
     }
-	free(vcf_file);
+    free(vcf_file);
 }
 
 
@@ -119,7 +111,7 @@ void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry) {
 }
 
 vcf_record_t* create_record() {
-    vcf_record_t *record = (vcf_record_t*) malloc (sizeof(vcf_record_t));
+    vcf_record_t *record = (vcf_record_t*) calloc (1, sizeof(vcf_record_t));
     record->samples = array_list_new(16, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
     return record;
 }
