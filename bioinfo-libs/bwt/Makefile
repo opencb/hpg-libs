@@ -5,8 +5,8 @@ COMMONS_CUDA_DIR = $(LIBS_DIR)/commons-cuda
 CONTAINERS_DIR = $(LIBS_DIR)/containers
 FASTQ_DIR = $(LIBS_DIR)/bioformats/fastq
 SAM_DIR = $(LIBS_DIR)/bioformats/bam-sam
-#SAMTOOLS_DIR = ../../../hpg-aligner/samtools-0.1.18/
-SAMTOOLS_DIR = /home/jtarraga/appl/bioinfo-c-old/ngs-hpc-pipeline/bam-hpc-tools/samtools-0.1.18
+SAMTOOLS_DIR = ../../../samtools-0.1.18/
+#SAMTOOLS_DIR = /home/jtarraga/appl/bioinfo-c-old/ngs-hpc-pipeline/bam-hpc-tools/samtools-0.1.18
 
 LIB = -L/usr/local/cuda/lib64/ -lm -L$(SAMTOOLS_DIR) -lbam -L$(SAM_DIR) -lz -fopenmp
 

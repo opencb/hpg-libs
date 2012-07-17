@@ -12,6 +12,7 @@
 #include "alignment.h"
 #include "BW_io.h"
 #include "BW_search.h"
+#include "string_utils.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -27,12 +28,14 @@ typedef struct cal_optarg {
   size_t max_cal_distance;
   size_t seed_size;
   size_t min_seed_size;
+  size_t num_errors;
 } cal_optarg_t;
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
 			     const size_t seed_size,
-			     const size_t min_seed_size);
+			     const size_t min_seed_size,
+			     const size_t num_errors);
 
 void cal_optarg_free(cal_optarg_t *optarg);
 

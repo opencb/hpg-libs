@@ -28,9 +28,16 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
 			   fastq_batch_t *unmapped_batch,
 			   array_list_t *mapping_list);
 
+size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list);
 //-----------------------------------------------------------------------------
 // inexact functions
 //-----------------------------------------------------------------------------
+size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list);
+
 
 size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
 				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
@@ -78,14 +85,16 @@ char *bwt_error_type(char error_kind);
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
 			     const size_t seed_size,
-			     const size_t min_seed_size){
+			     const size_t min_seed_size,
+			     const size_t num_errors){
 			       
   cal_optarg_t *cal_optarg_p = (cal_optarg_t *)malloc(sizeof(cal_optarg_t));
   cal_optarg_p->min_cal_size = min_cal_size;
   cal_optarg_p->max_cal_distance = max_cal_distance;
   cal_optarg_p->min_seed_size = min_seed_size;
   cal_optarg_p->seed_size = seed_size;
-  
+  cal_optarg_p->num_errors = num_errors;
+
   return cal_optarg_p;
 }
     
@@ -327,20 +336,20 @@ size_t bwt_map_exact_seq(char *seq,
 			 bwt_optarg_t *bwt_optarg, 
 			 bwt_index_t *index, 
 			 array_list_t *mapping_list) {
-  
+  //printf("\tIn function...\n");
   unsigned int len = strlen(seq);
   int start = 0;
   int end = len - 1;
   char *code_seq = (char *) calloc(len, sizeof(char));
   result *result_p = (result *) calloc(1, sizeof(result));
-  unsigned int l_aux, k_aux;
+  size_t l_aux, k_aux;
   unsigned int num_mappings = 0;
   char plusminus[2] = "-+";
-  int idx, key, error, pos;
+  size_t idx, key, error, pos;
   alignment_t *alignment;
   char *cigar_p;
   unsigned int start_mapping;
-  char *seq_dup;
+  //char *chromosome = (char *)malloc(sizeof(char)*10);
   replaceBases(seq, code_seq, len);
   
   //printf("Search Read (%d): %s\n", len, seq);
@@ -348,8 +357,8 @@ size_t bwt_map_exact_seq(char *seq,
   for (short int type = 1; type >= 0; type--) {
       if (type == 1) {
 	result_p->k = 0;
-	result_p->l = index->h_Oi.m_count - 2;
-	BWExactSearchForward(code_seq, start, end, &index->h_C, &index->h_C1, &index->h_Oi, result_p);
+	result_p->l = index->h_O.m_count - 2;
+	BWExactSearchBackward(code_seq, start, end, &index->h_C, &index->h_C1, &index->h_O, result_p);
       }else{
 	result_p->k = 0;
 	result_p->l = index->h_rO.m_count - 2;
@@ -358,35 +367,35 @@ size_t bwt_map_exact_seq(char *seq,
       
       k_aux = result_p->k;
       l_aux = result_p->l;
-      
+      //printf("\tk=%d - l=%d\n", k_aux, l_aux);      
       if (l_aux - k_aux + 1 < bwt_optarg->max_alignments_per_read) {
-	for (int j = k_aux; j <= l_aux; j++) {
+	for (size_t j = k_aux; j <= l_aux; j++) {
 	  if (index->S.ratio == 1) {
-	    key = (type)
-	      ? index->Si.n - index->Si.vector[j] - len - 1
-	      : index->S.vector[j];
+	    key = index->S.vector[j];
 	  } else {
-	    key = (type)
-	      ? index->Si.n - getScompValue(j, &index->Si, &index->h_C,
-					    &index->h_Oi) - len - 1
-	      : getScompValue(j, &index->S, &index->h_C, &index->h_O);
+	    key = getScompValue(j, &index->S, &index->h_C, &index->h_O);
 	  }
+	  //printf("----> key value: %d\n", key);
+
 	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	  //printf("----> idx value: %d\n", idx);
+	  //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+ 
 	  if(key + len <= index->karyotype.offset[idx]) {
 	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
-	    /*printf("Strand:%c\tchromosome:%s\tStart:%u\n",plusminus[type],
-		    index->karyotype.chromosome + (idx-1) * IDMAX,
-		    start_mapping);
-	    */
+	    /*printf("\tStrand:%c\tchromosome:%d\tStart:%u\n",plusminus[type],
+		    idx,
+		    start_mapping);*/
+	    
 	    cigar_p = (char *)malloc(sizeof(char)*len);
 	    sprintf(cigar_p, "%d=\0", len);
 	    
-	    seq_dup = (char *)malloc(sizeof(char)*len);
-	    memcpy(seq_dup, seq, len);
+	    seq_dup = (char *)malloc(sizeof(char)*(len + 1));
+	    memcpy(seq_dup, seq, len + 1);
 	    // save all into one alignment structure and insert to the list
 	    alignment = alignment_new();
-	    alignment_init_single_end(NULL, seq, NULL, type, 
-				      idx, //index->karyotype.chromosome + (idx-1) * IDMAX,
+	    alignment_init_single_end(NULL, seq_dup, NULL, !type, 
+				      idx,				      
 				      start_mapping, 
 				      cigar_p, 1, 255, 1, (num_mappings > 0), alignment);
 
@@ -402,6 +411,7 @@ size_t bwt_map_exact_seq(char *seq,
   
   free(result_p);
   free(code_seq);
+  //printf("\tOut function\n");
   return num_mappings;
   
 }
@@ -420,13 +430,22 @@ size_t bwt_map_exact_read(fastq_read_t *read,
 					  mapping_list);
   alignment_t *mapping;
   
+  unsigned int header_len, quality_len;
   
   for (int i = 0; i < num_mappings ; i++) {
     //printf("access to pos:%d-padding:%d\n", i + padding, padding);
     mapping = (alignment_t *) array_list_get(i + padding, mapping_list);
     if (mapping != NULL) {
-      mapping->query_name = read->id;
-      mapping->quality = read->quality;
+      header_len = strlen(read->id) + 1;
+      mapping->query_name = (char *)malloc(sizeof(char)*header_len);
+      get_to_first_blank(read->id, header_len, mapping->query_name);
+      //printf("--->header id %s to %s\n",read->id, header_id);
+      //free(read->id);
+      
+      quality_len = strlen(read->quality) + 1;
+      mapping->quality = (char *)malloc(sizeof(char)*quality_len);
+      memcpy(mapping->quality, read->quality, quality_len);
+      //mapping->quality = read->quality;
     } else {
       printf("Error to extract item\n");
     }
@@ -450,7 +469,7 @@ size_t bwt_map_exact_seqs(char **seqs,
   array_list_t **individual_mapping_list_p = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
   const size_t chunk = MAX(1, num_reads/( num_threads*10));
   size_t num_mappings = 0; 
-  size_t num_mappings_tot = 0;
+
   short int th_id;
   alignment_t *mapping;
   
@@ -462,12 +481,19 @@ size_t bwt_map_exact_seqs(char **seqs,
   
   //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
   
-  #pragma omp parallel for private(th_id) schedule(dynamic, chunk) reduction(+:num_mappings_tot)
+  #pragma omp parallel for private(th_id, num_mappings) schedule(dynamic, chunk)
   for(int i = 0; i < num_reads; i++){
     th_id = omp_get_thread_num();
     //printf("I'm thread %d and process read %d\n", th_id,  i);
-    num_mappings_tot += bwt_map_exact_seq(seqs[i], bwt_optarg, index, individual_mapping_list_p[th_id]);
+    num_mappings = bwt_map_exact_seq(seqs[i], bwt_optarg, index, individual_mapping_list_p[th_id]);
+    if(num_mappings){
+      out_status[i] = 1;
+    }else{
+      out_status[i] = 0;
+    }
+    num_mappings = 0;
   }
+
   
   //printf("Process reads ok! Total mappings %d\n\n", num_mappings_tot);
   
@@ -483,7 +509,7 @@ size_t bwt_map_exact_seqs(char **seqs,
 
   free(individual_mapping_list_p);
 
-  return num_mappings_tot;
+  return array_list_size(mapping_list);
 }
 
 
@@ -498,7 +524,7 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
   size_t length_header, length_seq;
   fastq_read_t *fq_read;
   char header[1024], seq[1024], quality[1024]; 
-  size_t num_mappings, num_mappings_tot, num_unmapped;
+  size_t num_mappings, num_unmapped;
   size_t read_pos;
   size_t num_threads = bwt_optarg->num_threads;
   short int th_id;
@@ -516,15 +542,15 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
   
   //#pragma omp parallel for  
   for (int i = 0; i < num_threads; i++) {
-   individual_mapping_list_p[i]   = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
-   individual_unmapping_list_p[i] = array_list_new(100000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+   individual_mapping_list_p[i]   = array_list_new(50000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+   individual_unmapping_list_p[i] = array_list_new(50000/num_threads, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   }
   
   //printf("%d Threads %d chunk\n", num_threads, chunk);
   num_mappings = 0;
   omp_set_num_threads(num_threads);
   
-  start_timer(start_time);
+  //start_timer(start_time);
   #pragma omp parallel for private(th_id, fq_read, num_mappings) schedule(dynamic, chunk)
   for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
@@ -539,22 +565,22 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
     if (!num_mappings) {
       //Read not mapped. Store in unmapped_batch
       //printf("Insert Error Read\n");
-      if (!array_list_insert((void*)fq_read, individual_unmapping_list_p[th_id])) {
+      if (!array_list_insert((void *)fq_read, individual_unmapping_list_p[th_id])) {
 	printf("Error to insert item into array list\n");
       }
-    }
+    }/*else{
+      fastq_read_free(fq_read);
+    }*/
   }
-  stop_timer(start_time, end_time, timer);
-  parallel_t = timer;
+  //stop_timer(start_time, end_time, timer);
+  //parallel_t = timer;
   
-  start_timer(start_time);
+  //start_timer(start_time);
   //printf("Join Results\n");
-  num_mappings_tot = 0;
   
   //Join results
   for (int i = 0; i < num_threads; i++) {
     num_mappings = array_list_size(individual_mapping_list_p[i]);
-    num_mappings_tot += num_mappings;
     for (int j = 0; j < num_mappings; j++) {
       mapping = (alignment_t *)array_list_get(j, individual_mapping_list_p[i]);
       array_list_insert(mapping, mapping_list);
@@ -580,6 +606,8 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
       
       unmapped_batch->data_indices[read_pos]   = unmapped_batch->data_indices[read_pos - 1]   + length_seq;
       unmapped_batch->header_indices[read_pos] = unmapped_batch->header_indices[read_pos - 1] + length_header;
+    
+      //fastq_read_free(fq_read);
     }
   }
   
@@ -595,30 +623,114 @@ size_t bwt_map_exact_batch(fastq_batch_t *batch,
   free(individual_mapping_list_p);
   free(individual_unmapping_list_p);
   
-  stop_timer(start_time, end_time, timer);
+  //stop_timer(start_time, end_time, timer);
   
-  sequential_t = timer - parallel_t;
+  //sequential_t = timer - parallel_t;
   
-  global_parallel += parallel_t;
-  global_sequential += sequential_t;
+  //global_parallel += parallel_t;
+  //global_sequential += sequential_t;
   
   //printf("Parallel %d\n", parallel_t);
   
-  printf("%4.06f\t%4.06f\t%4.06f\n", parallel_t / 1000000, sequential_t / 1000000, timer / 1000000);
+  //printf("%4.06f\t%4.06f\t%4.06f\n", parallel_t / 1000000, sequential_t / 1000000, timer / 1000000);
   
-  return num_mappings_tot;
+  return array_list_size(mapping_list);
 }
 
 //-----------------------------------------------------------------------------
 // inexact functions
 //-----------------------------------------------------------------------------
 
+size_t bwt_map_exact_seed(char *seq, 
+			  size_t seq_start, size_t seq_end,
+			  bwt_optarg_t *bwt_optarg, 
+			  bwt_index_t *index, 
+			  array_list_t *mapping_list){
+  
+  //printf("Process New Seeds\n");
+
+  region_t *region;
+  size_t start = 0;
+  size_t end = seq_end - seq_start;
+  result *result_p = (result *) calloc(1, sizeof(result));
+  char *code_seq = &seq[seq_start];/*(char *)malloc(sizeof(char)*(seq_end - seq_start + 1)); //= &seq[seq_start];
+  memcpy(code_seq, &seq[seq_start], seq_end - seq_start);*/
+  //code_seq[seq_end - seq_start] = '\0';
+  
+  //size_t start = 0;
+  //size_t end = seq_end - seq_start;
+  size_t len = seq_end - seq_start;
+  unsigned int num_mappings = 0;
+  char plusminus[2] = "-+";
+  size_t idx, key, direction, error, pos;
+  results_list *r_list;
+  result *r;
+  size_t l_aux, k_aux;
+  alignment_t *alignment;
+  //  size_t len = strlen(seq);
+  //  size_t start = 0;
+  //  size_t end = len - 1;
+  size_t start_mapping;
+  
+  
+  for (short int type = 1; type >= 0; type--) {
+    //printf("Start search strand %c\n", plusminus[type]);
+      if (type == 1) {
+	result_p->k = 0;
+	result_p->l = index->h_O.m_count - 2;
+	BWExactSearchBackward(code_seq, start, end, &index->h_C, &index->h_C1, &index->h_O, result_p);
+      }else{
+	result_p->k = 0;
+	result_p->l = index->h_rO.m_count - 2;
+	BWExactSearchForward(code_seq, start, end, &index->h_rC, &index->h_rC1, &index->h_rO, result_p);
+      }
+      k_aux = result_p->k;
+      l_aux = result_p->l;
+      //printf("\tk=%d - l=%d\n", k_aux, l_aux);      
+      if (l_aux - k_aux + 1 < bwt_optarg->max_alignments_per_read) {
+	for (size_t j = k_aux; j <= l_aux; j++) {
+	  if (index->S.ratio == 1) {
+	    key = index->S.vector[j];
+	  } else {
+	    key = getScompValue(j, &index->S, &index->h_C, &index->h_O);
+	  }
+	  //printf("----> key value: %d\n", key);
+
+	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	  //printf("----> idx value: %d\n", idx);
+	  //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+ 
+	  if(key + len <= index->karyotype.offset[idx]) {
+	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    /*printf("Strand:%c\tchromosome:%s\tStart:%u\n",plusminus[type],
+		    index->karyotype.chromosome + (idx-1) * IDMAX,
+		    start_mapping);*/
+	    
+	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    // save all into one alignment structure and insert to the list
+	    region = region_new(idx, !type, start_mapping, start_mapping + len);
+	    
+	    if(!array_list_insert((void*) region, mapping_list)){
+		  printf("Error to insert item into array list\n");
+	    }
+	    
+	    num_mappings++;
+	  }
+	}
+      }
+  }
+  //printf("Seeds end\n");
+  free(result_p);
+  
+  return num_mappings;
+  
+}
+
 size_t bwt_map_inexact_seed(char *seq, 
 			    size_t seq_start, size_t seq_end,
 			    bwt_optarg_t *bwt_optarg, 
 			    bwt_index_t *index, 
 			    array_list_t *mapping_list) {
-    
   region_t *region; 
 
   char *code_seq = &seq[seq_start];
@@ -631,10 +743,9 @@ size_t bwt_map_inexact_seed(char *seq,
   //  size_t end = len - 1;
   size_t start_mapping;
   //  char *code_seq = (char *) calloc(len, sizeof(char));
-
   //  replaceBases(seq, code_seq, len);
-
   // calculate vectors k and l
+  
   size_t *k0, *l0, *k1, *l1;
   size_t *ki0, *li0, *ki1, *li1;
   
@@ -696,16 +807,16 @@ size_t bwt_map_inexact_seed(char *seq,
 	}
 	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
 	if(key + len <= index->karyotype.offset[idx]) {
-	  
-	  /*printf("%s\t%c\t%s %u %s error: %s, pos: %i, base: %i cigar: %s\n",
+	  //printf("\tvalue idx=%d\n", idx);
+	  /*printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i ",
 		 "nothing", plusminus[type],
 		 index->karyotype.chromosome + (idx-1) * IDMAX,
 		 index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
-		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0], cigar);*/
-		  
+		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0]);
+	  */	  
 	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	  // save all into one alignment structure and insert to the list
-	  region = region_new(idx, type, start_mapping, start_mapping + end);
+	  region = region_new(idx, !type, start_mapping, start_mapping + end);
 	  
 	  if(!array_list_insert((void*) region, mapping_list)){
 	    printf("Error to insert item into array list\n");
@@ -726,7 +837,6 @@ size_t bwt_map_inexact_seed(char *seq,
   free(li0);
   free(ki1);
   free(li1);
-
   return num_mappings;
 
 }
@@ -739,6 +849,7 @@ size_t bwt_map_inexact_seq(char *seq,
 			   array_list_t *mapping_list) {
   
 
+  //printf("\tIn function...\n");
   /*unsigned int len = strlen(seq);
   unsigned int start = 0;
   unsigned int end = len - 1;*/
@@ -777,7 +888,7 @@ size_t bwt_map_inexact_seq(char *seq,
   // compare the vectors k and l to get mappings in the genome
   size_t num_mappings = 0;
   char plusminus[2] = "-+";
-  int idx, key, direction, error, pos;
+  size_t idx, key, direction, error, pos;
   results_list *r_list;
   result *r;
   alignment_t *alignment;
@@ -803,6 +914,7 @@ size_t bwt_map_inexact_seq(char *seq,
 
     for (size_t ii = 0; ii < r_list->n; ii++) {
       r = &r_list->list[ii];
+      //printf("\tk=%d - l=%d\n", r->k, r->l);      
       for (unsigned int j = r->k; j <= r->l; j++) {
 	if (type) {
 	  direction = r->dir;
@@ -857,7 +969,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	      num_cigar_ops = 1;
 	    }
 
-	  } else if (error == DELETION) {
+	  } else if (error == INSERTION) {
 
 	    if (pos == 0) {
 	      sprintf(cigar, "1H%iM\0", len-1);
@@ -866,11 +978,11 @@ size_t bwt_map_inexact_seq(char *seq,
 	      sprintf(cigar, "%iM1H\0", len-1);
 	      num_cigar_ops = 2;
 	    } else {
-	      sprintf(cigar, "%iM1D%iM\0", pos, len - pos - 1);
+	      sprintf(cigar, "%iM1I%iM\0", pos, len - pos - 1);
 	      num_cigar_ops = 3;
 	    }
 
-	  } else if (error == INSERTION) {
+	  } else if (error == DELETION) {
 
 	    if (pos == 0) {
 	      sprintf(cigar, "1I%iM\0", len);
@@ -879,27 +991,28 @@ size_t bwt_map_inexact_seq(char *seq,
 	      sprintf(cigar, "%iM1I\0", len);
 	      num_cigar_ops = 2;
 	    } else {
-	      sprintf(cigar, "%iM1I%iM\0", pos, len - pos);
+	      sprintf(cigar, "%iM1D%iM\0", pos, len - pos);
 	      num_cigar_ops = 3;
 	    }
 
 	  }
-	  
-	  /*printf("%s\t%c\t%s %u %s error: %s, pos: %i, base: %i cigar: %s\n",
+	  /*printf("Value idx = %d\n", idx);
+	  printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i cigar: %s\n",
 		 "nothing", plusminus[type],
 		 index->karyotype.chromosome + (idx-1) * IDMAX,
 		 index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
-		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0], cigar);*/
-		  
-	  cigar_len = strlen(cigar);
-	  cigar_dup = (char *)malloc(sizeof(char)*cigar_len);
-	  memcpy(cigar_dup, &cigar, cigar_len + 1);
+		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0], cigar);
+	  */  
+	  cigar_len = strlen(cigar) + 1;
+	  cigar_dup = (char *)calloc(cigar_len, sizeof(char));
+	  memcpy(cigar_dup, cigar, cigar_len);
 	  
-	  seq_dup = (char *)malloc(sizeof(char)*len);
-	  memcpy(seq_dup ,seq, len);
+	  seq_dup = (char *)malloc(sizeof(char)*(len + 1));
+	  memcpy(seq_dup ,seq, len + 1);
+	  
 	  // save all into one alignment structure and insert to the list
 	  alignment = alignment_new();
-	  alignment_init_single_end(NULL, seq_dup, NULL, type, 
+	  alignment_init_single_end(NULL, seq_dup, NULL, !type, 
 				    idx, //index->karyotype.chromosome + (idx-1) * IDMAX,
 				    index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
 				    cigar_dup, num_cigar_ops, 255, 1, (num_mappings > 0), alignment);
@@ -923,6 +1036,7 @@ size_t bwt_map_inexact_seq(char *seq,
   free(li0);
   free(ki1);
   free(li1);
+  //printf("\tOut function\n");
 
   return num_mappings;
 }
@@ -992,12 +1106,22 @@ size_t bwt_map_inexact_read(fastq_read_t *read,
 					    mapping_list);
   //printf("padding:%d - num_mappings:%d\n", padding, num_mappings);
   alignment_t *mapping;
+  unsigned int header_len;
+  
   for (int i = 0; i < num_mappings; i++) {
     mapping = (alignment_t *) array_list_get(i + padding, mapping_list);
     
     if(mapping != NULL){
-      mapping->query_name = read->id;
-      mapping->quality = read->quality;
+      header_len = strlen(read->id) + 1;
+      mapping->query_name = (char *)malloc(sizeof(char)*header_len);
+      get_to_first_blank(read->id, header_len, mapping->query_name);
+      //printf("--->header id %s to %s\n",read->id, header_id);
+      //free(read->id);
+      
+      quality_len = strlen(read->quality) + 1;
+      mapping->quality = (char *)malloc(sizeof(char)*quality_len);
+      memcpy(mapping->quality, read->quality, quality_len);
+      //mapping->quality = read->quality;
     }else{
       printf("Error to extract item\n");
     }
@@ -1032,12 +1156,19 @@ size_t bwt_map_inexact_seqs(char **seqs,
   
   //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
   
-  #pragma omp parallel for private(th_id) schedule(dynamic, chunk) reduction(+:num_mappings_tot)
+  #pragma omp parallel for private(th_id, num_mappings) schedule(dynamic, chunk)
   for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
     //printf("I'm thread %d and process read %d\n", th_id,  i);
-    num_mappings_tot += bwt_map_inexact_seq(seqs[i], bwt_optarg, index, individual_mapping_list_p[th_id]);
+    num_mappings = bwt_map_inexact_seq(seqs[i], bwt_optarg, index, individual_mapping_list_p[th_id]);
+    if(num_mappings == 0){
+      out_status[i] = 0;
+    }else{
+      out_status[i] = 1;
+    }
+    num_mappings = 0;
   }
+
   
   //printf("Process reads ok! Total mappings %d\n\n", num_mappings_tot);
   
@@ -1095,9 +1226,9 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
   #pragma omp parallel for private(th_id, fq_read, num_mappings) schedule(dynamic, chunk)
   for (int i = 0; i < num_reads; i++) {
     th_id = omp_get_thread_num();
-    //th_id = 0;
-    //printf("I'm Thread %d of %d\n", th_id, omp_get_thread_num());
+    
     fq_read = fastq_read_new(&(batch->header[batch->header_indices[i]]),  &(batch->seq[batch->data_indices[i]]), &(batch->quality[batch->data_indices[i]]));
+
     num_mappings = bwt_map_inexact_read(fq_read, bwt_optarg, index, individual_mapping_list_p[th_id]);
     //num_mappings = 0;
     if(!num_mappings){
@@ -1141,6 +1272,12 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
       
       unmapped_batch->data_indices[read_pos]   = unmapped_batch->data_indices[read_pos - 1]   + length_seq;
       unmapped_batch->header_indices[read_pos] = unmapped_batch->header_indices[read_pos - 1] + length_header;
+      
+      /*printf("%s\n", &(unmapped_batch->header[unmapped_batch->header_indices[read_pos - 1]]));
+      printf("%s\n", &(unmapped_batch->seq[unmapped_batch->data_indices[read_pos - 1]]));
+      printf("%s\n", &(unmapped_batch->quality[unmapped_batch->data_indices[read_pos - 1]]));
+      printf("\n");
+      printf("\n");*/
     }
   }
   
@@ -1164,9 +1301,10 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
   
   //printf("Parallel %d\n", parallel_t);
   
-  printf("%4.06f\t%4.06f\t%4.06f\n", parallel_t / 1000000, sequential_t / 1000000, timer / 1000000);
+  //printf("%4.06f\t%4.06f\t%4.06f\n", parallel_t / 1000000, sequential_t / 1000000, timer / 1000000);
 
-  return num_mappings_tot;
+ return array_list_size(mapping_list);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1185,7 +1323,7 @@ size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_si
   // first 'pasada'
   offset = 0;
   for (size_t i = 0; i < num_seeds; i++) {
-    printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
+    //printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_inexact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
     offset += seed_size;
@@ -1193,7 +1331,7 @@ size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_si
 
   // special processing for the last seed !!
   if (len % seed_size >= min_seed_size) {
-    printf("1', : start = %d, end = %d\n", offset, len - 1);
+    //printf("1', : start = %d, end = %d\n", offset, len - 1);
     bwt_map_inexact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
   }
@@ -1202,7 +1340,7 @@ size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_si
   offset = seed_size / 2;
   num_seeds = (len - seed_size / 2) / seed_size;
   for (size_t i = 0; i < num_seeds; i++) {
-    printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
+    //printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_inexact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
     offset += seed_size;
@@ -1210,18 +1348,68 @@ size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_si
 
   // again, special processing for the last seed !!
   if ((len - seed_size / 2) % seed_size >= min_seed_size) {
-    printf("2',: start = %d, end = %d\n", offset, len - 1);
+    //printf("2',: start = %d, end = %d\n", offset, len - 1);
     bwt_map_inexact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
   }
 
-  printf("mapping list size = %d\n", array_list_size(mapping_list));
+  //printf("mapping list size = %d\n", array_list_size(mapping_list));
 
   //  exit(-1);
   return array_list_size(mapping_list);
   
 }
 
+size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list) {
+  
+  size_t len = strlen(seq);
+  size_t offset, num_seeds = len / seed_size;
+
+  char *code_seq = (char *) calloc(len, sizeof(char));
+
+  replaceBases(seq, code_seq, len);
+
+  // first 'pasada'
+  offset = 0;
+  for (size_t i = 0; i < num_seeds; i++) {
+    //printf("1, seed %d: start = %d, end = %d : %s\n", i, offset, offset + seed_size - 1, sub_seq);
+    bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
+			 bwt_optarg, index, mapping_list);
+    offset += seed_size;
+  }
+
+  // special processing for the last seed !!
+  if (len % seed_size >= min_seed_size) {
+    //printf("1', : start = %d, end = %d\n", offset, len - 1);
+    bwt_map_exact_seed(code_seq, offset, len - 1,
+			 bwt_optarg, index, mapping_list);
+  }
+
+  // second 'pasada', shifting seeds by (seed_size / 2)
+  offset = seed_size / 2;
+  num_seeds = (len - seed_size / 2) / seed_size;
+  for (size_t i = 0; i < num_seeds; i++) {
+    //printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
+    bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
+			 bwt_optarg, index, mapping_list);
+    offset += seed_size;
+  }
+
+  // again, special processing for the last seed !!
+  if ((len - seed_size / 2) % seed_size >= min_seed_size) {
+    //printf("2',: start = %d, end = %d\n", offset, len - 1);
+    bwt_map_exact_seed(code_seq, offset, len - 1,
+			 bwt_optarg, index, mapping_list);
+  }
+
+  //printf("mapping list size = %d\n", array_list_size(mapping_list));
+
+  //  exit(-1);
+  return array_list_size(mapping_list);
+  
+}
 //-----------------------------------------------------------------------------
 // CAL functions
 //-----------------------------------------------------------------------------
@@ -1243,7 +1431,7 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
   
   int print = 0;
   
-  printf("Start generate CALs: %d mappings\n", num_mappings);
+  //printf("Start generate CALs: %d mappings\n", num_mappings);
   // from the results mappings, generates CALs
   for (unsigned int m = 0; m < num_mappings; m++) {
     region = array_list_get(m, mapping_list);
@@ -1253,11 +1441,12 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
     start = region->start;
     end = region->end;
 
-      if ( (strand == 1 && chromosome_id == 1 && (start >= 21010025 && start <= 21210025)) ||
-	   (strand == 1 && chromosome_id == 1 && (end >= 21010078 && end <= 21210078)) ) {
+    /*if ( (strand == 1 && chromosome_id == 1 && (start >= 274839 && start <= 274859)) ||
+	   (strand == 1 && chromosome_id == 1 && (end >= 274839 && end <= 274859)) ) {
 	printf("----> mapping, start = %d, end = %d\n", start, end);
-      }
-
+      }*/
+    //printf("----> mapping, start = %d, end = %d\n", start, end);
+    
     extend = 0;
     added = 0;
     num_cals = array_list_size(cal_list);
@@ -1265,11 +1454,11 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
     for (unsigned int c = 0; c < num_cals; c++) {
       cal = array_list_get(c, cal_list);
 
-      print = 0;
-      if ( (strand == 1 && cal->chromosome_id == 1 && (cal->start >= 21010025 && cal->start <= 21210025)) ||
-	   (strand == 1 && cal->chromosome_id == 1 && (cal->end >= 21010078 && cal->end <= 21210078)) ) {
+      /*if ( (strand == 1 && cal->chromosome_id == 1 && (cal->start >= 274839 && cal->start <= 274859)) ||
+	   (strand == 1 && cal->chromosome_id == 1 && (cal->end >= 274839 && cal->end <= 274859)) ) {
+	//printf("Cal %d - %d\n", cal->start);
 	print = 1;
-      }
+      }*/
 
       // locate the alignment among the CALs
       if (chromosome_id == cal->chromosome_id && 
@@ -1356,7 +1545,7 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
 			cal_list);
     }
   }
-  printf("End\n");
+  //printf("End\n");
   
   num_cals = array_list_size(cal_list);
   // removing 'small' CALs from list
@@ -1365,9 +1554,9 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
     //printf("(%d - %d + 1= %d) < %d \n", cal->end, cal->start, cal->end - cal->start + 1, min_cal_size);
     if (cal->end - cal->start + 1 < min_cal_size) {
       array_list_remove_at(i, cal_list);
-    } else{
+    }/*else{
       printf("Not Remove strand %d chromosome %d CAL %d-%d\n", cal->strand, cal->chromosome_id, cal->start, cal->end);
-    }
+      }*/
   }
   
   return array_list_size(cal_list);
@@ -1386,15 +1575,15 @@ size_t bwt_find_cals_from_seq(char *seq,
   array_list_t *mapping_list = array_list_new(100000, 
 					      1.25f, 
 					      COLLECTION_MODE_SYNCHRONIZED); 
-  printf("Array list complete\n");
+  //printf("Array list complete\n");
 
   // map seeds
-  unsigned int num_mappings = bwt_map_inexact_seeds_seq(seq, cal_optarg->seed_size,
-							cal_optarg->min_seed_size,
+  unsigned int num_mappings = bwt_map_exact_seeds_seq(seq, cal_optarg->seed_size,
+				         		cal_optarg->min_seed_size,
 							bwt_optarg, index, mapping_list);
   
 
-  printf("num_mappings = %d, mapping_list_size = %d\n", num_mappings, array_list_size(mapping_list));
+  //printf("num_mappings = %d, mapping_list_size = %d\n", num_mappings, array_list_size(mapping_list));
 
   // generate cals from mapped seeds
   unsigned int num_cals = bwt_generate_cal_list(mapping_list,
@@ -1436,69 +1625,68 @@ size_t bwt_find_cals_from_seqs(char **seqs,
     fastq_read_t fq_read;
     //    seed_t *seeds;
     unsigned int th_id;
-    size_t num_cals, total_cals;
-    cal_t *cal;
-    // create list where to store the seed mappings
-    array_list_t **mapping_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
-    array_list_t **cal_individual_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_threads);
-    
-    for (int i = 0; i < num_threads; i++) {
-	mapping_list[i] = array_list_new(100000, 
-		                         1.25f, 
-		                         COLLECTION_MODE_SYNCHRONIZED);
-	
-        cal_individual_list[i] = array_list_new(100000, 
-		                         1.25f, 
-		                         COLLECTION_MODE_SYNCHRONIZED);
+    size_t num_cals, total_cals = 0;
+
+    array_list_t **mapping_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_reads);
+    array_list_t **cals_reads = (array_list_t **)malloc(sizeof(array_list_t *)*num_reads);
+
+    for(int i = 0; i < num_reads; i++){
+        mapping_list[i] = array_list_new(1000,
+                                         1.25f,
+                                         COLLECTION_MODE_SYNCHRONIZED);
+
+        cals_reads[i] = array_list_new(100,
+                                       1.25f,
+                                       COLLECTION_MODE_SYNCHRONIZED);
     }
-    /*
+
     omp_set_num_threads(num_threads);
-    
-    //printf("Initialization ok!Process %d reads x %d threads\n", num_reads, num_threads);
-    num_unmapped = 0;
-    #pragma omp parallel for firstprivate(num_seeds) private(th_id, seeds, num_mappings, num_cals) schedule(dynamic, chunk)
-    for (int i = 0; i < num_reads; i++) {
-       th_id = omp_get_thread_num();
-       // generate the seeds
-       seeds = create_seeds_from_seq(seqs[i],
-				         cal_optarg->seed_size,
-				         cal_optarg->min_seed_size,
-				         &num_seeds);
-       //for(int i = 0; i < num_seeds; i++){
-       //printf("Seed %d: [%d-%d]\n", i, seeds[i].starts, seeds[i].end);
-       //}
 
-        //printf("Array list complete\n");
-       // map seeds
-       num_mappings = bwt_map_inexact_seeds_seq(seqs[i], seeds, num_seeds,
-						    bwt_optarg, index, 
-						    mapping_list[th_id]);
+    size_t (*map_seeds)(char *, size_t, size_t, bwt_optarg_t *, bwt_index_t *, array_list_t *);
 
-       // generate cals from mapped seeds
-       num_cals = bwt_generate_cal_list(mapping_list[th_id],
-                                            cal_optarg, cal_individual_list[th_id]);
-      
-
-       if(num_seeds == 0 || num_mappings == 0 || num_cals == 0){
-		unmapped_array[*num_unmapped] = i;
-		*num_unmapped += 1;
-       }
-      // free memory for mapping list
-      array_list_free(mapping_list, NULL);
-
+    if(cal_optarg->num_errors == 0){
+      map_seeds = &bwt_map_exact_seeds_seq;
+    }else{
+      map_seeds = &bwt_map_inexact_seeds_seq;
     }
     
-    for(int i = 0; i < num_threads; i++){
-        num_cals = array_list_size(cal_individual_list[i]);
-        total_cals += num_cals;
-        array_list_free(mapping_list[i], region_free);
-	for(int j = 0; j < num_cals; j++){
-    	    cal = (cal_t *)array_list_get(j, cal_individual_list[i]);
-            array_list_insert(cal, cal_list);
-	}
+    #pragma omp parallel for private(num_cals) reduction(+:total_cals)
+    for(int i = 0; i < num_reads; i++){
+        //th_id = omp_get_thread_num();
+        // map seeds
+        mapping_list[i] = array_list_new(1000,
+                                         1.25f,
+                                         COLLECTION_MODE_SYNCHRONIZED);
+
+        (*map_seeds)(seqs[i], cal_optarg->seed_size,
+                     cal_optarg->min_seed_size,
+                     bwt_optarg, index, mapping_list[i]);
+
+        //printf("num_mappings = %d, mapping_list_size = %d\n", num_mappings, array_list_size(mapping_list[th_id]));
+
+        // generate cals from mapped seeds
+        num_cals = bwt_generate_cal_list(mapping_list[i],
+                                         cal_optarg, cals_reads[i]);
+
+
+        if(!num_cals){
+          out_status[i] = 0;
+        }else{
+          out_status[i] = 1;
+          total_cals += num_cals;
+        }
     }
-    */
+    
+    for(int i = 0; i < num_reads; i++){
+        array_list_insert((void *)cals_reads[i], cal_list);
+        // free memory for mapping list
+        array_list_free(mapping_list[i], NULL);
+    }
+
+    free(mapping_list);
+
     return total_cals;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1509,7 +1697,98 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
 				fastq_batch_t *unmapped_batch,
 				cal_optarg_t *cal_optarg, 
 				array_list_t *cal_list) {
-  return 0;
+  unsigned int num_mappings;
+  size_t num_reads = batch->num_reads;
+  size_t *unmapped_index = (size_t *)malloc(sizeof(size_t)*num_reads);
+  unsigned int num_unmapping = 0;
+  unsigned int num_cals = 0;
+  size_t read_pos;
+  unsigned int length_header;
+  unsigned int length_seq;
+  size_t id_read;
+  size_t total_cals = 0;
+
+  array_list_t **mapping_list = (array_list_t **)malloc(sizeof(array_list_t *)*num_reads);
+  array_list_t **cals_reads = (array_list_t **)malloc(sizeof(array_list_t *)*num_reads);
+
+  for(int i = 0; i < num_reads; i++){
+      mapping_list[i] = array_list_new(1000,
+                                        1.25f,
+                                        COLLECTION_MODE_SYNCHRONIZED);
+
+      cals_reads[i] = array_list_new(100,
+                                      1.25f,
+                                      COLLECTION_MODE_SYNCHRONIZED);
+  }
+
+  printf("Array list complete\n");
+  
+  size_t (*map_seeds)(char *, size_t, size_t, bwt_optarg_t *, bwt_index_t *, array_list_t *);
+
+  if(cal_optarg->num_errors == 0){
+    map_seeds = &bwt_map_exact_seeds_seq;
+  }else{
+    map_seeds = &bwt_map_inexact_seeds_seq;
+  }
+
+  #pragma omp parallel for private(num_mappings, num_cals) reduction(+:total_cals)
+  for (size_t i = 0; i < num_reads; i++) {
+    //create list where to store the seed mappings
+    mapping_list[i] = array_list_new(1000,
+                                     1.25f,
+                                     COLLECTION_MODE_SYNCHRONIZED);
+
+    num_mappings = 0;
+    num_mappings = map_seeds(&(batch->seq[batch->data_indices[i]]), cal_optarg->seed_size,
+                                                cal_optarg->min_seed_size,
+                                                bwt_optarg, index, mapping_list[i]);
+    if(!num_mappings){
+      unmapped_index[num_unmapping] = i;
+      num_unmapping++;
+    }else{
+      // generate cals from mapped seeds
+      num_cals = bwt_generate_cal_list(mapping_list[i],
+                                       cal_optarg, cals_reads[i]);
+      if(!num_cals){
+        unmapped_index[num_unmapping] = i;
+        num_unmapping++;
+      }else{
+        total_cals += num_cals;
+      }
+    }
+  }
+  
+  // map seeds
+  read_pos = 0;
+  unmapped_batch->header_indices[read_pos] = 0;
+  unmapped_batch->data_indices[read_pos] = 0;
+  for (int i = 0; i < num_unmapping; i++) {
+    id_read = unmapped_index[i];
+    length_header = batch->header_indices[id_read] - batch->header_indices[id_read - 1];
+    length_seq = batch->data_indices[id_read] - batch->data_indices[id_read - 1];
+    read_pos++;
+    memcpy(&(unmapped_batch->header[unmapped_batch->header_indices[read_pos - 1]]), &(batch->header[batch->header_indices[id_read - 1]]), length_header);
+    memcpy(&(unmapped_batch->seq[unmapped_batch->data_indices[read_pos - 1]]),      &(batch->seq[batch->data_indices[id_read - 1]]),      length_seq);
+    memcpy(&(unmapped_batch->quality[unmapped_batch->data_indices[read_pos - 1]]),  &(batch->quality[batch->data_indices[id_read - 1]]),  length_seq);
+
+    unmapped_batch->data_indices[read_pos]   = unmapped_batch->data_indices[read_pos - 1]   + length_seq;
+    unmapped_batch->header_indices[read_pos] = unmapped_batch->header_indices[read_pos - 1] + length_header;
+  }
+
+  unmapped_batch->num_reads = read_pos;
+
+
+  // free memory for mapping list
+  for(int i = 0; i < num_reads; i++){
+    array_list_insert((void *)cals_reads[i], cal_list);
+    // free memory for mapping list
+    array_list_free(mapping_list[i], NULL);
+  }
+
+   free(mapping_list);
+
+  return total_cals;
+  
 }
 
 //-----------------------------------------------------------------------------

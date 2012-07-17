@@ -5,7 +5,7 @@ void main(int argc, char *argv[]) {
 
   char *input_filename, *index_dirname;
 
-  if (argc != 3) {
+  if (argc < 3) {
     printf("Error.\n");
     printf("Usage: %s input-filename index-dirname\n", argv[0]);
     exit(-1);
@@ -13,7 +13,7 @@ void main(int argc, char *argv[]) {
 
   input_filename = argv[1];
   index_dirname = argv[2];
-
+  char *seq = argv[3];
   // initializations
   initReplaceTable();
 
@@ -25,8 +25,10 @@ void main(int argc, char *argv[]) {
 
   unsigned int n_reads = 8;
   array_list_t *mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+  array_list_t *cal_list_p = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
   fastq_read_t *fq_read;
-  unsigned int num_mappings;
+  unsigned int num_mappings, num_cals;
+  cal_optarg_t *cal_optarg_p = cal_optarg_new(40, 5, 20, 20);
   
   char **sequences = (char **)malloc(sizeof(char *)*n_reads);
   sequences[0] = "TATTTATTCGCAAATGCATAACTTGAAAGGCTATTTTGTAGATATTAAATGCAACTAATTTGCC";
@@ -56,15 +58,28 @@ void main(int argc, char *argv[]) {
   
   
   //num_mappings = bwt_map_exact_seqs_cpu(sequences, n_reads, bwt_optarg_p, bwt_index, mappings);
-  num_mappings = bwt_map_inexact_seq_cpu("TTTATTCGCAAATGCAGAAACTTGAAA", bwt_optarg_p, bwt_index, mappings);
-  alignment_t *mapping;
-  printf("Solutions for %d reads:\n", num_mappings);
-  for (int i = 0; i < num_mappings; i++) {
-    mapping = (alignment_t *) array_list_get(i, mappings);
-    printf("Sequence:%s - Cigar:%s - Read(%d/%d)\n", mapping->sequence, mapping->cigar, i, num_mappings);
+  printf("Exact Search:\n");
+  num_mappings = bwt_map_exact_seq(seq, 
+					 bwt_optarg_p, bwt_index, mappings);
+  printf("1 Error Search:\n");
+  num_mappings = bwt_map_inexact_seq(seq, 
+					 bwt_optarg_p, bwt_index, mappings);
+
+  exit(-1);  
+  /*num_cals = bwt_generate_cal_list(mappings,
+			cal_optarg_p,
+			cal_list_p);*/
+  //num_mappings = bwt_map_inexact_seq_cpu("", bwt_optarg_p, bwt_index, mappings);
+  /*cal_t *cal_p;
+  printf("Total CALs: %d\n", num_cals);
+  for (int i = 0; i < num_cals; i++) {
+    cal_p = (cal_t *) array_list_get(i, mappings);
+    printf("CHROMOSOME:%d - STRAND:%d - START:%d - END:%d\n", cal_p->chromosome_id, cal_p->strand, cal_p->start, cal_p->end);
   }
+    }*/
 
   fastq_read_free(fq_read);
+
   
   
   
