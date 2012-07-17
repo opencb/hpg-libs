@@ -11,6 +11,9 @@
 #include "list.h"
 #include "fastq_batch.h"
 #include "fastq_file.h"
+#include "timing.h"
+#include "buffers.h"
+#include "statistics.h"
 
 #define READ_ITEM       1
 //====================================================================================

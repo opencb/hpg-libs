@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 //#include "list.h"
-//#include "timing.h"
+//
 
 //#include "fastq_file.h"
 //#include "fastq_ex_batch.h"
@@ -37,7 +37,7 @@ void fastq_batch_reader(fastq_batch_reader_input_t* input_p) {
   int batch_size = input_p->batch_size;
   list_t* list_p = input_p->list_p;
 
-  printf("fastq_ex_batch_reader (%i): START, for file %s\n", omp_get_thread_num(), filename);
+  printf("fastq_batch_reader (%i): START, for file %s\n", omp_get_thread_num(), filename);
 		
   int num_reads = 0, num_batches = 0;
   fastq_batch_t* batch_p;
@@ -46,7 +46,7 @@ void fastq_batch_reader(fastq_batch_reader_input_t* input_p) {
   fastq_file_t* file_p = fastq_fopen(filename);
   
   while (1) {
-    //if (time_on) { timing_start(FASTQ_READER_INDEX, 0, timing_p); }
+    if (time_on) { timing_start(FASTQ_READER, 0, timing_p); }
     // allocationg memory for the current fastq batch
     //
     batch_p = fastq_batch_new(batch_size);
@@ -56,8 +56,6 @@ void fastq_batch_reader(fastq_batch_reader_input_t* input_p) {
     //
     num_reads = fastq_fread_batch_max_size(batch_p, batch_size, file_p);
     total_reads	+= num_reads;
-
-    //if (time_on) { stop_timer(t1_read, t2_read, read_time); }
     
     // if no reads, free memory and go out....
     //
@@ -70,7 +68,7 @@ void fastq_batch_reader(fastq_batch_reader_input_t* input_p) {
     // and insert this batch to the corresponding list
     //
     item_p = list_item_new(num_batches, READ_ITEM, batch_p);
-    //if (time_on) { timing_stop(FASTQ_READER_INDEX, 0, timing_p); }
+    if (time_on) { timing_stop(FASTQ_READER, 0, timing_p); }
 
     list_insert_item(item_p, list_p);
   
@@ -82,8 +80,14 @@ void fastq_batch_reader(fastq_batch_reader_input_t* input_p) {
   
   list_decr_writers(list_p);
   fastq_fclose(file_p);
-
-  printf("fastq_ex_batch_reader: END, %i total reads (%i batches), for file %s\n", total_reads, num_batches, filename);
+  
+  if (statistics_on) { 
+    statistics_set(FASTQ_READER_ST, 0, num_batches, statistics_p); 
+    statistics_set(FASTQ_READER_ST, 1, total_reads, statistics_p); 
+    statistics_set(TOTAL_ST, 0, total_reads, statistics_p); 
+  }
+  
+  printf("fastq_batch_reader: END, %i total reads (%i batches), for file %s\n", total_reads, num_batches, filename);
 }
 
 /*-----------------------------------------------------
