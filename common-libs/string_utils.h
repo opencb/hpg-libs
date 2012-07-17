@@ -6,15 +6,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
 //========CIGAR AUTOMATA STATUS========//
-#define MATCH_MISMATCH  0
-#define INSERTION  	1
-#define DELETION  	2
-#define BIG_DELETION    3
-#define SKIPPED  	4
-#define PADDING 	5
-#define PERFECT_MATCH   6
-#define PADDING         7
+#define CIGAR_MATCH_MISMATCH  	0
+#define CIGAR_INSERTION  	1
+#define CIGAR_DELETION  	2
+#define CIGAR_BIG_DELETION    	3
+#define CIGAR_SKIPPED  		4
+#define CIGAR_PADDING 		5
+#define CIGAR_PERFECT_MATCH   	6
+#define CIGAR_PADDING         	7
 //=====================================//
 
 /* **************************************

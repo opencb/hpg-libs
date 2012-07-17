@@ -455,6 +455,7 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
   }
   
   str_out_p[res_pos] = '\0';
+
   res_pos++;
   return res_pos;
 }
@@ -465,19 +466,19 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
 char select_op(unsigned char status){
      char operation; 
       switch(status){        
-        case MATCH_MISMATCH: 
+        case CIGAR_MATCH_MISMATCH: 
           operation = 'M';   
           break;             
-        case DELETION:       
+        case CIGAR_DELETION:       
           operation = 'D';   
           break;             
-        case INSERTION:      
+        case CIGAR_INSERTION:      
           operation = 'I';   
           break;         
-       case PERFECT_MATCH:
+       case CIGAR_PERFECT_MATCH:
 	  operation = '=';
 	  break;
-       case PADDING:
+       case CIGAR_PADDING:
 	  operation = 'P';
           break;
       }                      
@@ -516,7 +517,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   
   //First Status
   if(str_seq_p[0] != '-' && str_ref_p[0] != '-'){
-    status = MATCH_MISMATCH;
+    status = CIGAR_MATCH_MISMATCH;
     //Soft clipping
     cigar_soft = 0;
     while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
@@ -531,30 +532,30 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
     } 
   }else if(str_seq_p[0] == '-'){
       if(str_ref_p[0] == '-'){
-        status = PADDING;
+        status = CIGAR_PADDING;
       }else{
-        status = DELETION;
+        status = CIGAR_DELETION;
       }
   }else if(str_ref_p[0] == '-'){
-    status = INSERTION;
+    status = CIGAR_INSERTION;
   }
   
   for(int i = value; i < length; i++){
     //Transition
     if(str_seq_p[i] != '-' && str_ref_p[i] != '-'){
-      transition = MATCH_MISMATCH;
+      transition = CIGAR_MATCH_MISMATCH;
       if(str_seq_p[i] == str_ref_p[i] ){
 	perfect++;
       }
     }else if(str_seq_p[i] == '-'){
       if(str_ref_p[i] == '-'){
-        transition = PADDING;
+        transition = CIGAR_PADDING;
       }else{
-        transition = DELETION;
+        transition = CIGAR_DELETION;
 	deletions_tot++;
       }
     }else if(str_ref_p[i] == '-'){
-      transition = INSERTION;
+      transition = CIGAR_INSERTION;
     }
     
     if(transition != status){
@@ -571,7 +572,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   }
   
   if((length == perfect) && (perfect == seq_orig_len)){
-  	status = PERFECT_MATCH;
+  	status = CIGAR_PERFECT_MATCH;
   }
 
   *number_op_tot += 1;
@@ -579,7 +580,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   
   
   //Hard and Soft clipped end
-  if(status == MATCH_MISMATCH){
+  if(status == CIGAR_MATCH_MISMATCH){
     cigar_soft = length - 1;
     value = 0;
     while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
