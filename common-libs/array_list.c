@@ -95,10 +95,23 @@ size_t array_list_capacity(array_list_t *array_list_p) {
 }
 
 size_t array_list_size(array_list_t *array_list_p) {
+	size_t length;
+	
 	if(array_list_p != NULL) {
-		return array_list_p->size;
+	  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	      pthread_mutex_lock(&array_list_p->lock);
+	  }
+	  
+	  length = array_list_p->size;
+	
+	  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	      pthread_mutex_unlock(&array_list_p->lock);
+	  }
+	}else{
+	  length = ULONG_MAX;
 	}
-	return ULONG_MAX;
+	
+	return length;
 }
 
 size_t array_list_index_of(void *item_p, array_list_t* array_list_p) {
@@ -151,9 +164,9 @@ int array_list_insert(void *item_p, array_list_t *array_list_p) {
 		if(array_list_p->size >= array_list_p->capacity) {
 			array_list_p = reallocate(array_list_p, 0);
 		}
+			
 		array_list_p->items[array_list_p->size] = item_p;
 		array_list_p->size++;
-
 		if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 			pthread_mutex_unlock(&array_list_p->lock);
 		}
@@ -289,10 +302,23 @@ void** array_list_remove_range(size_t start, size_t end, array_list_t *array_lis
 
 
 void* array_list_get(size_t index, array_list_t *array_list_p) {
+	void *item_p;
 	if(array_list_p != NULL && index >= 0 && index <= array_list_p->size) {
-		return array_list_p->items[index];
+	    if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+		    pthread_mutex_lock(&array_list_p->lock);
+	    }
+	    
+		  item_p = array_list_p->items[index];
+
+	    if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+		    pthread_mutex_unlock(&array_list_p->lock);
+	    }
+
+	}else{
+	    item_p = NULL;
 	}
-	return NULL;
+	
+	return item_p;
 }
 
 //TODO
@@ -325,23 +351,24 @@ void **list_to_array(array_list_t *array_list_p) {
 }
 */
 
-array_list_t *reallocate(array_list_t * array_list_t, size_t inc_size) {
+array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 	// Capacity is increased in factor.
 	size_t new_capacity;// = array_list_t->capacity;
 	if(!inc_size) {
-		new_capacity = (int)ceil((float)array_list_t->capacity * array_list_t->realloc_factor);
+		new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
+		//new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
 	}else {
-		new_capacity = array_list_t->capacity + inc_size;
+		new_capacity = array_list_p->capacity + inc_size;
 	}
 	// Realloc items with the new capacity. Size remains equals.
-	void **items_aux = (void**) realloc(array_list_t->items, new_capacity * sizeof(void*));
+	void **items_aux = (void**) realloc(array_list_p->items, new_capacity * sizeof(void*));
 	if(items_aux != NULL) {
-		array_list_t->items = items_aux;
-		array_list_t->capacity = new_capacity;
+		array_list_p->items = items_aux;
+		array_list_p->capacity = new_capacity;
 	}else {
 		LOG_ERROR("Error in reallocate");
 	}
-	return array_list_t;
+	return array_list_p;
 }
 
 int compare_items(const void *item1, const void *item2) {
