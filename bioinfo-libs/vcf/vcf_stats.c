@@ -58,9 +58,9 @@ void free_variant_stats(variant_stats_t* stats) {
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
     if (stats->alternates) {
-//         for (int i = 0; i < stats->num_alleles; i++) {
-//             free(stats->alternates[i]);
-//         }
+        for (int i = 0; i < stats->num_alleles-1; i++) {
+            free(stats->alternates[i]);
+        }
         free(stats->alternates);
     }
     if (stats->alleles_count) { free(stats->alleles_count); }
@@ -99,6 +99,9 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         copy_buf = (char*) calloc (strlen(record->alternate)+1, sizeof(char));
         strcat(copy_buf, record->alternate);
         stats->alternates = split(copy_buf, ",", &num_alternates);
+        if (copy_buf) {
+            free(copy_buf);
+        }
         
         stats->num_alleles = num_alternates + 1;
 //         if (!strncmp(stats->alternates[0], ".", 1)) {
@@ -115,7 +118,12 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
         // Get position where GT is in sample
-        gt_pos = get_field_position_in_format("GT", strdup(record->format));
+        copy_buf2 = strdup(record->format);
+        gt_pos = get_field_position_in_format("GT", copy_buf2);
+        if (copy_buf2) {
+            free(copy_buf2);
+        }
+        
         LOG_DEBUG_F("Genotype position = %d\n", gt_pos);
         if (gt_pos < 0) { continue; }   // This variant has no GT field
         
@@ -124,9 +132,14 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
             sample = (char*) array_list_get(j, record->samples);
             
             // Get to GT position
-            alleles_code = get_alleles(strdup(sample), gt_pos, &allele1, &allele2);
+            copy_buf2 = strdup(sample);
+            alleles_code = get_alleles(copy_buf2, gt_pos, &allele1, &allele2);
+            if (copy_buf2) {
+                free(copy_buf2);
+            }
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
+                        
             if (allele1 < 0 || allele2 < 0) {
                 // Missing genotype (one or both alleles missing)
                 stats->missing_genotypes++;
