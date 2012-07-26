@@ -49,8 +49,8 @@ static enum GFF_Field current_field = SEQUENCE;
 
     # Records rules
     record_seqid    = (alnum | "_")+ ;
-    record_source   = (alnum | "_")+ ;
-    record_feature  = (alnum | "_")+ ;
+    record_source   = (alnum | "_")+ | "." ;
+    record_feature  = (alnum | "_")+ | "." ;
     record_start    = number ;
     record_end      = number ;
     record_score    = number | "." ;
