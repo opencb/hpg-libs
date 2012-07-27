@@ -1,0 +1,84 @@
+#ifndef MACROS_H
+#define MACROS_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) > (b) ? (b) : (a))
+
+#define ZERO 0
+#define LEFT 1
+#define DOWN 2
+#define DIAGONAL 3
+
+#define U_FEPS 1.192e-6F         // 1.0F + E_FEPS != 1.0F
+#define E_FPEQ(a,b,e) (((b - e) < a) && (a < (b + e)))
+#define FLT_MAX 1000000.0f
+
+//------------------------------------------------------------------------
+// utility functions
+//------------------------------------------------------------------------
+
+void trim(char *line);
+
+//------------------------------------------------------------------------
+
+double tic();
+double toc(double t1);
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+
+void simd_traceback(int depth, int num_seqs, 
+		    char **q, int *q_len, int max_q_len,
+		    char **r, int *r_len, int max_r_len,
+		    float gap_open, float gap_extend,
+		    float *H, float *D, float *E, float *F, 
+		    float *max_score,
+		    char **q_alig, int *q_start,
+		    char **r_alig, int *r_start, 
+		    int *len_alig);
+
+void simd_traceback1(int depth, int num_seqs, 
+		     char **q, int *q_len, int max_q_len,
+		     char **r, int *r_len, int max_r_len,
+		     float gap_open, float gap_extend,
+		     float *H, int *C, 
+		     float *max_score,
+		     char **q_alig, int *q_start,
+		     char **r_alig, int *r_start, 
+		     int *len_alig,
+		     char *q_aux, char *r_aux);
+
+//------------------------------------------------------------------------
+
+void simd_find_position(int depth, int index, char *q, int q_len, char *r, int r_len,
+			float *H, int cols, int rows, float score, 
+			int *q_pos, int *r_pos);
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+
+void save_float_matrix(float *matrix, 
+		       int cols, int rows,
+		       char *q, int q_len, 
+		       char *r, int r_len, 
+		       int index, int depth,
+		       char *filename);
+
+void save_int_matrix(int *matrix, 
+		     char *q, int q_len, 
+		     char *r, int r_len, 
+		     int index, int depth,
+		     char *filename);
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+
+#endif // MACROS_H

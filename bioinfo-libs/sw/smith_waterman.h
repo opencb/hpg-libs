@@ -1,7 +1,16 @@
 #ifndef SMITH_WATERMAN_H
 #define SMITH_WATERMAN_H
 
-#include "smith_waterman_simd.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <immintrin.h>
+
+#include "sse.h"
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+typedef float subst_matrix_t[128][128];
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -93,14 +102,15 @@ void sw_multi_output_free(sw_multi_output_t* output_p);
 //------------------------------------------------------------------------------------
 
 /**
- * @brief Displays a @a sw_simd_output_t structure.
- * @param depth position until displaying
+ * @brief Saves a @a sw_simd_output_t structure.
  * @param output_p pointer to the structure storing the aligned sequences
+ * @param num_alignments number of alignments to save
+ * @param file_p pointer to the file where to store the alignments
  *
- * Displays the aligned sequences from position 0 to
- * position @a depth, in pairs: target/reference.
+ * Saves num_alignments aligned sequences, in pairs: target/reference
+ * into the given file
  */
-void sw_multi_output_save(sw_multi_output_t* output_p, FILE *file_p);
+void sw_multi_output_save(int num_alignments, sw_multi_output_t* output_p, FILE *file_p);
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -114,6 +124,9 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries, 
 			 sw_optarg_t *optarg_p, unsigned int num_threads, 
 			 sw_multi_output_t *output_p);
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
 #endif // SMITH_WATERMAN_H
 
