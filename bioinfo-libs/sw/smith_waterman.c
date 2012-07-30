@@ -161,9 +161,9 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	index = i - depth + 1;
 
 	reallocate_memory(max_q_len, max_r_len, simd_depth, &H_size, &H, &C, &F_size, &F, &aux_size, &q_aux, &r_aux);
-	printf("-----> max_q_len = %i, max_r_eln = %i, simd_depth = %i\n", max_q_len, max_r_len, simd_depth);
-	printf("-----> H_size = %i, F_size = %i, aux_size = %i\n", H_size, F_size, aux_size);
-	printf("num_queries = %i, gap_open = %0.2f, gap_extend = %0.2f\n", depth, gap_open, gap_extend);
+	//printf("-----> max_q_len = %i, max_r_eln = %i, simd_depth = %i\n", max_q_len, max_r_len, simd_depth);
+	//printf("-----> H_size = %i, F_size = %i, aux_size = %i\n", H_size, F_size, aux_size);
+	//printf("num_queries = %i, gap_open = %0.2f, gap_extend = %0.2f\n", depth, gap_open, gap_extend);
 
 	// generating score matrix
 	partial_t = tic();
@@ -429,6 +429,8 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
   fgets(header_line, 4096, file);
   trim(header_line);
 
+  char *res = NULL;
+
   // init matrix to -1000.0f
   for (int i = 0; i<128; i++) {
     for (int j = 0; j<128; j++) {
@@ -444,12 +446,23 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
   /*
   // read header row
   unsigned int num_columns = 0;
+  
+  printf("header_line = %s\n", header_line);
+  //res = strtok(header_line, "\t");
+  res = strtok(header_line, " ");
+  if (res == NULL
+  printf("res = %s\n", res);
+  exit(-1);
+
+
   header[num_columns] = strtok(header_line, "\t");
+  //  res = strtok(header_line, "\t");
   while (header[num_columns]!= NULL) {
     num_columns++;
     header[num_columns] = strtok(NULL, "\t");
+    printf("header[%i] = %s\n", num_columns, header[num_columns]);
   }
-
+  
   // read the remain rows and update matrix
   unsigned int col = 0;
   while (fgets(token_line, 4096, file) != NULL) {
@@ -457,9 +470,12 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
     printf("%s\n", token_line);
     col = 0;
     token[col] = strtok(token_line, "\t");
+    printf("token[%i] = %s\n", col, token[col]);
     while (token[col]!= NULL) {
       col++;
       token[col] = strtok(NULL, "\t");
+      printf("col = %i\n", col);
+      printf("token[%i] = %s\n", col, token[col]);
     }
     if (col != num_columns) {
       printf("Error: substitution score matrix invalid format\n");
@@ -473,7 +489,6 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
     }
   }
   */
-
   fclose(file);
 }
 

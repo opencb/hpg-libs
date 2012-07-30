@@ -1,12 +1,13 @@
 #include "main.h"
 
 double emboss_matrix_t = 0.0f, emboss_tracking_t = 0.0f;
+
 double sse_matrix_t = 0.0f, sse_tracking_t = 0.0f;
 double sse1_matrix_t = 0.0f, sse1_tracking_t = 0.0f;
 double avx_matrix_t = 0.0f, avx_tracking_t = 0.0f;
 double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
-double sse_t = 0.0f;
+double sse_t = 0.0f, emboss_t = 0.0f;
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
@@ -37,7 +38,7 @@ void main(int argc, char *argv[]) {
   //  sse1_out_filename = argv[5]; //"./sse1.out";
   //  avx_out_filename = argv[6]; //"./avx.out";
   //  avx1_out_filename = argv[7]; //"./avx1.out";
-
+  /*
   // EMBOSS
   run_emboss(q_filename, r_filename,
 	     gap_open, gap_extend, match, mismatch,
@@ -49,7 +50,8 @@ void main(int argc, char *argv[]) {
   printf("\tCalculating matrix: %0.5f s\n", emboss_matrix_t);
   printf("\tTracking back     : %0.5f s\n", emboss_tracking_t);
   printf("\tTotal             : %0.5f s\n", (emboss_matrix_t + emboss_tracking_t));
-
+  printf("\tTotal (function)  : %0.5f s\n", emboss_t);
+  */
   // SSE
   run_sse(q_filename, r_filename,
 	  gap_open, gap_extend, "./dnafull", batch_size, num_threads, sse_out_filename);
@@ -65,7 +67,7 @@ void main(int argc, char *argv[]) {
   printf("\tCalculating matrix: %0.2f\n", emboss_matrix_t / sse1_matrix_t);
   printf("\tTracking back     : %0.2f\n", emboss_tracking_t / sse1_tracking_t);
   printf("\tTotal             : %0.2f\n", (emboss_matrix_t + emboss_tracking_t) / (sse1_matrix_t + sse1_tracking_t));
-  printf("\tTotal (function)  : %0.2f\n", (emboss_matrix_t + emboss_tracking_t) / (sse_t));
+  printf("\tTotal (function)  : %0.2f\n", emboss_t / sse_t);
   printf("\n");
 }
 
@@ -101,9 +103,9 @@ void run_emboss(char *q_filename, char *r_filename,
     m = (char *) calloc(4048, sizeof(char));
     n = (char *) calloc(4048, sizeof(char));
     
-    //    partial_t = tic();
+    partial_t = tic();
     score = sw_emboss(r, q, gap_open, gap_extend, m, n, &start1, &start2);
-    //    emboss_t += toc(partial_t);
+    emboss_t += toc(partial_t);
 
     fprintf(out_file, "%s\n%s\nScore = %0.2f, query start at %i, ref. start at %i\n\n", n, m, score,
 	      start2, start1);
