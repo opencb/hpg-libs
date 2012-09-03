@@ -6,7 +6,8 @@ int emboss_cnt = 0;
 extern double emboss_matrix_t, emboss_tracking_t;
 
 float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend, 
-		char* m, char* n, int* start1, int* start2) {
+		char* m, char* n, int* start1, int* start2,
+		double *matrix_time, double *tracking_time, double *total_time) {
   
 
   int len_a = strlen(seq_a);
@@ -17,10 +18,11 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   float* path = (float*) calloc(total, sizeof(float));
   int* compass = (int*) calloc(total, sizeof(int));
 
-  double partial_t;
+  double partial_t, partial1_t;
+  partial1_t = tic();
   partial_t = tic();
   score = AlignPathCalcSW(seq_a, seq_b, len_a, len_b, gapopen, gapextend, path, compass);
-  emboss_matrix_t += toc(partial_t);
+  *matrix_time += toc(partial_t);
 
 
   //char filename[200];
@@ -34,8 +36,10 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   partial_t = tic();
   AlignWalkSWMatrix(path, compass, gapopen, gapextend, seq_a, seq_b,
   		    (char*) m, (char *) n, len_a, len_b, start1, start2);
-  emboss_tracking_t += toc(partial_t);
+  *tracking_time += toc(partial_t);
   
+  *total_time += toc(partial1_t);
+
   free(path);
   free(compass);
 

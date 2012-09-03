@@ -1,0 +1,1 @@
+tar cvfz hpg-sw.tar.gz emboss.c emboss.h sse.c sse.h macros.h macros.c smith_waterman.c smith_waterman.h bin datasets Makefile hpg_sw.c hpg_sw.h hpg_sw_bench.h hpg_sw_bench.c README dnafull blosum*

@@ -39,22 +39,12 @@ void simd_traceback(int depth, int num_seqs,
 		    char **q, int *q_len, int max_q_len,
 		    char **r, int *r_len, int max_r_len,
 		    float gap_open, float gap_extend,
-		    float *H, float *D, float *E, float *F, 
+		    float *H, int *C, 
 		    float *max_score,
 		    char **q_alig, int *q_start,
 		    char **r_alig, int *r_start, 
-		    int *len_alig);
-
-void simd_traceback1(int depth, int num_seqs, 
-		     char **q, int *q_len, int max_q_len,
-		     char **r, int *r_len, int max_r_len,
-		     float gap_open, float gap_extend,
-		     float *H, int *C, 
-		     float *max_score,
-		     char **q_alig, int *q_start,
-		     char **r_alig, int *r_start, 
-		     int *len_alig,
-		     char *q_aux, char *r_aux);
+		    int *len_alig,
+		    char *q_aux, char *r_aux);
 
 //------------------------------------------------------------------------
 

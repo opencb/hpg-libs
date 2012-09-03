@@ -1,9 +1,9 @@
 #include "smith_waterman.h"
 
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------
-extern double sse1_matrix_t, sse1_tracking_t;
+extern double *sse_matrix_t, *sse_tracking_t;
 
 void reallocate_memory(int max_q_len, int max_r_len, int simd_depth, 
 		       int *H_size, float **H, int **C, int *F_size, float **F, 
@@ -128,9 +128,9 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
     exit(-1);
   }
   
-  double partial_t;
-
   if (num_threads == 1) {
+
+    double partial_t;
 
     char *q_aux = NULL, *r_aux = NULL;
     int depth, aux_size = 0, H_size = 0, F_size = 0, matrix_size = 0, max_q_len = 0, max_r_len = 0;
@@ -167,18 +167,18 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
 	// generating score matrix
 	partial_t = tic();
-	sse1_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
-		    optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
-	sse1_matrix_t += toc(partial_t);
+	sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
+		   optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+	sse_matrix_t[0] += toc(partial_t);
 
 	// tracebacking
 	partial_t = tic();
-	simd_traceback1(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-			gap_open, gap_extend, H, C, &score_p[index],
-			&output_p->query_map_p[index], &output_p->query_start_p[index],
-			&output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
-			q_aux, r_aux);
-	sse1_tracking_t += toc(partial_t);
+	simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+		       gap_open, gap_extend, H, C, &score_p[index],
+		       &output_p->query_map_p[index], &output_p->query_start_p[index],
+		       &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
+		       q_aux, r_aux);
+	sse_tracking_t[0] += toc(partial_t);
 	
 	depth = 0;
       }
@@ -204,18 +204,18 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
       // generating score matrix
       partial_t = tic();
-      sse1_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
-		  optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
-      sse1_matrix_t += toc(partial_t);
+      sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
+		 optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+      sse_matrix_t[0] += toc(partial_t);
 
       // tracebacking
       partial_t = tic();
-      simd_traceback1(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-		      gap_open, gap_extend, H, C, max_score,
-		      &output_p->query_map_p[index], &output_p->query_start_p[index],
-		      &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
-		      q_aux, r_aux);
-      sse1_tracking_t += toc(partial_t);
+      simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+		     gap_open, gap_extend, H, C, max_score,
+		     &output_p->query_map_p[index], &output_p->query_start_p[index],
+		     &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
+		     q_aux, r_aux);
+      sse_tracking_t[0] += toc(partial_t);
 
       for (unsigned int i = 0; i < depth; i++) {
 	score_p[index +  i] = max_score[i];
@@ -244,6 +244,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
   
       #pragma omp parallel num_threads(num_threads) shared(num_packs, packs_per_thread, optarg_p, output_p)
       {
+	double partial_t = 0.0;
         unsigned int tid = omp_get_thread_num();
 	
 	unsigned int first_index = tid * packs_per_thread * simd_depth;
@@ -284,18 +285,18 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	    
 	    // generating score matrix
 	    partial_t = tic();
-	    sse1_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
-			optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
-	    sse1_matrix_t += toc(partial_t);
+	    sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
+		       optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+	    sse_matrix_t[tid] += toc(partial_t);
 	    
 	    // tracebacking
 	    partial_t = tic();
-	    simd_traceback1(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-			    gap_open, gap_extend, H, C, &score_p[index],
-			    &output_p->query_map_p[index], &output_p->query_start_p[index],
-			    &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
-			    q_aux, r_aux);
-	    sse1_tracking_t += toc(partial_t);
+	    simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+			   gap_open, gap_extend, H, C, &score_p[index],
+			   &output_p->query_map_p[index], &output_p->query_start_p[index],
+			   &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
+			   q_aux, r_aux);
+	    sse_tracking_t[tid] += toc(partial_t);
 	    
 	    depth = 0;
 	  }
@@ -321,18 +322,18 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	  
 	  // generating score matrix
 	  partial_t = tic();
-	  sse1_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
-		      optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
-	  sse1_matrix_t += toc(partial_t);
+	  sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
+		     optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+	  sse_matrix_t[tid] += toc(partial_t);
 	  
 	  // tracebacking
 	  partial_t = tic();
-	  simd_traceback1(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-			  gap_open, gap_extend, H, C, max_score,
-			  &output_p->query_map_p[index], &output_p->query_start_p[index],
-			  &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
-			  q_aux, r_aux);
-	  sse1_tracking_t += toc(partial_t);
+	  simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+			 gap_open, gap_extend, H, C, max_score,
+			 &output_p->query_map_p[index], &output_p->query_start_p[index],
+			 &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
+			 q_aux, r_aux);
+	  sse_tracking_t[tid] += toc(partial_t);
 	  
 	  for (unsigned int i = 0; i < depth; i++) {
 	    score_p[index +  i] = max_score[i];
@@ -424,10 +425,14 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
     exit(-1);
   }
 
-  char header_line[4096], *header[256];
-  char token_line[4096], *token[256];
+  char *header[256],  *token[256];
+
+  char *header_line = (char*) calloc(1, 4096);
+  char *token_line = (char*) calloc(1, 4096);
+
   fgets(header_line, 4096, file);
   trim(header_line);
+
 
   char *res = NULL;
 
@@ -437,58 +442,46 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
       matrix[i][j] = -1000.0f;
     }
   }
-
+  /*
   matrix['A']['A'] = 5.0f; matrix['C']['A'] = -4.0f; matrix['T']['A'] = -4.0f; matrix['G']['A'] = -4.0f;
   matrix['A']['C'] = -4.0f; matrix['C']['C'] = 5.0f; matrix['T']['C'] = -4.0f; matrix['G']['C'] = -4.0f;
   matrix['A']['G'] = -4.0f; matrix['C']['T'] = -4.0f; matrix['T']['T'] = 5.0f; matrix['G']['T'] = -4.0f;
   matrix['A']['T'] = -4.0f; matrix['C']['G'] = -4.0f; matrix['T']['G'] = -4.0f; matrix['G']['G'] = 5.0f;
+  */
 
-  /*
   // read header row
   unsigned int num_columns = 0;
-  
-  printf("header_line = %s\n", header_line);
-  //res = strtok(header_line, "\t");
-  res = strtok(header_line, " ");
-  if (res == NULL
-  printf("res = %s\n", res);
-  exit(-1);
-
 
   header[num_columns] = strtok(header_line, "\t");
   //  res = strtok(header_line, "\t");
   while (header[num_columns]!= NULL) {
     num_columns++;
     header[num_columns] = strtok(NULL, "\t");
-    printf("header[%i] = %s\n", num_columns, header[num_columns]);
   }
   
   // read the remain rows and update matrix
   unsigned int col = 0;
   while (fgets(token_line, 4096, file) != NULL) {
     trim(token_line);
-    printf("%s\n", token_line);
     col = 0;
     token[col] = strtok(token_line, "\t");
-    printf("token[%i] = %s\n", col, token[col]);
     while (token[col]!= NULL) {
       col++;
       token[col] = strtok(NULL, "\t");
-      printf("col = %i\n", col);
-      printf("token[%i] = %s\n", col, token[col]);
     }
     if (col != num_columns) {
       printf("Error: substitution score matrix invalid format\n");
       exit(-1);
     }
-    printf("num_columns %i, col = %i\n", num_columns, col);
 
     for(col = 1; col < num_columns; col++) {
-      printf("col = %i -> %s\n", col, token[col]);
-      //matrix[header[col][0]][token[0][0]] = atof(token[col]);
+      matrix[header[col][0]][token[0][0]] = atof(token[col]);
     }
   }
-  */
+
+  free(header_line);
+  free(token_line);
+
   fclose(file);
 }
 
