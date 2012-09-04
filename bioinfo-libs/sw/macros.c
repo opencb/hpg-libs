@@ -4,7 +4,7 @@
 // utility functions
 //------------------------------------------------------------------------
 
-void trim(char *line) {
+void str_trim(char *line) {
   int len = strlen(line) - 1 ;
   if (line[len] == '\n' || line[len] == '\r') {
     line[len] = '\0';

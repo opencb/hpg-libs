@@ -607,7 +607,7 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
   char *token_line = (char*) calloc(1, 4096);
 
   fgets(header_line, 4096, file);
-  trim(header_line);
+  str_trim(header_line);
 
 
   char *res = NULL;
@@ -638,7 +638,7 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
   // read the remain rows and update matrix
   unsigned int col = 0;
   while (fgets(token_line, 4096, file) != NULL) {
-    trim(token_line);
+    str_trim(token_line);
     col = 0;
     token[col] = strtok(token_line, "\t");
     while (token[col]!= NULL) {

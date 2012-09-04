@@ -278,7 +278,7 @@ void run_emboss(char *q_filename, char *r_filename,
     // read queries
     for (int i = 0; i < batch_size; i++) {
       if (fgets(q[i], max_length, q_file) == NULL) { break; }
-      trim(q[i]);
+      str_trim(q[i]);
       num_queries++;
       count++;
     }
@@ -289,7 +289,7 @@ void run_emboss(char *q_filename, char *r_filename,
     // read references
     for (int i = 0; i < num_queries; i++) {
       if (fgets(r[i], max_length, r_file) == NULL) { break; }
-      trim(r[i]);
+      str_trim(r[i]);
 
     }
 
