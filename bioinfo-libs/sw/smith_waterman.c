@@ -263,6 +263,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
   
       #pragma omp parallel num_threads(num_threads) shared(num_packs, packs_per_thread, optarg_p, output_p)
       {
+#ifdef TIMING
 	double partial_t = 0.0;
 #endif // TIMING
         unsigned int tid = omp_get_thread_num();
