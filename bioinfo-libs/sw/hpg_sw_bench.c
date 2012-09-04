@@ -175,13 +175,13 @@ void main(int argc, char *argv[]) {
   float match = 5.0f;
   float mismatch = 4.0f;
 
+
   sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
   sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
 
   emboss_matrix_t = (double *) calloc(num_threads, sizeof(double));
   emboss_tracking_t = (double *) calloc(num_threads, sizeof(double));
   emboss_total_t = (double *) calloc(num_threads, sizeof(double));
-
 
   // SSE
   run_sse(q_filename, r_filename,
