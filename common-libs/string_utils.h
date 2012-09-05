@@ -63,6 +63,17 @@ int contains(const char *str, const char *search);
 int starts_with(const char *str, const char *search);
 
 /**
+*  @brief Determines if a string starts with a given string fragment
+*  @param str string to process
+*  @param search string to search at the start of the string
+*  @param length maximum number of characters to check
+*  @return 0 string does not start with search string, 1 string starts with search string
+*  
+*  Determines if a string starts with a given string fragment
+*/
+int starts_with_n(const char *str, const char *search, int length);
+
+/**
 *  @brief Determines if a string ends with a given string fragment
 *  @param str string to process
 *  @param search string to search at the end of the string

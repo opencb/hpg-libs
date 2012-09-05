@@ -48,6 +48,10 @@ int is_numeric(const char *str){
 
 
 int starts_with(const char *str, const char *search) {
+    if (!str || !search) {
+        return 0;
+    }
+    
     int str_len = strlen(str);
     int search_len = strlen(search);
   
@@ -58,7 +62,15 @@ int starts_with(const char *str, const char *search) {
     return strncmp(str, search, search_len) == 0;
 }
 
+int starts_with_n(const char *str, const char *search, int length) {
+    return strncmp(str, search, length) == 0;
+}
+
 int ends_with(const char *str, const char *search) {
+    if (!str || !search) {
+        return 0;
+    }
+    
     int str_len = strlen(str);
     int search_len = strlen(search);
   
