@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -std=c99 -O3
-CFLAGS_DEBUG = -std=c99 -g
+CFLAGS = -std=c99 -O3 -D_GNU_SOURCE
+CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 
 # Directories' paths
 # LIBS_ROOT = ~/appl/bioinfo-c/libs

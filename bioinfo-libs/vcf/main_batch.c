@@ -82,7 +82,7 @@ int main (int argc, char *argv[])
     // 			if (i % 200 == 0) 
     // 			{
                 LOG_DEBUG_F("Batch %d reached by thread %d - %zu/%zu records \n", i, omp_get_thread_num(), 
-                    ((vcf_batch_t*) item->data_p)->length, ((vcf_batch_t*) item->data_p)->max_length);
+                    ((vcf_batch_t*) item->data_p)->records->size, ((vcf_batch_t*) item->data_p)->records->capacity);
     // 			}
             
     // 			vcf_batch_print(stdout, item->data_p);

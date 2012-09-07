@@ -102,7 +102,7 @@ int vcf_write(vcf_file_t *vcf_file, char *filename);
 
 int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file);
 
-int add_sample_name(char *name, vcf_file_t *vcf_file);
+int add_sample_name(char *name, int length, vcf_file_t *vcf_file);
 
 int add_record(vcf_record_t* record, vcf_file_t *vcf_file);
 

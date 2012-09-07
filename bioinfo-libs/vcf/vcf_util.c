@@ -52,7 +52,7 @@ int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2)
     int ret_code = 0, cur_pos = -1;
     
     // If the sample is not in a form that can contain a genotype, mark both alleles as missing
-    if (strlen(sample) < 3) {
+    if (strnlen(sample, 3) < 3) {
         *allele1 = -1;
         *allele2 = -1;
         ret_code = 3;
@@ -67,7 +67,7 @@ int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2)
         cur_pos++;
     }
     
-    LOG_DEBUG_F("genotype = %s\n", genotype);
+//     LOG_DEBUG_F("genotype = %s\n", genotype);
     
     allele = strtok_r(genotype, "/|", &aux_buffer);
     if (strcmp(".", allele) == 0) {
@@ -77,7 +77,7 @@ int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2)
         *allele1 = atoi(allele);
     }
     
-    LOG_DEBUG_F("allele 1 = %s\n", allele);
+//     LOG_DEBUG_F("allele 1 = %s\n", allele);
     
     allele = strtok_r(NULL, "/|", &aux_buffer);
     if (strcmp(".", allele) == 0) {
@@ -87,7 +87,7 @@ int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2)
         *allele2 = atoi(allele);
     }
     
-    LOG_DEBUG_F("allele2 = %s\n", allele);
+//     LOG_DEBUG_F("allele2 = %s\n", allele);
     
     return ret_code;
 }

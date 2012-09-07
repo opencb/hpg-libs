@@ -1,294 +1,309 @@
 #include "vcf_reader.h"
 
+int lines = 0;
+int batches = 0;
+// int count = 0;
+
 %%{
-    machine vcf;
-    write data;
+	machine vcf;
+	write data;
+	
+	#################################################
+	# 		Actions definition		#
+	#################################################
 
+    action linebreak {
+        lines++;
+    }
+    
+    action header_id_begin {
+        ts = p;
+    }
 
-    number      = (digit)+ ("." (digit)+)? ;
-    bases       = ("A" | "C" | "G" | "T" | "N")+ ;
-    identifier  = (alnum)+ ;
+    action header_id_end {
+        set_header_entry_name(ts, p-2-ts, status->current_header_entry);
+    }
 
+    action header_field_id_begin {
+        ts = p;
+    }
 
-    #########################################
-    #       File format     #
-    #########################################
-
-    # File format rules
-    format_name = (alnum | punct)+ ;
-    format_start    = "fileformat" ;
-    fileformat  = "##" @{ fcall fileformat_scan; } ;
-
-    # File format scanner
-    fileformat_scan := |*
-        format_start @ 2 ;
-        
-        format_name @ 1 => { 
-            char *fileformat = (char*) calloc (te-ts+1, sizeof(char));
-            strncat(fileformat, ts, te-ts);
-            set_file_format(fileformat, file);
-        };
-        
-        "#" @ 3 ;
-        
-        "=" @ 3 ;
-        
-        "\n" @ 3    => { fret; };
-        
-        space;
-    *|;
-
-
-    #########################################
-    #                 Header                #
-    #########################################
-
-    # Header rules
-    header_id   = identifier "=<" ;
-    field_id    = identifier "=" ;
-    field_value = (print - (">" | "," ))+ | "\"" (print - ">")+ "\"" ;
-    header      = ("##" @{ fcall header_scan; })+ ;
-
-    # Header scanner
-    header_scan := |*
-        header_id @ 5   => {
-            char *header_id = get_token(ts, te-2);
-            set_header_entry_name(header_id, status->current_header_entry);
-        };
-        
-        field_id @ 5    => {
-            char *field_id = get_token(ts, te-1);
-            if (status->current_header_entry->name != NULL)
-            {
-                add_header_entry_key(field_id, status->current_header_entry);
-            } else {
-                // Entries like ##reference=some_text_here
-                status->current_header_entry = create_header_entry();
-                set_header_entry_name(field_id, status->current_header_entry);
-            }
-        };
-        
-        field_value @ 4 => {
-            // Remove quotation marks if necessary
-            char *start = ts, *end = te;
-            if (*ts == '"') start = ts + 1;
-            if (*(te-1) == '"') end = te - 1;
-            
-            char *field_value = get_token(start, end);
-            add_header_entry_value(field_value, status->current_header_entry);
-        };
-        
-        "=<" @ 6    => {
-            LOG_DEBUG(" =< ");
-        };
-        
-        ">" @ 6 {
-            LOG_DEBUG(" } ");
-        };
-        
-        "," @ 6     => {
-            LOG_DEBUG(" , ");
-        };
-        
-        "\n"        => {
-            add_header_entry(status->current_header_entry, file);
+    action header_field_id_end {
+        if (status->current_header_entry->name != NULL)
+        {
+            add_header_entry_key(ts, p-ts, status->current_header_entry);
+        } else {
+            // Entries like ##reference=some_text_here
             status->current_header_entry = create_header_entry();
-            LOG_DEBUG("\n");
-            fret;
-        };
-        
-        space;
-    *|;
+            set_header_entry_name(ts, p-ts, status->current_header_entry);
+        }
+    }
 
+    action header_field_value_begin {
+        ts = p;
+    }
 
-    #########################################
-    #       Delimiter       #
-    #########################################
+    action header_field_value_end {
+        // Remove quotation marks if necessary
+        char *start = ts, *end = p;
+        if (*ts == '"') start = ts + 1;
+        if (*(p-1) == '"') end = p - 1;
+        
+        add_header_entry_value(start, end-start, status->current_header_entry);
+    }
 
-    # Delimiter between header and records rules
-    delimiter_intro = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT" ;
-    sample_name = (print - ("\n" | "\t"))+ ;
-    delimiter   = delimiter_intro @{ fcall delimiter_scan; };
+    action sample_name_begin {
+        ts = p;
+    }
 
-    # Delimiter scanner
-    delimiter_scan  := |*
-        sample_name => {
-            char *sname = get_token(ts, te);
-            add_sample_name(sname, file);
-        };
-        
-        "\n"        => {
-            LOG_DEBUG("\n");
-            fret; 
-        };
-        
-        space;
-    *|;
+    action sample_name_end {
+        add_sample_name(ts, p-ts, file);
+    }
 
-
-    #########################################
-    #       Records         #
-    #########################################
-
-    # Records rules
-    record_chrom    = (alnum | "_")+ ;
-    record_pos  = (digit)+ ;
-    record_id   = (alnum)+ | "." ;
-    record_ref  = bases ;
-    record_alt  = (bases ("," bases)*)+ | "." | "0" | "<DEL>" ;
-    record_qual = number | "." ;
-
-    filter_value    = (alnum | "_")+ ;
-    filter_entry    = filter_value ("," filter_value)* ;
-    record_filter   = "." | filter_entry (";" filter_entry)* ;
-
-    info_id     = (alnum | "_")+ ;
-    info_value  = (print - space)+ ;
-    info_value_list = info_value ("," info_value)* ;
-    info_entry  = info_id | info_id "=" info_value_list ;
-    record_info = info_entry (";" info_entry)* ;
-
-    record_format   = (alnum)+ (":" (alnum)+)* ;
-    record_sample   = (alnum | punct)+ (":" (alnum | punct)+)* ;
-    record      = (record_chrom "\t" record_pos "\t" record_id "\t" record_ref "\t" record_alt "\t" record_qual "\t" record_filter "\t" record_info "\t" record_format ("\t" record_sample)+);
-    records     = record ("\n" record)* ("\n")? ;
-
-    # Records scanner
-    record_scan := |*
-        record_chrom    => {
-            set_field(ts, te, status);
-        };
-        
-        record_pos  => {
-            set_field(ts, te, status);
-        };
-        
-        record_id   => {
-            set_field(ts, te, status);
-        };
-        
-        record_ref  => {
-            set_field(ts, te, status);
-        };
-        
-        record_alt  => {
-            set_field(ts, te, status);
-        };
-        
-        record_qual     => {
-            set_field(ts, te, status);
-        };
-        
-        record_filter   => {
-            set_field(ts, te, status);
-        };
-        
-        record_info => {
-            set_field(ts, te, status);
-        };
-        
-        record_format   => {
-            set_field(ts, te, status);
-        };
-        
-        record_sample   => {
-            set_field(ts, te, status);
-        };
-        
-        "\n"        => {
-            // If batch is full, add to the list of batches and create a new, empty one
-            if (vcf_batch_is_full(status->current_batch))
-            {
-                list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
-                list_insert_item(item, batches_list);
-                LOG_DEBUG_F("Batch added - %zu records\n", status->current_batch->size);
-                status->current_batch = vcf_batch_new(batch_size);
+    action record_begin {
+        status->current_record = create_record();
+    }
+	
+    action record_end {
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (vcf_batch_is_full(status->current_batch))
+        {
+            list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
+            status->current_batch = vcf_batch_new(batch_size);           
+            if (p+1) {
+                status->current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, status->current_batch->text);
             }
+            batches++;
+        }
 
-            // If not a blank line, add status->current record to status->current batch
-            if (status->current_field != CHROM) {
-                add_record_to_vcf_batch(status->current_record, status->current_batch);
-                status->num_records++;
-            }
-            
-            status->current_field = CHROM;
-            status->num_samples = 0;
-            LOG_DEBUG("\n");
-        };
+        // If not a blank line, add status->current record to status->current batch
+//         if (status->current_field != CHROM) {
+            add_record_to_vcf_batch(status->current_record, status->current_batch);
+            status->num_records++;
+//             printf("Record %zu added\n", status->num_records);
+//         }
         
-        space;
-    *|;
+//         status->current_field = CHROM;
+        status->num_samples = 0;
+//         LOG_DEBUG("\n");
+    }
+	
+    action chrom_begin {
+        ts = p;
+//         printf("chromosome begin %c%c\n", ts[0], ts[3]);
+    }
 
+    action chrom_end {
+//         printf("chromosome end %c%c\n", ts[0], ts[3]);
+        set_record_chromosome(ts, p-ts, status->current_record);
+    }
 
-    #########################################
-    #               Machine                 #
-    #########################################
+    action chrom_error {
+        printf("Line %d: Error in 'chromosome' field\n", lines);
+    }
 
-    main        := (fileformat header delimiter)? (records >{ fhold; fcall record_scan; })? ;
+    action pos_begin {
+        ts = p;
+//         printf("position\n");
+    }
 
+    action pos_end {
+        char *field = strndup(ts, p-ts);
+        set_record_position(atol(field), status->current_record);
+//         printf("Position = %ld\n", atol(field));
+        free(field);
+    }
 
+    action pos_error {
+        printf("Line %d: Error in 'position' field\n", lines);
+    }
+
+    action id_begin {
+        ts = p;
+//         printf("id\n");
+    }
+
+    action id_end {
+        set_record_id(ts, p-ts, status->current_record);
+    }
+
+    action id_error {
+        printf("Line %d: Error in 'id' field\n", lines);
+    }
+
+    action ref_begin {
+        ts = p;
+//         printf("reference\n");
+    }
+
+    action ref_end {
+        set_record_reference(ts, p-ts, status->current_record);
+    }
+
+    action ref_error {
+        printf("Line %d: Error in 'reference' field\n", lines);
+    }
+
+    action alt_begin {
+        ts = p;
+//         printf("alternate\n");
+    }
+
+    action alt_end {
+        if (!strncmp("0", ts, 1) || !strncmp("<DEL>", ts, 5)) {
+            set_record_alternate(".", 1, status->current_record);
+        } else {
+            set_record_alternate(ts, p-ts, status->current_record);
+        }
+    }
+
+    action alt_error {
+        printf("Line %d: Error in 'alternate' field\n", lines);
+    }
+
+    action qual_begin {
+        ts = p;
+//         printf("quality\n");
+    }
+
+    action qual_end {
+        float quality = -1.0f;
+        if (strncmp(".", ts, 1) != 0) {
+            char *field = strndup(ts, p-ts);
+            quality = atof(field);
+            free(field);
+        }
+        set_record_quality(quality, status->current_record);
+    }
+
+    action qual_error {
+        printf("Line %d: Error in 'quality' field\n", lines);
+    }
+
+    action filter_begin {
+        ts = p;
+//         printf("filter\n");
+    }
+
+    action filter_end {
+        set_record_filter(ts, p-ts, status->current_record);
+    }
+
+    action filter_error {
+        printf("Line %d: Error in 'filter' field\n", lines);
+    }
+
+    action info_begin {
+        ts = p;
+//         printf("info\n");
+    }
+
+    action info_end {
+        set_record_info(ts, p-ts, status->current_record);
+    }
+
+    action info_error {
+        printf("Line %d: Error in 'info' field\n", lines);
+    }
+
+    action format_begin {
+        ts = p;
+//         printf("format\n");
+    }
+
+    action format_end {
+        set_record_format(ts, p-ts, status->current_record);
+    }
+
+    action format_error {
+        printf("Line %d: Error in 'format' field\n", lines);
+    }
+
+    action sample_begin {
+        ts = p;
+//         printf("sample\n");
+    }
+
+    action sample_end {
+        add_record_sample(ts, p-ts, status->current_record);
+    }
+
+    action sample_error {
+        printf("Line %d: Error in sample\n", lines);
+    }
+
+	#################################################
+	# 		Machine definition		#
+	#################################################
+	
+	number		= (digit)+ ("." (digit)+)? ;					# Integer or floating-point number
+	bases		= ("A" | "C" | "G" | "T" | "N")+ ;
+	identifier	= (alnum)+ ;
+	
+	# File format
+	format_name	= (alnum | punct)+ ;
+	fileformat	= "##fileformat=" format_name "\n" >linebreak;
+	
+	# Header
+	field_name	= identifier ;
+	field_value	= (print)+ ;
+	header_field	= (field_name "=")? field_value ;
+	entry_name	= (alnum | "_")+ ;
+	header_entry	= "##" identifier "=<" (header_field)+ ">\n" | "##" identifier "=" field_value "\n" | "##" field_value "\n" >linebreak ;
+	header		= (header_entry)+ ;
+	
+	# Delimiter between header and records
+	sample_name	= (print - ("\n" | "\t"))+ ;
+	delimiter	= "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT" ("\t" sample_name >sample_name_begin %sample_name_end)+ "\n" >linebreak;
+
+	# Records
+	record_chrom	= (alnum | "_")+ ;
+	record_pos	= (digit)+ ;
+	record_id	= (alnum)+ | "." ;					# Alphanumeric string or one dot
+	record_ref	= bases ;
+	record_alt	= (bases ("," bases)*)+ | "." | "<DEL>" | "0" ;				# Comma-separated bases or one dot
+	record_qual	= number | "." ;					# Number or dot
+	
+	filter_value	= (alnum | "_")+ ;
+	filter_entry	= filter_value ("," filter_value)* ;
+	record_filter	= "." | filter_entry (";" filter_entry)* ;
+	
+	
+	info_id		= (alnum | "_")+ | "." ;
+	info_value	= (print - space)+ ;
+	info_value_list	= info_value ("," info_value)* ;
+	info_entry	= info_id | info_id "=" info_value_list ;
+	record_info	= info_entry (";" info_entry)* ;
+	
+	record_format	= (alnum)+ (":" (alnum)+)* ;
+	record_sample	= (alnum | punct)+ (":" (alnum | punct)+)* ;
+	record		= (record_chrom >chrom_begin %chrom_end $err(chrom_error) "\t" 
+                   record_pos >pos_begin %pos_end $err(pos_error) "\t" 
+                   record_id >id_begin %id_end $err(id_error) "\t" 
+                   record_ref >ref_begin %ref_end $err(ref_error) "\t" 
+                   record_alt >alt_begin %alt_end $err(alt_error) "\t" 
+                   record_qual >qual_begin %qual_end $err(qual_error) "\t" 
+                   record_filter >filter_begin %filter_end $err(filter_error) "\t" 
+                   record_info >info_begin %info_end $err(info_error) "\t" 
+                   record_format >format_begin %format_end $err(format_error) 
+                   ("\t" record_sample >sample_begin %sample_end $err(sample_error))+) 
+                   >record_begin %record_end ;
+	records		=  record ("\n" >linebreak record)* ("\n")? ;
+	
+	# Machine start
+#	main		:= fileformat >entering_format $inside_format @leaving_format %begin_header header >end_header delimiter %records_begin records %records_end ;
+    main        := (fileformat)? (header)? (delimiter)? (records)? ("\n")* ;
+
+	
+	#################################################
+	# 		Scanner definition		#
+	#################################################
+	
 }%%
 
-static char* get_token(char *ts, char *te) {
-    return strndup(ts, te-ts);
-}
-
-static void set_field(char* ts, char *te, vcf_reader_status *status) {
-    char *field = get_token(ts, te);
-    float quality = -1.0f;
-
-    switch (status->current_field) {
-        case CHROM:
-            status->current_record = create_record();
-            set_record_chromosome(field, status->current_record);
-        break;
-        case POS:
-            set_record_position(atol(field), status->current_record);
-            free(field);    // Not set as vcf_record_t variable -> not freed later
-        break;
-        case ID:
-            set_record_id(field, status->current_record);
-        break;
-        case REF:
-            set_record_reference(field, status->current_record);
-        break;
-        case ALT:
-            if (!strcmp("0", field) || !strcmp("<DEL>", field)) {
-                free(field);
-                field = strdup(".");
-            }
-            set_record_alternate(field, status->current_record);
-        break;
-        case QUAL:
-            if (strncmp(".", field, 1) != 0) {
-                quality = atof(field);
-            }
-            set_record_quality(quality, status->current_record);
-            free(field);    // Not set as vcf_record_t variable -> not freed later
-        break;
-        case FILTER:
-            set_record_filter(field, status->current_record);
-        break;
-        case INFO:
-            set_record_info(field, status->current_record);
-        break;
-        case FORMAT:
-            set_record_format(field, status->current_record);
-        break;
-        case SAMPLE:
-            if(status->store_samples) { 
-                add_record_sample(field, status->current_record); 
-                (status->num_samples)++;
-            } else {
-                free(field);    // Not added to samples -> not freed later
-            }
-        break;
-    }
-
-    if (status->current_field < SAMPLE) {
-        status->current_field++;
-    }
-}
 
 int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
     int cs;
@@ -297,26 +312,36 @@ int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t ba
     int top, act;
     char *eof = pe;
 
+    status->current_batch->text = p;
+//     printf("ragel - batch text = '%.*s'\n", 50, status->current_batch->text);
+
     %%{
         write init;
         write exec;
     }%%
     
-    if (status->self_contained && !vcf_batch_is_empty(status->current_batch)) {
+//     if (status->self_contained && !vcf_batch_is_empty(status->current_batch)) {
+//     if (!vcf_batch_is_empty(status->current_batch) && !vcf_batch_is_full(status->current_batch)) {
+    if (!vcf_batch_is_empty(status->current_batch)) {
         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
         list_insert_item(item, batches_list);
-        LOG_DEBUG_F("Batch added - %zu records (self-contained)\n", status->current_batch->size);
+//         printf("Batch added - %zu records (self-contained)\n", status->current_batch->records->size);
     }
 
-    return cs;
+//     printf("ragel - first chromosome = %.*s\n", 
+//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome_len, 
+//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome);
+// 
+//     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
+    return cs < %%{ write first_final; }%%;
 }
 
 
-int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
-    int cs;
+int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+    int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = new_vcf_reader_status(batch_size, read_samples, 0);
+    vcf_reader_status *status = vcf_reader_status_new(batch_size, read_samples, 0);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
@@ -327,124 +352,116 @@ int vcf_ragel_read(list_t *batches_list, size_t batch_size, vcf_file_t *file, in
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
         __ssize_t line_len = 0;
-
-        char *data = (char*) malloc (max_len * sizeof(char));
-        char *line = NULL;
-        char *aux;
-        
         int eof_found = 0;
+        char *aux;
 
         // Read text of a batch and call ragel parser in a loop
         while (!eof_found) {
-            memset(data, 0, max_len * sizeof(char));
+            char *data = (char*) calloc (max_len, sizeof(char));
+            int c = 0;
+            int lines = 0;
 
-            for (int i = 0; i < batch_size && !eof_found; i++) {
-                line_len = getline(&line, &line_len, file->fd);
-                if (line_len != -1) {
-    //                LOG_DEBUG_F("Line (len %zu): %s", line_len, line);
+            for (int i = 0; !eof_found && lines < batch_size; i++) {
+                c = fgetc(file->fd);
+                
+                if (c != EOF) {
+                    data[i] = c;
                     // Line too long to be stored in data, realloc
-                    if (file->data_len + line_len + 1 > max_len) {
-                        aux = realloc(data, max_len + line_len * 20);
+                    if (i == max_len - 1) {
+                        aux = realloc(data, max_len + 10000);
                         if (aux) {
                             data = aux;
-                            max_len += line_len * 20;
+                            max_len += 10000;
                         } else {
                             LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
                         }
                     }
-                    // Concat previous data with new line
-                    strncat(data, line, line_len);
-                    file->data_len += line_len;
+
+                    if (c == '\n') {
+                        lines++;
+                    }
+                    (file->data_len)++;
                 } else {
                     eof_found = 1;
                 }
+
             }
+
+            data[file->data_len] = '\0';
 
             p = data;
             pe = p + file->data_len;
-            cs = execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+            cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
             file->data_len = 0;
+
+            // Prepare status for next batch
+            status->current_batch = vcf_batch_new(batch_size);
         }
-        
-        if (line != NULL) { free(line); }
-        if (data != NULL) { free(data); }
     }
 
     // Insert the last batch
-    if (!vcf_batch_is_empty(status->current_batch))
-    {
-        list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
-        list_insert_item(item, batches_list);
-        LOG_DEBUG_F("Batch added - %zu records (last)\n", status->current_batch->size);
-    }
+    // TODO this should not be neccessary because it is now inserted in execute_vcf_ragel_machine
+//     if (!vcf_batch_is_empty(status->current_batch))
+//     {
+//         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
+//         list_insert_item(item, batches_list);
+//         printf("Batch added - %zu records (last)\n", status->current_batch->records->size);
+//     }
 
-    if ( cs < %%{ write first_final; }%% ) 
-    {
-        LOG_INFO_F("Last state is %d, but %d was expected\n", 
-                cs, %%{ write first_final; }%%);
+    if ( cs ) {
+        LOG_INFO("Last state was not the expected");
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
     LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
 
     // Free status->current_xxx pointers if not needed in another module
-    vcf_header_entry_free(status->current_header_entry);   
+    vcf_reader_status_free(status);
 
-    return cs < %%{ write first_final; }%%;
+    return cs ;
 }
 
 int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
-//     if (mmap_vcf) {
-//         LOG_DEBUG("Using mmap for file loading\n");
-//         TODO Use functions for getting the batch-size-th index of linebreak
-//     } else {
     LOG_DEBUG("Using file-IO functions for file loading\n");
-    size_t max_len = 256;
-    __ssize_t line_len = 0;
-    file->data_len = 0;
 
-    char *data = NULL;
-    char *line = NULL;
-    char *aux;
-    
+    size_t max_len = 256;
     int eof_found = 0;
+    char *aux;
 
     // Read text of a batch and call ragel parser in a loop
     while (!eof_found) {
         char *data = (char*) calloc (max_len, sizeof(char));
-//             memset(data, 0, max_len * sizeof(char));
+        int c = 0;
+        int lines = 0;
 
-        for (int i = 0; i < batch_size && !eof_found; i++) {
-            line_len = getline(&line, &line_len, file->fd);
-            if (line_len != -1) {
-                LOG_DEBUG_F("#%d Line (len %zu): %s", i, line_len, line);
+        for (int i = 0; !eof_found && lines < batch_size; i++) {
+            c = fgetc(file->fd);
+
+            if (c != EOF) {
+                data[i] = c;
                 // Line too long to be stored in data, realloc
-                if (file->data_len + line_len + 1 > max_len) {
-                    aux = realloc(data, max_len + line_len * 20);
+                if (i == max_len - 1) {
+                    aux = realloc(data, max_len + 10000);
                     if (aux) {
                         data = aux;
-                        max_len += line_len * 20;
+                        max_len += 10000;
                     } else {
                         LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
                     }
                 }
-                // Concat previous data with new line
-                strncat(data, line, line_len);
-                file->data_len += line_len;
+
+                if (c == '\n') {
+                    lines++;
+                }
             } else {
                 eof_found = 1;
             }
         }
 
-        file->data_len = 0;
-
         list_item_t *item = list_item_new(file->num_records, 1, data);
         list_insert_item(item, batches_list);
 //             printf("Text batch inserted = '%s'\n", data);
-
     }
-    
-    if (line != NULL) { free(line); }
 
     return 0;
 }
@@ -518,12 +535,11 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
     return 0;
 }
 
-vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples, int self_contained) {
+vcf_reader_status *vcf_reader_status_new(size_t batch_size, int store_samples, int self_contained) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
     status->current_header_entry = create_header_entry();
     status->current_batch = vcf_batch_new(batch_size);
-    status->current_field = CHROM;
 
     status->num_samples = 0;
     status->num_records = 0;
@@ -532,4 +548,17 @@ vcf_reader_status *new_vcf_reader_status(size_t batch_size, int store_samples, i
     status->self_contained = self_contained;
 
     return status;
+}
+
+void vcf_reader_status_free(vcf_reader_status *status) {
+    if (status->current_header_entry->name == NULL && status->current_header_entry->num_keys == 0 && status->current_header_entry->num_values == 0) {
+        vcf_header_entry_free(status->current_header_entry);
+    }
+    if (vcf_batch_is_empty(status->current_batch)) {
+        vcf_batch_free(status->current_batch);
+    }
+    if (status->current_record->chromosome == NULL && status->current_record->samples->size == 0) {
+        vcf_record_free(status->current_record);
+    }
+    free(status);
 }

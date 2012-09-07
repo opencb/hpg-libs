@@ -23,7 +23,8 @@ vcf_file_t *vcf_open(char *filename) {
     if (mmap_vcf) {
         size_t len;
         char *data = mmap_file(&len, filename);
-        vcf_file->fd = NULL;
+//        vcf_file->fd = NULL;
+        vcf_file->fd = fopen(filename, "r");
         vcf_file->data = data;
         vcf_file->data_len = len;
     } else {
@@ -54,7 +55,7 @@ vcf_file_t *vcf_open(char *filename) {
 
 void vcf_close(vcf_file_t *vcf_file) {
     // Free file format
-    free(vcf_file->format);
+//     free(vcf_file->format);
 
     // Free samples names
     array_list_free(vcf_file->samples_names, free);
@@ -65,9 +66,10 @@ void vcf_close(vcf_file_t *vcf_file) {
 
     if (mmap_file) {
         munmap((void*) vcf_file->data, vcf_file->data_len);
-    } else {
+    } 
+//    else {
         fclose(vcf_file->fd);
-    }
+//    }
     free(vcf_file);
 }
 
@@ -117,13 +119,13 @@ vcf_record_t* create_record() {
 }
 
 void vcf_record_free(vcf_record_t *vcf_record) {
-    free(vcf_record->chromosome);
-    free(vcf_record->id);
-    free(vcf_record->reference);
-    free(vcf_record->alternate);
-    free(vcf_record->filter);
-    free(vcf_record->info);
-    free(vcf_record->format);
+//     free(vcf_record->chromosome);
+//     free(vcf_record->id);
+//     free(vcf_record->reference);
+//     free(vcf_record->alternate);
+//     free(vcf_record->filter);
+//     free(vcf_record->info);
+//     free(vcf_record->format);
     array_list_free(vcf_record->samples, free);
     free(vcf_record);
 }
@@ -146,7 +148,7 @@ int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t *
 }
 
 int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
-	return vcf_ragel_read(batches_list, batch_size, vcf_file, read_samples);
+	return vcf_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
 }
 
 int vcf_write(vcf_file_t *vcf_file, char *filename) {
@@ -181,8 +183,8 @@ int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file) {
     return result;
 }
 
-int add_sample_name(char *name, vcf_file_t *vcf_file) {
-    int result = array_list_insert(name, vcf_file->samples_names);
+int add_sample_name(char *name, int length, vcf_file_t *vcf_file) {
+    int result = array_list_insert(strndup(name, length), vcf_file->samples_names);
     if (result) {
         (vcf_file->num_samples)++;
         LOG_DEBUG_F("sample %zu is %s\n", vcf_file->samples_names->size, name);

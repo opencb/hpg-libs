@@ -11,6 +11,8 @@
  */
 typedef struct vcf_header_entry {
     char *name;
+    int name_len;
+    
     // List of keys of the fields describing the entry (if num_field_keys = 0, then entry = "name=values[0]")
     list_t *keys;
     size_t num_keys;
@@ -34,6 +36,14 @@ typedef struct vcf_record {
     char* info;
     char* format;
 
+    int chromosome_len;
+    int id_len;
+    int reference_len;
+    int alternate_len;
+    int filter_len;
+    int info_len;
+    int format_len;
+    
     array_list_t *samples;
 } vcf_record_t;
 
@@ -53,6 +63,8 @@ typedef struct vcf_file {
     size_t data_len;
 
     char* format;
+    int format_len;
+    
     array_list_t *header_entries;
     size_t num_header_entries;
     array_list_t *samples_names;

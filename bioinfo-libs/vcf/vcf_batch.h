@@ -18,10 +18,12 @@
 //====================================================================================
 
 /**
- * List who is equivalent to a batch of VCF records.
+ * List equivalent to a batch of VCF records.
  */
-// typedef list_t vcf_batch_t;
-typedef array_list_t vcf_batch_t;
+typedef struct vcf_batch {
+    array_list_t *records;
+    char *text;
+} vcf_batch_t;
 
 
 vcf_batch_t* vcf_batch_new(size_t size);
