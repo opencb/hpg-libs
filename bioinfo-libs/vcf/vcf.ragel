@@ -336,6 +336,38 @@ int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t ba
     return cs < %%{ write first_final; }%%;
 }
 
+vcf_reader_status *vcf_reader_status_new(size_t batch_size, int store_samples, int self_contained) {
+    vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
+    status->current_record = NULL;
+    status->current_header_entry = create_header_entry();
+    status->current_batch = vcf_batch_new(batch_size);
+
+    status->num_samples = 0;
+    status->num_records = 0;
+
+    status->store_samples = store_samples;
+    status->self_contained = self_contained;
+
+    return status;
+}
+
+void vcf_reader_status_free(vcf_reader_status *status) {
+    if (status->current_header_entry->name == NULL && status->current_header_entry->num_keys == 0 && status->current_header_entry->num_values == 0) {
+        vcf_header_entry_free(status->current_header_entry);
+    }
+    if (vcf_batch_is_empty(status->current_batch)) {
+        vcf_batch_free(status->current_batch);
+    }
+    if (status->current_record->chromosome == NULL && status->current_record->samples->size == 0) {
+        vcf_record_free(status->current_record);
+    }
+    free(status);
+}
+
+
+/* **********************************************
+ *              Reading and parsing             *
+ * **********************************************/
 
 int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
     int cs = 0;
@@ -421,6 +453,11 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     return cs ;
 }
 
+
+/* **********************************************
+ *                  Only reading                *
+ * **********************************************/
+
 int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
@@ -465,6 +502,128 @@ int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
 
     return 0;
 }
+
+int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+    LOG_DEBUG("Using file-IO functions for file loading\n");
+
+    size_t max_len = 256;
+    int eof_found = 0;
+    char *aux;
+
+    // ZLIB variables
+    int ret;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+
+    // ZLIB stream initialization
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
+    if (ret != Z_OK) {
+        LOG_ERROR("gzipped file could not be decompressed");
+        return 1;
+    }
+
+    char *data = (char*) calloc (max_len, sizeof(char));
+
+    while (!eof_found && ret != Z_STREAM_END) {
+        int c = 0, i = 0, lines = 0;
+
+        do {
+            strm.avail_in = fread(in, 1, CHUNK, file->fd);
+            if (ferror(file->fd)) {
+                (void)inflateEnd(&strm);
+                return Z_ERRNO;
+            }
+            if (strm.avail_in == 0)
+                break;
+            strm.next_in = in;
+
+            /* run inflate() on input until output buffer not full */
+            do {
+                strm.avail_out = CHUNK;
+                strm.next_out = out;
+                ret = inflate(&strm, Z_NO_FLUSH);
+                assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+                switch (ret) {
+                case Z_NEED_DICT:
+                    ret = Z_DATA_ERROR;     /* and fall through */
+                case Z_DATA_ERROR:
+                case Z_MEM_ERROR:
+                    (void)inflateEnd(&strm);
+                    return ret;
+                }
+                have = CHUNK - strm.avail_out;
+                
+                for (int j = 0; j < have && !eof_found; j++) {
+                    c = out[j];
+
+                    if (c != EOF) {
+                        data[i] = c;
+                        // Line too long to be stored in data, realloc
+                        if (i == max_len - 1) {
+                            aux = realloc(data, max_len + 10000);
+                            if (aux) {
+                                data = aux;
+                                max_len += 10000;
+                            } else {
+                                LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                            }
+                        }
+        
+                        if (c == '\n') {
+                            lines++;
+                        }
+
+                        i++;
+                        (file->data_len)++;
+                    } else {
+                        eof_found = 1;
+                    }
+
+                    // Process batch
+                    if (lines == batch_size) {
+                        if (file->data_len == max_len) {
+                            aux = realloc(data, max_len + 1);
+                            if (aux) {
+                                data = aux;
+                                max_len++;
+                            } else {
+                                LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                            }
+                        }
+
+                        list_item_t *item = list_item_new(file->num_records, 1, data);
+                        list_insert_item(item, batches_list);
+
+                        // Setup for next batch
+                        i = 0;
+                        lines = 0;
+                        data = (char*) calloc (max_len, sizeof(char));
+                    }
+                }
+
+            } while (strm.avail_out == 0);
+
+            /* done when inflate() says it's done */
+        } while (ret != Z_STREAM_END);
+
+    }
+
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+}
+
+
+/* **********************************************
+ *      Only reading from multiple files        *
+ * **********************************************/
 
 int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
@@ -535,30 +694,3 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
     return 0;
 }
 
-vcf_reader_status *vcf_reader_status_new(size_t batch_size, int store_samples, int self_contained) {
-    vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
-    status->current_record = NULL;
-    status->current_header_entry = create_header_entry();
-    status->current_batch = vcf_batch_new(batch_size);
-
-    status->num_samples = 0;
-    status->num_records = 0;
-
-    status->store_samples = store_samples;
-    status->self_contained = self_contained;
-
-    return status;
-}
-
-void vcf_reader_status_free(vcf_reader_status *status) {
-    if (status->current_header_entry->name == NULL && status->current_header_entry->num_keys == 0 && status->current_header_entry->num_values == 0) {
-        vcf_header_entry_free(status->current_header_entry);
-    }
-    if (vcf_batch_is_empty(status->current_batch)) {
-        vcf_batch_free(status->current_batch);
-    }
-    if (status->current_record->chromosome == NULL && status->current_record->samples->size == 0) {
-        vcf_record_free(status->current_record);
-    }
-    free(status);
-}
