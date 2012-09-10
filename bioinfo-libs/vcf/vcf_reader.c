@@ -1483,7 +1483,6 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
-        __ssize_t line_len = 0;
         int eof_found = 0;
         char *aux;
 
@@ -1553,6 +1552,138 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     return cs ;
 }
 
+int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+    int cs = 0;
+    char *p, *pe;
+
+    vcf_reader_status *status = vcf_reader_status_new(batch_size, read_samples, 0);
+    
+    LOG_DEBUG("Using file-IO functions for file loading\n");
+
+    size_t max_len = 256;
+    int eof_found = 0;
+    int c = 0, i = 0, lines = 0;
+    char *aux;
+    char *data = (char*) calloc (max_len, sizeof(char));
+
+    // ZLIB variables
+    int ret;
+    unsigned have = 0, consumed = 0;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+
+    // ZLIB stream initialization
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
+    if (ret != Z_OK) {
+        LOG_ERROR("gzipped file could not be decompressed");
+        return 1;
+    }
+
+
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, file->fd);
+        if (ferror(file->fd)) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;     /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                (void)inflateEnd(&strm);
+                return ret;
+            }
+            have = CHUNK - strm.avail_out;
+            
+            for (consumed = 0; consumed < have && !eof_found; consumed++) {
+                c = out[consumed];
+
+                if (c != EOF) {
+                    data[i] = c;
+                    // Line too long to be stored in data, realloc
+                    if (i == max_len - 1) {
+                        aux = realloc(data, max_len + 10000);
+                        if (aux) {
+                            data = aux;
+                            max_len += 10000;
+                        } else {
+                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+                        }
+                    }
+    
+                    if (c == '\n') {
+                        lines++;
+                    }
+
+                    i++;
+                    (file->data_len)++;
+                } else {
+                    eof_found = 1;
+                }
+
+                // Process batch
+                if (lines == batch_size) {
+                    data[file->data_len] = '\0';
+                    p = data;
+                    pe = p + file->data_len;
+                    cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+                    file->data_len = 0;
+
+                    // Setup for next batch
+                    status->current_batch = vcf_batch_new(batch_size);
+                    i = 0;
+                    lines = 0;
+                    data = (char*) calloc (max_len, sizeof(char));
+                }
+            }
+
+        } while (strm.avail_out == 0);
+
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+
+    // Consume last batch
+    if (lines > 0 && lines < batch_size) {
+        data[file->data_len] = '\0';
+        p = data;
+        pe = p + file->data_len;
+        cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+        file->data_len = 0;
+    }
+
+    if ( cs ) {
+        LOG_INFO("Last state was not the expected");
+    } 
+
+    LOG_INFO_F("Records read = %zu\n", status->num_records);
+    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+
+    // Free status->current_xxx pointers if not needed in another module
+    vcf_reader_status_free(status);
+
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+
+    return cs ;
+}
+
 
 /* **********************************************
  *                  Only reading                *
@@ -1608,7 +1739,9 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
 
     size_t max_len = 256;
     int eof_found = 0;
+    int c = 0, i = 0, lines = 0;
     char *aux;
+    char *data = (char*) calloc (max_len, sizeof(char));
 
     // ZLIB variables
     int ret;
@@ -1629,91 +1762,82 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
         return 1;
     }
 
-    char *data = (char*) calloc (max_len, sizeof(char));
 
-    while (!eof_found && ret != Z_STREAM_END) {
-        int c = 0, i = 0, lines = 0;
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, file->fd);
+        if (ferror(file->fd)) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
 
+        /* run inflate() on input until output buffer not full */
         do {
-            strm.avail_in = fread(in, 1, CHUNK, file->fd);
-            if (ferror(file->fd)) {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;     /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
                 (void)inflateEnd(&strm);
-                return Z_ERRNO;
+                return ret;
             }
-            if (strm.avail_in == 0)
-                break;
-            strm.next_in = in;
+            have = CHUNK - strm.avail_out;
+            
+            for (int j = 0; j < have && !eof_found; j++) {
+                c = out[j];
 
-            /* run inflate() on input until output buffer not full */
-            do {
-                strm.avail_out = CHUNK;
-                strm.next_out = out;
-                ret = inflate(&strm, Z_NO_FLUSH);
-                assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
-                switch (ret) {
-                case Z_NEED_DICT:
-                    ret = Z_DATA_ERROR;     /* and fall through */
-                case Z_DATA_ERROR:
-                case Z_MEM_ERROR:
-                    (void)inflateEnd(&strm);
-                    return ret;
-                }
-                have = CHUNK - strm.avail_out;
-                
-                for (int j = 0; j < have && !eof_found; j++) {
-                    c = out[j];
-
-                    if (c != EOF) {
-                        data[i] = c;
-                        // Line too long to be stored in data, realloc
-                        if (i == max_len - 1) {
-                            aux = realloc(data, max_len + 10000);
-                            if (aux) {
-                                data = aux;
-                                max_len += 10000;
-                            } else {
-                                LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                            }
+                if (c != EOF) {
+                    data[i] = c;
+                    // Line too long to be stored in data, realloc
+                    if (i == max_len - 1) {
+                        aux = realloc(data, max_len + 10000);
+                        if (aux) {
+                            data = aux;
+                            max_len += 10000;
+                        } else {
+                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
                         }
-        
-                        if (c == '\n') {
-                            lines++;
-                        }
-
-                        i++;
-                        (file->data_len)++;
-                    } else {
-                        eof_found = 1;
+                    }
+    
+                    if (c == '\n') {
+                        lines++;
                     }
 
-                    // Process batch
-                    if (lines == batch_size) {
-                        if (file->data_len == max_len) {
-                            aux = realloc(data, max_len + 1);
-                            if (aux) {
-                                data = aux;
-                                max_len++;
-                            } else {
-                                LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                            }
-                        }
-
-                        list_item_t *item = list_item_new(file->num_records, 1, data);
-                        list_insert_item(item, batches_list);
-
-                        // Setup for next batch
-                        i = 0;
-                        lines = 0;
-                        data = (char*) calloc (max_len, sizeof(char));
-                    }
+                    i++;
+                    (file->data_len)++;
+                } else {
+                    eof_found = 1;
                 }
 
-            } while (strm.avail_out == 0);
+                // Process batch
+                if (lines == batch_size) {
+                    list_item_t *item = list_item_new(file->num_records, 1, data);
+                    list_insert_item(item, batches_list);
 
-            /* done when inflate() says it's done */
-        } while (ret != Z_STREAM_END);
+                    // Setup for next batch
+                    i = 0;
+                    lines = 0;
+                    data = (char*) calloc (max_len, sizeof(char));
+                }
+            }
 
+        } while (strm.avail_out == 0);
+
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+
+    // Consume last batch
+    if (lines > 0 && lines < batch_size) {
+        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_insert_item(item, batches_list);
     }
+
 
     /* clean up and return */
     (void)inflateEnd(&strm);

@@ -152,7 +152,12 @@ int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t *
 }
 
 int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
-    return vcf_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
+    if (ends_with(vcf_file->filename, ".vcf")) {
+        return vcf_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
+    } else if (ends_with(vcf_file->filename, ".gz")) {
+        return vcf_gzip_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
+    }
+    LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
 int vcf_write(vcf_file_t *vcf_file, char *filename) {
