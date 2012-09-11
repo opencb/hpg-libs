@@ -56,4 +56,6 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
 int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files);
 
 
+size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
+
 #endif

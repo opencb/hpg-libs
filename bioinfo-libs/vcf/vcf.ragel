@@ -396,18 +396,7 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
                 c = fgetc(file->fd);
                 
                 if (c != EOF) {
-                    data[i] = c;
-                    // Line too long to be stored in data, realloc
-                    if (i == max_len - 1) {
-                        aux = realloc(data, max_len + 10000);
-                        if (aux) {
-                            data = aux;
-                            max_len += 10000;
-                        } else {
-                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                        }
-                    }
-
+                    max_len = consume_input(c, &data, max_len, i);
                     if (c == '\n') {
                         lines++;
                     }
@@ -516,22 +505,10 @@ int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t 
                 c = out[consumed];
 
                 if (c != EOF) {
-                    data[i] = c;
-                    // Line too long to be stored in data, realloc
-                    if (i == max_len - 1) {
-                        aux = realloc(data, max_len + 10000);
-                        if (aux) {
-                            data = aux;
-                            max_len += 10000;
-                        } else {
-                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                        }
-                    }
-    
+                    max_len = consume_input(c, &data, max_len, i);
                     if (c == '\n') {
                         lines++;
                     }
-
                     i++;
                     (file->data_len)++;
                 } else {
@@ -606,18 +583,7 @@ int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
             c = fgetc(file->fd);
 
             if (c != EOF) {
-                data[i] = c;
-                // Line too long to be stored in data, realloc
-                if (i == max_len - 1) {
-                    aux = realloc(data, max_len + 10000);
-                    if (aux) {
-                        data = aux;
-                        max_len += 10000;
-                    } else {
-                        LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                    }
-                }
-
+                max_len = consume_input(c, &data, max_len, i);
                 if (c == '\n') {
                     lines++;
                 }
@@ -693,22 +659,10 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
                 c = out[j];
 
                 if (c != EOF) {
-                    data[i] = c;
-                    // Line too long to be stored in data, realloc
-                    if (i == max_len - 1) {
-                        aux = realloc(data, max_len + 10000);
-                        if (aux) {
-                            data = aux;
-                            max_len += 10000;
-                        } else {
-                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                        }
-                    }
-    
+                    max_len = consume_input(c, &data, max_len, i);
                     if (c == '\n') {
                         lines++;
                     }
-
                     i++;
                     (file->data_len)++;
                 } else {
@@ -817,3 +771,23 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
     return 0;
 }
 
+
+
+/* **********************************************
+ *              Auxiliary functions             *
+ * **********************************************/
+
+size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
+    (*data)[position_in_data] = c;
+    // Text too long to be stored in 'data', realloc
+    if (position_in_data == max_len - 1) {
+        char *aux = realloc(*data, max_len + 10000);
+        if (aux) {
+            *data = aux;
+            return max_len + 10000;
+        } else {
+            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+        }
+    }
+    return max_len;
+}
