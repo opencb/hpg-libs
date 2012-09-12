@@ -35,7 +35,15 @@ typedef struct {
     int self_contained; // TODO this could not be neccessary, need to check
 } vcf_reader_status;
 
-
+/**
+ * 
+ * @param p Pointer to the beginning of the input buffer
+ * @param pe Pointer to the end of the input buffer
+ * @param batches_list List where the read batches will be appended
+ * @param batch_size The number of lines of a batch, or zero when its size is specified in bytes
+ * @param file VCF file whose contents will be read
+ * @param status Structure that stores the current status of the parser
+ */
 int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status);
 
 vcf_reader_status *vcf_reader_status_new(size_t batch_size, int store_samples, int self_contained);
@@ -45,12 +53,20 @@ void vcf_reader_status_free(vcf_reader_status *status);
 
 int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples);
 
+int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples);
+
 int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples);
+
+int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples);
 
 
 int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file);
 
+int vcf_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file);
+
 int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file);
+
+int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file);
 
 
 int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files);
