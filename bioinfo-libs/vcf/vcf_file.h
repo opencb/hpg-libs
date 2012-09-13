@@ -15,9 +15,9 @@
 #include <containers/array_list.h>
 #include <containers/list.h>
 
-#include "vcf_util.h"
 #include "vcf_file_structure.h"
 #include "vcf_reader.h"
+#include "vcf_util.h"
 #include "vcf_write.h"
 
 #define INIT_RECORD_SIZE	100
@@ -57,18 +57,6 @@ void vcf_close(vcf_file_t *vcf_file);
 
 
 /*
- * Creation and destruction of header entries and records
- */
-
-vcf_header_entry_t* create_header_entry();
-
-void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry);
-
-vcf_record_t* create_record();
-
-void vcf_record_free(vcf_record_t *vcf_record);
-
-/*
  * File reading
  */
 
@@ -100,14 +88,5 @@ int vcf_parse_batches_in_bytes(list_t *batches_list, size_t batch_size, vcf_file
  */
 int vcf_write(vcf_file_t *vcf_file, char *filename);
 
-/*
- * Header and record entries management
- */
-
-int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file);
-
-int add_sample_name(char *name, int length, vcf_file_t *vcf_file);
-
-int add_record(vcf_record_t* record, vcf_file_t *vcf_file);
 
 #endif

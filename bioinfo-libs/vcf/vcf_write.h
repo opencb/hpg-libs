@@ -1,5 +1,5 @@
-#ifndef _VCF_WRITE_H
-#define _VCF_WRITE_H
+#ifndef VCF_WRITE_H
+#define VCF_WRITE_H
 
 #include <stdio.h>
 #include <string.h>

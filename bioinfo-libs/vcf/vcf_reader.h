@@ -14,8 +14,6 @@
 
 #include "vcf_util.h"
 #include "vcf_file_structure.h"
-#include "vcf_file.h"
-#include "vcf_read.h"
 #include "vcf_batch.h"
 
 #define CHUNK 0x80000
