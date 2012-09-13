@@ -1,31 +1,53 @@
 #include "vcf_write.h"
 
-int vcf_write_to_file(vcf_file_t *vcf_file, FILE *fd) {
+int write_vcf_file(vcf_file_t *vcf_file, FILE *fd) {
     if(vcf_file == NULL || fd == NULL) {
-        return -1;
+        return 1;
     }
     
-    // Write fileformat
-    write_file_format(vcf_file, fd);
-    // Write header entries
-    for (int i = 0; i < vcf_file->header_entries->size; i++) {
-        write_header_entry((vcf_header_entry_t*) array_list_get(i, vcf_file->header_entries), fd);
-    }
-    // Write delimiter
-    write_delimiter(vcf_file, fd);
+    write_vcf_header(vcf_file, fd);
+//     // Write fileformat
+//     write_file_format(vcf_file, fd);
+//     // Write header entries
+//     for (int i = 0; i < vcf_file->header_entries->size; i++) {
+//         write_header_entry((vcf_header_entry_t*) array_list_get(i, vcf_file->header_entries), fd);
+//     }
+//     // Write delimiter
+//     write_delimiter(vcf_file, fd);
     // Write records
 //     for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
 //         vcf_record_t *record = i->data_p;
 //         write_record(record, fd);
 //     }
-    for (int i = 0; i < vcf_file->records->size; i++) {
-        write_record((vcf_record_t*) array_list_get(i, vcf_file->records), fd);
+//     for (int i = 0; i < vcf_file->records->size; i++) {
+//         write_record((vcf_record_t*) array_list_get(i, vcf_file->records), fd);
+//     }
+    vcf_batch_t *batch;
+    while ((batch = fetch_vcf_batch(vcf_file)) != NULL) {
+        write_vcf_batch(batch, fd);
     }
+    
 
     return 0;
 }
 
-void write_file_format(vcf_file_t *vcf_file, FILE *fd) {
+void write_vcf_header(vcf_file_t* vcf_file, FILE* fd) {
+    if(vcf_file == NULL || fd == NULL) {
+        return;
+    }
+
+    // Write fileformat
+    write_vcf_fileformat(vcf_file, fd);
+    // Write header entries
+    for (int i = 0; i < vcf_file->header_entries->size; i++) {
+        write_vcf_header_entry((vcf_header_entry_t*) array_list_get(i, vcf_file->header_entries), fd);
+    }
+    // Write delimiter
+    write_vcf_delimiter(vcf_file, fd);
+}
+
+
+void write_vcf_fileformat(vcf_file_t *vcf_file, FILE *fd) {
     if(vcf_file == NULL || vcf_file->format == NULL || fd == NULL) {
         return;
     }
@@ -33,7 +55,7 @@ void write_file_format(vcf_file_t *vcf_file, FILE *fd) {
     fprintf(fd, "##fileformat=%s\n", vcf_file->format);
 }
 
-void write_header_entry(vcf_header_entry_t *entry, FILE *fd) {
+void write_vcf_header_entry(vcf_header_entry_t *entry, FILE *fd) {
     if (entry == NULL || fd == NULL) {
         return;
     }
@@ -87,7 +109,7 @@ void write_header_entry(vcf_header_entry_t *entry, FILE *fd) {
     }
 }
 
-void write_delimiter(vcf_file_t *vcf_file, FILE *fd) {
+void write_vcf_delimiter(vcf_file_t *vcf_file, FILE *fd) {
     if(vcf_file == NULL || fd == NULL) {
         return;
     }
@@ -101,19 +123,20 @@ void write_delimiter(vcf_file_t *vcf_file, FILE *fd) {
     fprintf(fd, "\n");
 }
 
-void write_batch(vcf_batch_t *vcf_batch, FILE *fd) {
+void write_vcf_batch(vcf_batch_t *vcf_batch, FILE *fd) {
     if(vcf_batch == NULL || fd == NULL) {
         return;
     }
     
     vcf_record_t *record;
     for (int i = 0; i < vcf_batch->records->size; i++) {
-        record = array_list_get(i, vcf_batch->records);
-        write_record(record, fd);
+//         record = array_list_get(i, vcf_batch->records);
+        record = vcf_batch->records->items[i];
+        write_vcf_record(record, fd);
     }
 }
 
-void write_record(vcf_record_t* vcf_record, FILE *fd) {
+void write_vcf_record(vcf_record_t* vcf_record, FILE *fd) {
     if(vcf_record == NULL || fd == NULL) {
         return;
     }

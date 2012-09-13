@@ -15,7 +15,7 @@ static const int vcf_error = 0;
 static const int vcf_en_main = 100;
 
 
-#line 301 "vcf.ragel"
+#line 302 "vcf.ragel"
 
 
 
@@ -57,61 +57,61 @@ case 100:
 		goto tr125;
 	goto tr53;
 tr53:
-#line 105 "vcf.ragel"
+#line 106 "vcf.ragel"
 	{
         printf("Line %d: Error in 'chromosome' field\n", lines);
     }
 	goto st0;
 tr56:
-#line 121 "vcf.ragel"
+#line 122 "vcf.ragel"
 	{
         printf("Line %d: Error in 'position' field\n", lines);
     }
 	goto st0;
 tr60:
-#line 134 "vcf.ragel"
+#line 135 "vcf.ragel"
 	{
         printf("Line %d: Error in 'id' field\n", lines);
     }
 	goto st0;
 tr64:
-#line 147 "vcf.ragel"
+#line 148 "vcf.ragel"
 	{
         printf("Line %d: Error in 'reference' field\n", lines);
     }
 	goto st0;
 tr68:
-#line 164 "vcf.ragel"
+#line 165 "vcf.ragel"
 	{
         printf("Line %d: Error in 'alternate' field\n", lines);
     }
 	goto st0;
 tr73:
-#line 183 "vcf.ragel"
+#line 184 "vcf.ragel"
 	{
         printf("Line %d: Error in 'quality' field\n", lines);
     }
 	goto st0;
 tr77:
-#line 196 "vcf.ragel"
+#line 197 "vcf.ragel"
 	{
         printf("Line %d: Error in 'filter' field\n", lines);
     }
 	goto st0;
 tr81:
-#line 209 "vcf.ragel"
+#line 210 "vcf.ragel"
 	{
         printf("Line %d: Error in 'info' field\n", lines);
     }
 	goto st0;
 tr87:
-#line 222 "vcf.ragel"
+#line 223 "vcf.ragel"
 	{
         printf("Line %d: Error in 'format' field\n", lines);
     }
 	goto st0;
 tr92:
-#line 235 "vcf.ragel"
+#line 236 "vcf.ragel"
 	{
         printf("Line %d: Error in sample\n", lines);
     }
@@ -531,7 +531,7 @@ case 48:
 tr50:
 #line 59 "vcf.ragel"
 	{
-        add_sample_name(ts, p-ts, file);
+        add_vcf_sample_name(ts, p-ts, file);
     }
 	goto st49;
 st49:
@@ -563,7 +563,7 @@ case 50:
 tr51:
 #line 59 "vcf.ragel"
 	{
-        add_sample_name(ts, p-ts, file);
+        add_vcf_sample_name(ts, p-ts, file);
     }
 #line 15 "vcf.ragel"
 	{
@@ -591,9 +591,9 @@ case 104:
 tr125:
 #line 63 "vcf.ragel"
 	{
-        status->current_record = create_record();
+        status->current_record = vcf_record_new();
     }
-#line 95 "vcf.ragel"
+#line 96 "vcf.ragel"
 	{
         ts = p;
 //         printf("chromosome begin %c%c\n", ts[0], ts[3]);
@@ -618,10 +618,10 @@ case 51:
 		goto st51;
 	goto tr53;
 tr54:
-#line 100 "vcf.ragel"
+#line 101 "vcf.ragel"
 	{
 //         printf("chromosome end %c...%c\n", *ts, *p);
-        set_record_chromosome(ts, p-ts, status->current_record);
+        set_vcf_record_chromosome(ts, p-ts, status->current_record);
     }
 	goto st52;
 st52:
@@ -633,7 +633,7 @@ case 52:
 		goto tr57;
 	goto tr56;
 tr57:
-#line 109 "vcf.ragel"
+#line 110 "vcf.ragel"
 	{
         ts = p;
 //         printf("position\n");
@@ -650,10 +650,10 @@ case 53:
 		goto st53;
 	goto tr56;
 tr58:
-#line 114 "vcf.ragel"
+#line 115 "vcf.ragel"
 	{
         char *field = strndup(ts, p-ts);
-        set_record_position(atol(field), status->current_record);
+        set_vcf_record_position(atol(field), status->current_record);
 //         printf("Position = %ld\n", atol(field));
         free(field);
     }
@@ -675,7 +675,7 @@ case 54:
 		goto tr62;
 	goto tr60;
 tr61:
-#line 125 "vcf.ragel"
+#line 126 "vcf.ragel"
 	{
         ts = p;
 //         printf("id\n");
@@ -690,9 +690,9 @@ case 55:
 		goto tr63;
 	goto tr60;
 tr63:
-#line 130 "vcf.ragel"
+#line 131 "vcf.ragel"
 	{
-        set_record_id(ts, p-ts, status->current_record);
+        set_vcf_record_id(ts, p-ts, status->current_record);
     }
 	goto st56;
 st56:
@@ -709,7 +709,7 @@ case 56:
 	}
 	goto tr64;
 tr65:
-#line 138 "vcf.ragel"
+#line 139 "vcf.ragel"
 	{
         ts = p;
 //         printf("reference\n");
@@ -730,9 +730,9 @@ case 57:
 	}
 	goto tr64;
 tr66:
-#line 143 "vcf.ragel"
+#line 144 "vcf.ragel"
 	{
-        set_record_reference(ts, p-ts, status->current_record);
+        set_vcf_record_reference(ts, p-ts, status->current_record);
     }
 	goto st58;
 st58:
@@ -752,7 +752,7 @@ case 58:
 	}
 	goto tr68;
 tr69:
-#line 151 "vcf.ragel"
+#line 152 "vcf.ragel"
 	{
         ts = p;
 //         printf("alternate\n");
@@ -767,12 +767,12 @@ case 59:
 		goto tr72;
 	goto tr68;
 tr72:
-#line 156 "vcf.ragel"
+#line 157 "vcf.ragel"
 	{
         if (!strncmp("0", ts, 1) || !strncmp("<DEL>", ts, 5)) {
-            set_record_alternate(".", 1, status->current_record);
+            set_vcf_record_alternate(".", 1, status->current_record);
         } else {
-            set_record_alternate(ts, p-ts, status->current_record);
+            set_vcf_record_alternate(ts, p-ts, status->current_record);
         }
     }
 	goto st60;
@@ -787,7 +787,7 @@ case 60:
 		goto tr75;
 	goto tr73;
 tr74:
-#line 168 "vcf.ragel"
+#line 169 "vcf.ragel"
 	{
         ts = p;
 //         printf("quality\n");
@@ -802,7 +802,7 @@ case 61:
 		goto tr76;
 	goto tr73;
 tr76:
-#line 173 "vcf.ragel"
+#line 174 "vcf.ragel"
 	{
         float quality = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
@@ -810,7 +810,7 @@ tr76:
             quality = atof(field);
             free(field);
         }
-        set_record_quality(quality, status->current_record);
+        set_vcf_record_quality(quality, status->current_record);
     }
 	goto st62;
 st62:
@@ -832,7 +832,7 @@ case 62:
 		goto tr79;
 	goto tr77;
 tr78:
-#line 187 "vcf.ragel"
+#line 188 "vcf.ragel"
 	{
         ts = p;
 //         printf("filter\n");
@@ -847,9 +847,9 @@ case 63:
 		goto tr80;
 	goto tr77;
 tr80:
-#line 192 "vcf.ragel"
+#line 193 "vcf.ragel"
 	{
-        set_record_filter(ts, p-ts, status->current_record);
+        set_vcf_record_filter(ts, p-ts, status->current_record);
     }
 	goto st64;
 st64:
@@ -871,7 +871,7 @@ case 64:
 		goto tr83;
 	goto tr81;
 tr82:
-#line 200 "vcf.ragel"
+#line 201 "vcf.ragel"
 	{
         ts = p;
 //         printf("info\n");
@@ -889,9 +889,9 @@ case 65:
 	}
 	goto tr81;
 tr84:
-#line 205 "vcf.ragel"
+#line 206 "vcf.ragel"
 	{
-        set_record_info(ts, p-ts, status->current_record);
+        set_vcf_record_info(ts, p-ts, status->current_record);
     }
 	goto st66;
 st66:
@@ -909,7 +909,7 @@ case 66:
 		goto tr88;
 	goto tr87;
 tr88:
-#line 213 "vcf.ragel"
+#line 214 "vcf.ragel"
 	{
         ts = p;
 //         printf("format\n");
@@ -934,15 +934,15 @@ case 67:
 		goto st67;
 	goto tr87;
 tr89:
-#line 218 "vcf.ragel"
+#line 219 "vcf.ragel"
 	{
-        set_record_format(ts, p-ts, status->current_record);
+        set_vcf_record_format(ts, p-ts, status->current_record);
     }
 	goto st68;
 tr130:
-#line 231 "vcf.ragel"
+#line 232 "vcf.ragel"
 	{
-        add_record_sample(ts, p-ts, status->current_record);
+        add_vcf_record_sample(ts, p-ts, status->current_record);
     }
 	goto st68;
 st68:
@@ -954,7 +954,7 @@ case 68:
 		goto tr93;
 	goto tr92;
 tr93:
-#line 226 "vcf.ragel"
+#line 227 "vcf.ragel"
 	{
         ts = p;
 //         printf("sample\n");
@@ -973,9 +973,9 @@ case 105:
 		goto st105;
 	goto tr92;
 tr131:
-#line 231 "vcf.ragel"
+#line 232 "vcf.ragel"
 	{
-        add_record_sample(ts, p-ts, status->current_record);
+        add_vcf_record_sample(ts, p-ts, status->current_record);
     }
 #line 67 "vcf.ragel"
 	{
@@ -983,8 +983,9 @@ tr131:
 //         if (vcf_batch_is_full(status->current_batch))
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
         {
-            list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
-            list_insert_item(item, batches_list);
+//            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch); 
+//            list_insert_item(item, batches_list);
+            add_vcf_batch(status->current_batch, file);
 //             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
             status->current_batch = vcf_batch_new(batch_size);           
             if (p+1) {
@@ -1014,7 +1015,7 @@ st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1018 "vcf_ragel.c"
+#line 1019 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st107;
 		case 95: goto tr125;
@@ -1066,7 +1067,7 @@ case 70:
 		goto st71;
 	goto tr81;
 tr83:
-#line 200 "vcf.ragel"
+#line 201 "vcf.ragel"
 	{
         ts = p;
 //         printf("info\n");
@@ -1076,7 +1077,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 1080 "vcf_ragel.c"
+#line 1081 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr84;
 		case 59: goto st70;
@@ -1109,7 +1110,7 @@ case 73:
 		goto st73;
 	goto tr81;
 tr79:
-#line 187 "vcf.ragel"
+#line 188 "vcf.ragel"
 	{
         ts = p;
 //         printf("filter\n");
@@ -1119,7 +1120,7 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-#line 1123 "vcf_ragel.c"
+#line 1124 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr80;
 		case 44: goto st75;
@@ -1151,7 +1152,7 @@ case 75:
 		goto st74;
 	goto tr77;
 tr75:
-#line 168 "vcf.ragel"
+#line 169 "vcf.ragel"
 	{
         ts = p;
 //         printf("quality\n");
@@ -1161,7 +1162,7 @@ st76:
 	if ( ++p == pe )
 		goto _test_eof76;
 case 76:
-#line 1165 "vcf_ragel.c"
+#line 1166 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr76;
 		case 46: goto st77;
@@ -1186,7 +1187,7 @@ case 78:
 		goto st78;
 	goto tr73;
 tr70:
-#line 151 "vcf.ragel"
+#line 152 "vcf.ragel"
 	{
         ts = p;
 //         printf("alternate\n");
@@ -1196,7 +1197,7 @@ st79:
 	if ( ++p == pe )
 		goto _test_eof79;
 case 79:
-#line 1200 "vcf_ragel.c"
+#line 1201 "vcf_ragel.c"
 	if ( (*p) == 68 )
 		goto st80;
 	goto tr68;
@@ -1222,7 +1223,7 @@ case 82:
 		goto st59;
 	goto tr68;
 tr71:
-#line 151 "vcf.ragel"
+#line 152 "vcf.ragel"
 	{
         ts = p;
 //         printf("alternate\n");
@@ -1232,7 +1233,7 @@ st83:
 	if ( ++p == pe )
 		goto _test_eof83;
 case 83:
-#line 1236 "vcf_ragel.c"
+#line 1237 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr72;
 		case 44: goto st84;
@@ -1256,7 +1257,7 @@ case 84:
 	}
 	goto tr68;
 tr62:
-#line 125 "vcf.ragel"
+#line 126 "vcf.ragel"
 	{
         ts = p;
 //         printf("id\n");
@@ -1266,7 +1267,7 @@ st85:
 	if ( ++p == pe )
 		goto _test_eof85;
 case 85:
-#line 1270 "vcf_ragel.c"
+#line 1271 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr63;
 	if ( (*p) < 65 ) {
@@ -1541,14 +1542,14 @@ case 99:
 	{
 	switch ( cs ) {
 	case 51: 
-#line 105 "vcf.ragel"
+#line 106 "vcf.ragel"
 	{
         printf("Line %d: Error in 'chromosome' field\n", lines);
     }
 	break;
 	case 52: 
 	case 53: 
-#line 121 "vcf.ragel"
+#line 122 "vcf.ragel"
 	{
         printf("Line %d: Error in 'position' field\n", lines);
     }
@@ -1556,14 +1557,14 @@ case 99:
 	case 54: 
 	case 55: 
 	case 85: 
-#line 134 "vcf.ragel"
+#line 135 "vcf.ragel"
 	{
         printf("Line %d: Error in 'id' field\n", lines);
     }
 	break;
 	case 56: 
 	case 57: 
-#line 147 "vcf.ragel"
+#line 148 "vcf.ragel"
 	{
         printf("Line %d: Error in 'reference' field\n", lines);
     }
@@ -1576,7 +1577,7 @@ case 99:
 	case 82: 
 	case 83: 
 	case 84: 
-#line 164 "vcf.ragel"
+#line 165 "vcf.ragel"
 	{
         printf("Line %d: Error in 'alternate' field\n", lines);
     }
@@ -1586,7 +1587,7 @@ case 99:
 	case 76: 
 	case 77: 
 	case 78: 
-#line 183 "vcf.ragel"
+#line 184 "vcf.ragel"
 	{
         printf("Line %d: Error in 'quality' field\n", lines);
     }
@@ -1595,7 +1596,7 @@ case 99:
 	case 63: 
 	case 74: 
 	case 75: 
-#line 196 "vcf.ragel"
+#line 197 "vcf.ragel"
 	{
         printf("Line %d: Error in 'filter' field\n", lines);
     }
@@ -1606,7 +1607,7 @@ case 99:
 	case 71: 
 	case 72: 
 	case 73: 
-#line 209 "vcf.ragel"
+#line 210 "vcf.ragel"
 	{
         printf("Line %d: Error in 'info' field\n", lines);
     }
@@ -1614,21 +1615,21 @@ case 99:
 	case 66: 
 	case 67: 
 	case 69: 
-#line 222 "vcf.ragel"
+#line 223 "vcf.ragel"
 	{
         printf("Line %d: Error in 'format' field\n", lines);
     }
 	break;
 	case 68: 
-#line 235 "vcf.ragel"
+#line 236 "vcf.ragel"
 	{
         printf("Line %d: Error in sample\n", lines);
     }
 	break;
 	case 105: 
-#line 231 "vcf.ragel"
+#line 232 "vcf.ragel"
 	{
-        add_record_sample(ts, p-ts, status->current_record);
+        add_vcf_record_sample(ts, p-ts, status->current_record);
     }
 #line 67 "vcf.ragel"
 	{
@@ -1636,8 +1637,9 @@ case 99:
 //         if (vcf_batch_is_full(status->current_batch))
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
         {
-            list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
-            list_insert_item(item, batches_list);
+//            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch); 
+//            list_insert_item(item, batches_list);
+            add_vcf_batch(status->current_batch, file);
 //             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
             status->current_batch = vcf_batch_new(batch_size);           
             if (p+1) {
@@ -1659,19 +1661,20 @@ case 99:
 //         LOG_DEBUG("\n");
     }
 	break;
-#line 1663 "vcf_ragel.c"
+#line 1665 "vcf_ragel.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 317 "vcf.ragel"
+#line 318 "vcf.ragel"
 
     
     if (!vcf_batch_is_empty(status->current_batch)) {
-        list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
-        list_insert_item(item, batches_list);
+//        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch);
+//        list_insert_item(item, batches_list);
+        add_vcf_batch(status->current_batch, file);
 //         printf("Batch added - %zu records (self-contained)\n", status->current_batch->records->size);
     }
 
@@ -1681,8 +1684,8 @@ case 99:
 // 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < 
-#line 1685 "vcf_ragel.c"
+#line 1688 "vcf_ragel.c"
 100
-#line 330 "vcf.ragel"
+#line 332 "vcf.ragel"
 ;
 }

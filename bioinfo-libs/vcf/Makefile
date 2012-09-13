@@ -18,7 +18,8 @@ INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp -lm
 
 # Source and object files
-MAIN_OBJECTS = vcf_file.c vcf_file_structure.c vcf_reader.c vcf_ragel.c vcf_write.c vcf_batch.c vcf_filters.c vcf_stats.c vcf_util.c
+# MAIN_OBJECTS = vcf_file.c vcf_file_structure.c vcf_reader.c vcf_ragel.c vcf_write.c vcf_batch.c vcf_filters.c vcf_stats.c vcf_util.c
+MAIN_OBJECTS = vcf_file.c vcf_file_structure.c vcf_reader.c vcf_ragel.c vcf_write.c vcf_filters.c vcf_stats.c vcf_util.c
 MISC_OBJECTS = $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 REGION_TABLE_OBJECTS = $(CONTAINERS_DIR)/region_table.o $(CONTAINERS_DIR)/region_table_utils.o $(REGION_DIR)/region.o
 GFF_OBJECTS = $(BIOFORMATS_DIR)/gff/*.o

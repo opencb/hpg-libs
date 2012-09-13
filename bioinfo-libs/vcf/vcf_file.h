@@ -20,7 +20,7 @@
 #include "vcf_util.h"
 #include "vcf_write.h"
 
-#define INIT_RECORD_SIZE	100
+// #define INIT_RECORD_SIZE	100
 
 extern int mmap_vcf;
 
@@ -40,13 +40,12 @@ extern int mmap_vcf;
  */
 
 /**
- * Open a file stream in a given file mode (r/w/a) and initialize the associated 
- * vcf_file_t structure.
+ * Open a file stream and initialize the associated vcf_file_t structure.
  * 
  * @param filename The name of the file to open
- * @param mode Open mode (read/write/append)
+ * @param max_simultaneous_batches Maximum number of batches that can be loaded in memory (0 if unlimited)
  */
-vcf_file_t *vcf_open(char *filename);
+vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches);
 
 /**
  * Close the file stream associated to a vcf_file_t type.

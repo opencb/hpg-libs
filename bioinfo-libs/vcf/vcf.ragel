@@ -57,11 +57,11 @@ int batches = 0;
     }
 
     action sample_name_end {
-        add_sample_name(ts, p-ts, file);
+        add_vcf_sample_name(ts, p-ts, file);
     }
 
     action record_begin {
-        status->current_record = create_record();
+        status->current_record = vcf_record_new();
     }
 	
     action record_end {
@@ -69,8 +69,9 @@ int batches = 0;
 //         if (vcf_batch_is_full(status->current_batch))
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
         {
-            list_item_t *item = list_item_new(file->num_records, 1, status->current_batch); 
-            list_insert_item(item, batches_list);
+//            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch); 
+//            list_insert_item(item, batches_list);
+            add_vcf_batch(status->current_batch, file);
 //             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
             status->current_batch = vcf_batch_new(batch_size);           
             if (p+1) {
@@ -99,7 +100,7 @@ int batches = 0;
 
     action chrom_end {
 //         printf("chromosome end %c...%c\n", *ts, *p);
-        set_record_chromosome(ts, p-ts, status->current_record);
+        set_vcf_record_chromosome(ts, p-ts, status->current_record);
     }
 
 action chrom_error {
@@ -113,7 +114,7 @@ action chrom_error {
 
     action pos_end {
         char *field = strndup(ts, p-ts);
-        set_record_position(atol(field), status->current_record);
+        set_vcf_record_position(atol(field), status->current_record);
 //         printf("Position = %ld\n", atol(field));
         free(field);
     }
@@ -128,7 +129,7 @@ action chrom_error {
     }
 
     action id_end {
-        set_record_id(ts, p-ts, status->current_record);
+        set_vcf_record_id(ts, p-ts, status->current_record);
     }
 
     action id_error {
@@ -141,7 +142,7 @@ action chrom_error {
     }
 
     action ref_end {
-        set_record_reference(ts, p-ts, status->current_record);
+        set_vcf_record_reference(ts, p-ts, status->current_record);
     }
 
     action ref_error {
@@ -155,9 +156,9 @@ action chrom_error {
 
     action alt_end {
         if (!strncmp("0", ts, 1) || !strncmp("<DEL>", ts, 5)) {
-            set_record_alternate(".", 1, status->current_record);
+            set_vcf_record_alternate(".", 1, status->current_record);
         } else {
-            set_record_alternate(ts, p-ts, status->current_record);
+            set_vcf_record_alternate(ts, p-ts, status->current_record);
         }
     }
 
@@ -177,7 +178,7 @@ action chrom_error {
             quality = atof(field);
             free(field);
         }
-        set_record_quality(quality, status->current_record);
+        set_vcf_record_quality(quality, status->current_record);
     }
 
     action qual_error {
@@ -190,7 +191,7 @@ action chrom_error {
     }
 
     action filter_end {
-        set_record_filter(ts, p-ts, status->current_record);
+        set_vcf_record_filter(ts, p-ts, status->current_record);
     }
 
     action filter_error {
@@ -203,7 +204,7 @@ action chrom_error {
     }
 
     action info_end {
-        set_record_info(ts, p-ts, status->current_record);
+        set_vcf_record_info(ts, p-ts, status->current_record);
     }
 
     action info_error {
@@ -216,7 +217,7 @@ action chrom_error {
     }
 
     action format_end {
-        set_record_format(ts, p-ts, status->current_record);
+        set_vcf_record_format(ts, p-ts, status->current_record);
     }
 
     action format_error {
@@ -229,7 +230,7 @@ action chrom_error {
     }
 
     action sample_end {
-        add_record_sample(ts, p-ts, status->current_record);
+        add_vcf_record_sample(ts, p-ts, status->current_record);
     }
 
     action sample_error {
@@ -317,8 +318,9 @@ int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t ba
     }%%
     
     if (!vcf_batch_is_empty(status->current_batch)) {
-        list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
-        list_insert_item(item, batches_list);
+//        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch);
+//        list_insert_item(item, batches_list);
+        add_vcf_batch(status->current_batch, file);
 //         printf("Batch added - %zu records (self-contained)\n", status->current_batch->records->size);
     }
 

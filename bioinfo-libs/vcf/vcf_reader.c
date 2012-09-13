@@ -3,7 +3,7 @@
 vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples, int self_contained) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
-    status->current_header_entry = create_header_entry();
+    status->current_header_entry = vcf_header_entry_new();
     if (batch_lines == 0) {
         status->current_batch = vcf_batch_new(500);
     } else if (batch_lines > 0) {
@@ -91,7 +91,7 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     // TODO this should not be neccessary because it is now inserted in execute_vcf_ragel_machine
 //     if (!vcf_batch_is_empty(status->current_batch))
 //     {
-//         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
+//         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch);
 //         list_insert_item(item, batches_list);
 //         printf("Batch added - %zu records (last)\n", status->current_batch->records->size);
 //     }
@@ -101,7 +101,7 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
-    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+    LOG_INFO_F("Samples per record = %zu\n", get_num_vcf_samples(file));
 
     // Free status->current_xxx pointers if not needed in another module
     vcf_reader_status_free(status);
@@ -166,7 +166,7 @@ int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t
     // TODO this should not be neccessary because it is now inserted in execute_vcf_ragel_machine
 //     if (!vcf_batch_is_empty(status->current_batch))
 //     {
-//         list_item_t *item = list_item_new(file->num_records, 1, status->current_batch);
+//         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch);
 //         list_insert_item(item, batches_list);
 //         printf("Batch added - %zu records (last)\n", status->current_batch->records->size);
 //     }
@@ -176,7 +176,7 @@ int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
-    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+    LOG_INFO_F("Samples per record = %zu\n", get_num_vcf_samples(file));
 
     // Free status->current_xxx pointers if not needed in another module
     vcf_reader_status_free(status);
@@ -293,7 +293,7 @@ int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t 
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
-    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+    LOG_INFO_F("Samples per record = %zu\n", get_num_vcf_samples(file));
 
     // Free status->current_xxx pointers if not needed in another module
     vcf_reader_status_free(status);
@@ -413,7 +413,7 @@ int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_f
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
-    LOG_INFO_F("Samples per record = %zu\n", file->num_samples);
+    LOG_INFO_F("Samples per record = %zu\n", get_num_vcf_samples(file));
 
     // Free status->current_xxx pointers if not needed in another module
     vcf_reader_status_free(status);
@@ -455,7 +455,7 @@ int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
             }
         }
 
-        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
         list_insert_item(item, batches_list);
 //             printf("Text batch inserted = '%s'\n", data);
     }
@@ -492,7 +492,7 @@ int vcf_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *fi
         data[i+1] = '\0';
 
         // Enqueue current batch
-        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
         list_insert_item(item, batches_list);
 //             printf("Text batch inserted = '%s'\n", data);
     }
@@ -571,7 +571,7 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
 
                 // Process batch
                 if (lines == batch_size) {
-                    list_item_t *item = list_item_new(file->num_records, 1, data);
+                    list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
                     list_insert_item(item, batches_list);
 
                     // Setup for next batch
@@ -588,7 +588,7 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
 
     // Consume last batch
     if (lines > 0 && lines < batch_size) {
-        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
         list_insert_item(item, batches_list);
     }
 
@@ -665,7 +665,7 @@ int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_
                         // Process batch
                         if (i >= batch_size) {
                             data[i+1] = '\0';
-                            list_item_t *item = list_item_new(file->num_records, 1, data);
+                            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
                             list_insert_item(item, batches_list);
 
                             // Setup for next batch
@@ -689,7 +689,7 @@ int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_
 //     if (lines > 0 && lines < batch_size) {
     if (i > 0) {
         data[i+1] = '\0';
-        list_item_t *item = list_item_new(file->num_records, 1, data);
+        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
         list_insert_item(item, batches_list);
     }
 
@@ -760,7 +760,7 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
 
             files[f]->data_len = 0;
 
-            list_item_t *item = list_item_new(files[f]->num_records, 1, data);
+            list_item_t *item = list_item_new(get_num_vcf_batches(files[f]), 1, data);
             list_insert_item(item, batches_list[f]);
             printf("[%d] Text batch inserted\n", f);
     //             printf("Text batch inserted = '%s'\n", data);

@@ -1,15 +1,20 @@
 #ifndef VCF_FILE_STRUCTURE_H
 #define VCF_FILE_STRUCTURE_H
 
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
+// #include <limits.h>
 #include <sys/types.h>
 
 #include <commons/log.h>
 #include <containers/array_list.h>
 #include <containers/list.h>
+
+// #include "vcf_batch.h"
+#include "vcf_util.h"
+
+extern int mmap_vcf;
 
 /**
  * VCF file structure. The physical file is defined by its file descriptor, its 
@@ -30,11 +35,12 @@ typedef struct vcf_file {
     int format_len;
     
     array_list_t *header_entries;
-    size_t num_header_entries;
+//     size_t num_header_entries;
     array_list_t *samples_names;
-    size_t num_samples;
-    array_list_t *records;
-    size_t num_records;
+//     size_t num_samples;
+//     array_list_t *records;
+//     size_t num_records;
+    list_t *record_batches;
 } vcf_file_t;
 
 /**
@@ -79,29 +85,69 @@ typedef struct vcf_record {
 } vcf_record_t;
 
 
+typedef struct vcf_batch {
+    array_list_t *records;
+    char *text;
+} vcf_batch_t;
+
+
 
 /*
  * Creation and destruction of header entries and records
  */
 
-vcf_header_entry_t* create_header_entry();
+vcf_header_entry_t* vcf_header_entry_new();
 
 void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry);
 
-vcf_record_t* create_record();
+vcf_record_t* vcf_record_new();
 
 void vcf_record_free(vcf_record_t *vcf_record);
+
+void vcf_record_free_deep(vcf_record_t *vcf_record);
+
+
 
 /*
  * Addition of header and record entries
  */
 
-int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file);
+int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file);
 
-int add_sample_name(char *name, int length, vcf_file_t *vcf_file);
+int add_vcf_sample_name(char *name, int length, vcf_file_t *vcf_file);
 
-int add_record(vcf_record_t* record, vcf_file_t *vcf_file);
+int add_vcf_batch(vcf_batch_t *vcf_batch, vcf_file_t *vcf_file);
 
+// int add_record(vcf_record_t* record, vcf_file_t *vcf_file);
+
+vcf_batch_t *fetch_vcf_batch(vcf_file_t *vcf_file);
+
+
+size_t get_num_vcf_header_entries(vcf_file_t *vcf_file);
+
+size_t get_num_vcf_samples(vcf_file_t *vcf_file);
+
+size_t get_num_vcf_records(vcf_file_t *vcf_file);
+
+size_t get_num_vcf_batches(vcf_file_t *vcf_file);
+
+
+/* ************* Batch management functions **********************/
+
+
+vcf_batch_t* vcf_batch_new(size_t size);
+
+void vcf_batch_free(vcf_batch_t *vcf_batch);
+
+void add_record_to_vcf_batch(vcf_record_t *record, vcf_batch_t *vcf_batch);
+
+
+int vcf_batch_is_empty(vcf_batch_t *vcf_batch);
+
+int vcf_batch_is_full(vcf_batch_t *vcf_batch);
+
+
+void vcf_batch_print(FILE *fd, vcf_batch_t *vcf_batch);
 
 
 /* ************ Header management functions **********************/
@@ -116,25 +162,25 @@ void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry);
 
 /* ************ Record management functions **********************/
 
-void set_record_chromosome(char* chromosome, int length, vcf_record_t* vcf_record);
+void set_vcf_record_chromosome(char* chromosome, int length, vcf_record_t* vcf_record);
 
-void set_record_position(long position, vcf_record_t* vcf_record);
+void set_vcf_record_position(long position, vcf_record_t* vcf_record);
 
-void set_record_id(char* id, int length, vcf_record_t* vcf_record);
+void set_vcf_record_id(char* id, int length, vcf_record_t* vcf_record);
 
-void set_record_reference(char* reference, int length, vcf_record_t* vcf_record);
+void set_vcf_record_reference(char* reference, int length, vcf_record_t* vcf_record);
 
-void set_record_alternate(char* alternate, int length, vcf_record_t* vcf_record);
+void set_vcf_record_alternate(char* alternate, int length, vcf_record_t* vcf_record);
 
-void set_record_quality(float quality, vcf_record_t* vcf_record);
+void set_vcf_record_quality(float quality, vcf_record_t* vcf_record);
 
-void set_record_filter(char* filter, int length, vcf_record_t* vcf_record);
+void set_vcf_record_filter(char* filter, int length, vcf_record_t* vcf_record);
 
-void set_record_info(char* info, int length, vcf_record_t* vcf_record);
+void set_vcf_record_info(char* info, int length, vcf_record_t* vcf_record);
 
-void set_record_format(char* format, int length, vcf_record_t* vcf_record);
+void set_vcf_record_format(char* format, int length, vcf_record_t* vcf_record);
 
-void add_record_sample(char* sample, int length, vcf_record_t* vcf_record);
+void add_vcf_record_sample(char* sample, int length, vcf_record_t* vcf_record);
 
 
 #endif
