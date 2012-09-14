@@ -79,6 +79,8 @@ int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
 
 int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files);
 
+void notify_end_reading(vcf_file_t *vcf_file);
+
 /**
  * Write the contents of the vcf_file_t given as argument to the given path.
  * 

@@ -147,6 +147,13 @@ int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t *
     return vcf_light_multiread(batches_list, batch_size, vcf_files, num_files);
 }
 
+void notify_end_reading(vcf_file_t *vcf_file) {
+    list_decr_writers(vcf_file->record_batches);
+}
+
+
+
+
 int vcf_write(vcf_file_t *vcf_file, char *filename) {
     FILE *fd = fopen(filename, "w");
     if (fd < 0) {
