@@ -71,9 +71,9 @@ void vcf_close(vcf_file_t *vcf_file);
 
 int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file, int read_samples);
 
-int vcf_parse_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file, int read_samples);
+int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *vcf_file, int read_samples);
 
-int vcf_read_batches(size_t batch_lines, vcf_file_t *vcf_file);
+int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *vcf_file);
 
 int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file);
 
