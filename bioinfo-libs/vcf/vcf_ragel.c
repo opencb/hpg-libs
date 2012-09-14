@@ -19,7 +19,7 @@ static const int vcf_en_main = 100;
 
 
 
-int execute_vcf_ragel_machine(char *p, char *pe, list_t *batches_list, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
+int execute_vcf_ragel_machine(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
     int cs;
     char *ts, *te;
     int stack[4];
@@ -1675,7 +1675,7 @@ case 99:
 //        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch);
 //        list_insert_item(item, batches_list);
         add_vcf_batch(status->current_batch, file);
-//         printf("Batch added - %zu records (self-contained)\n", status->current_batch->records->size);
+//         printf("Batch added - %zu records\n", status->current_batch->records->size);
     }
 
 //     printf("ragel - first chromosome = %.*s\n", 

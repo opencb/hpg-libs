@@ -107,38 +107,38 @@ void vcf_close(vcf_file_t *vcf_file) {
 // 	return vcf_ragel_read(NULL, 1, vcf_file, 0);
 // }
 
-int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
+int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file, int read_samples) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
+        return vcf_read_and_parse(batch_lines, vcf_file, read_samples);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_read_and_parse(batches_list, batch_size, vcf_file, read_samples);
+        return vcf_gzip_read_and_parse(batch_lines, vcf_file, read_samples);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_parse_batches_in_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples) {
+int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *vcf_file, int read_samples) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_read_and_parse_bytes(batches_list, batch_size, vcf_file, read_samples);
+        return vcf_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_read_and_parse_bytes(batches_list, batch_size, vcf_file, read_samples);
+        return vcf_gzip_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file) {
+int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *vcf_file) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_light_read(batches_list, batch_size, vcf_file);
+        return vcf_light_read(text_list, batch_lines, vcf_file);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_light_read(batches_list, batch_size, vcf_file);
+        return vcf_gzip_light_read(text_list, batch_lines, vcf_file);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_read_batches_in_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file) {
+int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_light_read_bytes(batches_list, batch_size, vcf_file);
+        return vcf_light_read_bytes(text_list, batch_bytes, vcf_file);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_light_read_bytes(batches_list, batch_size, vcf_file);
+        return vcf_gzip_light_read_bytes(text_list, batch_bytes, vcf_file);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }

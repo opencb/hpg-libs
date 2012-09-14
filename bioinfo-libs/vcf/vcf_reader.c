@@ -1,6 +1,6 @@
 #include "vcf_reader.h"
 
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples, int self_contained) {
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
     status->current_header_entry = vcf_header_entry_new();
@@ -14,7 +14,6 @@ vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples, 
     status->num_records = 0;
 
     status->store_samples = store_samples;
-    status->self_contained = self_contained;
 
     return status;
 }
@@ -37,17 +36,17 @@ void vcf_reader_status_free(vcf_reader_status *status) {
  *              Reading and parsing             *
  * **********************************************/
 
-int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_size, read_samples, 0);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines, read_samples);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+        cs = execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -60,7 +59,7 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
             int c = 0;
             int lines = 0;
 
-            for (int i = 0; !eof_found && lines < batch_size; i++) {
+            for (int i = 0; !eof_found && lines < batch_lines; i++) {
                 c = fgetc(file->fd);
                 
                 if (c != EOF) {
@@ -79,11 +78,11 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
 
             p = data;
             pe = p + file->data_len;
-            cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+            cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
             file->data_len = 0;
 
             // Prepare status for next batch
-            status->current_batch = vcf_batch_new(batch_size);
+            status->current_batch = vcf_batch_new(batch_lines);
         }
     }
 
@@ -109,17 +108,17 @@ int vcf_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file
     return cs ;
 }
 
-int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0, read_samples, 0);
+    vcf_reader_status *status = vcf_reader_status_new(0, read_samples);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_vcf_ragel_machine(p, pe, batches_list, 0, file, status);
+        cs = execute_vcf_ragel_machine(p, pe, 0, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -139,7 +138,7 @@ int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t
                     max_len = consume_input(c, &data, max_len, i);
                     if (c == '\n') {
                         lines++;
-                        if (i >= batch_size) {
+                        if (i >= batch_bytes) {
                             break;
                         }
                     }
@@ -154,7 +153,7 @@ int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t
 
             p = data;
             pe = p + file->data_len;
-            cs |= execute_vcf_ragel_machine(p, pe, batches_list, 0, file, status);
+            cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
             file->data_len = 0;
 
             // Prepare status for next batch
@@ -184,11 +183,11 @@ int vcf_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t
     return cs ;
 }
 
-int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_size, read_samples, 0);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines, read_samples);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
@@ -259,15 +258,15 @@ int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t 
                 }
 
                 // Process batch
-                if (lines == batch_size) {
+                if (lines == batch_lines) {
                     data[file->data_len] = '\0';
                     p = data;
                     pe = p + file->data_len;
-                    cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+                    cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
                     file->data_len = 0;
 
                     // Setup for next batch
-                    status->current_batch = vcf_batch_new(batch_size);
+                    status->current_batch = vcf_batch_new(batch_lines);
                     i = 0;
                     lines = 0;
                     data = (char*) calloc (max_len, sizeof(char));
@@ -280,11 +279,11 @@ int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t 
     } while (ret != Z_STREAM_END);
 
     // Consume last batch
-    if (lines > 0 && lines < batch_size) {
+    if (lines > 0 && lines < batch_lines) {
         data[file->data_len] = '\0';
         p = data;
         pe = p + file->data_len;
-        cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+        cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
         file->data_len = 0;
     }
 
@@ -304,11 +303,11 @@ int vcf_gzip_read_and_parse(list_t *batches_list, size_t batch_size, vcf_file_t 
     return cs ;
 }
 
-int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file, int read_samples) {
+int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0, read_samples, 0);
+    vcf_reader_status *status = vcf_reader_status_new(0, read_samples);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
@@ -375,11 +374,11 @@ int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_f
                         lines++;
 
                         // Process batch
-                        if (i >= batch_size) {
+                        if (i >= batch_bytes) {
                             data[i+1] = '\0';
                             p = data;
                             pe = p + file->data_len;
-                            cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+                            cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
                             file->data_len = 0;
 
                             // Setup for next batch
@@ -405,7 +404,7 @@ int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_f
         data[i+1] = '\0';
         p = data;
         pe = p + file->data_len;
-        cs |= execute_vcf_ragel_machine(p, pe, batches_list, batch_size, file, status);
+        cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
     }
 
     if ( cs ) {
@@ -429,7 +428,7 @@ int vcf_gzip_read_and_parse_bytes(list_t *batches_list, size_t batch_size, vcf_f
  *                  Only reading                *
  * **********************************************/
 
-int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -442,7 +441,7 @@ int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
         int c = 0;
         int lines = 0;
 
-        for (int i = 0; !eof_found && lines < batch_size; i++) {
+        for (int i = 0; !eof_found && lines < batch_lines; i++) {
             c = fgetc(file->fd);
 
             if (c != EOF) {
@@ -456,14 +455,14 @@ int vcf_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
         }
 
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, batches_list);
+        list_insert_item(item, text_list);
 //             printf("Text batch inserted = '%s'\n", data);
     }
 
     return 0;
 }
 
-int vcf_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -475,14 +474,18 @@ int vcf_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *fi
     while (!eof_found) {
         char *data = (char*) calloc (max_len, sizeof(char));
         int c = 0;
+        int lines = 0;
 
         for (i = 0; !eof_found; i++) {
             c = fgetc(file->fd);
 
             if (c != EOF) {
                 max_len = consume_input(c, &data, max_len, i);
-                if (c == '\n' && i >= batch_size) {
-                    break;
+                if (c == '\n') {
+                    lines++;
+                    if (i >= batch_bytes) {
+                        break;
+                    }
                 }
             } else {
                 eof_found = 1;
@@ -493,14 +496,14 @@ int vcf_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *fi
 
         // Enqueue current batch
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, batches_list);
+        list_insert_item(item, text_list);
 //             printf("Text batch inserted = '%s'\n", data);
     }
 
     return 0;
 }
 
-int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -570,9 +573,9 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
                 }
 
                 // Process batch
-                if (lines == batch_size) {
+                if (lines == batch_lines) {
                     list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-                    list_insert_item(item, batches_list);
+                    list_insert_item(item, text_list);
 
                     // Setup for next batch
                     i = 0;
@@ -587,9 +590,9 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
     } while (ret != Z_STREAM_END);
 
     // Consume last batch
-    if (lines > 0 && lines < batch_size) {
+    if (lines > 0 && lines < batch_lines) {
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, batches_list);
+        list_insert_item(item, text_list);
     }
 
     /* clean up and return */
@@ -597,7 +600,7 @@ int vcf_gzip_light_read(list_t *batches_list, size_t batch_size, vcf_file_t *fil
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
-int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *file) {
+int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -663,10 +666,10 @@ int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_
                         lines++;
 
                         // Process batch
-                        if (i >= batch_size) {
+                        if (i >= batch_bytes) {
                             data[i+1] = '\0';
                             list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-                            list_insert_item(item, batches_list);
+                            list_insert_item(item, text_list);
 
                             // Setup for next batch
                             i = 0;
@@ -690,7 +693,7 @@ int vcf_gzip_light_read_bytes(list_t *batches_list, size_t batch_size, vcf_file_
     if (i > 0) {
         data[i+1] = '\0';
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, batches_list);
+        list_insert_item(item, text_list);
     }
 
     /* clean up and return */

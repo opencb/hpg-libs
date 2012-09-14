@@ -69,15 +69,15 @@ void vcf_close(vcf_file_t *vcf_file);
 //  */
 // int vcf_read(vcf_file_t *vcf_file);
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file);
+int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file, int read_samples);
 
-int vcf_read_batches_in_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file);
+int vcf_parse_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file, int read_samples);
+
+int vcf_read_batches(size_t batch_lines, vcf_file_t *vcf_file);
+
+int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file);
 
 int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files);
-
-int vcf_parse_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
-
-int vcf_parse_batches_in_bytes(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples);
 
 /**
  * Write the contents of the vcf_file_t given as argument to the given path.
