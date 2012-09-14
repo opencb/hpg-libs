@@ -46,7 +46,7 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
+        cs = run_vcf_parser(p, pe, batch_lines, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -78,7 +78,7 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
 
             p = data;
             pe = p + file->data_len;
-            cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
+            cs |= run_vcf_parser(p, pe, batch_lines, file, status);
             file->data_len = 0;
 
             // Prepare status for next batch
@@ -118,7 +118,7 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
         LOG_DEBUG("Using mmap for file loading\n");
         p = file->data;
         pe = p + file->data_len;
-        cs = execute_vcf_ragel_machine(p, pe, 0, file, status);
+        cs = run_vcf_parser(p, pe, 0, file, status);
     } else {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
@@ -153,7 +153,7 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
 
             p = data;
             pe = p + file->data_len;
-            cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
+            cs |= run_vcf_parser(p, pe, 0, file, status);
             file->data_len = 0;
 
             // Prepare status for next batch
@@ -262,7 +262,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
                     data[file->data_len] = '\0';
                     p = data;
                     pe = p + file->data_len;
-                    cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
+                    cs |= run_vcf_parser(p, pe, batch_lines, file, status);
                     file->data_len = 0;
 
                     // Setup for next batch
@@ -283,7 +283,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
         data[file->data_len] = '\0';
         p = data;
         pe = p + file->data_len;
-        cs |= execute_vcf_ragel_machine(p, pe, batch_lines, file, status);
+        cs |= run_vcf_parser(p, pe, batch_lines, file, status);
         file->data_len = 0;
     }
 
@@ -378,7 +378,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read
                             data[i+1] = '\0';
                             p = data;
                             pe = p + file->data_len;
-                            cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
+                            cs |= run_vcf_parser(p, pe, 0, file, status);
                             file->data_len = 0;
 
                             // Setup for next batch
@@ -404,7 +404,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read
         data[i+1] = '\0';
         p = data;
         pe = p + file->data_len;
-        cs |= execute_vcf_ragel_machine(p, pe, 0, file, status);
+        cs |= run_vcf_parser(p, pe, 0, file, status);
     }
 
     if ( cs ) {

@@ -19,7 +19,7 @@ static const int vcf_en_main = 100;
 
 
 
-int execute_vcf_ragel_machine(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
+int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_reader_status *status) {
     int cs;
     char *ts, *te;
     int stack[4];

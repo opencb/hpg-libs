@@ -32,16 +32,6 @@ typedef struct {
     int store_samples;
 } vcf_reader_status;
 
-/**
- * 
- * @param p Pointer to the beginning of the input buffer
- * @param pe Pointer to the end of the input buffer
- * @param batch_size The number of lines of a batch, or zero when its size is specified in bytes
- * @param file VCF file whose contents will be read
- * @param status Structure that stores the current status of the parser
- */
-int execute_vcf_ragel_machine(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_reader_status *status);
-
 vcf_reader_status *vcf_reader_status_new(size_t batch_size, int store_samples);
 
 void vcf_reader_status_free(vcf_reader_status *status);
@@ -66,6 +56,17 @@ int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
 
 
 int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files);
+
+
+/**
+ * 
+ * @param p Pointer to the beginning of the input buffer
+ * @param pe Pointer to the end of the input buffer
+ * @param batch_size The number of lines of a batch, or zero when its size is specified in bytes
+ * @param file VCF file whose contents will be read
+ * @param status Structure that stores the current status of the parser
+ */
+int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_reader_status *status);
 
 
 size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
