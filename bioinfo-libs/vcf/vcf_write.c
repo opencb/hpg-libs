@@ -1,33 +1,21 @@
 #include "vcf_write.h"
 
 int write_vcf_file(vcf_file_t *vcf_file, FILE *fd) {
-    if(vcf_file == NULL || fd == NULL) {
-        return 1;
+    if(vcf_file == NULL) {
+        return -1;
+    }
+    if (fd == NULL) {
+        return -2;
     }
     
+    // Write header: file format, header entries and delimiter
     write_vcf_header(vcf_file, fd);
-//     // Write fileformat
-//     write_file_format(vcf_file, fd);
-//     // Write header entries
-//     for (int i = 0; i < vcf_file->header_entries->size; i++) {
-//         write_header_entry((vcf_header_entry_t*) array_list_get(i, vcf_file->header_entries), fd);
-//     }
-//     // Write delimiter
-//     write_delimiter(vcf_file, fd);
-    // Write records
-//     for (list_item_t *i = vcf_file->records->first_p; i != NULL; i = i->next_p) {
-//         vcf_record_t *record = i->data_p;
-//         write_record(record, fd);
-//     }
-//     for (int i = 0; i < vcf_file->records->size; i++) {
-//         write_record((vcf_record_t*) array_list_get(i, vcf_file->records), fd);
-//     }
+    // Write records: grouped in batches
     vcf_batch_t *batch;
     while ((batch = fetch_vcf_batch(vcf_file)) != NULL) {
         write_vcf_batch(batch, fd);
     }
     
-
     return 0;
 }
 

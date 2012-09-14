@@ -22,7 +22,7 @@ char *get_field_value_in_info(const char *field, char *info) {
     if (token == NULL) {
         return NULL;  // Field not found
     } else {
-    value = strtok_r(token, ";", &save_strtok);
+        value = strtok_r(token, ";", &save_strtok);
     }
     
     // Search for the field value
