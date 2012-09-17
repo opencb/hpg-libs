@@ -74,20 +74,20 @@ typedef struct variant_stats {
  * ********************************/
 
 /**
- * @brief Allocates memory for a file_stats_t
+ * @brief Allocates memory for a file_stats_t structure
  * @return A new file_stats_t structure
  **/
 file_stats_t *file_stats_new();
 
 /**
- * @brief Frees memory associated to a file_stats_t structure.
+ * @brief Frees memory associated to a file_stats_t structure
  * @param file_stats The structure to be freed
  */
 void file_stats_free(file_stats_t *file_stats);
 
 
 /**
- * @brief Initializes a variant_stats_t structure mandatory fields.
+ * @brief Initializes a variant_stats_t structure mandatory fields
  * @return A new variant_stats_t structure
  * 
  * Initializes a variant_stats_t structure mandatory fields, which are its chromosom, position and 
@@ -96,7 +96,7 @@ void file_stats_free(file_stats_t *file_stats);
 variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele);
 
 /**
- * @brief Free memory associated to a variant_stats_t structure.
+ * @brief Free memory associated to a variant_stats_t structure
  * @param variant_stats The structure to be freed
  */
 void variant_stats_free(variant_stats_t *variant_stats);

@@ -110,47 +110,34 @@ int filter_compare(const void *filter1, const void *filter2);
  * Add a filter to the given filter chain. If the chain is NULL, the filter is added 
  * after creating that chain.
  * 
- * @param filter
- * 	Filter to add to the filter chain
- * @param chain
- * 	Filter chain the filter is inserted in
- * 
- * @return
- * 	The new state of the filter chain
+ * @param filter Filter to add to the filter chain
+ * @param chain Filter chain the filter is inserted in
+ * @return The new state of the filter chain
  */
 filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain);
 
 /**
  * Given a chain of several filters, creates a list sorted by priority.
  * 
- * @param chain
- * 	Filter chain to order
- * 
- * @return
- * 	Sorted list of filters
+ * @param chain Filter chain to order
+ * @return Sorted list of filters
  */
 filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
 
 /**
  * Free memory allocated to store a filter chain.
  * 
- * @param chain
- * Chain of filters to apply
+ * @param chain Chain of filters to apply
  */
 void free_filter_chain(filter_chain *chain);
 
 /**
  * Applies a collection of filters to a list of records.
  * 
- * @param input_records
- * 	List of records to filter
- * @param failed
- * 	Records that failed the filter's test
- * @param filters
- * 	Filters to apply
- * @param num_filters
- * 	Number of filters to apply
- * 
+ * @param input_records List of records to filter
+ * @param failed Records that failed the filter's test
+ * @param filters Filters to apply
+ * @param num_filters Number of filters to apply
  * @return Records that passed the filters' tests
  */
 array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
@@ -166,7 +153,6 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
  * 
  * @param records List of records to filter
  * @param failed Records that failed the filter's test
- * 
  * @return Records that passed the filter's test
  */
 array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed, void *args);
@@ -177,7 +163,6 @@ array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed,
  * 
  * @param records List of records to filter
  * @param failed Records that failed the filter's test
- * 
  * @return Records that passed the filter's test
  */
 array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *failed, void *args);

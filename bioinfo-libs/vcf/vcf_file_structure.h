@@ -1,17 +1,14 @@
 #ifndef VCF_FILE_STRUCTURE_H
 #define VCF_FILE_STRUCTURE_H
 
-// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <limits.h>
 #include <sys/types.h>
 
 #include <commons/log.h>
 #include <containers/array_list.h>
 #include <containers/list.h>
 
-// #include "vcf_batch.h"
 #include "vcf_util.h"
 
 extern int mmap_vcf;
