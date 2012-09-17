@@ -5,11 +5,11 @@
  *      Whole file statistics   *
  * ******************************/
  
-file_stats_t* new_file_stats() {
+file_stats_t* file_stats_new() {
     return calloc (1, sizeof(file_stats_t));
 }
 
-void free_file_stats(file_stats_t* file_stats) {
+void file_stats_free(file_stats_t* file_stats) {
     free(file_stats);
 }
 
@@ -34,7 +34,7 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
  *     Per variant statistics   *
  * ******************************/
  
-variant_stats_t* new_variant_stats(char *chromosome, unsigned long position, char *ref_allele) {
+variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele) {
     variant_stats_t *stats = (variant_stats_t*) malloc (sizeof(variant_stats_t));
     
     stats->chromosome = chromosome;
@@ -54,7 +54,7 @@ variant_stats_t* new_variant_stats(char *chromosome, unsigned long position, cha
     return stats;
 }
 
-void free_variant_stats(variant_stats_t* stats) {
+void variant_stats_free(variant_stats_t* stats) {
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
     if (stats->alternates) {
