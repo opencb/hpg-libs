@@ -14,7 +14,7 @@
 /**
  * @file vcf_stats.h
  * @author Cristina Yenyxe Gonzalez Garcia
- * @brief Functions for getting statistics from a VCF file
+ * @brief Getting statistics from VCF files
  * @details This file includes functions for getting statistics from a VCF file. These statistics can 
  * be obtained one per variant or after analyzing the whole file.
  */

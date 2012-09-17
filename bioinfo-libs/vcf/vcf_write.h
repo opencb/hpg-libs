@@ -11,7 +11,7 @@
 /**
  * @file vcf_write.h
  * @author Cristina Yenyxe Gonzalez Garcia
- * @brief Functions for writing a whole VCF file or any of its parts.
+ * @brief Writing a whole VCF file or any of its parts.
  * @details This file includes functions for writing a whole VCF file or any of its parts, including:
  * the file format, the header entries, the line that separates header from body (aka delimiter)
  * and the body itself, which is divided in batches that group several lines/records.

@@ -13,7 +13,7 @@
 /**
  * @file vcf_util.h
  * @author Cristina Yenyxe Gonzalez Garcia
- * @brief Functions for getting diverse information from a VCF file
+ * @brief Getting diverse information from a VCF file
  * @details This file includes functions for getting information from a VCF file that can make 
  * easier information retrieval, such as a certain value in the FORMAT field, the value of the 
  * alleles of a sample, and so on.

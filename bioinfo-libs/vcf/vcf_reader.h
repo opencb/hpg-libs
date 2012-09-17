@@ -27,7 +27,7 @@ extern int mmap_vcf;
 /**
  * @file vcf_reader.h
  * @author Cristina Yenyxe Gonzalez Garcia
- * @brief Functions for reading VCF files
+ * @brief Reader and parser of VCF files
  * @details This file includes functions for reading VCF files. Files are read in blocks called 
  * "batches" whose size can be specified in lines or bytes. Files can be stored plainly or compressed 
  * in GZIP format.

@@ -18,14 +18,28 @@
 #include "vcf_stats.h"
 #include "vcf_util.h"
 
-//====================================================================================
-//  vcf_filter.h
-//
-//  vcf_filter structures and prototypes
-//====================================================================================
+/**
+ * @file vcf_filters.h
+ * @author Cristina Yenyxe Gonzalez Garcia
+ * @brief Filters for VCF files
+ * @details This file includes functions for filtering VCF files. All filters receive as input a list of 
+ * records, and return two lists: one with the records that passed the filters and another with the ones 
+ * that were rejected.
+ */
 
+
+
+/**
+ * @brief The type of the filter to apply
+ **/
 enum filter_type { COVERAGE, NUM_ALLELES, QUALITY, REGION, SNP  };
 
+/**
+ * @brief Arguments for the coverage filter
+ * 
+ * The only argument of a coverage filter is the minimum coverage of a record, as specified on its 
+ * INFO field.
+ **/
 typedef struct {
     int min_coverage;
 } coverage_filter_args;
@@ -34,6 +48,12 @@ typedef struct {
     int num_alleles;
 } num_alleles_filter_args;
 
+/**
+ * @brief Arguments for the quality filter
+ * 
+ * The only argument of a quality filter is the minimum quality of a record, as specified on its 
+ * QUAL field.
+ **/
 typedef struct {
     int min_quality;
 } quality_filter_args;
