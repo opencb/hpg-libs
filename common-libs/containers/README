@@ -1,0 +1,19 @@
+CONTAINERS LIBRARY
+------------------
+
+Dependencies
+
+    * commons library, (http://repos.bioinfo.cipf.es)
+    * bioformats library, (http://repos.bioinfo.cipf.es)
+    * cprops library, (http://cprops.sourceforge.net)
+
+
+Compilation
+
+    make
+
+Test (you need to install the library 'check' to compile the tests)
+
+    make test
+
+    
