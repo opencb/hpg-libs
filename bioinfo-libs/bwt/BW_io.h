@@ -23,8 +23,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BW_IO
-#define BW_IO
+#ifndef _BW_IO_
+#define _BW_IO_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -35,10 +35,10 @@
 
 #define nA              4
 
-#define MAX_MISMATCHES  1
+#define MAX_MISMATCHES  20
 
-#define INDEX_EXOME 100
-#define IDMAX 3
+#define INDEX_EXOME 24000
+#define IDMAX 100
 
 #define MAXLINE     200
 #define MAXLINECOMP  50
@@ -47,15 +47,18 @@
 #define TRUE            1
 #define FALSE           0
 
-#define DELETION  3
+//TODO: Usar macros para clarificar el codigo.
+#define MATCH  0
+#define DELETION  1
 #define MISMATCH  2
-#define INSERTION 1
+#define INSERTION 3
 
 #define DD  -1
 #define AA  0
 #define CC  1
 #define GG  2
 #define TT  3
+#define XX  4
 
 extern const char alph_rep[];
 //const char alph_rep[] ={'A','C','G','T'};
@@ -63,10 +66,10 @@ extern const char alph_rep[];
 #ifdef VERBOSE_DBG
 #define printUIntMatrix(M,n,m)			          \
   printf("Matrix " #M ":\n");			          \
-  for (size_t i=0; i<((size_t) (n)); i++) {		  \
-    printf("%lu: ", i);					  \
-    for (size_t j=0; j<((size_t) (m)); j++) {		  \
-      printf("%u ", (M)[i][j]);     		          \
+  for (int i_=0; i_<((int) (n)); i_++) {		  \
+    printf("%d: ", i_);					  \
+    for (int j_=0; j_<((int) (m)); j_++) {		  \
+      printf("%u ", (M)[i_][j_]);     		          \
     }                                                     \
     printf("\n");				          \
   }
@@ -75,36 +78,62 @@ extern const char alph_rep[];
 #endif
 
 #ifdef VERBOSE_DBG
-#define print32bitUIntMatrix(M,n,siz,m)					\
+#define print32bitUIntMatrix(M,n,m,siz)					\
   {									\
     unsigned int bit, b32;						\
     printf("Matrix " #M ":\n");						\
-    for (size_t i=0; i<((size_t) (n)); i++) {				\
-      printf("%lu: ", i);						\
-      for (size_t j=0; j<((size_t) (m)); j++) {				\
-	b32 = j / 32;							\
-	bit  = j % 32;							\
-	printf("%u ", ((M)[i][b32] >> (32-(bit+1))) & 1);		\
+    for (int i_=0; i_<((int) (n)); i_++) {				\
+      printf("%d: ", i_);						\
+      for (int j_=0; j_<((int) (siz)); j_++) {				\
+	b32 = j_ / 32;							\
+	bit  = j_ % 32;							\
+	printf("%u ", ((M)[i_][b32] >> bit) & 1);			\
 	if (bit+1 == 32) printf("\t");					\
       }									\
       printf("\n");							\
     }									\
   }
 #else
-#define print32bitUIntMatrix(M,n,siz,m);
+#define print32bitUIntMatrix(M,n,m,siz);
+#endif
+
+#ifdef VERBOSE_DBG
+#define print64bitUIntMatrix(M,n,m,siz)					\
+  {									\
+    unsigned int bit, b64;						\
+    printf("Matrix " #M ":\n");						\
+    for (int i_=0; i_<((int) (n)); i_++) {				\
+      printf("%d: ", i_);						\
+      for (int j_=0; j_<((int) (siz)); j_++) {				\
+	b64 = j_ / 64;							\
+	bit  = j_ % 64;							\
+	printf("%llu ", ((M)[i_][b64] >> bit) & 1);			\
+	if (bit+1 == 64) printf("\t");					\
+      }									\
+      printf("\n");							\
+    }									\
+  }
+#else
+#define print64bitUIntMatrix(M,n,m,siz);
 #endif
 
 #ifdef VERBOSE_DBG
 
-#ifndef VECTOR_O_COMPRESSION
+#if   defined VECTOR_O_32BIT_COMPRESSION
 
-#define printCompMatrix(O)				\
-  printUIntMatrix((O).count, (O).n_count, (O).m_count);
+#define printCompMatrix(O)					      \
+  print32bitUIntMatrix((O).count, (O).n_count, (O).m_count, (O).siz); \
+  printUIntMatrix((O).desp, (O).n_desp, (O).m_desp);
+
+#elif defined VECTOR_O_64BIT_COMPRESSION
+
+#define printCompMatrix(O)					      \
+  print64bitUIntMatrix((O).count, (O).n_count, (O).m_count, (O).siz); \
+  printUIntMatrix((O).desp, (O).n_desp, (O).m_desp);
 
 #else
 
-#define printCompMatrix(O)						\
-  print32bitUIntMatrix((O).count, (O).n_count, (O).siz_count, (O).m_count); \
+#define printCompMatrix(O)				\
   printUIntMatrix((O).desp, (O).n_desp, (O).m_desp);
   
 #endif
@@ -116,11 +145,11 @@ extern const char alph_rep[];
 #ifdef VERBOSE_DBG
 #define printUIntVector(V,n)				\
   printf("Vector " #V ":\n");				\
-  for (size_t i=0; i<((size_t) (n)); i++) {		\
-    if(((int)(V)[i])==-1)				\
+  for (size_t i_=0; i_<((size_t) (n)); i_++) {		\
+    if(((int)(V)[i_])==-1)				\
       printf("- ");				        \
     else                                                \
-      printf("%u ", (V)[i]);				\
+      printf("%u ", (V)[i_]);				\
   }                                                     \
   printf("\n");
 #else
@@ -128,7 +157,18 @@ extern const char alph_rep[];
 #endif
 
 #ifdef VERBOSE_DBG
-#define printString(S) printf("String " #S ":\n%s\n", S);			
+#define printIntVector(V,n)				\
+  printf("Vector " #V ":\n");				\
+  for (size_t i_=0; i_<((size_t) (n)); i_++) {		\
+      printf("%d ", (V)[i_]);				\
+  }                                                     \
+  printf("\n");
+#else
+#define printIntVector(V,n);
+#endif
+
+#ifdef VERBOSE_DBG
+#define printString(S) printf("String " #S ":\n%s\n", S);
 #else
 #define printString(S);
 #endif
@@ -164,23 +204,30 @@ extern const char alph_rep[];
   fflush(stdout);				   \
   gettimeofday(&t1, NULL);
 
-#define toc()								                 \
+#define toc()					\
   gettimeofday(&t2, NULL);						                 \
   printf("<< Finished %.0f usecs\n", (t2.tv_sec-t1.tv_sec)*1e6+(t2.tv_usec-t1.tv_usec)); \
   fflush(stdout);
 
 typedef struct {
 
+  size_t siz;
+
+  unsigned int *desp[nA];
+  size_t n_desp;
+  size_t m_desp;
+
+#if   defined VECTOR_O_32BIT_COMPRESSION
+
   unsigned int *count[nA];
   size_t n_count;
   size_t m_count;
 
-#ifdef VECTOR_O_COMPRESSION
+#elif defined VECTOR_O_64BIT_COMPRESSION
 
-  size_t siz_count;
-  unsigned int *desp[nA];
-  size_t n_desp;
-  size_t m_desp;
+  unsigned long long *count[nA];
+  size_t n_count;
+  size_t m_count;
 
 #endif
 
@@ -196,8 +243,8 @@ typedef struct {
 typedef struct {
 
   unsigned int *vector;
-  size_t siz;
   size_t n;
+  size_t siz;
   size_t ratio;
 
 } comp_vector;
@@ -219,39 +266,48 @@ typedef struct {
 
 typedef struct {
   size_t k, l;
-  int start, end;
+  int start, pos, end;
   char dir;
   char num_mismatches;
   char err_kind[MAX_MISMATCHES];
-  char base[MAX_MISMATCHES];
-  int position[MAX_MISMATCHES];
+  char err_base[MAX_MISMATCHES];
+  int err_pos[MAX_MISMATCHES];
+  unsigned int read_index;
 } result;
 
 typedef struct {
   result *list;
-  size_t n;
-  size_t max_results;
-  size_t read_index;
+  unsigned int num_results;
+  unsigned int max_results;
+  unsigned int read_index;
 } results_list;
 
-inline void new_results_list(results_list *r_list, size_t max_results) {
+inline void new_results_list(results_list *r_list, unsigned int max_results) {
+
+  printf("Size of result %lu\n", sizeof(result)*CHAR_BIT);
 
   r_list->list = (result *) malloc(max_results * sizeof(result));
   checkMalloc(r_list->list, "new_result_list");
 
-  r_list->n=0;
+  r_list->num_results = 0;
   r_list->max_results = max_results;
 
 }
 
+inline void init_result(result *r, char dir) {
+  r->dir = dir;
+  r->num_mismatches = 0;
+}
 
-inline void new_result(result *r, size_t k, size_t l, int start, int end, char dir) {
-    r->k = k;
-    r->l = l;
-    r->start = start;
-    r->end = end;
-    r->dir = dir;
-    r->num_mismatches = 0;
+inline void bound_result(result *r, int start, int end) {
+  r->start = start;
+  r->end = end;
+}
+
+inline void change_result(result *r, size_t k, size_t l, int pos) {
+  r->k = k;
+  r->l = l;
+  r->pos = pos;
 }
 
 inline void add_mismatch(result *r, char err_kind, char base, int position) {
@@ -261,64 +317,85 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
     size_t pos_mismatch = r->num_mismatches;
 
     r->err_kind[pos_mismatch] = err_kind;
-    r->base[pos_mismatch] = base;
-    r->position[pos_mismatch] = position;
+    r->err_base[pos_mismatch] = base;
+    r->err_pos[pos_mismatch] = position;
 
     r->num_mismatches++;
 
   } else {
 
-    fprintf(stderr, "Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
+    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
     exit(1);
 
   }
 
 }
 
+inline void modify_last_mismatch_3(result *r, char err_kind, char base, int position) {
+
+  size_t pos_mismatch = r->num_mismatches-1; // Last mismatch
+
+  r->err_kind[pos_mismatch] = err_kind;
+  r->err_base[pos_mismatch] = base;
+  r->err_pos[pos_mismatch] = position;
+
+}
+
+inline void modify_last_mismatch_2(result *r, char err_kind, char base) {
+
+  size_t pos_mismatch = r->num_mismatches-1; // Last mismatch
+
+  r->err_kind[pos_mismatch] = err_kind;
+  r->err_base[pos_mismatch] = base;
+
+}
+
+inline void modify_last_mismatch_1(result *r, char err_kind) {
+
+  r->err_kind[r->num_mismatches-1] = err_kind;
+
+}
+
 inline void copy_result(result *dest, result *orig) {
 
-  new_result(
-	     dest,
-	     orig->k,
-	     orig->l,
-	     orig->start,
-	     orig->end,
-	     orig->dir
-	     );
+  init_result(dest, orig->dir);
+  bound_result(dest, orig->start, orig->end);
+  change_result(dest, orig->k, orig->l, orig->pos);
 
-  for(int i=0; i<orig->num_mismatches; i++) {
-    add_mismatch(dest, orig->err_kind[i], orig->base[i], orig->position[i]);
+  int i;
+  for(i=0; i<orig->num_mismatches; i++) {
+    add_mismatch(dest, orig->err_kind[i], orig->err_base[i], orig->err_pos[i]);
   }
 
 }
 
 inline void add_result(result *orig, results_list *r_list) {
 
-  if (r_list->n < r_list->max_results) {
+  if (r_list->num_results < r_list->max_results) {
 
     result *dest;
-    dest = &r_list->list[r_list->n];
-    r_list->n++;
+    dest = &r_list->list[r_list->num_results];
+    r_list->num_results++;
 
     copy_result(dest, orig);
 
   } else {
 
-    fprintf(stderr, "Number of allowed results exceeded: %lu", r_list->max_results);
+    fprintf(stderr, "ERROR: Number of allowed results exceeded: %u\n", r_list->max_results);
     exit(1);
 
   }
 
 }
 
-#ifdef VECTOR_O_COMPRESSION
+#if defined VECTOR_O_32BIT_COMPRESSION
 
-inline unsigned int bitcount(unsigned int uint32bit) {//TODO: Probar la llamada en C para ver si usa la instrucción máquina. //TODO: Programar compresión de 64 bits tb.
-
+inline unsigned int bitcount(unsigned int i) { //TODO: Probar la llamada en C para ver si usa la instrucción máquina. //TODO: Programar compresión de 64 bits tb.
+  
   //Parallel binary bit add
-  uint32bit = uint32bit - ((uint32bit >> 1) & 0x55555555);
-  uint32bit = (uint32bit & 0x33333333) + ((uint32bit >> 2) & 0x33333333);
-  return (((uint32bit + (uint32bit >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+  i = i - ((i >> 1) & 0x55555555);
+  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+  return (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
 
 }
 
@@ -327,9 +404,30 @@ inline unsigned int getOcompValue(size_t n, size_t m, comp_matrix *O) {
   size_t pos, desp;
 
   pos  = m / 32;
-  desp = (32 - ((m+1) % 32)) % 32; //TODO cambiar compresión para no tener que restar 32 cada vez (almacenar los bits al revés).
+  desp = m % 32;
+  
+  return O->desp[n][pos] + bitcount( O->count[n][pos] << (32 - (desp + 1)) );
 
-  return O->desp[n][pos] + bitcount(O->count[n][pos] >> desp);
+}
+
+#elif defined VECTOR_O_64BIT_COMPRESSION
+
+inline unsigned int bitcount(unsigned long long i) { //TODO: Probar la llamada en C y la de GCC para ver si usan la instrucción máquina.
+
+  //Parallel binary bit add
+  i = i - ((i >> 1) & 0x5555555555555555);
+  i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
+  return (((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56;
+}
+
+inline unsigned int getOcompValue(size_t n, size_t m, comp_matrix *O) {
+
+  size_t pos, desp;
+
+  pos  = m / 64;
+  desp = m % 64;
+
+  return O->desp[n][pos] + bitcount( O->count[n][pos] << (64 - (desp + 1)) );
 
 }
 
@@ -337,24 +435,36 @@ inline unsigned int getOcompValue(size_t n, size_t m, comp_matrix *O) {
 
 inline char getBfromO(size_t m, comp_matrix *O) {
 
-  size_t n = O->n_count;
-
-#ifndef VECTOR_O_COMPRESSION
-
-  for(size_t i=0; i<n; i++)
-    if ( (O->count[i][m] < O->count[i][m+1]) ) return i;
-
-#else
+#if   defined VECTOR_O_32BIT_COMPRESSION
 
   m++;
 
   size_t pos, desp;
   pos  = m / 32;
-  desp = (32 - ((m+1) % 32)) % 32;
+  desp = m % 32;
 
-  for(size_t i=0; i<n; i++) {
+  size_t i;
+  for(i=0; i<O->n_count; i++) {
     if ( ( (O->count[i][pos] >> desp) & 1) != 0) return i;
   }
+
+#elif defined VECTOR_O_64BIT_COMPRESSION
+
+  m++;
+
+  size_t pos, desp;
+  pos  = m / 64;
+  desp = m % 64;
+
+  size_t i;
+  for(i=0; i<O->n_count; i++) {
+    if ( ( (O->count[i][pos] >> desp) & 1) != 0) return i;
+  }
+
+#else
+
+  for(size_t i=0; i<O->n_desp; i++)
+    if ( (O->desp[i][m] < O->desp[i][m+1]) ) return i;
 
 #endif
 
@@ -364,75 +474,155 @@ inline char getBfromO(size_t m, comp_matrix *O) {
 
 inline unsigned int getScompValue(size_t m, comp_vector *Scomp, vector *C, comp_matrix *O) {
 
-  size_t j;
-  size_t i;
-
+  size_t i,j;
+  
   i=m; j=0;
-
+  
   char b_aux;
-
+  
   while (i % Scomp->ratio) {
-
+    
     b_aux = getBfromO(i, O);
-
+    
     if ((int) b_aux == -1) {
-
+      
       i=0;
 
     } else {
 
-#ifndef VECTOR_O_COMPRESSION
-      i = C->vector[(int)b_aux] + O->count[(int)b_aux][i+1/*0 is -1*/];
-#else
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
       i = C->vector[(int)b_aux] + getOcompValue((int)b_aux, i+1, O);
+#else
+      i = C->vector[(int)b_aux] + O->desp[(int)b_aux][i+1/*0 is -1*/];
 #endif
-
+      
     }
-
+    
     j++;
+
   }
 
-  return (Scomp->vector[i / Scomp->ratio] + j) % (O->m_count-1);
+  return (Scomp->vector[i / Scomp->ratio] + j) % (O->siz-1);
 
 }
 
 inline unsigned int getScompValueB(size_t m, comp_vector *Scomp, vector *C, comp_matrix *O, byte_vector *B) {
-
-  size_t j;
-  size_t i;
-
+  
+  size_t i, j;
+  
   i=m; j=0;
-
+  
   char b_aux;
-
+  
   while (i % Scomp->ratio) {
-
+    
     b_aux = B->vector[i];
-
+    
     if ((int) b_aux == -1) {
 
       i=0;
 
     } else {
 
-#ifndef VECTOR_O_COMPRESSION
-      i = C->vector[(int)b_aux] + O->count[(int)b_aux][i+1/*0 is -1*/];
-#else
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
       i = C->vector[(int)b_aux] + getOcompValue((int)b_aux, i+1, O);
+#else
+      i = C->vector[(int)b_aux] + O->desp[(int)b_aux][i+1/*0 is -1*/];
 #endif
 
     }
 
     j++;
+
   }
 
-  return (Scomp->vector[i / Scomp->ratio] + j) % (O->m_count-1);
+  return (Scomp->vector[i / Scomp->ratio] + j) % (O->siz-1);
 
 }
 
-#ifdef __cplusplus
-extern "C" {
+inline unsigned int getRcompValue(size_t m, comp_vector *Rcomp, vector *C, comp_matrix *O) {
+
+  size_t i, j, k;
+
+  i = (Rcomp->ratio - (m % Rcomp->ratio)) % Rcomp->ratio;
+  k = m + i;
+
+  if (k < Rcomp->siz) {
+    j = Rcomp->vector[k / Rcomp->ratio];
+  } else {
+    j = Rcomp->vector[0];
+    i = Rcomp->siz - m;
+  }
+
+  char b_aux;
+
+  while (i) {
+
+    b_aux = getBfromO(j, O);
+
+    if ((int) b_aux == -1) {
+
+      j=0;
+
+    } else {
+
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
+      j = C->vector[(int)b_aux] + getOcompValue((int)b_aux, j+1, O);
+#else
+      j = C->vector[(int)b_aux] + O->desp[(int)b_aux][j+1/*0 is -1*/];
 #endif
+
+    }
+
+    i--;
+
+  }
+
+  return j;
+
+}
+
+inline unsigned int getRcompValueB(size_t m, comp_vector *Rcomp, vector *C, comp_matrix *O, byte_vector *B) {
+
+  size_t i, j, k;
+
+  i = (Rcomp->ratio - (m % Rcomp->ratio)) % Rcomp->ratio;
+  k = m + i;
+
+  if(k < Rcomp->siz) {
+    j = Rcomp->vector[k / Rcomp->ratio];
+  } else {
+    j = Rcomp->vector[0];
+    i = Rcomp->siz - m;
+  }
+
+  char b_aux;
+
+  while (i) {
+
+    b_aux = B->vector[j];
+
+    if ((int) b_aux == -1) {
+
+      j=0;
+
+    } else {
+
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
+      j = C->vector[(int)b_aux] + getOcompValue((int)b_aux, j+1, O);
+#else
+      j = C->vector[(int)b_aux] + O->desp[(int)b_aux][j+1/*0 is -1*/];
+#endif
+
+    }
+
+    i--;
+
+  }
+
+  return j;
+
+}
 
 void reverseStrandC(vector *r_C, vector *s_C, vector *r_C1, vector *s_C1);
 void reverseStrandO(comp_matrix *r_O, comp_matrix *s_O);
@@ -448,30 +638,23 @@ void saveUIntCompVector(comp_vector *vector, const char *directory, const char *
 void saveCharVector(byte_vector *vector, const char *directory, const char *name);
 void saveCompMatrix(comp_matrix *matrix, const char *directory, const char *name);
 
-#ifdef __cplusplus
-}
-#endif
-
 void initReplaceTable();
 
 char *replaceBases(char *uncoded, char *coded, size_t length);
 
-int nextFASTAToken(FILE *queries_file, char *original, char *contents, unsigned int *nquery, char *compressed, unsigned int *ncompress);
+int nextFASTAToken(FILE *queries_file, char *uncoded, char *coded, unsigned int *nquery, char *compressed, unsigned int*ncompress);
 
-void load_duplicated_reference(byte_vector *Xorig, byte_vector *X, const char *path);
-//unsigned load_duplicated_references(char **_X, unsigned int *max_nX, const char *path);
+void load_reference(byte_vector *X, int duplicate, exome *ex, const char *path);
+
+void load_exome_file(exome *ex, const char *directory);
+void save_exome_file(exome *ex, const char *directory);
 
 void revstring(char *X, size_t nX);
 
 size_t comp4basesInChar(char *X, size_t nX, char *Y);
 unsigned int binsearch(unsigned int *array, unsigned int size, size_t key);
 
-void load_exome_file(exome *ex, const char *name);
 void initialize_init_mask();
 int write_results(results_list *r_list, exome* ex, comp_vector *S, comp_vector *Si, vector *C, comp_matrix *O, comp_matrix *Oi, char *mapping, int nW, int type, FILE *fp);
-void free_results_list(results_list *r_list);
 
-
-
-
-#endif // BW_IO
+#endif

@@ -35,16 +35,7 @@
 
 #define BWiterationVariables() size_t aux_b;
 
-#ifndef VECTOR_O_COMPRESSION
-
-#define BWiteration(k_in, l_in, k_out, l_out, b, C, C1, O)		\
-  {									\
-    aux_b = (b);							\
-    (k_out) = (C1)->vector[aux_b] + (O)->count[aux_b][(k_in)];		\
-    (l_out) = (C)->vector[aux_b]  + (O)->count[aux_b][(l_in)+1];	\
-  }
-
-#else
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
 
 #define BWiteration(k_in, l_in, k_out, l_out, b, C, C1, O)		 \
   {									 \
@@ -52,75 +43,131 @@
     (k_out) = (C1)->vector[aux_b] + getOcompValue(aux_b, (k_in)  , (O)); \
     (l_out) = (C)->vector[aux_b]  + getOcompValue(aux_b, (l_in)+1, (O)); \
   }
+//printf("k-> %lu, l-> %lu, O -> %u\n", k_out, l_out, getOcompValue(aux_b, (l_in)+1, (O)));
+
+#else
+
+#define BWiteration(k_in, l_in, k_out, l_out, b, C, C1, O)		\
+  {									\
+    aux_b = (b);							\
+    (k_out) = (C1)->vector[aux_b] + (O)->desp[aux_b][(k_in)];		\
+    (l_out) = (C)->vector[aux_b]  + (O)->desp[aux_b][(l_in)+1];		\
+  }
+//printf("k-> %lu, l-> %lu, O -> %u\n", k_out, l_out, (O)->desp[aux_b][(l_in)+1]);
 
 #endif
 
-void calculateD(vector *D, byte_vector *W, vector *C, vector *C1, comp_matrix *Oi);
-void BWRecursiveSearch(char *W, size_t i, unsigned int z, size_t k, size_t l, vector *D, vector *C, vector *C1, comp_matrix *O, results_list *r_list);
+inline void change_direction(comp_vector *S, comp_vector *Ri, vector *C, comp_matrix *O, comp_matrix *Oi, result *res) {
 
-inline void BWExactSearchBackward(char *W, int start, int end, vector *C, vector *C1, comp_matrix *O, result *r){
+  size_t k, l, ki, li, aux, aux2;
+  int start, end;
 
-  //printf("CALL Backward\n");
+  k  = res->k;
+  l  = res->l;
+  ki = O->siz-2;
+  li = 0;
+
+  start = res->start;
+  end   = res->end;
+
+  if (S->ratio == 1) {
+
+    for (size_t i = k; i <= l; i++) {
+
+      aux  = S->siz - S->vector[i]  - (end - start + 2);
+      aux2 = Ri->vector[aux];
+
+      if (aux2 < ki) ki = aux2;
+      if (aux2 > li) li = aux2;
+
+    }
+
+  } else {
+
+    for (size_t i = k; i <= l; i++) {
+
+      aux  = S->siz - getScompValue(i, S, C, O) - (end - start + 2);
+      aux2 = getRcompValue(aux, Ri, C, Oi);
+
+      if (aux2 < ki) ki = aux2;
+      if (aux2 > li) li = aux2;
+
+    }
+
+  }
+
+  res->k = ki;
+  res->l = li;
+
+}
+
+inline void BWExactSearchBackward(char *W, vector *C, vector *C1, comp_matrix *O, result *r) {
+
   BWiterationVariables();
   size_t k2, l2;
   int i;
 
-  k2 = r->k; l2 = r->l;
+  k2 = r->k;
+  l2 = r->l;
 
   //printf("B1º -> %lu - %lu\n", k2, l2);
 
-  for(i=end; i>=start; i--) {
+  for(i=r->pos; i>=r->start; i--) {
 
     BWiteration(k2, l2, k2, l2, W[i], C, C1, O);
-    //printf("B -> %lu -> %lu - %u\n", i, k2, l2);
+    //printf("B -> %d -> %lu - %lu\n", i, k2, l2);
     if (k2 > l2) break;
 
   }
 
   r->k = k2;
   r->l = l2;
-  r->start = start;
+  r->pos = i;
 
 }
 
-inline void BWExactSearchForward(char *W, int start, int end, vector *C, vector *C1, comp_matrix *Oi, result *r) {
-  //printf("CALL Forward\n");
+inline void BWExactSearchForward(char *W, vector *C, vector *C1, comp_matrix *Oi, result *r) {
 
   BWiterationVariables();
   size_t k2, l2;
   int i;
 
-  k2 = r->k;  l2 = r->l;
+  k2 = r->k;
+  l2 = r->l;
 
   //printf("F1º -> %lu - %lu\n", k2, l2);
 
-  for(i=start; i<=end; i++) {
+  for(i=r->pos; i<=r->end; i++) {
 
     BWiteration(k2, l2, k2, l2, W[i], C, C1, Oi);
-    //printf("F-> %lu -> %lu - %u\n", i, k2, l2);
+    //printf("F-> %d -> %lu - %lu\n", i, k2, l2);
     if (k2 > l2) break;
 
   }
 
   r->k = k2;
   r->l = l2;
-  r->end = end;
+  r->pos = i;
 
 }
 
-void BWExactSearchBackwardVector(char *W, int start, int end, size_t k, size_t l, size_t **_vec_k, size_t **_vec_l, vector *C, vector *C1, comp_matrix *O);
-void BWExactSearchForwardVector(char *W, int start, int end, size_t k, size_t l, size_t **_vec_ki, size_t **_vec_li, vector *C, vector *C1, comp_matrix *Oi);
+void BWExactFinalResultsBackward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
+void BWExactFinalResultsForward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
+void BWExactPartialResultsBackward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
+void BWExactPartialResultsForward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
+void BWBranchPartialResultsBackward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
+void BWBranchPartialResultsForward(char *W, vector *C, vector *C1, comp_matrix *O, results_list *rl_prev, results_list *rl_next);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-void BWIterativeSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t *vec_ki, size_t *vec_li, vector *C, vector *C1, comp_matrix *O, comp_matrix *Oi, results_list *r_list);
-#ifdef __cplusplus
-}
-#endif
+void BWExactSearchVectorBackward(char *W, int start, int end, size_t k, size_t l, size_t *vec_k, size_t *vec_l, vector *C, vector *C1, comp_matrix *O);
+void BWExactSearchVectorForward(char *W, int start, int end, size_t k, size_t l, size_t *vec_k, size_t *vec_l, vector *C, vector *C1, comp_matrix *O);
 
-void BWBackwardSimpleSearch1(char *W, int start, int end, vector *C, vector *C1, comp_matrix *O, result *r, results_list *r_list);
+void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t *vec_ki, size_t *vec_li, vector *C, vector *C1, comp_matrix *O, comp_matrix *Oi, results_list *r_list);
 
-void BWForwardSimpleSearch1(char *W, int start, int end, vector *C, vector *C1, comp_matrix *O, result *r, results_list *r_list);
+void BWSearch1CPU(char *W, vector *C, vector *C1, comp_matrix *O, comp_matrix *Oi, result * res, results_list *r_list);
+
+void BWSearchCPU(char *W, vector *C, vector *C1, comp_matrix *O, result *res, results_list *rl_prev, results_list *rl_next, int num_errors);
+
+void BWSimpleSearch1Backward(char *W, vector *C, vector *C1, comp_matrix *O, result *res, results_list *r_list);
+void BWSimpleSearch1Forward(char *W, vector *C, vector *C1, comp_matrix *O, result *res, results_list *r_list);
 
 #endif

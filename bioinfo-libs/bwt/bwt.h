@@ -1,11 +1,13 @@
-#ifndef BURROWS_WHEELER_H
-#define BURROWS_WHEELER_H
+#ifndef BWT_H
+#define BWT_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
+#include <pthread.h> 
 
+#include "linked_list.h"
 #include "array_list.h"
 #include "fastq_read.h"
 #include "fastq_batch.h"
@@ -68,6 +70,18 @@ void region_free(region_t *cal);
 
 //-----------------------------------------------------------------------------
 
+typedef struct short_cal {
+	size_t start;
+	size_t end;
+} short_cal_t;
+
+short_cal_t *short_cal_new(const size_t start, 
+	                   const size_t end);
+
+void short_cal_free(short_cal_t *short_cal_p);
+
+//-----------------------------------------------------------------------------
+
 typedef struct read_cals {
   fastq_read_t *read;
   array_list_t *cal_list; // array list of cal_t structures
@@ -104,6 +118,10 @@ typedef struct bwt_index {
 
 bwt_index_t *bwt_index_new(const char *dirname);
 void bwt_index_free(bwt_index_t *index);
+
+void bwt_generate_index_files(char *ref_file, char *output_dir, 
+			      unsigned int s_ratio);
+
 
 //-----------------------------------------------------------------------------
 
@@ -196,4 +214,4 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-#endif // BURROWS_WHEELER_H
+#endif // BWT_H

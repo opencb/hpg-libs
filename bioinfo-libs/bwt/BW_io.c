@@ -26,18 +26,15 @@
 
 #include "BW_io.h"
 
-
-const char alph_rep[] ={'A','C','G','T'};
-
 char init_mask[MAXLINE+1];
 char plusminus[] = "-+";
 
 void freeCompMatrix(comp_matrix *matrix) {
 
-  for (size_t i=0; i<matrix->n_count; i++) {
-    free(matrix->count[i]);
-#ifdef VECTOR_O_COMPRESSION
+  for (size_t i=0; i<matrix->n_desp; i++) {
     free(matrix->desp[i]);
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
+    free(matrix->count[i]);
 #endif
   }
 
@@ -61,6 +58,18 @@ void reverseStrandC(vector *r_C, vector *s_C, vector *r_C1, vector *s_C1) {
 
 void reverseStrandO(comp_matrix *r_O, comp_matrix *s_O) {
 
+  r_O->siz = s_O->siz;
+
+  r_O->n_desp = s_O->n_desp;
+  r_O->m_desp = s_O->m_desp;
+
+  r_O->desp[0] = s_O->desp[3];
+  r_O->desp[3] = s_O->desp[0];
+  r_O->desp[1] = s_O->desp[2];
+  r_O->desp[2] = s_O->desp[1];
+
+#if defined VECTOR_O_32BIT_COMPRESSION || VECTOR_O_64BIT_COMPRESSION
+
   r_O->n_count = s_O->n_count;
   r_O->m_count = s_O->m_count;
 
@@ -69,15 +78,6 @@ void reverseStrandO(comp_matrix *r_O, comp_matrix *s_O) {
   r_O->count[1] = s_O->count[2];
   r_O->count[2] = s_O->count[1];
 
-#ifdef VECTOR_O_COMPRESSION
-  r_O->siz_count = s_O->siz_count;
-  r_O->n_desp = s_O->n_desp;
-  r_O->m_desp = s_O->m_desp;
-
-  r_O->desp[0] = s_O->desp[3];
-  r_O->desp[3] = s_O->desp[0];
-  r_O->desp[1] = s_O->desp[2];
-  r_O->desp[2] = s_O->desp[1];
 #endif
 
 }
@@ -125,20 +125,20 @@ void readUIntCompVector(comp_vector *vector, const char *directory, const char *
   fp  = fopen(path,  "rb+");
   checkFileOpen(fp, path);
 
-  err = fread(&vector->siz, sizeof(size_t),  1, fp);
+  err = fread(&vector->n, sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-  err = fread(&vector->n, sizeof(size_t),  1, fp);
+  err = fread(&vector->siz, sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
   err = fread(&vector->ratio, sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-  vector->vector = (unsigned int *) malloc(vector->siz * sizeof(unsigned int));
+  vector->vector = (unsigned int *) malloc(vector->n * sizeof(unsigned int));
   checkMalloc(vector->vector, path);
 
-  err = fread(vector->vector, sizeof(unsigned int), vector->siz, fp);
-  checkFileRead(err, vector->siz, path);
+  err = fread(vector->vector, sizeof(unsigned int), vector->n, fp);
+  checkFileRead(err, vector->n, path);
 
   fclose(fp);
 
@@ -184,6 +184,35 @@ void readCompMatrix(comp_matrix *matrix, const char *directory, const char *name
   strcat(path, directory);
   strcat(path, "/");
   strcat(path, name);
+  strcat(path, ".desp");
+
+  fp  = fopen(path,  "rb+");
+  checkFileOpen(fp, path);
+
+  err = fread(&matrix->siz,      sizeof(size_t),  1, fp);
+  checkFileRead(err, 1, path);
+
+  err = fread(&matrix->n_desp,   sizeof(size_t),  1, fp);
+  checkFileRead(err, 1, path);
+
+  err = fread(&matrix->m_desp,   sizeof(size_t),  1, fp);
+  checkFileRead(err, 1, path);
+
+  for (size_t i=0; i<matrix->n_desp; i++) {
+    matrix->desp[i] = (unsigned int *) malloc(matrix->m_desp * sizeof(unsigned int));
+    checkMalloc(matrix->desp[i], path);
+    err = fread(matrix->desp[i], sizeof(unsigned int), matrix->m_desp, fp);
+    checkFileRead(err, matrix->m_desp, path);
+  }
+
+  fclose(fp);
+
+#if defined VECTOR_O_32BIT_COMPRESSION
+
+  path[0]='\0';
+  strcat(path, directory);
+  strcat(path, "/");
+  strcat(path, name);
   strcat(path, ".count");
 
   fp  = fopen(path,  "rb+");
@@ -192,54 +221,44 @@ void readCompMatrix(comp_matrix *matrix, const char *directory, const char *name
   err = fread(&matrix->n_count,   sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-#ifdef VECTOR_O_COMPRESSION
-  err = fread(&matrix->siz_count, sizeof(size_t),  1, fp);
-  checkFileRead(err, 1, path);
-#endif
-
   err = fread(&matrix->m_count,   sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-  size_t size_aux;
-#ifndef VECTOR_O_COMPRESSION
-  size_aux = matrix->m_count;
-#else
-  size_aux = matrix->siz_count;
-#endif
-
   for (size_t i=0; i<matrix->n_count; i++){
-    matrix->count[i] = (unsigned int *) malloc(size_aux * sizeof(unsigned int));
+    matrix->count[i] = (unsigned int *) malloc(matrix->m_count * sizeof(unsigned int));
     checkMalloc(matrix->count[i], path);
-    err = fread(matrix->count[i], sizeof(unsigned int), size_aux, fp);
-    checkFileRead(err, size_aux, path);
+    err = fread(matrix->count[i], sizeof(unsigned int), matrix->m_count, fp);
+    checkFileRead(err, matrix->m_count, path);
   }
 
   fclose(fp);
 
-#ifdef VECTOR_O_COMPRESSION
+#elif defined VECTOR_O_64BIT_COMPRESSION
+
   path[0]='\0';
   strcat(path, directory);
   strcat(path, "/");
   strcat(path, name);
-  strcat(path, ".desp");
+  strcat(path, ".count");
 
   fp  = fopen(path,  "rb+");
   checkFileOpen(fp, path);
 
-  err = fread(&matrix->n_desp,   sizeof(size_t),  1, fp);
+  err = fread(&matrix->n_count,   sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-  err = fread(&matrix->m_desp,   sizeof(size_t),  1, fp);
+  err = fread(&matrix->m_count,   sizeof(size_t),  1, fp);
   checkFileRead(err, 1, path);
 
-  for (size_t i=0; i<matrix->n_desp; i++){
-    matrix->desp[i] = (unsigned int *) malloc(matrix->m_desp * sizeof(unsigned int));
-    checkMalloc(matrix->desp[i], path);
-    err = fread(matrix->desp[i], sizeof(unsigned int), matrix->m_desp, fp);
-    checkFileRead(err, matrix->m_desp, path);
+  for (size_t i=0; i<matrix->n_count; i++){
+    matrix->count[i] = (unsigned long long *) malloc(matrix->m_count * sizeof(unsigned long long));
+    checkMalloc(matrix->count[i], path);
+    err = fread(matrix->count[i], sizeof(unsigned long long), matrix->m_count, fp);
+    checkFileRead(err, matrix->m_count, path);
   }
 
   fclose(fp);
+
 #endif
 
 }
@@ -286,17 +305,17 @@ void saveUIntCompVector(comp_vector *vector, const char *directory, const char *
   fp  = fopen(path,  "wb+");
   checkFileOpen(fp, path);
 
-  err = fwrite(&vector->siz,   sizeof(size_t), 1, fp);
+  err = fwrite(&vector->n,     sizeof(size_t), 1, fp);
   checkFileWrite(err, 1, path);
 
-  err = fwrite(&vector->n,     sizeof(size_t), 1, fp);
+  err = fwrite(&vector->siz,   sizeof(size_t), 1, fp);
   checkFileWrite(err, 1, path);
 
   err = fwrite(&vector->ratio, sizeof(size_t), 1, fp);
   checkFileWrite(err, 1, path);
 
-  err = fwrite(vector->vector, sizeof(unsigned int), vector->siz, fp);
-  checkFileWrite(err, vector->siz, path);
+  err = fwrite(vector->vector, sizeof(unsigned int), vector->n, fp);
+  checkFileWrite(err, vector->n, path);
 
   fclose(fp);
 
@@ -339,50 +358,18 @@ void saveCompMatrix(comp_matrix *matrix, const char *directory, const char *name
   strcat(path, directory);
   strcat(path, "/");
   strcat(path, name);
-  strcat(path, ".count");
-
-  fp  = fopen(path,  "wb+");
-  checkFileOpen(fp, path);
-
-  err = fwrite(&matrix->n_count,   sizeof(size_t), 1, fp);
-  checkFileWrite(err, 1, path);
-
-#ifdef VECTOR_O_COMPRESSION
-  err = fwrite(&matrix->siz_count, sizeof(size_t), 1, fp);
-  checkFileWrite(err, 1, path);
-#endif
-
-  err = fwrite(&matrix->m_count,   sizeof(size_t), 1, fp);
-  checkFileWrite(err, 1, path);
-
-  size_t size_aux;
-#ifndef VECTOR_O_COMPRESSION
-  size_aux = matrix->m_count;
-#else
-  size_aux = matrix->siz_count;
-#endif
-
-  for (size_t i=0; i<matrix->n_count; i++) {
-    err = fwrite(matrix->count[i], sizeof(unsigned int), size_aux, fp);
-    checkFileWrite(err, size_aux, path);
-  }
-
-  fclose(fp);
-
-#ifdef VECTOR_O_COMPRESSION
-  path[0]='\0';
-  strcat(path, directory);
-  strcat(path, "/");
-  strcat(path, name);
   strcat(path, ".desp");
 
   fp  = fopen(path,  "wb+");
   checkFileOpen(fp, path);
 
-  err = fwrite(&matrix->n_desp,   sizeof(size_t), 1, fp);
+  err = fwrite(&matrix->siz,    sizeof(size_t), 1, fp);
   checkFileWrite(err, 1, path);
 
-  err = fwrite(&matrix->m_desp,   sizeof(size_t), 1, fp);
+  err = fwrite(&matrix->n_desp, sizeof(size_t), 1, fp);
+  checkFileWrite(err, 1, path);
+
+  err = fwrite(&matrix->m_desp, sizeof(size_t), 1, fp);
   checkFileWrite(err, 1, path);
 
   for (size_t i=0; i<matrix->n_desp; i++) {
@@ -391,6 +378,55 @@ void saveCompMatrix(comp_matrix *matrix, const char *directory, const char *name
   }
 
   fclose(fp);
+
+#if defined VECTOR_O_32BIT_COMPRESSION
+
+  path[0]='\0';
+  strcat(path, directory);
+  strcat(path, "/");
+  strcat(path, name);
+  strcat(path, ".count");
+
+  fp  = fopen(path,  "wb+");
+  checkFileOpen(fp, path);
+
+  err = fwrite(&matrix->n_count, sizeof(size_t), 1, fp);
+  checkFileWrite(err, 1, path);
+
+  err = fwrite(&matrix->m_count, sizeof(size_t), 1, fp);
+  checkFileWrite(err, 1, path);
+
+  for (size_t i=0; i<matrix->n_count; i++) {
+    err = fwrite(matrix->count[i], sizeof(unsigned int), matrix->m_count, fp);
+    checkFileWrite(err, matrix->m_count, path);
+  }
+
+  fclose(fp);
+
+#elif defined VECTOR_O_64BIT_COMPRESSION
+
+  path[0]='\0';
+  strcat(path, directory);
+  strcat(path, "/");
+  strcat(path, name);
+  strcat(path, ".count");
+
+  fp  = fopen(path,  "wb+");
+  checkFileOpen(fp, path);
+
+  err = fwrite(&matrix->n_count, sizeof(size_t), 1, fp);
+  checkFileWrite(err, 1, path);
+
+  err = fwrite(&matrix->m_count, sizeof(size_t), 1, fp);
+  checkFileWrite(err, 1, path);
+
+  for (size_t i=0; i<matrix->n_count; i++) {
+    err = fwrite(matrix->count[i], sizeof(unsigned long long), matrix->m_count, fp);
+    checkFileWrite(err, matrix->m_count, path);
+  }
+
+  fclose(fp);
+
 #endif
 
 }
@@ -408,7 +444,6 @@ void initReplaceTable() {
     table['G'] = GG;
     table['n'] = AA;
     table['N'] = AA;
-    table['\0'] = AA;
 }
 
 char *replaceBases(char *uncoded, char *coded, size_t length) {
@@ -496,7 +531,7 @@ size_t comp4basesInChar(char *X, size_t nX, char *Y) {
 }
 
 void revstring(char *X, size_t nX) {
-  
+
   char tmp;
   size_t i, j;
 
@@ -517,7 +552,7 @@ unsigned int binsearch(unsigned *array, unsigned int size, size_t key) {
   unsigned int *p = array;
   unsigned int w;
 
-  while( size > 0 ){
+  while( size > 0 ) {
 
     w=size/2;
     
@@ -534,119 +569,118 @@ unsigned int binsearch(unsigned *array, unsigned int size, size_t key) {
 
 }
 
-void load_duplicated_reference(byte_vector *Xorig, byte_vector *X, const char *path) {
+void duplicate_reference(byte_vector *X) {
 
-  FILE *ref_file;
-
-  ref_file = fopen(path,  "r");
-  checkFileOpen(ref_file, path);
-
-  size_t read;
-  unsigned int nX;
-
-  fseek(ref_file, 0, SEEK_END);
-  read = ftell(ref_file);
-  fseek(ref_file, 0, SEEK_SET);
-
-  X->vector = (char *) malloc( (read*2 + 1) * sizeof(char) );
-  printf("Reserved %lu elements\n", (read*2 + 1));
-  checkMalloc(X->vector, path);
-
-  Xorig->vector = (char *) malloc( read * sizeof(char) );
-  checkMalloc(Xorig->vector, path);
-
-  nextFASTAToken(ref_file, Xorig->vector, X->vector, &nX, NULL, NULL);
-  
-  fclose(ref_file);
-
-  X->n     = nX;
-  Xorig->n = nX;
-
-  //Duplicated reference for BWT calculation
   size_t naux = (X->n)*2 + 1;
-  X->vector[X->n] = DD;
 
   for (size_t i=(X->n)+1, j=0; i<naux; i++,j++)
     X->vector[i] = X->vector[j];
 
 }
 
-/*
-unsigned int load_duplicated_references(char **_X, unsigned int *max_nX, const char *path) {
-
-  char *X, *Xorig;
-  unsigned int *nX;
+void load_reference(byte_vector *X, int duplicate, exome *ex, const char *path) {
 
   FILE *ref_file;
-
   ref_file = fopen(path,  "r");
   checkFileOpen(ref_file, path);
 
-  unsigned int TAM = (MAXLINE*2 + 1) * MAX_READ_GPU;
+  size_t read=0, size;
+  unsigned int nX;
 
-  X = (char *) malloc( TAM * sizeof(char) );
-  checkMalloc(X, path);
+  fseek(ref_file, 0, SEEK_END);
+  read = ftell(ref_file);
+  fseek(ref_file, 0, SEEK_SET);
 
-  nX = (unsigned int *) malloc( MAX_READ_GPU * sizeof(unsigned int) );
-  checkMalloc(nX, path);
+  if (duplicate) size = 2*read + 1000;
+  else           size = read + 1000;
 
-  Xorig = (char *) malloc( MAXLINE * sizeof(char) );
-  checkMalloc(Xorig, path);
+  X->vector = (char *) malloc( size * sizeof(char) );
+  checkMalloc(X->vector, path);
 
-  unsigned int read = 0;
-  unsigned int desp = 0;
-  *max_nX = 0;
+  nX=0;
+  if (ex !=NULL) ex->size=0;
 
-  while(nextFASTAToken(ref_file, Xorig, X + desp, nX + read, NULL, NULL)) {
+  //char line[MAXLINE];
+  unsigned int length, partial_length, total_length;
+
+  total_length=0;
+  partial_length=0;
+
+  while ( fgets(X->vector + total_length, MAXLINE, ref_file) ) {
+
+    if ( (X->vector + total_length)[0] == '>') {
+
+      if (ex!=NULL) {
+
+	if (total_length == 0) {
+
+	  sscanf(X->vector + total_length, ">%s ", ex->chromosome + ex->size * IDMAX);
+	  ex->start[ex->size] = 0;
+
+	} else {
+
+	  ex->end[ex->size] = partial_length - 1;
+	  partial_length=0;
+
+	  if (ex->size==0)
+	    ex->offset[0] = 0;
+	  else
+	    ex->offset[ex->size] = ex->offset[ex->size-1] + (ex->end[ex->size-1] - ex->start[ex->size-1] + 1);
+	  ex->size++;
+
+	  sscanf(X->vector + total_length, ">%s ", ex->chromosome + ex->size * IDMAX);
+	  ex->start[ex->size] = 0;
+
+	}
+
+      }
+
+      continue;
+
+    }
+
+    length = strlen(X->vector + total_length);
+    if ((X->vector + total_length)[length-1]=='\n')
+      length--;
+
+    partial_length += length;
+    total_length += length;
+
+  }
+
+  if (ex != NULL) {
+    ex->end[ex->size] = partial_length - 1;
+    partial_length=0;
     
-    if (nX[read] > *max_nX) *max_nX = nX[read];
-    read++;
-    if (read >= MAX_READ_GPU) break;
-    desp = read*(MAXLINE*2 + 1);
-
+    if (ex->size==0)
+      ex->offset[0] = 0;
+    else
+      ex->offset[ex->size] = ex->offset[ex->size-1] + (ex->end[ex->size-1] - ex->start[ex->size-1] + 1);
+    ex->size++;
   }
 
-  unsigned int ini = 0, fin = 0, dollar = 0;
-  desp=0;
+  replaceBases(X->vector, X->vector, total_length);
 
-  for (unsigned int i=0; i<read; i++) {
-
-    desp = i*(MAXLINE*2 + 1);
-
-    ini    = desp + nX[i];
-    dollar = *max_nX - nX[i];
-    fin    = desp + nX[i]*2 + 1 + dollar;
-
-    //Duplicated reference for BWT calculation
-    unsigned int i, j;
-    for (i=ini, j=0; j<=dollar; i++, j++)
-      X[i] = DD;
-
-    for (j=desp; i<fin; i++,j++)
-      X[i] = X[j];
-
-    for (j=0; j<dollar; i++,j++)
-      X[i] = DD;
-
-  }
-
-  *_X = X;
+  X->vector[total_length] = DD;
+  X->n = total_length;
 
   fclose(ref_file);
 
-  free(Xorig);
-  free(nX);
-
-  return read;
+  if (duplicate) duplicate_reference(X);
 
 }
-*/
 
-void load_exome_file(exome *ex, const char *name) {
+void load_exome_file(exome *ex, const char *directory) {
 
   FILE *fp;
-  fp  = fopen(name,  "r");
-  checkFileOpen(fp, name);
+
+  char path[500];
+  path[0]='\0';
+  strcat(path, directory);
+  strcat(path, "/index");
+
+  fp  = fopen(path,  "r");
+  checkFileOpen(fp, path);
 
   char c=NULL;
   char line[MAXLINE];
@@ -680,6 +714,24 @@ void load_exome_file(exome *ex, const char *name) {
 
 }
 
+void save_exome_file(exome *ex, const char *directory) {
+
+  FILE *fp;
+
+  char path[500];
+  path[0]='\0';
+  strcat(path, directory);
+  strcat(path, "/index");
+
+  fp  = fopen(path, "w");
+  checkFileOpen(fp, path);
+
+  for(size_t i=0; i<ex->size; i++) {
+    fprintf(fp, ">%s %u %u\n", ex->chromosome + i*IDMAX, ex->start[i], ex->end[i]);
+  }
+
+}
+
 void initialize_init_mask() {
 
   size_t i;
@@ -690,8 +742,6 @@ void initialize_init_mask() {
 }
 
 int write_results(results_list *r_list, exome* ex, comp_vector *S, comp_vector *Si, vector *C, comp_matrix *O, comp_matrix *Oi, char *mapping, int nW, int type, FILE *fp) {
-
-  //TODO: Cigar code
 
   result *r;
 
@@ -707,73 +757,75 @@ int write_results(results_list *r_list, exome* ex, comp_vector *S, comp_vector *
   search[0] = '\0';
   strncat(search, mapping, nW);
 
-  for (size_t i=0;i<r_list->n;i++) {
+  for (size_t i=0;i<r_list->num_results; i++) {  //TODO: Cigar code
 
     r = &r_list->list[i];
 
     mask[0] = '\0';
     strncat(mask, init_mask, nW);
+    mask[nW] = '\0';
 
-    enW = nW;
+    //enW = nW;
+    enW = r->end - r->start + 1; //Partial results
 
-    for (unsigned int rr=0; rr<MAX_MISMATCHES; rr++) {
+    for (int rr=0; rr<r->num_mismatches; rr++) {
 
-      if (r->err_kind[rr]==1)
-	enW--;
-      else if (r->err_kind[rr]==3)
-	enW++;
+      if (r->err_kind[rr]==DELETION)
+  	enW--;
+      else if (r->err_kind[rr]==INSERTION)
+  	enW++;
 
-      if        (r->err_kind[rr]==1) {
-	mask[r->position[0]] = 'D';
-      } else if (r->err_kind[rr]==2) {
-	mask[r->position[0]] = 'M';
-      } else if (r->err_kind[rr]==3)
-	mask[r->position[0]] = 'I';
+      if      (r->err_kind[rr]==DELETION)
+	mask[r->err_pos[rr]] = 'D';
+      else if (r->err_kind[rr]==MISMATCH)
+      	mask[r->err_pos[rr]] = 'M';
+      else if (r->err_kind[rr]==INSERTION)
+      	mask[r->err_pos[rr]] = 'I';
+
     }
 
+    //printf("%lu %lu -> %d\n", r->k, r->l, r->err_kind[0]);
+    //printf("%d %d %d\n", r->start, r->pos, r->end);
+    //printf("\n");
+
     //TODO: Añadir calculo de la mascara
-    for (unsigned int j=r->k; j<=r->l; j++) {
+    for (size_t j=r->k; j<=r->l; j++) {
 
       if (type) {
-	direction = r->dir;
+    	direction = r->dir;
       } else {
-	direction = !r->dir;
+    	direction = !r->dir;
       }
 
       if (S->ratio==1) {
 
-	if (direction)
-	  key = Si->n - Si->vector[j] - enW - 1;
-	else
-	  key = S->vector[j];
+      	if (direction)
+      	  key = Si->siz - Si->vector[j] - enW - 1;
+      	else
+      	  key = S->vector[j];
 	
       } else {
-	
-	if (direction)
-	  key = Si->n - getScompValue(j, Si, C, Oi) - enW -1;
-	else
-	  key = getScompValue(j, S, C, O);
+
+      	if (direction)
+      	  key = Si->siz - getScompValue(j, Si, C, Oi) - enW -1;
+      	else
+      	  key = getScompValue(j, S, C, O);
+ 
       }
 
       index = binsearch(ex->offset, ex->size, key);
 
       if(key + enW <= ex->offset[index]) {
-	found = 1;
-	//printf("%lu\n", r_list->read_index);
-	fprintf(fp, "read_%lu\t%c\t%s %u %s %s\n", r_list->read_index, plusminus[type], ex->chromosome + (index-1)*IDMAX, ex->start[index-1] + (key - ex->offset[index-1]), search, mask);
+    	found = 1;
+    	//printf("%lu\n", r_list->read_index);
+    	fprintf(fp, "read_%u\t%c\t%s %u %s %s\n", r_list->read_index, plusminus[type], ex->chromosome + (index-1)*IDMAX, ex->start[index-1] + (key - ex->offset[index-1]), search, search /*mask*/);
+    	//printf("read_%u\t%c\t%s %u %s %s\n", r_list->read_index, plusminus[type], ex->chromosome + (index-1)*IDMAX, ex->start[index-1] + (key - ex->offset[index-1]), search, mask);
       }
+
     }
+
   }
 
   return found;
 
 }
-
-
-void free_results_list(results_list *r_list){
-  free(r_list->list);
-  free(r_list);
-}
-
-
-
