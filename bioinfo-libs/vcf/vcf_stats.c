@@ -89,15 +89,16 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     variant_stats_t *stats;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
-        stats = new_variant_stats(strdup(record->chromosome), record->position, strdup(record->reference));
+        stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
+                                  record->position, 
+                                  strndup(record->reference, record->reference_len));
         
         // Reset counters
         total_alleles_count = 0;
         total_genotypes_count = 0;
         
         // Create list of alternates
-        copy_buf = (char*) calloc (strlen(record->alternate)+1, sizeof(char));
-        strcat(copy_buf, record->alternate);
+        copy_buf = strndup(record->alternate, record->alternate_len);
         stats->alternates = split(copy_buf, ",", &num_alternates);
         if (copy_buf) {
             free(copy_buf);
@@ -118,7 +119,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
         // Get position where GT is in sample
-        copy_buf2 = strdup(record->format);
+        copy_buf2 = strndup(record->format, record->format_len);
         gt_pos = get_field_position_in_format("GT", copy_buf2);
         if (copy_buf2) {
             free(copy_buf2);
