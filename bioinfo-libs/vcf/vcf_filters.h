@@ -35,132 +35,71 @@
 enum filter_type { COVERAGE, NUM_ALLELES, QUALITY, REGION, SNP  };
 
 /**
- * @brief Arguments for the coverage filter
+ * @brief Arguments for the filter by coverage
  * 
- * The only argument of a coverage filter is the minimum coverage of a record, as specified on its 
+ * The only argument of a filter by coverage is the minimum coverage of a record, as specified on its 
  * INFO field.
  **/
 typedef struct {
     int min_coverage;
 } coverage_filter_args;
 
+/**
+ * @brief Arguments for the filter by number of alleles
+ * 
+ * The only argument of a filter by number of alleles is precisely that number.
+ **/
 typedef struct {
     int num_alleles;
 } num_alleles_filter_args;
 
 /**
- * @brief Arguments for the quality filter
+ * @brief Arguments for the filter by quality
  * 
- * The only argument of a quality filter is the minimum quality of a record, as specified on its 
+ * The only argument of a filter by quality is the minimum quality of a record, as specified on its 
  * QUAL field.
  **/
 typedef struct {
     int min_quality;
 } quality_filter_args;
 
+/**
+ * @brief Arguments for the filter by region
+ * 
+ * The argument of a filter by region is a set of one or more regions of the form 
+ * chromosome:position:ref_allele:alt_allele.
+ **/
 typedef struct {
     region_table_t *regions;
 } region_filter_args;
 
+/**
+ * @brief Arguments for the filter by SNP
+ * 
+ * The only argument of a filter by SNP specifies whether to include (1) or exclude (0) a SNP.
+ **/
 typedef struct {
     int include_snps;	// 1 = preserve SNPs, 0 = remove SNPs
 } snp_filter_args;
 
 /**
+ * @brief A filter selects a subcollection of records which fulfill some condition.
+ * 
  * A filter selects a subcollection of records which fulfill some condition.
  * It is mandatory to provide the list of records to filter and a list to store in 
  * the records that failed the filter's test.
  * 
- * The args variable stores filter-dependant arguments.
- * 
- * If more than one filter are applied, they must be ordered by priority (max = 0).
+ * If more than one filter is applied, they must be ordered by priority (max = 0).
  */
 typedef struct filter {
-	unsigned int priority;
-	enum filter_type type;
-	array_list_t* (*filter_func) (array_list_t *input_records, array_list_t *failed, void *args);
-	void (*free_func) (struct filter *f);
-	void *args;
+	unsigned int priority;  /**< Sorting criteria when several filters are applied */
+	enum filter_type type;  /**< Filtering criteria */
+	array_list_t* (*filter_func) (array_list_t *input_records, array_list_t *failed, void *args);  /**< Filtering function itself */
+	void (*free_func) (struct filter *f);   /**< Filter deallocation function */
+	void *args;             /**< Filter-dependant arguments */
 } filter_t;
 
 typedef cp_heap filter_chain;
-
-
-//====================================================================================
-//  Filter management (creation, comparison...) functions prototypes
-//====================================================================================
-
-filter_t *create_coverage_filter(int min_coverage);
-
-void free_coverage_filter(filter_t *filter);
-
-filter_t *create_coverage_filter(int min_coverage);
-
-void free_coverage_filter(filter_t *filter);
-
-filter_t *create_num_alleles_filter(int num_alleles);
-
-void free_num_alleles_filter(filter_t *filter);
-
-filter_t *create_quality_filter(int min_quality);
-
-void free_quality_filter(filter_t *filter);
-
-filter_t *create_region_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
-
-filter_t *create_region_exact_filter(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
-
-void free_region_filter(filter_t *filter);
-
-filter_t *create_snp_filter(char *include_snps);
-
-void free_snp_filter(filter_t *filter);
-
-
-int filter_compare(const void *filter1, const void *filter2);
-
-
-//====================================================================================
-//  Filter chain functions prototypes
-//====================================================================================
-
-// filter_chain *create_filter_chain(int writers);
-
-/**
- * Add a filter to the given filter chain. If the chain is NULL, the filter is added 
- * after creating that chain.
- * 
- * @param filter Filter to add to the filter chain
- * @param chain Filter chain the filter is inserted in
- * @return The new state of the filter chain
- */
-filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain);
-
-/**
- * Given a chain of several filters, creates a list sorted by priority.
- * 
- * @param chain Filter chain to order
- * @return Sorted list of filters
- */
-filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
-
-/**
- * Free memory allocated to store a filter chain.
- * 
- * @param chain Chain of filters to apply
- */
-void free_filter_chain(filter_chain *chain);
-
-/**
- * Applies a collection of filters to a list of records.
- * 
- * @param input_records List of records to filter
- * @param failed Records that failed the filter's test
- * @param filters Filters to apply
- * @param num_filters Number of filters to apply
- * @return Records that passed the filters' tests
- */
-array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
 
 
 //====================================================================================
@@ -222,6 +161,154 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
  */
 array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
+
+//====================================================================================
+//  Filter management (creation, comparison...) functions prototypes
+//====================================================================================
+
+/**
+ * @brief Creates a new filter by minimum coverage
+ *
+ * @param min_coverage Minimum coverage for the records to pass the filter
+ * @return The new filter
+ **/
+filter_t *coverage_filter_new(int min_coverage);
+
+/**
+ * @brief Deallocates memory of a filter by minimum coverage
+ *
+ * @param filter The filter to deallocate
+ **/
+void coverage_filter_free(filter_t *filter);
+
+/**
+ * @brief Creates a new filter by number of alleles
+ *
+ * @param num_alleles Number of alleles of the records that pass the filter
+ * @return The new filter
+ **/
+filter_t *num_alleles_filter_new(int num_alleles);
+
+/**
+ * @brief Deallocates memory of a filter by number of alleles
+ *
+ * @param filter The filter to deallocate
+ **/
+void num_alleles_filter_free(filter_t *filter);
+
+/**
+ * @brief Creates a new filter by minimum quality
+ *
+ * @param min_quality Minimum quality for the records to pass the filter
+ * @return The new filter
+ **/
+filter_t *quality_filter_new(int min_quality);
+
+/**
+ * @brief Deallocates memory of a filter by minimum quality
+ *
+ * @param filter The filter to deallocate
+ **/
+void quality_filter_free(filter_t *filter);
+
+/**
+ * @brief ...
+ *
+ * @param region_descriptor ...
+ * @param use_region_file ...
+ * @param url ...
+ * @param species ...
+ * @param version ...
+ * @return The new filter
+ **/
+filter_t *region_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
+
+/**
+ * @brief ...
+ *
+ * @param region_descriptor ...
+ * @param use_region_file ...
+ * @param url ...
+ * @param species ...
+ * @param version ...
+ * @return The new filter
+ **/
+filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
+
+/**
+ * @brief Deallocates memory of a filter by region
+ *
+ * @param filter The filter to deallocate
+ **/
+void region_filter_free(filter_t *filter);
+
+/**
+ * @brief Creates a new filter by SNP
+ *
+ * @param include_snps Whether to include or exclude a SNP.
+ * @return The new filter
+ **/
+filter_t *snp_filter_new(char *include_snps);
+
+/**
+ * @brief Deallocates memory of a filter by SNP
+ *
+ * @param filter The filter to deallocate
+ **/
+void snp_filter_free(filter_t *filter);
+
+
+/**
+ * @brief Compares the priority of two filters
+ *
+ * @param filter1 First filter to compare
+ * @param filter2 Second filter to compare
+ * @return 0 if both filters have the same priority, less than zero if the 1st filter 
+ * has less priority, and more than zero if it has more priority
+ **/
+int filter_compare(const void *filter1, const void *filter2);
+
+
+//====================================================================================
+//  Filter chain functions prototypes
+//====================================================================================
+
+/**
+ * @brief Adds a filter to the given filter chain
+ * @param filter Filter to add to the filter chain
+ * @param chain Filter chain the filter is inserted in
+ * @return The new state of the filter chain
+ * 
+ * Adds a filter to the given filter chain. If the chain is NULL, the filter is added 
+ * after creating that chain.
+ */
+filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain);
+
+/**
+ * @brief Sorts a chain of several filters by priority
+ * @param chain Filter chain to sort
+ * @return Sorted list of filters
+ * 
+ * Given a chain of several filters, creates a list sorted by priority.
+ */
+filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
+
+/**
+ * @brief Frees memory allocated to store a filter chain
+ * @param chain Chain of filters to free
+ */
+void free_filter_chain(filter_chain *chain);
+
+/**
+ * Applies a collection of filters to a list of records.
+ * 
+ * @param input_records List of records to filter
+ * @param failed Records that failed the filter's test
+ * @param filters Filters to apply
+ * @param num_filters Number of filters to apply
+ * @return Records that passed the filters' tests
+ */
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
 
 #endif
 
