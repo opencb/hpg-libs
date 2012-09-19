@@ -48,6 +48,10 @@ int is_numeric(const char *str){
 
 
 int starts_with(const char *str, const char *search) {
+    if (!str || !search) {
+        return 0;
+    }
+    
     int str_len = strlen(str);
     int search_len = strlen(search);
   
@@ -58,7 +62,15 @@ int starts_with(const char *str, const char *search) {
     return strncmp(str, search, search_len) == 0;
 }
 
+int starts_with_n(const char *str, const char *search, int length) {
+    return strncmp(str, search, length) == 0;
+}
+
 int ends_with(const char *str, const char *search) {
+    if (!str || !search) {
+        return 0;
+    }
+    
     int str_len = strlen(str);
     int search_len = strlen(search);
   
@@ -303,11 +315,11 @@ char* rstrip(char* str) {
 //------------------------------------------------------------------------------
 
 char* ltrim(char* string, int num_chars) {
-     int substring_length = strlen(string) - num_chars;
-     memcpy(string, string + num_chars, substring_length);
-     string[substring_length] = '\0';
-     
-     return string;     
+  int substring_length = strlen(string) - num_chars;
+  memcpy(string, string + num_chars, substring_length);
+  string[substring_length] = '\0';
+  
+  return string;     
 }
 
 //------------------------------------------------------------------------------------
@@ -322,7 +334,6 @@ char* rtrim(char* string, int num_chars) {
 
   return string;
 }
-
 
 //------------------------------------------------------------------------------------
 // Text splitting
@@ -365,32 +376,21 @@ char** splitn(char* str, const char *delimiters, int limit, int *num_substrings)
     return split_text;
 }
 
+int strcasecmp(const char *s1, const char *s2) {
+  const char *p1 = (const char *) s1;
+  const char *p2 = (const char *) s2;
+  int c1, c2;
 
-//------------------------------------------------------------------------------------
-// Case-insensitive string comparison
-//------------------------------------------------------------------------------------
+  do {
+    c1 = isupper(*p1) ? tolower(*p1) : *p1;
+    c2 = isupper(*p2) ? tolower(*p2) : *p2;
+    
+    if (c1 == '\0' || c2 == '\0') { break; }
+    ++p1;
+    ++p2;
+  } while (c1 == c2);
 
-//char strcasecmp(const char *s1, const char *s2)
-int strcasecmp(const char *s1, const char *s2)
-{
-	//register const char *p1 = (const char *) s1;
-	//register const char *p2 = (const char *) s2;
-	const char *p1 = (const char *) s1;
-	const char *p2 = (const char *) s2;
-	int c1, c2;
-
-	do
-	{
-		c1 = isupper(*p1) ? tolower(*p1) : *p1;
-		c2 = isupper(*p2) ? tolower(*p2) : *p2;
-
-		if (c1 == '\0' || c2 == '\0') { break; }
-
-		++p1;
-		++p2;
-	} while (c1 == c2);
-
-	return c1 - c2;
+  return c1 - c2;
 }
 
 //-----------------------------------------------------------
@@ -436,181 +436,27 @@ char* decodeBases(char* dest, char* src, unsigned int length) {
 unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_p){
   unsigned int str_pos, res_pos = 0;
   
-  if(str_p == NULL){
+  if (str_p == NULL) {
     printf("Input string is NULL\n");
     return NULL;
   }
   //printf("-->%c\n", str_p[0]);
-  if(str_p[0] == '@'){
+  if (str_p[0] == '@') {
     str_pos = 1;
-  }else{str_pos = 0;}
+  } else {
+    str_pos = 0;
+  }
   
-  while((str_p[str_pos] != ' ') && (str_pos < length)){
+  while ((str_p[str_pos] != ' ') && (str_pos < length)) {
     //printf("-->%c/%i\n", str_p[str_pos], str_pos);
     str_out_p[res_pos] = str_p[str_pos];
     //printf("<--%c/%i\n", str_out_p[res_pos], res_pos);
     str_pos++;
     res_pos++;
-    
   }
   
   str_out_p[res_pos] = '\0';
 
   res_pos++;
   return res_pos;
-}
-
-
-//=====================================//
-
-char select_op(unsigned char status){
-     char operation; 
-      switch(status){        
-        case CIGAR_MATCH_MISMATCH: 
-          operation = 'M';   
-          break;             
-        case CIGAR_DELETION:       
-          operation = 'D';   
-          break;             
-        case CIGAR_INSERTION:      
-          operation = 'I';   
-          break;         
-       case CIGAR_PERFECT_MATCH:
-	  operation = '=';
-	  break;
-       case CIGAR_PADDING:
-	  operation = 'P';
-          break;
-      }                      
-      return operation;       
-}                      
-
-//--------------------------------------------------------------
-//Return a cigar string for dna. For Rna it's invalid
-//--------------------------------------------------------------
-char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot){
-  char *cigar_p;
-  unsigned int cigar_max_len = 200;
-  unsigned char status;
-  unsigned char transition;
-  short int cigar_soft;
-  short int value = 0;
-  unsigned int number_op = 0;
-  char operation;
-  char operation_number[200];
-  unsigned int perfect = 0;  
-  unsigned int deletions_tot = 0;
-  
-  *number_op_tot = 0;
-  cigar_p = (char *)malloc(sizeof(char)*cigar_max_len);
-  cigar_p[0] = '\0';
-  
-  //printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
-  //printf("ref(%d): %s\n", length, str_ref_p);
-  
-  //hard clipping start
-  if(start_seq > 0){
-    sprintf(operation_number, "%iH", start_seq);
-    cigar_p = strcat(cigar_p, operation_number);
-    *number_op_tot += 1;
-  }
-  
-  //First Status
-  if(str_seq_p[0] != '-' && str_ref_p[0] != '-'){
-    status = CIGAR_MATCH_MISMATCH;
-    //Soft clipping
-    cigar_soft = 0;
-    while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
-	    (str_ref_p[cigar_soft] != str_seq_p[cigar_soft])){
-	      cigar_soft++;
-	      value++;
-    }
-    if(value > 0){
-      sprintf(operation_number, "%iS", value);
-      cigar_p = strcat(cigar_p, operation_number);
-     *number_op_tot += 1;
-    } 
-  }else if(str_seq_p[0] == '-'){
-      if(str_ref_p[0] == '-'){
-        status = CIGAR_PADDING;
-      }else{
-        status = CIGAR_DELETION;
-      }
-  }else if(str_ref_p[0] == '-'){
-    status = CIGAR_INSERTION;
-  }
-  
-  for(int i = value; i < length; i++){
-    //Transition
-    if(str_seq_p[i] != '-' && str_ref_p[i] != '-'){
-      transition = CIGAR_MATCH_MISMATCH;
-      if(str_seq_p[i] == str_ref_p[i] ){
-	perfect++;
-      }
-    }else if(str_seq_p[i] == '-'){
-      if(str_ref_p[i] == '-'){
-        transition = CIGAR_PADDING;
-      }else{
-        transition = CIGAR_DELETION;
-	deletions_tot++;
-      }
-    }else if(str_ref_p[i] == '-'){
-      transition = CIGAR_INSERTION;
-    }
-    
-    if(transition != status){
-      //Insert operation in cigar string
-      operation = select_op(status);
-      sprintf(operation_number, "%d%c", number_op, operation);
-      cigar_p = strcat(cigar_p, operation_number);
-      number_op = 1;
-      *number_op_tot += 1;
-      status = transition;
-    }else{
-      number_op++;
-    }
-  }
-  
-  if((length == perfect) && (perfect == seq_orig_len)){
-  	status = CIGAR_PERFECT_MATCH;
-  }
-
-  *number_op_tot += 1;
-  operation = select_op(status);
-  
-  
-  //Hard and Soft clipped end
-  if(status == CIGAR_MATCH_MISMATCH){
-    cigar_soft = length - 1;
-    value = 0;
-    while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
-	    (str_seq_p[cigar_soft] != str_ref_p[cigar_soft])){
-	      cigar_soft--;
-	      value++;
-	      //printf("(Soft %c!=%c)", output_p->mapped_ref_p[i][cigar_soft], output_p->mapped_seq_p[i][cigar_soft]);
-    }
-    
-    sprintf(operation_number, "%d%c", number_op - value, operation);
-    cigar_p = strcat(cigar_p, operation_number);
-    
-    if(value > 0){
-      number_op -= value;
-      sprintf(operation_number, "%iS", value);
-      cigar_p = strcat(cigar_p, operation_number);
-      *number_op_tot += 1;
-    }
-  }else{
-    sprintf(operation_number, "%d%c", number_op, operation);
-    cigar_p = strcat(cigar_p, operation_number);
-  }
-  //printf("%d+%d < %d\n", length - deletions_tot, start_seq, seq_orig_len);
-  if( ((length - deletions_tot) + start_seq) < seq_orig_len ){
-    sprintf(operation_number, "%iH", seq_orig_len - ((length - deletions_tot) + start_seq));
-    cigar_p = strcat(cigar_p, operation_number);
-    *number_op_tot += 1;
-  }
-    
-  //printf("%d-%d\n", length, *number_op_tot);
- 
-  return cigar_p;
 }

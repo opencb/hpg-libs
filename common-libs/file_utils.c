@@ -89,9 +89,10 @@ int delete_files_by_extension(const char* dir_path, const char* extension) {
 
     while ((ep = readdir(dp)) != NULL) {
         if (ends_with(ep->d_name, extension)) {
-            file_path = (char*) calloc(strlen(dir_path) + strlen(ep->d_name) + 1, sizeof(char));
-            strncat(file_path, dir_path, strlen(dir_path));
-            strncat(file_path, ep->d_name, strlen(ep->d_name));
+            file_path = (char*) calloc(strlen(dir_path) + strlen(ep->d_name) + 2, sizeof(char));
+            sprintf(file_path, "%s/%s", dir_path, ep->d_name);
+//             strncat(file_path, dir_path, strlen(dir_path));
+//             strncat(file_path, ep->d_name, strlen(ep->d_name));
             remove(file_path);
             free(file_path);
         }

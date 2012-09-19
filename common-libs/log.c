@@ -60,7 +60,7 @@ void print_log_message(int level, char *log_level_word, char *filename, int num_
 }
 
 void print_log_message_with_format(int level, char *log_level_word, char *filename, int num_line, const char *func, char *msg_format, ...) {
-    if((level >= log_level) && (verbose || log_filename != NULL)) {
+    if ((level >= log_level) && (verbose || log_filename != NULL)) {
         time_t rawtime;
         time(&rawtime);
         char* str_time = ctime(&rawtime);
@@ -70,33 +70,35 @@ void print_log_message_with_format(int level, char *log_level_word, char *filena
         va_start(args, msg_format);
         
         // if 'verbose' logs are printed in stdout
-        if(verbose) {
+        if (verbose) {
             fprintf(stderr, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
-            if(args != NULL) {
+
+            if (args != NULL) {
             	vfprintf(stderr, msg_format, args);
-            }else {
+            } else {
             	fprintf(stderr, "No arguments provided\n");
             }
         }
 
         // if 'log_file' has been set up then logs are printed
         // logs are ALWAYS printed in log_file independently of 'verbose'       
-        if(log_filename != NULL) {
+        if (log_filename != NULL) {
             va_list argsf;
             memcpy(argsf, args, sizeof(args));
             va_start(argsf, msg_format);
             
             FILE *log_file = fopen(log_filename, "a");
             fprintf(log_file, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
-            if(args != NULL) {
+
+            if (args != NULL) {
             	vfprintf(log_file, msg_format, argsf);
-            }else {
+            } else {
             	fprintf(stderr, "No arguments provided\n");
             }
             fclose(log_file);
+
             va_end(argsf);
         }
-        
         va_end(args);
     }
 }

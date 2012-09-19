@@ -7,16 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-//========CIGAR AUTOMATA STATUS========//
-#define CIGAR_MATCH_MISMATCH  	0
-#define CIGAR_INSERTION  	1
-#define CIGAR_DELETION  	2
-#define CIGAR_BIG_DELETION    	3
-#define CIGAR_SKIPPED  		4
-#define CIGAR_PADDING 		5
-#define CIGAR_PERFECT_MATCH   	6
-//=====================================//
-
 /* **************************************
  *  		Functions		*
  * *************************************/
@@ -72,6 +62,17 @@ int contains(const char *str, const char *search);
 *  Determines if a string starts with a given string fragment
 */
 int starts_with(const char *str, const char *search);
+
+/**
+*  @brief Determines if a string starts with a given string fragment
+*  @param str string to process
+*  @param search string to search at the start of the string
+*  @param length maximum number of characters to check
+*  @return 0 string does not start with search string, 1 string starts with search string
+*  
+*  Determines if a string starts with a given string fragment
+*/
+int starts_with_n(const char *str, const char *search, int length);
 
 /**
 *  @brief Determines if a string ends with a given string fragment
@@ -329,8 +330,9 @@ char** split(char *str, const char *delimiters, int *num_substrings);
 */
 char** splitn(char *str, const char *delimiters, int limit, int *num_substrings);
 
+/**
+ */
 unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_p);
-char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot);
 
 /**
  * @brief Case-insensitive string comparison. Inspired in non-standard function:
