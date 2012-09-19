@@ -6,8 +6,11 @@
 #include <math.h>
 #include <limits.h>
 
-#include "string_utils.h"
-#include "log.h"
+#include <commons/string_utils.h>
+#include <commons/log.h>
+
+#define COLLECTION_MODE_SYNCHRONIZED        1
+#define COLLECTION_MODE_ASYNCHRONIZED       2
 
 //=====================================================
 // structures
@@ -41,10 +44,6 @@ typedef struct array_list {
   void **items;
 
 } array_list_t;
-
-
-#define COLLECTION_MODE_SYNCHRONIZED		1
-#define COLLECTION_MODE_ASYNCHRONIZED		2
 
 
 /**
@@ -108,8 +107,7 @@ void* array_list_set(size_t index, void* new_item, array_list_t *array_list_p);
 
 void array_list_print(array_list_t *array_list_p);
 
-//void **list_to_array(array_list_t *array_list_p);
-
+// void **list_to_array(array_list_t *array_list_p);
 
 static array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size);
 

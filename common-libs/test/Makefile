@@ -8,7 +8,7 @@ SRC_DIR = ..
 REGION_DIR = $(ROOT)/bioinfo-data/features/region
 COMMONS_DIR = $(ROOT)/libs/commons
 
-INCLUDES = -I $(SRC_DIR) -I $(COMMONS_DIR) -I $(REGION_DIR)
+INCLUDES = -I $(SRC_DIR) -I $(ROOT)/libs
 LIBS = -lm -lcprops -lcheck
 
 

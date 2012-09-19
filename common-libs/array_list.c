@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <pthread.h>
-
 #include "array_list.h"
 
 
@@ -345,10 +342,9 @@ void array_list_print(array_list_t *array_list_p) {
 	printf("]");
 }
 
-/*void **list_to_array(array_list_t *array_list_p) {
-	return NULL;
-}*/
-
+// void **list_to_array(array_list_t *array_list_p) {
+// 	return NULL;
+// }
 
 array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 	// Capacity is increased in factor.

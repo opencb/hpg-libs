@@ -2,8 +2,8 @@
 #include <check.h>
 #include <string.h>
 
-#include "string_utils.h"
-#include "array_list.h"
+#include <commons/string_utils.h>
+#include <containers/array_list.h>
 
 Suite *create_test_suite();
 
@@ -20,23 +20,23 @@ int compare_items2(const void *i1, const void *i2) {
  * 	Unchecked fixtures	*
  * ******************************/
 
-void setup_region_table(void)
+void setup_array_list(void)
 {
 //	array_list_p = array_list_new();
 	array_list_p =array_list_new(3, 1.4, COLLECTION_MODE_SYNCHRONIZED);
 }
 
-void teardown_region_table(void)
+void teardown_array_list(void)
 {
-	array_list_free(array_list_p, free);
+// 	array_list_free(array_list_p, free);
 }
 
-void setup_regions(void)
-{
-
-}
-
-void teardown_regions(void) { array_list_free(array_list_p, NULL);}
+// void setup_regions(void)
+// {
+// 
+// }
+// 
+// void teardown_regions(void) { array_list_free(array_list_p, NULL);}
 
 /* ******************************
  * 	     Unit tests	        *
@@ -152,6 +152,28 @@ START_TEST(array_list_remove_test)
 }
 END_TEST
 
+START_TEST(array_list_insert_non_pointers_test) {
+    printf("array_list_insert_non_pointers_test:\n");
+    int num_items = 8;
+    
+    int *items = calloc (num_items, sizeof(int));
+    for (int i = 0; i < num_items; i++) {
+        items[i] = i * 2;
+    }
+    
+    fail_if(array_list_insert_all((void**) &items, num_items, array_list_p) != 1, "Insertion must be successfully performed");
+    fail_unless(array_list_p->size == num_items, "There must be 8 items inserted");
+    
+    printf("[");
+    for (int i = 0; i < num_items; i++) {
+        printf("%d, ", items[i]);
+        fail_if(items[i] != i * 2, "Each item contents must be its corresponding index");
+    }
+    printf("]\n");
+    
+    printf("\n");
+}
+END_TEST
 
 
 /* ******************************
@@ -175,14 +197,15 @@ Suite *create_test_suite()
 	// Creation of the table for storing regions
 	// Manipulation of the data structure
 	TCase *tc_manipulation = tcase_create("Data structure manipulation");
-	tcase_add_checked_fixture(tc_manipulation, setup_region_table, teardown_region_table);
+	tcase_add_checked_fixture(tc_manipulation, setup_array_list, teardown_array_list);
 //	tcase_add_checked_fixture(tc_manipulation, setup_regions, teardown_regions);
 	tcase_add_test(tc_manipulation, array_list_insert_test);
+    tcase_add_test(tc_manipulation, array_list_insert_non_pointers_test);
 	tcase_add_test(tc_manipulation, array_list_insert_all_test);
 	tcase_add_test(tc_manipulation, array_list_remove_test);
 	
 	// Add test cases to a test suite
-	Suite *fs = suite_create("Region searching table");
+	Suite *fs = suite_create("Array list");
 	suite_add_tcase(fs, tc_manipulation);
 	
 	return fs;

@@ -401,7 +401,7 @@ void bam_data_batch_list_items_free(bam_data_batch_list_t* list_p) {
 */
 
 void** list_to_array(list_t* list_p) {
-    void **sample_data = calloc (list_p->length, sizeof(void*));
+    void **sample_data = calloc (list_p->length + 1, sizeof(void*));
     list_item_t *item = list_p->first_p;
     
     for (int j = 0; j < list_p->length && item != NULL; j++) {
