@@ -124,6 +124,8 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 */
 void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
 
+void alignment_update_paired_end(alignment_t* alignment1_p, alignment_t* alignment2_p);
+
 /**
 *  @brief Creates an alignment from a bam1_t structure
 *  @param bam_p pointer to the bam1_t structure
@@ -182,6 +184,7 @@ void bam_print(bam1_t* bam_p, int base_quality);
 *  Headers are stored in /bam_headers 
 */
 bam_header_t* bam_header_new(int specie, int assembly);
+void bam_header_free(bam_header_t *header);
 
 /* **********************************************************************
  *      	Functions to manage bam1_t coded fields    		*

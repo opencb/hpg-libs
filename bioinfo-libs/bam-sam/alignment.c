@@ -121,6 +121,70 @@ void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence
     alignment2_p->pc_optical_duplicate = 0;
 }
 
+void alignment_update_paired_end(alignment_t* alignment1_p, alignment_t* alignment2_p) {
+
+    // updating pair 1 
+    alignment1_p->mate_position = alignment2_p->position;
+    alignment1_p->mate_chromosome = alignment2_p->chromosome;
+
+    alignment1_p->is_paired_end = 1;
+
+    alignment1_p->mate_strand = alignment2_p->seq_strand;
+    alignment1_p->pair_num = 1;
+
+    // updating pair 2
+    alignment2_p->mate_position = alignment1_p->position;
+    alignment2_p->mate_chromosome = alignment1_p->chromosome;
+
+    alignment2_p->is_paired_end = 1;
+
+    alignment2_p->mate_strand = alignment1_p->seq_strand;
+    alignment2_p->pair_num = 2;
+
+    // commons
+    if ((alignment1_p->position) && (alignment2_p->position)) {
+
+        alignment1_p->is_paired_end_mapped = 1;
+        alignment1_p->is_seq_mapped = 1;
+        alignment1_p->is_mate_mapped = 1;
+
+        alignment2_p->is_paired_end_mapped = 1;
+        alignment2_p->is_seq_mapped = 1;
+        alignment2_p->is_mate_mapped = 1;
+
+    } else if (alignment1_p->position) {
+
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 1;
+        alignment1_p->is_mate_mapped = 0;
+
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 0;
+        alignment2_p->is_mate_mapped = 1;
+
+    } else if (alignment2_p->position) {
+
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 0;
+        alignment1_p->is_mate_mapped = 1;
+
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 1;
+        alignment2_p->is_mate_mapped = 0;
+
+    } else {
+
+        alignment1_p->is_paired_end_mapped = 0;
+        alignment1_p->is_seq_mapped = 0;
+        alignment1_p->is_mate_mapped = 0;
+
+        alignment2_p->is_paired_end_mapped = 0;
+        alignment2_p->is_seq_mapped = 0;
+        alignment2_p->is_mate_mapped = 0;
+    }
+}
+
+
 alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     //memory allocation for the structure
     alignment_t* alignment_p = (alignment_t*) calloc(1, sizeof(alignment_t));
@@ -174,13 +238,16 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     return alignment_p;
 }
 
-void alignment_free(alignment_t* alignment_p) {
-    free(alignment_p->query_name);
-    free(alignment_p->sequence);
-    free(alignment_p->quality);
-    free(alignment_p->cigar);
-    free(alignment_p->optional_fields);
-    free(alignment_p);
+void alignment_free(alignment_t* p) {
+  if (p == NULL) return;
+
+  if (p->query_name != NULL) free(p->query_name);
+  if (p->sequence != NULL) free(p->sequence);
+  if (p->quality != NULL) free(p->quality);
+  if (p->cigar != NULL) free(p->cigar);
+  if (p->optional_fields != NULL) free(p->optional_fields);
+
+  free(p);
 }
 
 bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
@@ -368,10 +435,16 @@ bam_header_t* bam_header_new(int specie, int assembly) {
     if ((specie == HUMAN) && (assembly == NCBI37)) {
         bam_header_file = bam_open("./bam_headers/Human_NCBI37.hbam", "r");
         bam_header_p = bam_header_read(bam_header_file);
+	bam_close(bam_header_file);
     }
 
     return bam_header_p;
 }
+
+void bam_header_free(bam_header_t *header) {
+    bam_header_destroy(header);
+}
+
 
 /* **********************************************************************
  *      	Functions to manage bam1_t coded fields    		*

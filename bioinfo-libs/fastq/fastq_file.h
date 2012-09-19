@@ -163,6 +163,7 @@ unsigned int fastq_fcount(fastq_file_t *fq_file);
 *  
 *  Closes a fastq file handler and the associated file
 */
+
 void fastq_fclose(fastq_file_t *fq_file);
 
 #endif	/*  FASTQ_FILE_H  */

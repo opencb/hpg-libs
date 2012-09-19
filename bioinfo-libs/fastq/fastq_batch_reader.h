@@ -11,30 +11,47 @@
 #include "list.h"
 #include "fastq_batch.h"
 #include "fastq_file.h"
-#include "timing.h"
-#include "buffers.h"
-#include "statistics.h"
+
+//#include "timing.h"
+//#include "buffers.h"
+//#include "statistics.h"
+
+//====================================================================================
 
 #define READ_ITEM       1
+
+//====================================================================================
+
+#define SINGLE_END_FLAG    4
+#define PAIRED_END_FLAG    8
+#define MATE_PAIR_FLAG    16
+#define PAIR1_FLAG        32
+#define PAIR2_FLAG        64
+
 //====================================================================================
 //  structures and prototypes
 //====================================================================================
 
 typedef struct fastq_batch_reader_input {
-  char* filename;
+  char *filename1;
+  char *filename2;
+  int flags;
   int batch_size;
-  list_t* list_p;
+  list_t *list;
 } fastq_batch_reader_input_t;
 
-//-----------------------------------------------------
 
-void fastq_batch_reader_input_init(char* filename, int batch_size, list_t* list_p, fastq_batch_reader_input_t* input);
+//------------------------------------------------------------------------------------
+
+void fastq_batch_reader_input_init(char *filename1, char *filename2, int flags,
+				   int batch_size, list_t *list, 
+				   fastq_batch_reader_input_t* input);
 
 //-----------------------------------------------------
 // main function
 //-----------------------------------------------------
 
-void fastq_batch_reader(fastq_batch_reader_input_t* input_p);
+void fastq_batch_reader(fastq_batch_reader_input_t *input);
 
 //-----------------------------------------------------
 //-----------------------------------------------------
