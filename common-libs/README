@@ -3,12 +3,12 @@ COMMONS LIBRARY
 
 Dependencies
 
-    * libcurl, (required by http_utils.c) 
+    * curl library (http://curl.haxx.se)
 
 
 Compilation
 
-    make compile
+    make
 
 
 Test (you need to install the library 'check' to compile the tests)
