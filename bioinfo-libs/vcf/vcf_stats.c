@@ -89,7 +89,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     variant_stats_t *stats;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
-        stats = new_variant_stats(strndup(record->chromosome, record->chromosome_len), 
+        stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
                                   strndup(record->reference, record->reference_len));
         

@@ -23,8 +23,8 @@ int main(int argc, char *argv[]) {
     vcf_file_t* file;
 
     char input[] = "1:1000000-2000000,22";
-	filter_t *region_f = create_region_filter(input, 0, "http://localhost:8080", "hsa", "v1");
-	filter_t *snp_f = create_snp_filter("exclude");
+	filter_t *region_f = region_filter_new(input, 0, "http://localhost:8080", "hsa", "v1");
+	filter_t *snp_f = snp_filter_new("exclude");
 	filter_chain *chain = add_to_filter_chain(region_f, NULL);
 	chain = add_to_filter_chain(snp_f, chain);
 	
