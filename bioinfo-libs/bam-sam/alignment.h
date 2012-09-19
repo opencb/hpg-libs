@@ -12,6 +12,16 @@
 #define HUMAN      				1 //Specie: Human
 #define NCBI37      				1 //Assembly: NCBI 3.7
 
+//========CIGAR AUTOMATA STATUS========//
+#define CIGAR_MATCH_MISMATCH  	0
+#define CIGAR_INSERTION  	1
+#define CIGAR_DELETION  	2
+#define CIGAR_BIG_DELETION    	3
+#define CIGAR_SKIPPED  		4
+#define CIGAR_PADDING 		5
+#define CIGAR_PERFECT_MATCH   	6
+//=====================================//
+
 /* **************************************
  *      	Structures    		*
  * *************************************/
@@ -265,6 +275,18 @@ void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_l
 *  Converts a string quality to uint8_t coded quality
 */
 void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_length, int base_quality);
+
+
+/* **********************************************************************
+ *      	Functions to manage CIGAR                		*
+ * *********************************************************************/
+
+/**
+ */
+char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, 
+			 unsigned int seq_orig_len, unsigned int length, 
+			 short int *number_op_tot);
+
 
 #endif /* ALIGNMENTS_H */
 
