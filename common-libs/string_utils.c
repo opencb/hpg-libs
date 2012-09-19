@@ -505,8 +505,8 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   cigar_p = (char *)malloc(sizeof(char)*cigar_max_len);
   cigar_p[0] = '\0';
   
-  printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
-  printf("ref(%d): %s\n", length, str_ref_p);
+  //printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
+  //printf("ref(%d): %s\n", length, str_ref_p);
   
   //hard clipping start
   if(start_seq > 0){
@@ -603,7 +603,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
     sprintf(operation_number, "%d%c", number_op, operation);
     cigar_p = strcat(cigar_p, operation_number);
   }
-  printf("%d+%d < %d\n", length - deletions_tot, start_seq, seq_orig_len);
+  //printf("%d+%d < %d\n", length - deletions_tot, start_seq, seq_orig_len);
   if( ((length - deletions_tot) + start_seq) < seq_orig_len ){
     sprintf(operation_number, "%iH", seq_orig_len - ((length - deletions_tot) + start_seq));
     cigar_p = strcat(cigar_p, operation_number);

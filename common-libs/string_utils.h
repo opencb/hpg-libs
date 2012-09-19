@@ -15,7 +15,6 @@
 #define CIGAR_SKIPPED  		4
 #define CIGAR_PADDING 		5
 #define CIGAR_PERFECT_MATCH   	6
-#define CIGAR_PADDING         	7
 //=====================================//
 
 /* **************************************

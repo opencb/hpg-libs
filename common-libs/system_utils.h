@@ -8,7 +8,11 @@
 #include <sys/stat.h>
 
 #include "commons.h"
+
+#ifdef CUDA_VERSION
 #include "cuda_commons.h"
+#endif
+
 #include "log.h"
 
 #define FASTQ_QC	1
