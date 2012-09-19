@@ -1,0 +1,22 @@
+CONTAINERS LIBRARY
+-----------------
+
+Dependencies
+
+    * cprops library, (http://cprops.sourceforge.net/)
+
+
+Compilation
+
+    make compile
+
+    or
+
+    make compile-static
+
+
+Test (you need to install the library 'check' to compile the tests)
+
+    make test
+
+    
