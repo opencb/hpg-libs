@@ -27,6 +27,7 @@ typedef struct array_list {
   size_t size;
   float realloc_factor;
   int mode;
+  int flag;
 
 //  array_list_compare_fn compare_fn;
   int (*compare_fn)(const void *, const void *);
@@ -119,6 +120,10 @@ static int compare_items(const void *item1, const void *item2);
 //int list_incr_writers(list_t* list_p);
 //int list_decr_writers(list_t* list_p);
 
+int array_list_swap(const int pos1, const int pos2, array_list_t *array_list_p);
 
+
+void array_list_set_flag(int flag, array_list_t *array_list_p);
+int array_list_get_flag(array_list_t *array_list_p);
 
 #endif /* ARRAY_LIST_H */

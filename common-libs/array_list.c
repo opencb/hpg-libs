@@ -345,11 +345,10 @@ void array_list_print(array_list_t *array_list_p) {
 	printf("]");
 }
 
-/*
-void **list_to_array(array_list_t *array_list_p) {
+/*void **list_to_array(array_list_t *array_list_p) {
 	return NULL;
-}
-*/
+}*/
+
 
 array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 	// Capacity is increased in factor.
@@ -374,6 +373,57 @@ array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 int compare_items(const void *item1, const void *item2) {
 	return item1 != item2;
 }
+
+int array_list_swap(const int pos1, const int pos2, array_list_t *array_list_p){
+	
+	if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+		pthread_mutex_lock(&array_list_p->lock);
+	}
+	
+	size_t size = array_list_p->items;
+	
+	if(((pos1 < 0) || (pos1 > size)) || ((pos2 < 0) || (pos2 > size)) ){
+	  return 0;
+	}else{
+		void *tmp = array_list_p->items[pos1];
+		array_list_p->items[pos1] = array_list_p->items[pos2];
+		array_list_p->items[pos2] = tmp;
+	}
+
+	if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+		pthread_mutex_unlock(&array_list_p->lock);
+	}
+	
+	return 1;
+}
+
+void array_list_set_flag(int flag, array_list_t *array_list_p) {
+  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+    pthread_mutex_lock(&array_list_p->lock);
+  }
+
+  array_list_p->flag = flag;
+
+  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+    pthread_mutex_unlock(&array_list_p->lock);
+  }
+}
+
+int array_list_get_flag(array_list_t *array_list_p) {
+  int flag;
+  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+    pthread_mutex_lock(&array_list_p->lock);
+  }
+
+  flag = array_list_p->flag;
+
+  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+    pthread_mutex_unlock(&array_list_p->lock);
+  }
+
+  return flag;
+}
+
 
 //int list_set_writers(int writers, list_t* list_p);
 //int list_get_writers(list_t* list_p);
