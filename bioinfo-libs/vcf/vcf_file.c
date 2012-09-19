@@ -10,67 +10,67 @@
 // vcf_open
 //-----------------------------------------------------
 
-void *mmap_file(size_t *len, const char *filename)
-{
-	int fd = open(filename, O_RDONLY);
-	if (fd < 0) 
-	{
-		fprintf(stderr, "Error opening file: %s\n", filename);
-		exit(1);
-	}
-	
-	struct stat st[1];
-	if (fstat(fd, st))
-	{
-		fprintf(stderr, "Error while getting file information: %s\n", filename);
-		exit(1);	
-	}
-	*len = (size_t) st->st_size;
 
-	if (!*len) {
-		close(fd);
-		return NULL;
-	}
+vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches) {
+    if (!exists(filename)) {
+        return NULL;
+    }
+    
+    vcf_file_t *vcf_file = (vcf_file_t *) malloc(sizeof(vcf_file_t));
+    vcf_file->filename = filename;
+    
+    // Initialize file descriptor or mmap'd buffers
+    if (mmap_vcf) {
+        size_t len;
+        char *data = mmap_file(&len, filename);
+        vcf_file->fd = fopen(filename, "r");
+        vcf_file->data = data;
+        vcf_file->data_len = len;
+    } else {
+        vcf_file->fd = fopen(filename, "r");
+        vcf_file->data = NULL;
+        vcf_file->data_len = 0;
+    }
 
-	void *map = mmap(NULL, *len, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (MAP_FAILED == map)
-	{
-		fprintf(stderr, "mmap failed for %s\n", filename);
-		exit(1);
-	}
-	close(fd);
-	
-	return map;
+    // Initialize header
+    vcf_file->header_entries = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
+
+    // Initialize samples names list
+    vcf_file->samples_names = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
+
+    // Initialize records
+    vcf_file->record_batches = (list_t*) malloc(sizeof(list_t));
+    if (max_simultaneous_batches <= 0) {
+        list_init("vcf_file batches", 1, INT_MAX, vcf_file->record_batches);
+    } else {
+        list_init("vcf_file batches", 1, max_simultaneous_batches, vcf_file->record_batches);
+    }
+
+    return vcf_file;
 }
 
+vcf_file_t *vcf_file_new(char *filename, size_t max_simultaneous_batches) {
+    vcf_file_t *vcf_file = (vcf_file_t *) malloc(sizeof(vcf_file_t));
+    vcf_file->filename = filename;
+    
+    vcf_file->data = NULL;
+    vcf_file->data_len = 0;
 
-vcf_file_t *vcf_open(char *filename) 
-{
-	size_t len;
-	char *data = mmap_file(&len, filename);
+    // Initialize header
+    vcf_file->header_entries = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
 
-	vcf_file_t *vcf_file = (vcf_file_t *) malloc(sizeof(vcf_file_t));
+    // Initialize samples names list
+    vcf_file->samples_names = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
 
-	vcf_file->filename = filename;
-	vcf_file->data = data;
-	vcf_file->data_len = len;
+    // Initialize records
+    vcf_file->record_batches = (list_t*) malloc(sizeof(list_t));
+    if (max_simultaneous_batches <= 0) {
+        list_init("vcf_file batches", 1, INT_MAX, vcf_file->record_batches);
+    } else {
+        list_init("vcf_file batches", 1, max_simultaneous_batches, vcf_file->record_batches);
+    }
 
-	// Initialize header
-	vcf_file->header_entries = (list_t*) malloc (sizeof(list_t));
-	list_init("headers", 1, INT_MAX, vcf_file->header_entries);
-	vcf_file->num_header_entries = 0;
-	
-	// Initialize samples names list
-	vcf_file->samples_names = (list_t*) malloc (sizeof(list_t));
-	list_init("samples", 1, INT_MAX, vcf_file->samples_names);
-	vcf_file->num_samples = 0;
-	
-	// Initialize records
-	vcf_file->records = (list_t*) malloc (sizeof(list_t));
-	list_init("records", 1, INT_MAX, vcf_file->records);
-	vcf_file->num_records = 0;
-	
-	return vcf_file;
+    return vcf_file;
 }
 
 
@@ -78,85 +78,24 @@ vcf_file_t *vcf_open(char *filename)
 // vcf_close and memory freeing
 //-----------------------------------------------------
 
-void vcf_close(vcf_file_t *vcf_file) 
-{
-	// Free file format
-	free(vcf_file->format);
-	// Free samples names
-	list_item_t* item = NULL;
-	while ( (item = list_remove_item_async(vcf_file->samples_names)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
-	// Free header entries
-	item = NULL;
-	while ( (item = list_remove_item_async(vcf_file->header_entries)) != NULL ) 
-	{
-		vcf_header_entry_free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_file->header_entries);
-	// Free samples names
-	free(vcf_file->samples_names);
-	
-	// TODO Free records list? they are freed via batches
-// 	item = NULL;
-// 	while ( (item = list_remove_item_async(vcf_file->records)) != NULL ) 
-// 	{
-// 		vcf_record_free(item->data_p);
-// 		list_item_free(item);
-// 	}
-	free(vcf_file->records);
+void vcf_close(vcf_file_t *vcf_file) {
+    // Free file format
+//     free(vcf_file->format);
 
-	munmap((void*) vcf_file->data, vcf_file->data_len);
-	free(vcf_file);
-}
+    // Free samples names
+    array_list_free(vcf_file->samples_names, free);
+    // Free header entries
+    array_list_free(vcf_file->header_entries, vcf_header_entry_free);
+    // Free records list
+    list_free_deep(vcf_file->record_batches, vcf_batch_free);
+//     array_list_free(vcf_file->records, vcf_record_free);
 
-void vcf_header_entry_free(vcf_header_entry_t *vcf_header_entry)
-{
-	// Free entry name
-	free(vcf_header_entry->name);
-	// Free list of keys
-	list_item_t* item = NULL;
-	while ( (item = list_remove_item_async(vcf_header_entry->keys)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_header_entry->keys);
-	// Free list of values
-	item = NULL;
-	while ( (item = list_remove_item_async(vcf_header_entry->values)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_header_entry->values);
-	
-	free(vcf_header_entry);
-}
-
-void vcf_record_free(vcf_record_t *vcf_record)
-{
-	free(vcf_record->chromosome);
-	free(vcf_record->id);
-	free(vcf_record->reference);
-	free(vcf_record->alternate);
-	free(vcf_record->filter);
-	free(vcf_record->info);
-	free(vcf_record->format);
-	
-	// Free list of samples
-	list_item_t *item = NULL;
-	while ( (item = list_remove_item_async(vcf_record->samples)) != NULL ) 
-	{
-		free(item->data_p);
-		list_item_free(item);
-	}
-	free(vcf_record->samples);
-	
-	free(vcf_record);
+    if (mmap_vcf) {
+        munmap((void*) vcf_file->data, vcf_file->data_len);
+    }
+    
+    fclose(vcf_file->fd);
+    free(vcf_file);
 }
 
 
@@ -164,76 +103,68 @@ void vcf_record_free(vcf_record_t *vcf_record)
 // I/O operations (read and write) in various ways
 //-----------------------------------------------------
 
-int vcf_read(vcf_file_t *vcf_file) 
-{
-	return vcf_ragel_read(NULL, 1, vcf_file, 0);
+// int vcf_read(vcf_file_t *vcf_file) {
+// 	return vcf_ragel_read(NULL, 1, vcf_file, 0);
+// }
+
+int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file, int read_samples) {
+    if (ends_with(vcf_file->filename, ".vcf")) {
+        return vcf_read_and_parse(batch_lines, vcf_file, read_samples);
+    } else if (ends_with(vcf_file->filename, ".gz")) {
+        return vcf_gzip_read_and_parse(batch_lines, vcf_file, read_samples);
+    }
+    LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_read_batches(list_t *batches_list, size_t batch_size, vcf_file_t *vcf_file, int read_samples)
-{
-	return vcf_ragel_read(batches_list, batch_size, vcf_file, read_samples);
+int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *vcf_file, int read_samples) {
+    if (ends_with(vcf_file->filename, ".vcf")) {
+        return vcf_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
+    } else if (ends_with(vcf_file->filename, ".gz")) {
+        return vcf_gzip_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
+    }
+    LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_write(vcf_file_t *vcf_file, char *filename)
-{
-	FILE *fd = fopen(filename, "w");
-	if (fd < 0) 
-	{
-		fprintf(stderr, "Error opening file: %s\n", filename);
-		exit(1);
-	}
-	
-	if (vcf_write_to_file(vcf_file, fd))
-	{
-		fprintf(stderr, "Error writing file: %s\n", filename);
-		fclose(fd);
-		exit(1);
-	}
-	
-	fclose(fd);
-	return 0;
+int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *vcf_file) {
+    if (ends_with(vcf_file->filename, ".vcf")) {
+        return vcf_light_read(text_list, batch_lines, vcf_file);
+    } else if (ends_with(vcf_file->filename, ".gz")) {
+        return vcf_gzip_light_read(text_list, batch_lines, vcf_file);
+    }
+    LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-//-----------------------------------------------------
-// load data into the vcf_file_t
-//-----------------------------------------------------
-
-int add_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *vcf_file)
-{
-	list_item_t *item = list_item_new(vcf_file->num_header_entries, 1, header_entry);
-	int result = list_insert_item(item, vcf_file->header_entries);
-	if (result) {
-		vcf_file->num_header_entries++;
-		dprintf("header entry %zu\n", vcf_file->num_header_entries);
-	} else {
-		dprintf("header entry %zu not inserted\n", vcf_file->num_header_entries);
-	}
-	return result;
+int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *vcf_file) {
+    if (ends_with(vcf_file->filename, ".vcf")) {
+        return vcf_light_read_bytes(text_list, batch_bytes, vcf_file);
+    } else if (ends_with(vcf_file->filename, ".gz")) {
+        return vcf_gzip_light_read_bytes(text_list, batch_bytes, vcf_file);
+    }
+    LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int add_sample_name(char *name, vcf_file_t *vcf_file)
-{
-	list_item_t *item = list_item_new(vcf_file->num_samples, 1, name);
-	int result = list_insert_item(item, vcf_file->samples_names);
-	if (result) {
-		(vcf_file->num_samples)++;
-		dprintf("sample %zu is %s\n", vcf_file->num_samples, name);
-	} else {
-		dprintf("sample %zu not inserted\n", vcf_file->num_samples);
-	}
-	return result;
+int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files) {
+    return vcf_light_multiread(batches_list, batch_size, vcf_files, num_files);
 }
 
-int add_record(vcf_record_t* record, vcf_file_t *vcf_file)
-{
-	list_item_t *item = list_item_new(vcf_file->num_records, 1, record);
-	int result = list_insert_item(item, vcf_file->records);
-	if (result) {
-		vcf_file->num_records++;
-		dprintf("record %zu\n", vcf_file->num_records);
-	} else {
-		dprintf("record %zu not inserted\n", vcf_file->num_records);
-	}
-	return result;
+void notify_end_reading(vcf_file_t *vcf_file) {
+    list_decr_writers(vcf_file->record_batches);
 }
 
+
+
+
+int vcf_write(vcf_file_t *vcf_file, char *filename) {
+    FILE *fd = fopen(filename, "w");
+    if (fd < 0) {
+        LOG_FATAL_F("Error opening file: %s\n", filename);
+    }
+
+    if (write_vcf_file(vcf_file, fd)) {
+        fclose(fd);
+        LOG_FATAL_F("Error writing file: %s\n", filename);
+    }
+
+    fclose(fd);
+    return 0;
+}

@@ -1,22 +1,23 @@
-
 CC = gcc
-CFLAGS = -std=c99 -O3
+CFLAGS = -std=c99 -O3 -D_BSD_SOURCE -D_XOPEN_SOURCE=600
 
-LIBS_ROOT = ../../..
-SRC_DIR = .
-COMMONS_DIR = $(LIBS_ROOT)/commons
+LIBS_ROOT = $(PWD)/../../..
+# SRC_DIR = $(PWD)
+# COMMONS_DIR = $(LIBS_ROOT)/commons
 
-INCLUDES = -I $(SRC_DIR) -I $(COMMONS_DIR)
-LIBS = -lcheck -lcprops 
+INCLUDES = -I $(PWD) -I $(LIBS_ROOT)
+LIBS = -lcprops -lcurl -Wl,-Bsymbolic-functions
+LIBS_TEST = -lcheck
 
+MISC_FILES = $(LIBS_ROOT)/commons/string_utils.o
 
-all: string_utils.o region.o
+all: region.o
 
-region.o: region.c
-	$(CC) $(CFLAGS) -c region.c $(INCLUDES) $(LIBS)
+region.o: compile-dependencies region.c
+	$(CC) $(CFLAGS) -c region.c $(MISC_FILES) $(INCLUDES) $(LIBS)
 	
-string_utils.o:
-	cd $(COMMONS_DIR) && make string_utils.o
+compile-dependencies:
+	cd $(LIBS_ROOT)/commons && make compile
 
 clean:
 	rm region.o

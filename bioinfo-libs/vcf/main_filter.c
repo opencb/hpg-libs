@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <omp.h>
 
+#include <containers/list.h>
+#include <commons/log.h>
+
 #include "vcf_file_structure.h"
 #include "vcf_file.h"
 #include "vcf_filters.h"
 #include "vcf_read.h"
 #include "vcf_reader.h"
 
-#include "util.h"
-#include "list.h"
 
 int main(int argc, char *argv[]) {
     size_t max_batches = 20;
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     vcf_file_t* file;
 
     char input[] = "1:1000000-2000000,22";
-	filter_t *region_f = create_region_filter(input, 0);
+	filter_t *region_f = create_region_filter(input, 0, "http://localhost:8080", "hsa", "v1");
 	filter_t *snp_f = create_snp_filter("exclude");
 	filter_chain *chain = add_to_filter_chain(region_f, NULL);
 	chain = add_to_filter_chain(snp_f, chain);
@@ -30,25 +31,26 @@ int main(int argc, char *argv[]) {
 	int num_filters;
 	filter_t **filter_list = sort_filter_chain(chain, &num_filters);
 
+    init_log_custom(2, 1, NULL);
 
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
     {
 #pragma omp section
         {
-            dprintf("Thread %d reads the VCF file\n", omp_get_thread_num());
+            LOG_DEBUG_F("Thread %d reads the VCF file\n", omp_get_thread_num());
             // Reading
             start = omp_get_wtime();
 
             file = vcf_open(argv[1]);
-            ret_code = vcf_read_batches(read_list, batch_size, file, 1);
+            ret_code = vcf_parse_batches(read_list, batch_size, file, 1);
 
             stop = omp_get_wtime();
             total = (stop - start);
 
-            if (ret_code) dprintf("[%dR] Error code = %d\n", omp_get_thread_num(), ret_code);
+            if (ret_code) { LOG_FATAL_F("[%dR] Error code = %d\n", omp_get_thread_num(), ret_code); }
 
-            bprintf("[%dR] Time elapsed = %f s\n", omp_get_thread_num(), total);
-            bprintf("[%dR] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+            LOG_INFO_F("[%dR] Time elapsed = %f s\n", omp_get_thread_num(), total);
+            LOG_INFO_F("[%dR] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
 
             // Writing to a new file
             if (argc == 3) {
@@ -59,10 +61,10 @@ int main(int argc, char *argv[]) {
                 stop = omp_get_wtime();
                 total = (stop - start);
 
-                if (ret_code) dprintf("[%dW] Error code = %d\n", omp_get_thread_num(), ret_code);
+                if (ret_code) { LOG_ERROR_F("[%dW] Error code = %d\n", omp_get_thread_num(), ret_code); }
 
-                bprintf("[%dW] Time elapsed = %f s\n", omp_get_thread_num(), total);
-                bprintf("[%dW] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+                LOG_INFO_F("[%dW] Time elapsed = %f s\n", omp_get_thread_num(), total);
+                LOG_INFO_F("[%dW] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
             }
 
             list_decr_writers(read_list);
@@ -73,8 +75,8 @@ int main(int argc, char *argv[]) {
 #pragma omp section
         {
             int debug = 1;
-            dprintf("OMP num threads = %d\n", omp_get_num_threads());
-            dprintf("Thread %d prints info\n", omp_get_thread_num());
+            LOG_DEBUG_F("OMP num threads = %d\n", omp_get_num_threads());
+            LOG_DEBUG_F("Thread %d prints info\n", omp_get_thread_num());
 
             start = omp_get_wtime();
 
@@ -89,15 +91,15 @@ int main(int argc, char *argv[]) {
                 list_init("failed_records", 1, INT_MAX, failed_records);
 
                 if (i % 200 == 0) {
-                    dprintf("Batch %d reached by thread %d - %zu/%zu records \n", 
+                    LOG_DEBUG_F("Batch %d reached by thread %d - %zu/%zu records \n", 
                             i, omp_get_thread_num(),
-                            batch->length, batch->max_length);
+                            batch->size, batch->capacity);
                 }
 
                 passed_records = run_filter_chain(input_records, failed_records, 
                                                   filter_list, num_filters);
 
-                dprintf("passed records = %zu, failed records = %zu\n", 
+                LOG_DEBUG_F("passed records = %zu, failed records = %zu\n", 
                         passed_records->length, failed_records->length);
 
 //    vcf_batch_print(stdout, item->data_p);
@@ -113,8 +115,8 @@ int main(int argc, char *argv[]) {
 
             total = (stop - start);
 
-            bprintf("[%d] Time elapsed = %f s\n", omp_get_thread_num(), total);
-            bprintf("[%d] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
+            LOG_INFO_F("[%d] Time elapsed = %f s\n", omp_get_thread_num(), total);
+            LOG_INFO_F("[%d] Time elapsed = %e ms\n", omp_get_thread_num(), total*1000);
 
         }
     }
