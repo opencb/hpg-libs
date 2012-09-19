@@ -50,10 +50,17 @@ void sse_matrix(int num_seqs,
     //    printf("from left: %0.2f\n", ((float *)&e_simd)[0]);
     
     // diagonal value: match or mismatch
+
+    subst_simd = _mm_set_ps((q_len[3] > j) ? profile[q[3][j]][r[3][0]] : -1000.0f,
+                            (q_len[2] > j) ? profile[q[2][j]][r[2][0]] : -1000.0f,
+                            (q_len[1] > j) ? profile[q[1][j]][r[1][0]] : -1000.0f,
+                            (q_len[0] > j) ? profile[q[0][j]][r[0][0]] : -1000.0f);
+    /*
     subst_simd = _mm_set_ps(profile[q[3][j]][r[3][0]], 
 			    profile[q[2][j]][r[2][0]], 
 			    profile[q[1][j]][r[1][0]], 
 			    profile[q[0][j]][r[0][0]]);
+    */
 
     diagonal_simd = _mm_add_ps(zero_simd, subst_simd);
     //    printf("from diagonal: temp = %0.2f %0.2f (%c, %c) -> %0.2f\n", ((float *)&temp_simd)[0], profile[q[0][j]][r[0][0]], q[0][j], r[0][0], ((float *)&diagonal_simd)[0]);
