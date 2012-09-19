@@ -1,0 +1,18 @@
+COMMONS LIBRARY
+---------------
+
+Dependencies
+
+    * libcurl, (required by http_utils.c) 
+
+
+Compilation
+
+    make compile
+
+
+Test (you need to install the library 'check' to compile the tests)
+
+    make test
+
+    
