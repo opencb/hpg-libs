@@ -1,7 +1,0 @@
-make clean
-
-make 
-
-./bin/hpg-sw-bench -q datasets/queries-50k.txt -r datasets/refs-50k.txt -o sse.out -v emboss.out -p 10 -e 0.05 -n 4 -b 2048 -d .
-
-./bin/hpg-sw -q datasets/queries-50k.txt -r datasets/refs-50k.txt -o sse.out -p 10 -e 0.05 -n 4 -b 2048 -d . -s ./dnafull
