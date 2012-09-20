@@ -1,14 +1,17 @@
-
 #ifndef FASTQ_FILE_H
 #define FASTQ_FILE_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "/commons/commons.h"
+#include "/commons/file_utils.h"
+#include "/commons/string_utils.h"
 
 //#include "qc_batch.h"
-#include "file_utils.h"
-
-#include "fastq_batch.h"
 #include "fastq_read.h"
+#include "fastq_batch.h"
 
 #define MAX_FASTQ_FILENAME_LENGTH		64	// Maximum filenname length
 #define MAX_READ_ID_LENGTH			256	// Maximum read ID length

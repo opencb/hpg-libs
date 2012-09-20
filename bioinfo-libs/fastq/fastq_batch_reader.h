@@ -1,14 +1,12 @@
-
 #ifndef FASTQ_BATCH_READER_H
 #define FASTQ_BATCH_READER_H
 
 #include <stdio.h>
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 
-/*#include "fastq_file.h"
-#include "fastq_read.h"
-#include "fastq_batch_list.h"*/
-#include "list.h"
+#include "/containers/list.h"
 #include "fastq_batch.h"
 #include "fastq_file.h"
 

@@ -1,10 +1,4 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "fastq_batch.h"
-#include "string_utils.h"
 
 
 #define MAX_HEADER_LENGTH 128

@@ -1,13 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-
-//#include "list.h"
-//
-
-//#include "fastq_file.h"
-//#include "fastq_ex_batch.h"
 #include "fastq_batch_reader.h"
 
 //------------------------------------------------------------------------------------

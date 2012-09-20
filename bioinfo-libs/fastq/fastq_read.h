@@ -1,10 +1,13 @@
-
 #ifndef FASTQ_READ_H
 #define FASTQ_READ_H
 
-#define ID_MAX_BYTES		1*1024*1024
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ID_MAX_BYTES		(1 * 1024 * 1024)
 #define INDEX_MAX		100000
-#define SEQUENCE_MAX_BYTES	2*1024*1024
+#define SEQUENCE_MAX_BYTES	(2 * 1024 * 1024)
 
 /* **************************************
  *  		Structures		*

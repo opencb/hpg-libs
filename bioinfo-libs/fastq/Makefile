@@ -2,8 +2,12 @@ CC = gcc
 CFLAGS = -std=c99 -O3 -D_GNU_SOURCE
 CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 
+
 # Directories' paths
-LIBS_ROOT = ../..
+ifndef (!LIBS_ROOT)
+	LIBS_ROOT = $(PWD)/../..
+endif
+
 CONTAINERS_DIR = $(LIBS_ROOT)/containers
 COMMONS_DIR = $(LIBS_ROOT)/commons
 
@@ -16,6 +20,7 @@ LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
 
 # Source and object files
 MAIN_OBJECTS = fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_read.c
+#MISC_OBJECTS = $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 
 # Targets
 all: compile-dependencies compile

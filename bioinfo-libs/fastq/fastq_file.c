@@ -1,14 +1,4 @@
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "fastq_batch.h"
 #include "fastq_file.h"
-
-#include "commons.h"
-#include "file_utils.h"
-#include "string_utils.h"
 
 /* ******************************************************
  *    		Function implementations  		*

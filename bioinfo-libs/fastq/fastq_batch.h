@@ -1,8 +1,12 @@
-
 #ifndef FASTQ_BATCH_H
 #define FASTQ_BATCH_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "/commons/string_utils.h"
+
 
 /* **************************************
  *  		Structures		*
