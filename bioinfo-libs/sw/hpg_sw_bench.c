@@ -388,7 +388,7 @@ void run_sse(char *q_filename, char *r_filename,
     output_p = sw_multi_output_new(num_queries);
 
     // call smith-waterman
-    smith_waterman_mqmr(q, r, num_queries, optarg_p, num_threads, output_p);
+   smith_waterman_mqmr(q, r, num_queries, optarg_p, num_threads, output_p);
 
     // save results
     sw_multi_output_save(num_queries, output_p, out_file);
