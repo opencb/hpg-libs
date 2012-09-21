@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "/commons/string_utils.h"
+#include "commons/string_utils.h"
 
 
 /* **************************************

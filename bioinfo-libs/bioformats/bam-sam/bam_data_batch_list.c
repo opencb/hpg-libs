@@ -1,10 +1,4 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "bam_data_batch_list.h"
-
 
 //=====================================================
 // functions to manage bam data batch list item

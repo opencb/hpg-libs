@@ -7,14 +7,16 @@
 #include <math.h>
 #include <pthread.h> 
 
-#include "linked_list.h"
-#include "array_list.h"
-#include "fastq_read.h"
-#include "fastq_batch.h"
-#include "alignment.h"
+#include "cprops/linked_list.h"
+
+#include "commons/string_utils.h"
+#include "containers/array_list.h"
+#include "bioformats/fastq/fastq_read.h"
+#include "bioformats/fastq/fastq_batch.h"
+#include "bioformats/bam-sam/alignment.h"
+
 #include "BW_io.h"
 #include "BW_search.h"
-#include "string_utils.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 

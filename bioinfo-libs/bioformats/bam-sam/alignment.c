@@ -1,6 +1,4 @@
-
 #include "alignment.h"
-#include "bam_file.h"
 
 /* ******************************************************
  *      	Function implementations    		*

@@ -2,12 +2,17 @@
 CC = gcc
 CFLAGS = -std=c99 -O3
 
-ROOT = ~/appl/bioinfo-c
+# Directories' path
+ifdef LIBS_HOME
+	LIBS_ROOT = $(LIBS_HOME)
+else
+	LIBS_ROOT = $(PWD)/../..
+endif
 
 SRC_DIR = ..
-COMMONS_DIR = $(ROOT)/commons
+COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 
-INCLUDES = -I $(SRC_DIR) -I $(COMMONS_DIR)
+INCLUDES = -I $(SRC_DIR) -I $(LIBS_ROOT)/common-libs -I $(COMMONS_DIR)
 LIBS = -lcheck -lcprops 
 
 TEST_REGION_OBJS = test_region.c $(SRC_DIR)/region.o $(COMMONS_DIR)/string_utils.o

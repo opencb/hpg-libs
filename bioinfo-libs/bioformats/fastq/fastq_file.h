@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "/commons/commons.h"
-#include "/commons/file_utils.h"
-#include "/commons/string_utils.h"
+#include "commons/commons.h"
+#include "commons/file_utils.h"
+#include "commons/string_utils.h"
 
 //#include "qc_batch.h"
 #include "fastq_read.h"

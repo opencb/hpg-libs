@@ -1,15 +1,22 @@
-
 #ifndef BAM_READER_H
 #define BAM_READER_H
 
 #include <stdio.h>
 #include <pthread.h>
 
+#include "bam/bam.h"
+
+#include "sort_thrust.h"
+
+#include "commons/commons.h"
+#include "commons/system_utils.h"
+#include "containers/list.h"
+
+#include "bam_data_batch.h"
+#include "bam_commons.h"
+#include "bam_qc_batch.h"
 #include "bam_file.h"
 #include "chrom_alignments.h"
-#include "commons.h"
-#include "list.h"
-#include "system_utils.h"
 
 #define SEQUENTIAL_MODE  0
 #define CHROMOSOME_MODE  1

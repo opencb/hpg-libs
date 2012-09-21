@@ -1,11 +1,4 @@
-
-#include <stdlib.h>
-#include <string.h>
-
-#include "bam.h"
 #include "bam_data_batch.h"
-#include "GeneralHashFunctions.h"
-#include "qc_hash.h"
 
 /* ******************************************************
  *      	Private functions 	    		*

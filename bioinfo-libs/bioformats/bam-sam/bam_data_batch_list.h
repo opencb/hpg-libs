@@ -1,9 +1,9 @@
-
 #ifndef BAM_DATA_BATCH_LIST_H
 #define BAM_DATA_BATCH_LIST_H
 
 #include <stdio.h>
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 
 #include "bam_data_batch.h"

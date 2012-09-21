@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <check.h>
 
-#include <region.h>
-#include <region_table.h>
-#include <region_table_utils.h>
+#include <bioformats/features/region/region.h>
+#include <bioformats/features/region/region_table.h>
+#include <bioformats/features/region/region_table_utils.h>
 
 
 Suite *create_test_suite();

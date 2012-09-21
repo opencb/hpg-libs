@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "/containers/list.h"
+#include "containers/list.h"
 #include "fastq_batch.h"
 #include "fastq_file.h"
 

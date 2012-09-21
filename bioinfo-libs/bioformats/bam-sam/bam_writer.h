@@ -1,16 +1,17 @@
-
 #ifndef BAM_WRITER_H
 #define BAM_WRITER_H
 
 #include <stdio.h>
 #include <pthread.h>
 
-#include "bam.h"
+#include "bam/bam.h"
+
+#include "commons/commons.h"
+#include "commons/system_utils.h"
+
 #include "bam_commons.h"
 #include "bam_file.h"
 #include "chrom_alignments.h"
-#include "commons.h"
-#include "system_utils.h"
 
 #define SEQUENTIAL_MODE 0
 #define CHROMOSOME_MODE 1

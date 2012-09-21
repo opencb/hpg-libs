@@ -1,12 +1,13 @@
-
 #ifndef ALIGNMENTS_H
 #define ALIGNMENTS_H
 
 #include <stdio.h>
 
-#include "bam.h"
+#include "bam/bam.h"
+
+#include "commons/commons.h"
+
 #include "bam_commons.h"
-#include "commons.h"
 
 #define MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING  	5
 #define HUMAN      				1 //Specie: Human

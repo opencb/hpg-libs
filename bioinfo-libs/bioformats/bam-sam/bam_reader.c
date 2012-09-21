@@ -1,12 +1,4 @@
-
-#include "bam_data_batch.h"
 #include "bam_reader.h"
-
-#include "bam.h"
-#include "bam_commons.h"
-#include "bam_qc_batch.h"
-#include "chrom_alignments.h"
-#include "sort_thrust.h"
 
 /* ******************************************************
  *      	Function implementations    		*

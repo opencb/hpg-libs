@@ -1,8 +1,9 @@
-
 #ifndef BAM_FILE_H
 #define BAM_FILE_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef THRUST-GPU
     #include <thrust/host_vector.h>
@@ -11,13 +12,15 @@
     #include <thrust/copy.h>
 #endif
 
+#include "bam/bam.h"
+
+#include "commons/commons.h"
+#include "commons/file_utils.h"
+#include "commons/string_utils.h"
+#include "commons/system_utils.h"
+
 #include "alignment.h"
-#include "bam.h"
 #include "bam_commons.h"
-#include "commons.h"
-#include "file_utils.h"
-#include "string_utils.h"
-#include "system_utils.h"
 
 #define MAX_NUM_PRODUCERS  	10
 #define BAM_BATCH_READ_SIZE   	50000000

@@ -2,13 +2,14 @@
 #include <stdlib.h>
 #include <check.h>
 
-#include "vcf_batch.h"
+#include "containers/list.h" 
+
+//#include "vcf_batch.h"
 #include "vcf_file.h"
 #include "vcf_file_structure.h"
 #include "vcf_filters.h"
 #include "vcf_util.h"
 
-#include "list.h" 
 
 /*
  * How to get the constants defined below

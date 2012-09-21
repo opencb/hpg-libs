@@ -1,12 +1,19 @@
-
 #ifndef BAM_DATA_BATCH_H
 #define BAM_DATA_BATCH_H
 
+#include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <stdint.h>
 
+#include "bam/bam.h"
+
+#include "commons/commons.h"
+
 #include "bam_file.h"
-#include "commons.h"
+#include "GeneralHashFunctions.h"
+#include "qc_hash.h"
+
 
 #define MAX_CIGAR_POSITIONS 10
 

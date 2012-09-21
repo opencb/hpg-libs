@@ -3,18 +3,23 @@ CFLAGS = -std=c99 -O3
 CFLAGS_DEBUG = -std=c99 -g
 
 # Directories' path
-LIBS_ROOT = $(PWD)/../..
-CONTAINERS_DIR = $(LIBS_ROOT)/containers
-COMMONS_DIR = $(LIBS_ROOT)/commons
-BIOFORMATS_DIR = $(LIBS_ROOT)/bioformats
+ifdef LIBS_HOME
+	LIBS_ROOT = $(LIBS_HOME)
+else
+	LIBS_ROOT = $(PWD)/../..
+endif
+
+CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
+COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
+BIOFORMATS_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats
 
 # Inclusion paths and libraries
 # INCLUDES = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(BIOFORMATS_DIR)/vcf/
-INCLUDES = -I . -I $(LIBS_ROOT)
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
 LIBS = -lcprops -fopenmp
 
 # INCLUDES_STATIC = -I $(CONTAINERS_DIR) -I $(COMMONS_DIR) -I $(BIOFORMATS_DIR) -I $(LIBS_ROOT)/bioformats/vcf/ -I $(LIBS_ROOT)/../include
-INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
 LIBS_STATIC = -L $(LIBS_ROOT) -lcprops -fopenmp
 
 # Source and object files
@@ -24,7 +29,7 @@ PED_BATCH_OBJECTS = main_batch.c $(MAIN_OBJECTS) $(MISC_OBJECTS)
 
 
 # Targets
-all: compile-dependencies ragel compile main_batch
+all: compile-dependencies compile
 
 compile: compile-dependencies
 	$(CC) $(CFLAGS_DEBUG) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)

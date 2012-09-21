@@ -13,11 +13,11 @@ CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT)/common-libs
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs 
 LIBS = -fopenmp -Wl,-Bsymbolic-functions
 
 # Source and object files
-MAIN_OBJECTS = fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_read.c
+MAIN_OBJECTS = alignment.c
 #MISC_OBJECTS = $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
 
 # Targets
