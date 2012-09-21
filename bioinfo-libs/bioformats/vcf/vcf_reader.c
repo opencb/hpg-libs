@@ -19,6 +19,8 @@ vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples) 
 }
 
 void vcf_reader_status_free(vcf_reader_status *status) {
+    assert(status);
+    
     if (status->current_header_entry->name == NULL && status->current_header_entry->num_keys == 0 && status->current_header_entry->num_values == 0) {
         vcf_header_entry_free(status->current_header_entry);
     }
@@ -37,6 +39,9 @@ void vcf_reader_status_free(vcf_reader_status *status) {
  * **********************************************/
 
 int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
+    assert(file);
+    assert(batch_lines > 0);
+    
     int cs = 0;
     char *p, *pe;
 
@@ -109,6 +114,9 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
 }
 
 int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
+    assert(file);
+    assert(batch_bytes > 0);
+    
     int cs = 0;
     char *p, *pe;
 
@@ -184,6 +192,9 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
 }
 
 int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
+    assert(file);
+    assert(batch_lines > 0);
+    
     int cs = 0;
     char *p, *pe;
 
@@ -304,6 +315,9 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
 }
 
 int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
+    assert(file);
+    assert(batch_bytes > 0);
+    
     int cs = 0;
     char *p, *pe;
 
@@ -429,6 +443,10 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read
  * **********************************************/
 
 int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
+    assert(text_list);
+    assert(file);
+    assert(batch_lines > 0);
+    
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -463,6 +481,10 @@ int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
 }
 
 int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
+    assert(text_list);
+    assert(file);
+    assert(batch_bytes > 0);
+    
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -504,6 +526,10 @@ int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file
 }
 
 int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
+    assert(text_list);
+    assert(file);
+    assert(batch_lines > 0);
+    
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -601,6 +627,10 @@ int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file)
 }
 
 int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
+    assert(text_list);
+    assert(file);
+    assert(batch_bytes > 0);
+    
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
@@ -782,6 +812,8 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
  * **********************************************/
 
 size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
+    assert(data);
+    
     (*data)[position_in_data] = c;
     // Text too long to be stored in 'data', realloc
     if (position_in_data == max_len - 1) {

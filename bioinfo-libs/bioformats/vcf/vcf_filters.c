@@ -6,6 +6,9 @@
 //====================================================================================
 
 array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+    assert(input_records);
+    assert(failed);
+    
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int min_coverage = ((coverage_filter_args*)f_args)->min_coverage;
@@ -41,6 +44,9 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
 }
 
 array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, void* args) {
+    assert(input_records);
+    assert(failed);
+    
     list_t *input_stats = (list_t*) malloc (sizeof(list_t));
     list_init("stats", 1, input_records->size + 1, input_stats);
     file_stats_t *file_stats = file_stats_new();
@@ -80,6 +86,9 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
 
 
 array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+    assert(input_records);
+    assert(failed);
+    
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int min_quality = ((quality_filter_args*)f_args)->min_quality;
@@ -99,6 +108,9 @@ array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, 
 }
 
 array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
     char *field;
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
@@ -135,6 +147,9 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
 }
 
 array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
 
     int include_snps = ((snp_filter_args*)f_args)->include_snps;
@@ -181,6 +196,7 @@ filter_t *coverage_filter_new(int min_coverage) {
 }
 
 void coverage_filter_free(filter_t *filter) {
+    assert(filter);
     free(filter->args);
     free(filter);
 }
@@ -200,6 +216,7 @@ filter_t* num_alleles_filter_new(int num_alleles) {
 }
 
 void num_alleles_filter_free(filter_t* filter) {
+    assert(filter);
     free(filter->args);
     free(filter);
 }
@@ -220,11 +237,17 @@ filter_t *quality_filter_new(int min_quality) {
 }
 
 void quality_filter_free(filter_t *filter) {
+    assert(filter);
     free(filter->args);
     free(filter);
 }
 
 filter_t *region_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
+    assert(region_descriptor);
+    assert(url);
+    assert(species);
+    assert(version);
+    
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     filter->type = REGION;
     filter->filter_func = region_filter;
@@ -243,6 +266,11 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
 }
 
 filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
+    assert(region_descriptor);
+    assert(url);
+    assert(species);
+    assert(version);
+    
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     filter->type = REGION;
     filter->filter_func = region_filter;
@@ -261,6 +289,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
 }
 
 void region_filter_free(filter_t *filter) {
+    assert(filter);
     region_table_t *regions = ((region_filter_args*) filter->args)->regions;
     // Free ordering array
     char **ordering = regions->ordering;
@@ -279,7 +308,7 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
-filter_t *snp_filter_new(char *include_snps) {
+filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
     filter->type = SNP;
     filter->filter_func = snp_filter;
@@ -287,27 +316,30 @@ filter_t *snp_filter_new(char *include_snps) {
     filter->priority = 5;
 
     snp_filter_args *filter_args = (snp_filter_args*) malloc (sizeof(snp_filter_args));
-    filter_args->include_snps = 1;	// Default: Include SNPs
-
-    if (include_snps != NULL) {
-        if (strcmp("include", include_snps) == 0) {
-            filter_args->include_snps = 1;
-        } else if (strcmp("exclude", include_snps) == 0) {
-            filter_args->include_snps = 0;
-        }
-    }
-
+//     filter_args->include_snps = 1;	// Default: Include SNPs
+// 
+//     if (include_snps != NULL) {
+//         if (strcmp("include", include_snps) == 0) {
+//             filter_args->include_snps = 1;
+//         } else if (strcmp("exclude", include_snps) == 0) {
+//             filter_args->include_snps = 0;
+//         }
+//     }
+    filter_args->include_snps = include_snps;
     filter->args = filter_args;
 
     return filter;
 }
 
 void snp_filter_free(filter_t *filter) {
+    assert(filter);
     free(filter->args);
     free(filter);
 }
 
 int filter_compare(const void *filter1, const void *filter2) {
+    assert(filter1);
+    assert(filter2);
     return ((filter_t*) filter1)->priority - ((filter_t*) filter2)->priority;
 }
 
@@ -318,6 +350,9 @@ int filter_compare(const void *filter1, const void *filter2) {
 //====================================================================================
 
 filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain) {
+    assert(filter);
+    assert(chain);
+    
     filter_chain *result = chain;
 
     if (result == NULL) {
@@ -329,6 +364,9 @@ filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain) {
 }
 
 filter_t **sort_filter_chain(filter_chain *chain, int *num_filters) {
+    assert(chain);
+    assert(num_filters);
+    
     *num_filters = cp_heap_count(chain);
     filter_t **filters = (filter_t**) malloc (cp_heap_count(chain) * sizeof(filter_t*));
 
@@ -343,6 +381,10 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters) {
 }
 
 array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters) {
+    assert(input_records);
+    assert(failed);
+    assert(filters);
+    
     array_list_t *passed = input_records;
     array_list_t *aux_passed;
 
@@ -360,6 +402,7 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
 }
 
 void free_filter_chain(filter_chain* chain) {
-    if (chain) { cp_heap_destroy(chain); }
+    assert(chain);
+    cp_heap_destroy(chain);
 }
 

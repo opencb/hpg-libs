@@ -1,6 +1,8 @@
 #include "vcf_util.h"
 
 size_t count_regions(char *regions_string) {
+    assert(regions_string);
+    
     size_t num_regions = 0;
     char *aux = regions_string;
     while (*aux) {
@@ -10,6 +12,9 @@ size_t count_regions(char *regions_string) {
 }
 
 char *get_field_value_in_info(const char *field, char *info) {
+    assert(field);
+    assert(info);
+    
     char *save_strtok, *token;
     char *value;
     
@@ -36,6 +41,9 @@ char *get_field_value_in_info(const char *field, char *info) {
 }
 
 int get_field_position_in_format(const char *field, char *format) {
+    assert(field);
+    assert(format);
+    
     int field_pos = 0, cur_pos = 0;
     char *save_strtok, *token;
     token = strtok_r(format, ":", &save_strtok);
@@ -48,6 +56,10 @@ int get_field_position_in_format(const char *field, char *format) {
 }
 
 int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2) {
+    assert(sample);
+    assert(allele1);
+    assert(allele2);
+    
     char *aux_buffer, *allele, *genotype;
     int ret_code = 0, cur_pos = -1;
     

@@ -1,6 +1,7 @@
 #ifndef VCF_STATS_H
 #define VCF_STATS_H
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,9 +23,8 @@
 
 /**
  * @brief Statistics global to a VCF file
- * 
- * These are, among others, the number of variants, SNPs and indels it contains, and the mean quality 
- * of the measures.
+ * @details Statistics global to a VCF file. These are, among others, the number of variants, SNPs 
+ * and indels it contains, and the mean quality of the measures.
  **/
 typedef struct file_stats {
     int variants_count;         /**< Number of variants of the file. */
@@ -48,8 +48,8 @@ typedef struct file_stats {
 /**
  * @brief Statistics of a variant of a VCF file
  * 
- * These are, among others, the count and frequency of each allele and genotype that can be obtained by 
- * combining them.
+ * @details Statistics of a variant of a VCF file. These are, among others, the count and frequency of 
+ * each allele and genotype that can be obtained by combining them.
  **/
 typedef struct variant_stats {
     char *chromosome;           /**< Chromosome of the variant. */
@@ -75,31 +75,40 @@ typedef struct variant_stats {
 
 /**
  * @brief Allocates memory for a file_stats_t structure
+ * @details Allocates memory for a file_stats_t structure
+ * 
  * @return A new file_stats_t structure
  **/
 file_stats_t *file_stats_new();
 
 /**
- * @brief Frees memory associated to a file_stats_t structure
- * @param file_stats The structure to be freed
+ * @brief Deallocates memory associated to a file_stats_t structure
+ * @details Deallocates memory associated to a file_stats_t structure
+ * 
+ * @param stats The structure to be freed
  */
-void file_stats_free(file_stats_t *file_stats);
+void file_stats_free(file_stats_t *stats);
 
 
 /**
  * @brief Initializes a variant_stats_t structure mandatory fields
- * @return A new variant_stats_t structure
- * 
- * Initializes a variant_stats_t structure mandatory fields, which are its chromosom, position and 
+ * @details Initializes a variant_stats_t structure mandatory fields, which are its chromosome, position and 
  * reference allele.
+ * 
+ * @param chromosome Chromosome of the variant in the genome
+ * @param position Position of the variant in the chromosome
+ * @param ref_allele Reference allele
+ * @return A new variant_stats_t structure
  */
 variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele);
 
 /**
- * @brief Free memory associated to a variant_stats_t structure
- * @param variant_stats The structure to be freed
+ * @brief Deallocates memory associated to a variant_stats_t structure
+ * @details Deallocates memory associated to a variant_stats_t structure
+ * 
+ * @param stats The structure to be freed
  */
-void variant_stats_free(variant_stats_t *variant_stats);
+void variant_stats_free(variant_stats_t *stats);
 
 
 
@@ -109,21 +118,23 @@ void variant_stats_free(variant_stats_t *variant_stats);
 
 /**
  * @brief Given a list of variants, gets their statistics and also the ones that apply to the VCF file
+ * @details Given a list of variants, gets their statistics and also the ones that apply to the VCF file. The statistics 
+ * per variant are queued in the output_list argument, and the statistics of the whole file are stored in the 
+ * file_stats structure.
  *
  * @param variants The list of variants whose statistics will be got
  * @param num_variants The number of variants
  * @param output_list [out] The list where the statistics per variant will be stored
  * @param file_stats [in,out] The statistics of the VCF file
  * @return Whether the statistics were successfully retrieved
- * 
- * Given a list of variants, gets their statistics and also the ones that apply to the VCF file. The statistics 
- * per variant are queued in the output_list argument, and the statistics of the whole file are stored in the 
- * file_stats structure.
  **/
 int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given the statistics of a file (supposedly not full-processed), updates the value of its statistics
+ * @details Given the statistics of a file (supposedly not full-processed), updates the value of its statistics. The variants, 
+ * samples, SNPs, transition, transversion, indels, biallelic, multiallelic and PASS count will be accumulated to the 
+ * previous values. The accumulated quality will also be summed, and as a result its mean will be recalculated.
  *
  * @param variants_count Number of new variants found
  * @param samples_count Number of samples
@@ -136,10 +147,6 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
  * @param pass_count Number of new variants that passed a filter found
  * @param accum_quality Sum of all new values of the QUALITY column found
  * @param stats [in,out] The statistics of the VCF file
- * 
- * Given the statistics of a file (supposedly not full-processed), updates the value of its statistics. The variants, 
- * samples, SNPs, transition, transversion, indels, biallelic, multiallelic and PASS count will be accumulated to the 
- * previous values. The accumulated quality will also be summed, and as a result its mean will be recalculated.
  **/
 void update_file_stats(int variants_count, int samples_count, int snps_count, int transitions_count, int transversions_count, 
                        int indels_count, int biallelics_count, int multiallelics_count, int pass_count, float accum_quality, 

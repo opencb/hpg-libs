@@ -9,13 +9,15 @@ file_stats_t* file_stats_new() {
     return calloc (1, sizeof(file_stats_t));
 }
 
-void file_stats_free(file_stats_t* file_stats) {
-    free(file_stats);
+void file_stats_free(file_stats_t* stats) {
+    assert(stats);
+    free(stats);
 }
 
 void update_file_stats(int variants_count, int samples_count, int snps_count, int transitions_count, int transversions_count, 
                        int indels_count, int biallelics_count, int multiallelics_count, int pass_count, float accum_quality, 
                        file_stats_t *stats) {
+    assert(stats);
     stats->samples_count = samples_count;
     stats->variants_count += variants_count;
     stats->snps_count += snps_count;
@@ -35,8 +37,10 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
  * ******************************/
  
 variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele) {
-    variant_stats_t *stats = (variant_stats_t*) malloc (sizeof(variant_stats_t));
+    assert(chromosome);
+    assert(ref_allele);
     
+    variant_stats_t *stats = (variant_stats_t*) malloc (sizeof(variant_stats_t));
     stats->chromosome = chromosome;
     stats->position = position;
     stats->ref_allele = ref_allele;
@@ -55,6 +59,8 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
 }
 
 void variant_stats_free(variant_stats_t* stats) {
+    assert(stats);
+    
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
     if (stats->alternates) {
@@ -71,6 +77,10 @@ void variant_stats_free(variant_stats_t* stats) {
 }
 
 int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats) {
+    assert(variants);
+    assert(output_list);
+    assert(file_stats);
+    
     char *copy_buf, *copy_buf2, *token, *sample;
     char *save_strtok;
     
