@@ -65,7 +65,7 @@ compile-dependencies:
 	cd $(BIOFORMATS_DIR)/gff && make compile
 
 compile-dependencies-static:
-	cd $(CONTAINERS_DIR) && make compile-static && \
+	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(COMMONS_DIR) && make compile && \
 	cd $(REGION_DIR) && make region.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile-static

@@ -55,7 +55,7 @@ compile-dependencies:
 
 compile-dependencies-static:
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(CONTAINERS_DIR) && make compile-static  && \
+	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(REGION_DIR) && make region.o
 
 clean:

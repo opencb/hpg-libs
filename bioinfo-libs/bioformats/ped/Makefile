@@ -54,7 +54,7 @@ compile-dependencies:
 
 compile-dependencies-static:
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(CONTAINERS_DIR) && make compile-static && \
+	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(BIOFORMATS_DIR) && $(CC) $(CFLAGS) -c family.c $(INCLUDES_STATIC)
 
 clean:
