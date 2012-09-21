@@ -6,7 +6,7 @@ CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 ifdef LIBS_HOME
 	LIBS_ROOT = $(LIBS_HOME)
 else
-	LIBS_ROOT = $(PWD)/../..
+	LIBS_ROOT = $(PWD)/../../..
 endif
 
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers

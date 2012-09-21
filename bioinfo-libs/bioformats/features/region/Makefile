@@ -4,7 +4,7 @@ CFLAGS = -std=c99 -O3 -D_BSD_SOURCE -D_XOPEN_SOURCE=600
 ifdef LIBS_HOME
 	LIBS_ROOT = $(LIBS_HOME)
 else
-	LIBS_ROOT = $(PWD)/../../..
+	LIBS_ROOT = $(PWD)/../../../..
 endif
 
 # SRC_DIR = $(PWD)
