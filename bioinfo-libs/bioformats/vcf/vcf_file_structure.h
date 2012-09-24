@@ -62,12 +62,7 @@ typedef struct vcf_file {
 typedef struct vcf_header_entry {
     char *name;             /**< Key of entries with pairs (key,value) */
     int name_len;           /**< Length of the name field */
-    
-    list_t *keys;           /**< Keys of the fields describing the entry (if num_field_keys = 0, then entry = "name=values[0]" */
-    size_t num_keys;        /**< Number of keys of the fields */
-    
-    list_t *values;         /**< List of values of the fields describing the entry */
-    size_t num_values;      /**< Number of values of the fields */
+    array_list_t *values;   /**< List of values of the fields describing the entry */
 } vcf_header_entry_t;
 
 
@@ -214,15 +209,6 @@ vcf_batch_t *fetch_vcf_batch(vcf_file_t *file);
  * @return The number of header entries in the file
  **/
 size_t get_num_vcf_header_entries(vcf_file_t *file);
-
-/**
- * @brief Returns the number of keys of a header entry in a VCF file.
- * @details Returns the number of keys of a header entry in a VCF file.
- *
- * @param entry The entry to query
- * @return The number of keys of the header entry
- **/
-size_t get_num_keys_in_vcf_header_entry(vcf_header_entry_t *entry);
 
 /**
  * @brief Returns the number of values of a header entry in a VCF file.

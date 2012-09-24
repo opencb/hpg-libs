@@ -2,7 +2,6 @@
 
 int lines = 0;
 int batches = 0;
-// int count = 0;
 
 %%{
     machine vcf;
@@ -12,31 +11,41 @@ int batches = 0;
     #             Actions definition            #
     #############################################
 
+
     action linebreak {
         lines++;
     }
     
+    action fileformat_begin {
+        ts = p;
+    }
+
+    action fileformat_end {
+        set_file_format(ts, p-ts, file);
+    }
+
+    action fileformat_error {
+        printf("Line %d: Error in file format\n", lines);
+    }
+
+    action header_entry_begin {
+        status->current_header_entry = vcf_header_entry_new();
+    }
+
+    action header_entry_end {
+        add_vcf_header_entry(status->current_header_entry, file);
+    }
+
+    action header_error {
+        printf("Line %d: Error in header\n", lines);
+    }
+
     action header_id_begin {
         ts = p;
     }
 
     action header_id_end {
-        set_header_entry_name(ts, p-2-ts, status->current_header_entry);
-    }
-
-    action header_field_id_begin {
-        ts = p;
-    }
-
-    action header_field_id_end {
-        if (status->current_header_entry->name != NULL)
-        {
-            add_header_entry_key(ts, p-ts, status->current_header_entry);
-        } else {
-            // Entries like ##reference=some_text_here
-            status->current_header_entry = create_header_entry();
-            set_header_entry_name(ts, p-ts, status->current_header_entry);
-        }
+        set_header_entry_name(ts, p-ts, status->current_header_entry);
     }
 
     action header_field_value_begin {
@@ -44,12 +53,7 @@ int batches = 0;
     }
 
     action header_field_value_end {
-        // Remove quotation marks if necessary
-        char *start = ts, *end = p;
-        if (*ts == '"') start = ts + 1;
-        if (*(p-1) == '"') end = p - 1;
-        
-        add_header_entry_value(start, end-start, status->current_header_entry);
+        add_header_entry_value(ts, p-ts, status->current_header_entry);
     }
 
     action sample_name_begin {
@@ -69,8 +73,6 @@ int batches = 0;
 //         if (vcf_batch_is_full(status->current_batch))
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
         {
-//            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, status->current_batch); 
-//            list_insert_item(item, batches_list);
             add_vcf_batch(status->current_batch, file);
 //             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
             status->current_batch = vcf_batch_new(batch_size);           
@@ -82,15 +84,11 @@ int batches = 0;
         }
 
         // If not a blank line, add status->current record to status->current batch
-//         if (status->current_field != CHROM) {
-            add_record_to_vcf_batch(status->current_record, status->current_batch);
-            status->num_records++;
+        add_record_to_vcf_batch(status->current_record, status->current_batch);
+        status->num_records++;
 //             printf("Record %zu added\n", status->num_records);
-//         }
         
-//         status->current_field = CHROM;
         status->num_samples = 0;
-//         LOG_DEBUG("\n");
     }
 	
     action chrom_begin {
@@ -103,7 +101,7 @@ int batches = 0;
         set_vcf_record_chromosome(ts, p-ts, status->current_record);
     }
 
-action chrom_error {
+    action chrom_error {
         printf("Line %d: Error in 'chromosome' field\n", lines);
     }
 
@@ -247,15 +245,15 @@ action chrom_error {
 
     # File format
     format_name	= (alnum | punct)+ ;
-    fileformat	= "##fileformat=" format_name "\n" >linebreak;
+    fileformat	= "##fileformat=" format_name >fileformat_begin %fileformat_end $err(fileformat_error) "\n" >linebreak;
 
     # Header
-    field_name	= identifier ;
-    field_value	= (print)+ ;
-    header_field	= (field_name "=")? field_value ;
-    entry_name	= (alnum | "_")+ ;
-    header_entry	= "##" identifier "=<" (header_field)+ ">\n" | "##" identifier "=" field_value "\n" | "##" field_value "\n" >linebreak ;
-    header		= (header_entry)+ ;
+    field_value	= (print - ">" )+ ;
+    header_field   = ( (identifier "=")? field_value ) >header_field_value_begin %header_field_value_end ;
+    header_entry   = ("##" identifier >header_id_begin %header_id_end "=" ("<")? header_field ("," header_field)* (">")? |
+                      "##" field_value >header_field_value_begin %header_field_value_end )
+                      >header_entry_begin %header_entry_end ;
+    header      = (header_entry "\n" >linebreak )* ;
 
     # Delimiter between header and records
     sample_name	= (print - ("\n" | "\t"))+ ;

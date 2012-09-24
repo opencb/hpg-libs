@@ -8,34 +8,15 @@
 vcf_header_entry_t* vcf_header_entry_new() {
     vcf_header_entry_t *entry = (vcf_header_entry_t*) malloc (sizeof(vcf_header_entry_t));
     entry->name = NULL;
-    entry->num_keys = 0;
-    entry->keys = (list_t*) malloc (sizeof(list_t));
-    list_init("keys", 1, INT_MAX, entry->keys);
-    entry->num_values = 0;
-    entry->values = (list_t*) malloc (sizeof(list_t));
-    list_init("values", 1, INT_MAX, entry->values);
+    entry->name_len = 0;
+    entry->values = array_list_new(4, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
     return entry;
 }
 
 void vcf_header_entry_free(vcf_header_entry_t *header_entry) {
     assert(header_entry);
-    // Free entry name
     free(header_entry->name);
-    // Free list of keys
-    list_item_t* item = NULL;
-    while ( (item = list_remove_item_async(header_entry->keys)) != NULL )  {
-        free(item->data_p);
-        list_item_free(item);
-    }
-    free(header_entry->keys);
-    // Free list of values
-    item = NULL;
-    while ( (item = list_remove_item_async(header_entry->values)) != NULL ) {
-        free(item->data_p);
-        list_item_free(item);
-    }
-    free(header_entry->values);
-    
+    array_list_free(header_entry->values, free);
     free(header_entry);
 }
 
@@ -74,10 +55,9 @@ int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *file) {
     assert(file);
     int result = array_list_insert(header_entry, file->header_entries);
 //     if (result) {
-//         (vcf_file->num_header_entries)++;
-// //         LOG_DEBUG_F("header entry %zu\n", vcf_file->header_entries->size);
+//         printf("header entry %zu\n", file->header_entries->size);
 //     } else {
-// //         LOG_DEBUG_F("header entry %zu not inserted\n", vcf_file->num_header_entries);
+//         printf("header entry %zu not inserted\n", get_num_vcf_header_entries(file));
 //     }
     return result;
 }
@@ -131,14 +111,9 @@ size_t get_num_vcf_header_entries(vcf_file_t *file) {
     return file->header_entries->size;
 }
 
-size_t get_num_keys_in_vcf_header_entry(vcf_header_entry_t *entry) {
-    assert(entry);
-    return entry->keys->length;
-}
-
 size_t get_num_values_in_vcf_header_entry(vcf_header_entry_t *entry) {
     assert(entry);
-    return entry->values->length;
+    return entry->values->size;
 }
 
 size_t get_num_vcf_samples(vcf_file_t *file) {
@@ -227,7 +202,7 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch) {
 void set_file_format(char *fileformat, int length, vcf_file_t *file) {
     assert(fileformat);
     assert(file);
-    file->format = fileformat;
+    file->format = strndup(fileformat, length);
     file->format_len = length;
 //     LOG_DEBUG_F("set format = %s\n", file->format);
 }
@@ -235,37 +210,20 @@ void set_file_format(char *fileformat, int length, vcf_file_t *file) {
 void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
     assert(name);
     assert(entry);
-    entry->name = name;
+    entry->name = strndup(name, length);
     entry->name_len = length;
-//     LOG_DEBUG_F("set name: %s\n", entry->name);
-}
-
-void add_header_entry_key(char *key, int length, vcf_header_entry_t *entry) {
-    assert(key);
-    assert(entry);
-//     list_item_t *item = list_item_new(entry->num_keys, 1, key);
-    list_item_t *item = list_item_new(entry->num_keys, 1, strndup(key, length));
-    int result = list_insert_item(item, entry->keys);
-    if (result) {
-        entry->num_keys++;
-//         LOG_DEBUG_F("key %zu = %s\n", entry->num_keys, (char*) item->data_p);
-    } else {
-//         LOG_DEBUG_F("key %zu not inserted\n", entry->num_keys);
-    }
+//     LOG_DEBUG_F("set entry name: %s\n", entry->name);
 }
 
 void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
     assert(value);
     assert(entry);
-//     list_item_t *item = list_item_new(entry->num_values, 1, value);
-    list_item_t *item = list_item_new(entry->num_values, 1, strndup(value, length));
-    int result = list_insert_item(item, entry->values);
-    if (result) {
-        entry->num_values++;
-//         LOG_DEBUG_F("value %zu = %s\n", entry->num_values, (char*) item->data_p);
-    } else {
-//         LOG_DEBUG_F("value %zu not inserted\n", entry->num_values);
-    }
+    int result = array_list_insert(strndup(value, length), entry->values);
+//     if (result) {
+//         LOG_DEBUG_F("value %zu = %s\n", entry->values->size, (char*) item->data_p);
+//     } else {
+//         LOG_DEBUG_F("value %zu not inserted\n", entry->values->size);
+//     }
 }
 
 

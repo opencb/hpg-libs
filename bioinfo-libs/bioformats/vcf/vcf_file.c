@@ -80,7 +80,7 @@ vcf_file_t *vcf_file_new(char *filename, size_t max_simultaneous_batches) {
 
 void vcf_close(vcf_file_t *vcf_file) {
     // Free file format
-//     free(vcf_file->format);
+    free(vcf_file->format);
 
     // Free samples names
     array_list_free(vcf_file->samples_names, free);

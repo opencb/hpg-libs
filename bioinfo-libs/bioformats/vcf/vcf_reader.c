@@ -21,7 +21,7 @@ vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples) 
 void vcf_reader_status_free(vcf_reader_status *status) {
     assert(status);
     
-    if (status->current_header_entry->name == NULL && status->current_header_entry->num_keys == 0 && status->current_header_entry->num_values == 0) {
+    if (status->current_header_entry->name == NULL && status->current_header_entry->values->size == 0) {
         vcf_header_entry_free(status->current_header_entry);
     }
     if (vcf_batch_is_empty(status->current_batch)) {
