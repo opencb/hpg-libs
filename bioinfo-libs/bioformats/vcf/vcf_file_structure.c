@@ -1,9 +1,9 @@
 #include "vcf_file_structure.h"
 
-//-----------------------------------------------------
-// Header/records allocation/freeing
-//-----------------------------------------------------
 
+/* ********************************************************
+ *      (De)Allocation of header entries and records      *
+ * ********************************************************/
 
 vcf_header_entry_t* vcf_header_entry_new() {
     vcf_header_entry_t *entry = (vcf_header_entry_t*) malloc (sizeof(vcf_header_entry_t));
@@ -23,6 +23,30 @@ void vcf_header_entry_free(vcf_header_entry_t *header_entry) {
 vcf_record_t* vcf_record_new() {
     vcf_record_t *record = (vcf_record_t*) calloc (1, sizeof(vcf_record_t));
     record->samples = array_list_new(16, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
+    return record;
+}
+
+vcf_record_t *vcf_record_copy(vcf_record_t *orig) {
+    vcf_record_t *record = (vcf_record_t*) calloc (1, sizeof(vcf_record_t));
+    record->chromosome = strndup(orig->chromosome, orig->chromosome_len);
+    record->chromosome_len = orig->chromosome_len;
+    record->position = orig->position;
+    record->id = strndup(orig->id, orig->id_len);
+    record->id_len = orig->id_len;
+    record->reference = strndup(orig->reference, orig->reference_len);
+    record->reference_len = orig->reference_len;
+    record->alternate = strndup(orig->alternate, orig->alternate_len);
+    record->alternate_len = orig->alternate_len;
+    record->filter = strndup(orig->filter, orig->filter_len);
+    record->filter_len = orig->filter_len;
+    record->info = strndup(orig->info, orig->info_len);
+    record->info_len = orig->info_len;
+    record->format = strndup(orig->format, orig->format_len);
+    record->format_len = orig->format_len;
+    record->samples = array_list_new(orig->samples->size + 1, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
+    for (int i = 0; i < orig->samples->size; i++) {
+        array_list_insert(strdup(array_list_get(i, orig->samples)), record->samples);
+    }
     return record;
 }
 
@@ -46,9 +70,9 @@ void vcf_record_free_deep(vcf_record_t *record) {
 }
 
 
-//-----------------------------------------------------
-// load data into the vcf_file_t
-//-----------------------------------------------------
+/* ********************************************************
+ *           Addition of header and record entries        *
+ * ********************************************************/
 
 int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *file) {
     assert(header_entry);
@@ -82,17 +106,6 @@ int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file) {
     list_insert_item(item, file->record_batches);
 }
 
-// int add_record(vcf_record_t* record, vcf_file_t *vcf_file) {
-//     int result = array_list_insert(record, vcf_file->records);
-// //     if (result) {
-// //         (vcf_file->num_records)++;
-// // //         LOG_DEBUG_F("record %zu\n", vcf_file->num_records);
-// //     } else {
-// // //         LOG_DEBUG_F("record %zu not inserted\n", vcf_file->num_records);
-// //     }
-//     return result;
-// }
-
 vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {
     assert(file);
     list_item_t *item = list_remove_item(file->record_batches);
@@ -103,7 +116,6 @@ vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {
     }
     return NULL;
 }
-
 
 
 size_t get_num_vcf_header_entries(vcf_file_t *file) {
@@ -136,9 +148,9 @@ size_t get_num_vcf_batches(vcf_file_t *file) {
 }
 
 
-/* **************** Batch management functions **********************/
-
-
+/* ********************************************************
+ *                    Batch management                    *
+ * ********************************************************/
 
 vcf_batch_t* vcf_batch_new(size_t size) {
     vcf_batch_t *vcf_batch = calloc (1, sizeof(vcf_batch_t));
@@ -196,8 +208,9 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch) {
 }
 
 
-
-/* ************ Header management functions **********************/
+/* ********************************************************
+ *                    Header management                   *
+ * ********************************************************/
 
 void set_file_format(char *fileformat, int length, vcf_file_t *file) {
     assert(fileformat);
@@ -227,7 +240,9 @@ void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry) 
 }
 
 
-/* ************ Record management functions **********************/
+/* ********************************************************
+ *                    Record management                   *
+ * ********************************************************/
 
 void set_vcf_record_chromosome(char* chromosome, int length, vcf_record_t* record) {
     assert(chromosome);

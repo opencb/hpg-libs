@@ -134,6 +134,16 @@ void vcf_header_entry_free(vcf_header_entry_t *header_entry);
 vcf_record_t* vcf_record_new();
 
 /**
+ * @brief Creates a copy of an existing record.
+ * @details Creates a copy of an existing record. All its fields are replicated in new memory 
+ * segments, so the original record can be deallocated without risk.
+ *
+ * @param orig The original record
+ * @return The new record
+ **/
+vcf_record_t *vcf_record_copy(vcf_record_t *orig);
+
+/**
  * @brief Deallocates memory of a record.
  * @details Deallocates memory of a record. Must be used when the record is loaded from an already 
  * existing file, because its contents will be stored in the "text" field of a vcf_batch.
@@ -462,6 +472,5 @@ void set_vcf_record_format(char* format, int length, vcf_record_t* record);
  * @param record The record to add the sample to
  **/
 void add_vcf_record_sample(char* sample, int length, vcf_record_t* record);
-
 
 #endif
