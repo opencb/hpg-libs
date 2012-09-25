@@ -117,7 +117,7 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
     }
     
     for (int i = 0; i < file->samples_names->size; i++) {
-        if (fprintf(fd, "\t%s", array_list_get(i, file->samples_names)) < 0) {
+        if (fprintf(fd, "\t%s", (char*) array_list_get(i, file->samples_names)) < 0) {
             return 1;
         }
     }
