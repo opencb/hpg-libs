@@ -27,13 +27,17 @@
 typedef struct batch_writer_input {
   char* match_filename;
   char* mismatch_filename;
-  char* splice_filename;
+
+  char* splice_exact_filename;
+  char* splice_extend_filename;
+
   list_t* list_p;
 } batch_writer_input_t;
 
 //------------------------------------------------------------------------------------
 
-void batch_writer_input_init(char* match_filename, char* splice_filename, list_t* list_p, batch_writer_input_t* input);
+void batch_writer_input_init(char* match_filename, char* splice_exact_filename, 
+			     char* splice_extend_filename, list_t* list_p, batch_writer_input_t* input);
 //====================================================================================
 
 void batch_writer(batch_writer_input_t* input_p);

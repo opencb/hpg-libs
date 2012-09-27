@@ -12,6 +12,7 @@
 #include "bioformats/fastq/fastq_batch_reader.h"
 
 #include "error.h"
+
 #include "timing.h"
 #include "buffers.h"
 #include "bwt_server.h"
@@ -20,9 +21,22 @@
 #include "cal_seeker.h"
 #include "sw_server.h"
 #include "pair_server.h"
-//#include "rna_server.h"
 #include "batch_aligner.h"
+
+// rna server
+#include "rna_server.h"
+#include "sw.h"
+#include "smith_waterman.h"
+
+#include "options.h"
 #include "statistics.h"
+
+
+double emboss_matrix_t = 0.0f, emboss_tracking_t = 0.0f;
+double sse_matrix_t = 0.0f, sse_tracking_t = 0.0f;
+double sse1_matrix_t = 0.0f, sse1_tracking_t = 0.0f;
+double avx_matrix_t = 0.0f, avx_tracking_t = 0.0f;
+double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
 //-------------------------------------------------------
 // constants
@@ -49,7 +63,6 @@
 
 char time_on = 0;
 char statistics_on = 0;
-unsigned int id_splice = 1;
 timing_t* timing_p = NULL;
 int num_of_chromosomes;
 statistics_t *statistics_p;
@@ -58,344 +71,65 @@ statistics_t *statistics_p;
 // main parameters support
 //--------------------------------------------------------------------
 
-enum option_req { NO_APPEAR=0, APPEAR=1, NO_REQUIRED=2, REQUIRED=3 };
-enum type_option { FILE_T=0, INTEGER_T=1, FLOAT_T=2, NONE_T=3, OFILE_T=4, STRING_T=5 };
-
-typedef struct option_item {
-  char *option;
-  char *value;
-  int id;
-  int required;
-  int type;
-} option_item_t;
-
-enum options_id{  READS_INPUT        = 0,  	BWT_DIRECTORY     = 1, 		GENOME_FILE        = 2, 	CHROMOSOME_FILE        = 3, 
-		  OUTPUT_FILE        = 4,  	MISMATCH_FILE     = 5, 		GPU_THREADS        = 6, 	CPU_THREADS            = 7, 
-		  RNA_ALIGNER        = 8,  	SEED_SIZE         = 9, 		MIN_SEED_SIZE      = 10, 	SEEDS_MAX_DISTANCE     = 11,
-		  BATCH_SIZE         = 12, 	CAL_SEEKERS_NUM   = 13,		SMITH_WATERMAN_NUM = 14,	BWT_NUM                = 15,
-		  MIN_CAL_SIZE       = 16,	CAL_SEEKER_ERRORS = 17,		FLANK_LENGTH  	   = 18,	MATCH_VALUE            = 19,
-		  MISMATCH_VALUE     = 20,   	GAP_OPEN_PENALTY  = 21,		GAP_EXTEND_PENALTY = 22,	MINIMUM_SCORE          = 23,
-		  TIMING_MODE        = 24,	STATISTICS_MODE   = 25,		PAIR_INPUT         = 26,        PAIR_MODE              = 27,
-                  PAIR_MIN_DISTANCE  = 28,      PAIR_MAX_DISTANCE = 29,          UNKNOWN 	   = -1
-	      };
-
-option_item_t long_options[OPTIONS] = {
-  {"<Unknown>",			"<Unknown>",		                          		UNKNOWN,  	   	-1,    	    	-1},
-  {"-i", 			"Reads File Input",	                           		READS_INPUT,  	 	REQUIRED,    	FILE_T},
-  {"-p", 			"Reads Pair File Input",	                           	PAIR_INPUT,  	 	NO_REQUIRED,   	FILE_T},
-  {"-b", 			"Bwt Directory Name",	                           		BWT_DIRECTORY, 	 	REQUIRED,    	FILE_T},
-  {"-g", 			"Genome Filename",	                           		GENOME_FILE, 	 	NO_REQUIRED, 	FILE_T},
-  {"-c", 			"Chromosome Filename",	                           		CHROMOSOME_FILE, 	NO_REQUIRED, 	FILE_T},
-  {"-o", 			"Output Filename",                             		        OUTPUT_FILE, 	 	NO_REQUIRED, 	OFILE_T},
-  {"--gpu-threads", 		"Number Gpu Threads",	                           		GPU_THREADS,     	NO_REQUIRED, 	INTEGER_T},
-  {"--omp-threads", 		"Number CPU Threads",	                           		CPU_THREADS,     	NO_REQUIRED, 	INTEGER_T},
-  {"--rna-seq", 		"",			                           		RNA_ALIGNER, 	 	NO_REQUIRED, 	NONE_T},
-  {"--cal-seeker-errors", 	"Number of errors in cal seeker",                       	CAL_SEEKER_ERRORS, 	NO_REQUIRED, 	INTEGER_T},
-  {"--min-cal-size", 	        "Minimum cal size",   	                          		MIN_CAL_SIZE,       	NO_REQUIRED, 	INTEGER_T},
-  {"--max-distance-seeds", 	"Max Distance Segment",                           		SEEDS_MAX_DISTANCE,     NO_REQUIRED, 	INTEGER_T},
-  {"--batch-size", 		"Batch Size",		                          		BATCH_SIZE, 		NO_REQUIRED, 	INTEGER_T},
-  {"--num-cal-seekers", 	"Number of CAL seekers",                          		CAL_SEEKERS_NUM, 	NO_REQUIRED, 	INTEGER_T},
-  {"--num-sw-servers", 		"Number of Smith-Waterman servers",               		SMITH_WATERMAN_NUM, 	NO_REQUIRED, 	INTEGER_T},
-  {"--num-bwt-threads",	        "Number of bwt threads",               		                BWT_NUM, 	        NO_REQUIRED, 	INTEGER_T},
-  {"--seed-size", 		"Seed size",                                      		SEED_SIZE, 		NO_REQUIRED, 	INTEGER_T},
-  {"--min-seed-size",	        "Minimum number of nucleotides in a seed",              	MIN_SEED_SIZE, 		NO_REQUIRED, 	INTEGER_T},
-  {"--cal-flank-length",	"Flank length for CALs",                          		FLANK_LENGTH, 		NO_REQUIRED, 	INTEGER_T},
-  {"--match",	                "Match value for Smith-Waterman algorithm",       		MATCH_VALUE, 		NO_REQUIRED, 	FLOAT_T},
-  {"--mismatch",	        "Mismatch value for Smith-Waterman algorithm",    		MISMATCH_VALUE, 	NO_REQUIRED, 	FLOAT_T},
-  {"--gap-open",	        "Gap open penalty for Smith-Waterman algorithm",  		GAP_OPEN_PENALTY, 	NO_REQUIRED, 	FLOAT_T},
-  {"--gap-extend",	        "Gap extend penalty for Smith-Waterman algorithm",		GAP_EXTEND_PENALTY, 	NO_REQUIRED, 	FLOAT_T},
-  {"--min-score", 		"Minimum score for valid mappings (0..1)",        		MINIMUM_SCORE, 		NO_REQUIRED, 	FLOAT_T},
-  {"--pair-mode", 		"Pair mode: single-end, paired-end or mate-pair",	        PAIR_MODE, 		NO_REQUIRED, 	STRING_T},
-  {"--pair-min-distance", 	"Minimum distance between pairs (400)",        		        PAIR_MIN_DISTANCE, 	NO_REQUIRED, 	INTEGER_T},
-  {"--pair-max-distance", 	"Maximum distance between pairs (1000)",       		        PAIR_MAX_DISTANCE, 	NO_REQUIRED, 	INTEGER_T},
-  {"-t", 		        "",		                               			TIMING_MODE, 		NO_REQUIRED, 	NONE_T},
-  {"-s", 		        "",		                               			STATISTICS_MODE,	NO_REQUIRED, 	NONE_T}  
-}; 
-
-option_item_t searchOptions(char *str, int *appearOptions) {
-  register int i;
-  
-  for(i=0; i< OPTIONS; i++){
-    if(strcmp(str, long_options[i].option) == 0){
-      appearOptions[i]=APPEAR;
-      return long_options[i];
-    }
-  }
-  
-  return long_options[0];
-}
-
-void usagePrint() {	
-  register int i;
-  printf("\nUsage:\n");
-  printf("  ./%s [Options]", __FILE__);
-  
-  for(i=1; i<OPTIONS; i++){
-    if( long_options[i].required == REQUIRED){
-      if(strcmp("", long_options[i].value) != 0){
-	printf(" %s <%s>", long_options[i].option, long_options[i].value);
-      }else{
-	printf(" %s", long_options[i].option);
-      }
-    }
-  }
-  
-  printf("\n\nDescription \n");
-  for(i=1; i<OPTIONS; i++){
-    if(strcmp("", long_options[i].value) != 0){
-      printf("  %-25s <%s>\n", long_options[i].option, long_options[i].value);
-    }else{
-      printf("  %-25s\n", long_options[i].option);
-    }
-  }
-}
-
-//===============================================================
-//  main
-//===============================================================
-extern int unmapped_by_max_cals_counter[100];
-extern int unmapped_by_score_counter[100];
-
 int main(int argc, char* argv[]) {
-  char *in_filename1 = NULL;
-  char *in_filename2 = NULL;
-  char *bwt_dirname;
-  char *genome_filename;
-  char *chromosome_filename;
-  char *output_filename = "reads_results.bam";
-  //char* mismatch_filename = "MismatchsResults.fq";
-  unsigned int num_gpu_threads = 32;
-  unsigned int num_cpu_threads = 6;
-  unsigned int rna_seq = 0; 
-  unsigned int cal_seeker_errors = 0; //select value default
-  unsigned int min_cal_size = 20; //select value default
-  unsigned int seeds_max_distance = 60; //select value default
-  unsigned int bwt_threads = 4; //select value default
-  unsigned int batch_size = 200000; //  0.2 MB
-  unsigned int write_size = 500000;  //  0.5 MB
-  unsigned int num_cal_seekers = 1;
-  unsigned int num_sw_servers = 1;
-  unsigned int min_seed_size = 16;
-  unsigned int seed_size = 18;
-  //unsigned int num_seeds_per_cal = 2;
-  unsigned int flank_length = 20;
-  float min_score = 0.60f;
-  float match = 5.0f;
-  float mismatch = -4.0f;
-  float gap_open = 10.0f;
-  float gap_extend = 0.5f;
+  options_t *options_p = parse_options(argc, argv);
+
+  char* in_filename = strdup(options_p->in_filename);
+  char* bwt_dirname =  strdup(options_p->bwt_dirname);
+  char* genome_filename =  strdup(options_p->genome_filename);
+  char* chromosome_filename =  strdup(options_p->chromosome_filename);
+  char* output_filename =  strdup(options_p->output_filename);
+  unsigned int num_gpu_threads =  (unsigned int)options_p->num_gpu_threads;
+  unsigned int num_cpu_threads =  (unsigned int)options_p->num_cpu_threads;
+  unsigned int rna_seq =  (unsigned int)options_p->rna_seq; 
+  unsigned int cal_seeker_errors =  (unsigned int)options_p->cal_seeker_errors; 
+  unsigned int min_cal_size =  (unsigned int)options_p->min_cal_size; 
+  unsigned int seeds_max_distance =  (unsigned int)options_p->seeds_max_distance; 
+  unsigned int bwt_threads =  (unsigned int)options_p->bwt_threads; 
+  unsigned int batch_size =  (unsigned int)options_p->batch_size; 
+  unsigned int write_size =  (unsigned int)options_p->write_size;  
+  unsigned int num_cal_seekers =  (unsigned int)options_p->num_cal_seekers;
+  unsigned int region_threads =  (unsigned int)options_p->region_threads;
+  unsigned int num_sw_servers =  (unsigned int)options_p->num_sw_servers;
+  unsigned int min_seed_size =  (unsigned int)options_p->min_seed_size;
+  unsigned int seed_size =  (unsigned int)options_p->seed_size;
+  unsigned int max_intron_length =  (unsigned int)options_p->max_intron_length;
+  unsigned int flank_length =  (unsigned int)options_p->flank_length;
+  float min_score =  (float)options_p->min_score;
+  float match =   (float)options_p->match;
+  float mismatch =   (float)options_p->mismatch;
+  float gap_open =   (float)options_p->gap_open;
+  float gap_extend =   (float)options_p->gap_extend;
   unsigned int version;
-  char *splice_filename = "SpliceJunctions.bed";
-
-  int is_pair = 0;
-  int flags = SINGLE_END_FLAG;
-  char *pair_mode = "single-end";
-  unsigned int pair_min_distance = 400, pair_max_distance = 1000;
-  pair_mng_t *pair_mng = NULL;
-
-  //printf("A=%i C=%i G=%i N=%i T=%i\n", 'A'&7, 'C'&7, 'G'&7, 'N'&7, 'T'&7);
-  //exit(-1);
-
+  char *splice_exact_filename =  strdup(options_p->splice_exact_filename);
+  char *splice_extend_filename =  strdup(options_p->splice_extend_filename);
+  unsigned int min_intron_length =  options_p->min_intron_length;
+  time_on =  (unsigned int)options_p->timming;
+  statistics_on =  (unsigned int)options_p->statistics;
+  
+  options_free(options_p);
+  
   register int i;
-  option_item_t optionData;
-  /*
-  if(argc < MIN_ARGC)  
-  {
-    printf("ERROR: No readInput file or BWT directory specified\n");
-    usagePrint();
-    exit(-1);
-  }*/
-  int *appearOptions;
-  int valueAtoi;
-  float valueAtof = 0.0f;
-  appearOptions=(int *)calloc(OPTIONS, sizeof(int));
-  
-  for(i=1; i<argc; i++){
-    optionData=searchOptions(argv[i], appearOptions);
-    
-    if(optionData.id == UNKNOWN){
-	printf("ERROR: Unrecognized option %s\n", argv[i]);
-	usagePrint();
-	exit(-1);
-    }
-    
-    else if( (strcmp("", optionData.value) != 0) ){
-
-      if(i+1 >= argc){
-	printf("ERROR: Usage %s <%s> \n", optionData.option, optionData.value);
-	usagePrint();
-	exit(-1);
-      }
-      
-      i++;
-      
-      if (optionData.type == FILE_T) {
-	if (fopen(argv[i],"r") == 0) {
-	  printf("ERROR: File %s not found\n", argv[i]);
-	  usagePrint();
-	  exit(-1);
-	}
-      } else if (optionData.type == INTEGER_T) {
-	sscanf(argv[i], "%i", &valueAtoi);
-	if(valueAtoi < 0) {
-	  printf("ERROR: All values are positive\n");
-	  usagePrint();
-	  exit(-1);
-	}
-      } else if (optionData.type == FLOAT_T) {
-	//sscanf(argv[i], "%.2f", &valueAtof);
-	valueAtof = atof(argv[i]);
-      }
-    }
-	      
-    switch(optionData.id) {
-        case READS_INPUT:
-	     in_filename1 = argv[i];
-	     break;
-        case PAIR_INPUT:
-	     in_filename2 = argv[i];
-	     break;
-        case BWT_DIRECTORY:
-	     bwt_dirname = argv[i];
-	     break;
-        case GENOME_FILE:
-	     genome_filename = argv[i];
-	     break;
-        case CHROMOSOME_FILE:
-	     chromosome_filename = argv[i];
-	     break;
-        case OUTPUT_FILE:
-	     output_filename = argv[i];
-	     break;
-        case GPU_THREADS:
-	     num_gpu_threads = valueAtoi;
-	     break;
-        case CPU_THREADS:
-	     num_cpu_threads = valueAtoi;
-	     break;
-        case RNA_ALIGNER:
-	     rna_seq = 1;
-	     break;
-        case CAL_SEEKER_ERRORS:
-	     cal_seeker_errors = valueAtoi;
-	     break;
-        case MIN_CAL_SIZE:
-	     min_cal_size = valueAtoi;
-	     break;
-        case MIN_SEED_SIZE:
-	     min_seed_size = valueAtoi;
-	     break;
-        case BATCH_SIZE:
-	     batch_size = valueAtoi;
-	     break;
-        case CAL_SEEKERS_NUM:
-	     num_cal_seekers = valueAtoi;
-	     break;
-        case SMITH_WATERMAN_NUM:
-	     num_sw_servers = valueAtoi;
-	     break;
-        case SEEDS_MAX_DISTANCE:
-	     seeds_max_distance = valueAtoi;
-	     break;
-        case SEED_SIZE:
-	     seed_size = valueAtoi;
-	     break;
-        case BWT_NUM:
-	     bwt_threads = valueAtoi;
-	     break;
-        case FLANK_LENGTH:
-	     flank_length = valueAtoi;
-	     break;
-        case MATCH_VALUE:
-	     match = valueAtof;
-	     break;
-        case MISMATCH_VALUE:
-	     mismatch = valueAtof;
-	     break;
-        case GAP_OPEN_PENALTY:
-	     gap_open = valueAtof;
-	     break;
-        case GAP_EXTEND_PENALTY:
-	     gap_extend = valueAtof;
-	     break;
-        case MINIMUM_SCORE:
-	     min_score = valueAtof;
-	     break;
-        case PAIR_MODE:
-	     pair_mode = argv[i];
-	     if (strcmp(pair_mode, "paired-end") == 0) {
-	       flags = PAIRED_END_FLAG;
-	       is_pair = 1;
-	     } else if (strcmp(pair_mode, "mate-pair") == 0) {
-	       flags = MATE_PAIR_FLAG;
-	       is_pair = 1;
-	     } else {
-	       flags = SINGLE_END_FLAG;
-	       is_pair = 0;
-	     }
-	     break;
-        case PAIR_MIN_DISTANCE:
-	     pair_min_distance = valueAtoi;
-	     break;
-        case PAIR_MAX_DISTANCE:
-	     pair_max_distance = valueAtoi;
-	     break;
-        case TIMING_MODE:
-	     time_on = 1;
-	     break;
-	case STATISTICS_MODE:
-	     statistics_on = 1;
-	     break;
-      }
-  }
-  
-  for (i = 0; i < OPTIONS; i++) {
-       if( (appearOptions[i] == NO_APPEAR) && (long_options[i].required == REQUIRED)) {
-	    printf("ERROR: Parameters");
-      
-	    for (i = 0; i < OPTIONS; i++) {
-		 if(long_options[i].required == REQUIRED) {
-		      if(strcmp("", long_options[i].value) != 0) {
-			   printf(" %s <%s>", long_options[i].option, long_options[i].value);
-		      } else {
-			   printf(" %s", long_options[i].option);
-		      }
-		 }
-	    }
-	    printf(" are required\n");
-	    usagePrint();
-	    exit(-1);
-       }
-  }
-  free(appearOptions);
-  
-  int cuda;
-  
-  /*#ifdef CUDA_VERSION
-     cuda = 1;
-  #else
-     cuda = 0;
-  #endif*/
 
   printf("PARAMETERS CONFIGURATION\n");
   printf("=================================================\n");
   printf("Num gpu threads %d\n", num_gpu_threads);
-  printf("Num cpu threads %d\n", num_cpu_threads);
-  printf("RNA Server: %s\n", rna_seq == 0 ? "Disable":"Enable");
-  printf("CAL seeker errors: %d\n", cal_seeker_errors);
-  printf("Min CAL size: %d\n", min_cal_size);
-  printf("Seeds max distance: %d\n", seeds_max_distance);
-  printf("Batch size: %dBytes\n", batch_size);
-  printf("Write size: %dBytes\n", write_size);
-  printf("BWT Threads: %d\n", bwt_threads);
+  printf("Num cpu threads %d\n",  num_cpu_threads);
+  printf("RNA Server: %s\n",  rna_seq == 0 ? "Disable":"Enable");
+  printf("CAL seeker errors: %d\n",  cal_seeker_errors);
+  printf("Min CAL size: %d\n",  min_cal_size);
+  printf("Seeds max distance: %d\n",  seeds_max_distance);
+  printf("Batch size: %dBytes\n",  batch_size);
+  printf("Write size: %dBytes\n",  write_size);
+  printf("BWT Threads: %d\n",  bwt_threads);
+  printf("Region Threads: %d\n",  region_threads);
   printf("Num CAL seekers: %d\n", num_cal_seekers);
-  printf("Num SW servers: %d\n", num_sw_servers);
-  printf("Min seed size: %d\n", min_seed_size);
-  printf("Seed size: %d\n", seed_size);
+  printf("Num SW servers: %d\n",  num_sw_servers);
+  printf("Min seed size: %d\n",  min_seed_size);
+  printf("Seed size: %d\n",  seed_size);
+  printf("Max intron length: %d\n", max_intron_length);
+  printf("Min intron length: %d\n", min_intron_length);
   printf("Flank length: %d\n", flank_length);
-  printf("Pair mode: %s\n", pair_mode);
-  printf("Min. distance between pairs: %d\n", pair_min_distance);
-  printf("Max. distance between pairs: %d\n", pair_max_distance);
   printf("SMITH-WATERMAN PARAMETERS\n");
   printf("\tMin score  : %0.4f\n", min_score);
   printf("\tMatch      : %0.4f\n", match);
@@ -424,7 +158,8 @@ int main(int argc, char* argv[]) {
     //timing_start(INIT_INDEX, 0, timing_p);
     
   }
-  if(statistics_on) {
+
+  if (statistics_on) {
     /*
      * FastqQ reader      : Num Batches %d 
      * BWT server         : Num Reads process %d, Num reads mapped %d, Num reads unmapped %d, Num mappings report %d 
@@ -451,10 +186,11 @@ int main(int argc, char* argv[]) {
 								"Mappings report         ",
 								
 								"Num batches process     ",
-								"Num regions             ",
+								"Num reads process       ",
 								
 								"Num batches process     ",
-								"Total cals              ",
+								"Total reads process     ",
+
 								"Num reads unmapped      ",
 								
 								"Num batches process     ",
@@ -480,13 +216,13 @@ int main(int argc, char* argv[]) {
   //
 
   printf("Reading bwt index...\n");
+
   if(time_on){ timing_start(INIT_BWT_INDEX, 0, timing_p); }
   bwt_index_t *bwt_index_p = bwt_index_new(bwt_dirname);
   if(time_on){ timing_stop(INIT_BWT_INDEX, 0, timing_p); }
   printf("Reading bwt index done !!\n");
   // (errors, threads, max aligns) 
-  bwt_optarg_t *bwt_optarg_p = bwt_optarg_new(1, bwt_threads, 200);
-  //  bwt_optarg_t *bwt_optarg_p = bwt_optarg_new(1, bwt_threads, 500);
+  bwt_optarg_t *bwt_optarg_p = bwt_optarg_new(1, bwt_threads, 500);
   
   
   //GOOD LUCK(20, 60, 18, 16, 0)
@@ -494,6 +230,7 @@ int main(int argc, char* argv[]) {
   cal_optarg_t *cal_optarg_p = cal_optarg_new(min_cal_size, seeds_max_distance, seed_size, min_seed_size, cal_seeker_errors);
   
   printf("reading genome...\n");
+
   if(time_on){ timing_start(INIT_GENOME_INDEX, 0, timing_p); }
   genome_t* genome_p = genome_new(genome_filename, chromosome_filename);
   if(time_on){ timing_stop(INIT_GENOME_INDEX, 0, timing_p); }
@@ -520,7 +257,6 @@ int main(int argc, char* argv[]) {
 
   void *context_p = NULL;
 
-
  /* if (cuda) {
     int num_gpus = 2;
     context_p = (void *) gpu_context_new(num_gpus, num_gpu_threads);
@@ -528,6 +264,7 @@ int main(int argc, char* argv[]) {
   
   // lists to communicate/synchronize the different threads
   //
+  /* >>>>>> JT
   list_t read_list;
   list_t unmapped_reads_list;
   list_t regions_list;
@@ -555,14 +292,6 @@ int main(int argc, char* argv[]) {
 
   // in sw_list, the threads insert are the cal_seekers and
   // in case of pair mode, the bwt_server too
-  /*
-  printf("writers to read_list = %d\n", list_get_writers(&read_list));
-  printf("writers to unmapped_reads_list = %d\n", list_get_writers(&unmapped_reads_list));
-  printf("writers to regions_list = %d\n", list_get_writers(&regions_list));
-  printf("writers to sw_list = %d\n", list_get_writers(&sw_list));
-  printf("writers to pair_list = %d\n", list_get_writers(&pair_list));
-  printf("writers to write_list = %d\n", list_get_writers(&write_list));
-  */
 
   //start delete ...
   //list_decr_writers(&unmapped_reads_list);
@@ -572,6 +301,23 @@ int main(int argc, char* argv[]) {
   //list_decr_writers(&write_list);
   //list_decr_writers(&write_list);
   //end delete
+  <<<<<<<<<<<<<<<  JT */
+
+  list_t read_list;
+  list_init("read", 1, 10, &read_list);
+  
+  list_t unmapped_reads_list;
+  list_init("unmmaped reads", 1, 10, &unmapped_reads_list);
+  
+  list_t regions_list;
+  list_init("regions", 1, 10, &regions_list);
+  
+  list_t sw_list;
+  list_init("sw", num_cal_seekers, 10, &sw_list);
+
+  list_t write_list;
+  list_init("write", 1 + num_cal_seekers + num_sw_servers, 10, &write_list);
+  
 
   // launch threads in parallel
   //
@@ -579,6 +325,7 @@ int main(int argc, char* argv[]) {
   //omp_set_num_threads(num_cpu_threads);
   
   //Rna Version
+  /* >>>>>> JT
   version = 2;
 
 
@@ -726,10 +473,10 @@ int main(int argc, char* argv[]) {
     genome_free(genome_p);
     if (time_on) { timing_stop(FREE_MAIN, 0, timing_p); }
     
-    /*if (cuda) {
-      gpu_context_free((gpu_context_t*) context_p);
-      }
-      if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }*/
+    //if (cuda) {
+   //   gpu_context_free((gpu_context_t*) context_p);
+   //   }
+   //   if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }
     
     if (time_on) { 
       timing_stop(MAIN_INDEX, 0, timing_p);
@@ -752,6 +499,110 @@ int main(int argc, char* argv[]) {
     printf("unmapped by SW score = %d\n", by_score);
     
     return 0;
+  <<<<<<<<<<<<<<<  JT */
+
+  #pragma omp parallel sections num_threads(6)
+  {
+    printf("Principal Sections %d threads\n", omp_get_num_threads());
+    #pragma omp section
+    {
+      fastq_batch_reader_input_t input;
+      fastq_batch_reader_input_init(in_filename, batch_size, &read_list, &input);
+      fastq_batch_reader(&input);
+    }
+    #pragma omp section
+    {
+	bwt_server_input_t input;
+        bwt_server_input_init(&read_list, batch_size, bwt_optarg_p, bwt_index_p, &write_list, write_size, &unmapped_reads_list, &input);
+	bwt_server_cpu(&input);
+    }
+    #pragma omp section
+    {
+	region_seeker_input_t input;
+	region_seeker_input_init(&unmapped_reads_list, cal_optarg_p, bwt_optarg_p, bwt_index_p, &regions_list, region_threads, &input);
+	region_seeker_server(&input);
+    }
+    #pragma omp section
+    {
+      cal_seeker_input_t input;
+      cal_seeker_input_init(&regions_list, cal_optarg_p, &write_list, write_size, &sw_list, &input);
+      #pragma omp parallel num_threads(num_cal_seekers)
+      {
+	cal_seeker_server(&input);
+      }
+      
+    }
+    #pragma omp section
+    {
+      allocate_splice_elements_t chromosome_avls[CHROMOSOME_NUMBER];
+      init_allocate_splice_elements(&chromosome_avls);
+      sw_server_input_t input;
+      sw_server_input_init(&sw_list, &write_list, write_size, match, mismatch, gap_open, 
+			   gap_extend, min_score, flank_length, genome_p, max_intron_length,
+			   min_intron_length, seeds_max_distance, &input);
+      list_incr_writers(&write_list);
+      #pragma omp parallel num_threads(num_sw_servers)
+      {
+	if (rna_seq){
+	  rna_server_omp_smith_waterman(&input, &chromosome_avls);
+	}else {
+	  sw_server(&input);
+	} 
+      }
+
+      if(rna_seq){
+	process_and_free_chromosome_avls(&chromosome_avls, &write_list, write_size);
+      }
+
+      }
+     #pragma omp section
+    {
+      batch_writer_input_t input;
+      batch_writer_input_init(output_filename, splice_exact_filename, splice_extend_filename, &write_list, &input);
+      batch_writer(&input);
+    }
+  }
+  
+  printf("\nmain done !!\n");
+
+  // free memory
+  //  
+  if (time_on) { timing_start(FREE_MAIN, 0, timing_p); }
+  
+  bwt_index_free(bwt_index_p);
+  genome_free(genome_p);
+  bwt_optarg_free(bwt_optarg_p);
+  cal_optarg_free(cal_optarg_p);
+
+  free(in_filename);
+  free(bwt_dirname);
+  free(genome_filename);
+  free(chromosome_filename);
+  free(output_filename);
+  free(splice_exact_filename);
+  free(splice_extend_filename);
+  
+  if (time_on) { timing_stop(FREE_MAIN, 0, timing_p); }
+  
+  /*if (cuda) {
+    gpu_context_free((gpu_context_t*) context_p);
+  }
+  if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }*/
+
+  if (time_on) { 
+    timing_stop(MAIN_INDEX, 0, timing_p);
+    timing_display(timing_p);
+  }
+  
+  if (statistics_on) { statistics_display(statistics_p); }
+  
+  if (statistics_on && time_on) { timing_and_statistics_display(statistics_p, timing_p); }
+
+  if (time_on){ timing_free(timing_p); }
+
+  if (statistics_on) { statistics_free(statistics_p); }
+
+  return 0;
 }
 
 

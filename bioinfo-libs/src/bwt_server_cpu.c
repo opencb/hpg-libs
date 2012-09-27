@@ -1,109 +1,81 @@
 #include "bwt_server.h"
 
-
-void bwt_server_cpu(bwt_server_input_t* input){
+void bwt_server_cpu(bwt_server_input_t* input_p){
     
     printf("bwt_server_cpu(%d): START\n", omp_get_thread_num()); 
-    list_item_t *item = NULL;
-    list_item_t *write_item = NULL;
-    list_item_t *unmapped_item = NULL;
-    fastq_batch_t *fastq_batch;
-    fastq_batch_t *unmapped_batch;
+    list_item_t *item_p = NULL;
+    list_item_t *write_item_p = NULL;
+    list_item_t *unmapped_item_p = NULL;
+    fastq_batch_t *fastq_batch_p;
+    fastq_batch_t *unmapped_batch_p;
     array_list_t *mappings;
     size_t num_mappings;
-    size_t write_size = input->batch_size;
-    list_t *list = NULL;
-    list_t *pair_list = input->pair_list;
-    list_t *write_list = input->write_list;
-    list_t *unmapped_read_list = input->unmapped_read_list;
+    unsigned int write_size = input_p->batch_size;
+    list_t *write_list_p = input_p->write_list_p;
+    list_t *unmapped_read_list_p = input_p->unmapped_read_list_p;
     size_t num_mappings_tot = 0;
     size_t total_reads = 0;
     size_t reads_no_mapped = 0; 
-    write_batch_t* write_batch = write_batch_new(write_size, MATCH_FLAG);
+    write_batch_t* write_batch_p = write_batch_new(write_size, MATCH_FLAG);
     size_t num_batches = 0;
-
-    while ( (item = list_remove_item(input->read_list)) != NULL ) {
-      
-        if (item->type & PAIR1_FLAG || item->type & PAIR2_FLAG) {
-	  list = pair_list;
-	  printf("bwt_server inserting into pair list\n");
-	} else {
-	  list = write_list;
-	  printf("bwt_server inserting into write list\n");
-	}
-
+    while ( (item_p = list_remove_item(input_p->read_list_p)) != NULL ) {
 	num_batches++;
 	if (time_on) { timing_start(BWT_SERVER, 0, timing_p); }
 	
-	fastq_batch = (fastq_batch_t *) item->data_p;
+	fastq_batch_p = (fastq_batch_t *)item_p->data_p;
 	//printf("BWT Processing batch...\n");
-	unmapped_batch = fastq_batch_new(input->batch_size);
+	unmapped_batch_p = fastq_batch_new(input_p->batch_size);
 
 	//printf("Batch Init done. Processing batch ...\n");
-	mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+	mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
 	//start_timer(start_time);
 	//printf("\tCall function process\n");
-	num_mappings = bwt_map_inexact_batch(fastq_batch, input->bwt_optarg, 
-					     input->bwt_index, unmapped_batch, mappings);
+	num_mappings = bwt_map_inexact_batch(fastq_batch_p, input_p->bwt_optarg_p, input_p->bwt_index_p, unmapped_batch_p, mappings);
 	//printf("\tEnd call\n");
 	num_mappings_tot += num_mappings;
-	total_reads += fastq_batch->num_reads;
-	reads_no_mapped += unmapped_batch->num_reads;
-
+	total_reads += fastq_batch_p->num_reads;
+	reads_no_mapped += unmapped_batch_p->num_reads;
 	//Results
-	//printf("Process Batch (bwt_server_cpu): (%d)Mappings - (%d)Unmappings\n", 
-	//       num_mappings, unmapped_batch->num_reads);
+	//printf("Process Batch (bwt_server_cpu): (%d)Mappings - (%d)Unmappings\n", num_mappings, unmapped_batch_p->num_reads);
 	for(int i = 0; i < num_mappings; i++){
-	  /*
-	  printf("\t\t\tmapping found by bwt_server, name = %s, strand = %i, position = %i\n",
-		 ((alignment_t *)array_list_get(i, mappings))->query_name,
-		 ((alignment_t *)array_list_get(i, mappings))->seq_strand,
-		 ((alignment_t *)array_list_get(i, mappings))->position);
-	  */
 	  
-	  if ( write_batch->size >= write_batch->allocated_size - 1) {
-	    write_item = list_item_new(0, item->type | WRITE_ITEM_FLAG, write_batch);
+	  if ( write_batch_p->size >= write_batch_p->allocated_size - 1) {
+	    write_item_p = list_item_new(0, WRITE_ITEM, write_batch_p);
 	    if (time_on) { timing_stop(BWT_SERVER, 0, timing_p); }
-	    list_insert_item(write_item, list);
+	    list_insert_item(write_item_p, write_list_p);
 	    if (time_on) { timing_start(BWT_SERVER, 0, timing_p); }
 	    
-	    write_batch = write_batch_new(write_size, MATCH_FLAG);
+	    write_batch_p = write_batch_new(write_size, MATCH_FLAG);
 	  }
-	  ((alignment_t **) write_batch->buffer_p)[write_batch->size] = (alignment_t *)array_list_get(i, mappings);
-
-	  write_batch->size++;
+	  ((alignment_t **)write_batch_p->buffer_p)[write_batch_p->size] = (alignment_t *)array_list_get(i, mappings);
+	  write_batch_p->size++;
 	}
-	
-	// insert mapped read batch into the list to write
-	if (write_batch->size > 0) {
-	  write_item = list_item_new(0, item->type | WRITE_ITEM_FLAG, write_batch);
-	  if (time_on) { timing_stop(BWT_SERVER, 0, timing_p); }
-	  list_insert_item(write_item, list);
-	  if (time_on) { timing_start(BWT_SERVER, 0, timing_p); }
-
-	  write_batch = write_batch_new(write_size, MATCH_FLAG);
-	}
-
-	// insert unmapped read batch into the list to write
-	unmapped_item = list_item_new(0, item->type, unmapped_batch); 
-	if (time_on) { timing_stop(BWT_SERVER, 0, timing_p); }
-	list_insert_item(unmapped_item, unmapped_read_list);
 	
 	array_list_free(mappings, NULL);
-	list_item_free(item);
-	fastq_batch_free(fastq_batch);
+	list_item_free(item_p);
+	fastq_batch_free(fastq_batch_p);
+	//	fastq_batch_free(unmapped_batch_p);
 
-	//printf("BWT Processing batch finish! %d reads no mapped\n", unmapped_batch->num_reads);
+	unmapped_item_p = list_item_new(0, WRITE_ITEM, unmapped_batch_p); 
+	if (time_on) { timing_stop(BWT_SERVER, 0, timing_p); }
+	list_insert_item(unmapped_item_p, unmapped_read_list_p);
+	
+	//printf("BWT Processing batch finish! %d reads no mapped\n", unmapped_batch_p->num_reads);
+	
     }
-
-    // free memory
-    write_batch_free(write_batch);
-
-    // decreasing writers
-    if (write_list != NULL) list_decr_writers(write_list);
-    if (unmapped_read_list != NULL) list_decr_writers(unmapped_read_list);
-    if (pair_list != NULL) list_decr_writers(pair_list);
-
+    
+    if (write_batch_p != NULL) {
+      if (write_batch_p->size > 0) {
+	write_item_p = list_item_new(0, WRITE_ITEM, write_batch_p);
+	list_insert_item(write_item_p, write_list_p);
+      } else {
+	write_batch_free(write_batch_p);
+      }
+    }
+    
+    list_decr_writers(write_list_p);
+    list_decr_writers(unmapped_read_list_p);
+    
     if (statistics_on) { 
       statistics_set(BWT_SERVER_ST, 0, num_batches, statistics_p);
       statistics_set(BWT_SERVER_ST, 1, total_reads, statistics_p); 
@@ -122,19 +94,18 @@ void bwt_server_cpu(bwt_server_input_t* input){
 // bwt_server_input functions: init
 //====================================================================================
 
-void bwt_server_input_init(list_t *read_list, unsigned int batch_size, 
-			   bwt_optarg_t *bwt_optarg, bwt_index_t *bwt_index, 
-			   list_t *pair_list, list_t *write_list, size_t write_size,  
-			   list_t* unmapped_read_list, bwt_server_input_t* input) {
+void bwt_server_input_init(list_t* read_list_p, unsigned int batch_size, bwt_optarg_t *bwt_optarg_p, 
+			   bwt_index_t *bwt_index_p, list_t* write_list_p, unsigned int write_size, 
+			   list_t* unmapped_read_list_p, bwt_server_input_t* input_p) {
+  input_p->read_list_p = read_list_p;
+  input_p->batch_size = batch_size;
+  input_p->bwt_optarg_p = bwt_optarg_p;
+  input_p->write_list_p = write_list_p;
+  input_p->write_size = write_size;
+  input_p->bwt_index_p = bwt_index_p;
+  input_p->unmapped_read_list_p = unmapped_read_list_p;
+  //extern int num_of_chromosomes;
 
-  input->read_list = read_list;
-  input->batch_size = batch_size;
-  input->bwt_optarg = bwt_optarg;
-  input->write_list = write_list;
-  input->write_size = write_size;
-  input->pair_list = pair_list;
-  input->bwt_index = bwt_index;
-  input->unmapped_read_list = unmapped_read_list;
 }
 
 //====================================================================================
@@ -163,8 +134,8 @@ void apply_bwt(bwt_server_input_t* input, aligner_batch_t *batch) {
     batch->num_done = batch->num_mapping_lists;
     
     // run bwt
-    bwt_map_inexact_batch_by_filter(batch->fq_batch, input->bwt_optarg,
-				    input->bwt_index, 
+    bwt_map_inexact_batch_by_filter(batch->fq_batch, input->bwt_optarg_p,
+				    input->bwt_index_p, 
 				    batch->num_mapping_lists, NULL, 
 				    batch->num_mapping_lists, batch->mapping_lists,
 				    &num_mapped_reads, mapped_reads,
@@ -185,13 +156,3 @@ void apply_bwt(bwt_server_input_t* input, aligner_batch_t *batch) {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-
-
-    /*
-    // this actions must be performed by the scheduler
-    if (p->num_targets == 0) {
-      p->action = 
-    }
-    p->all_targets = (p->num_mapping_lists == p->num_targets ? 1 : 0);
-    p->action = SEEDING_ACTION;
-    */
