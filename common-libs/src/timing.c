@@ -11,6 +11,7 @@ int thr_batches[100];
 
 timing_t* timing_new(char** section_labels_p, int* num_threads_p, int num_sections) {
 
+  // for debugging
   for (int i = 0; i < 100; i++) {
     bwt_time[i] = 0;
     seeding_time[i] = 0;
@@ -55,16 +56,22 @@ void timing_free(timing_t* t_p) {
 
   int i, j;
   for(i=0 ; i<t_p->num_sections ; i++) {
-    if (t_p->section_labels_p[i] != NULL) free(t_p->section_labels_p[i]); 
+    if (t_p->section_labels_p[i] != NULL) { free(t_p->section_labels_p[i]); } 
 
-    if (t_p->thread_times_p[i] != NULL) free(t_p->thread_times_p[i]); 
-    if (t_p->start_times_p[i] != NULL) free(t_p->start_times_p[i]); 
-    if (t_p->stop_times_p[i] != NULL) free(t_p->stop_times_p[i]); 
+    if (t_p->thread_times_p[i] != NULL) { free(t_p->thread_times_p[i]); }
+    if (t_p->start_times_p[i] != NULL) {free(t_p->start_times_p[i]); } 
+    if (t_p->stop_times_p[i] != NULL) { free(t_p->stop_times_p[i]); }
   }
+  
+  if (t_p->section_labels_p != NULL) { free(t_p->section_labels_p); }
 
-  if (t_p->section_labels_p != NULL) free(t_p->section_labels_p);
-  if (t_p->num_threads_p != NULL) free(t_p->num_threads_p);
-  if (t_p->section_times_p != NULL) free(t_p->section_times_p);
+  if (t_p->thread_times_p != NULL) { free(t_p->thread_times_p); }
+  if (t_p->start_times_p != NULL) { free(t_p->start_times_p); }
+  if (t_p->stop_times_p != NULL) { free(t_p->stop_times_p); }
+
+  if (t_p->num_threads_p != NULL) { free(t_p->num_threads_p); }
+  if (t_p->section_times_p != NULL) { free(t_p->section_times_p); }
+  
   free(t_p);
 } 
 

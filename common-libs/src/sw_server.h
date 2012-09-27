@@ -35,6 +35,12 @@ typedef struct sw_server_input {
      unsigned int flank_length; /**< Length to extend the CAL region. */
      unsigned int write_size;   /**< Size of the writing batch (to disk). */
 
+     // for RNA 
+     unsigned int max_intron_size; /**< Intron max size */
+     unsigned int min_intron_size; /**< Intron max size */
+     unsigned int seed_max_distance;
+
+     // to get inputs and to save outputs
      list_t* sw_list_p;    /**< Pointer to the list that contains the input sequences to align. */
      list_t* write_list_p; /**< Pointer to the list that contains the output aligned sequences. */
 
@@ -63,8 +69,108 @@ typedef struct sw_server_input {
 void sw_server_input_init(list_t* sw_list_p, list_t* write_list_p, unsigned int write_size, 
 			  float match, float mismatch, float gap_open, float gap_extend, 
 			  float min_score, unsigned int flank_length, genome_t* genome_p,
+			  size_t max_intron_size, size_t min_intron_size, size_t seed_max_distance,
 			  sw_server_input_t* input_p);
 
+//====================================================================================
+//  Smith-Waterman channel for SIMD implementation
+//====================================================================================
+
+/**
+ * @brief Input structure for the Smith-Waterman server function.
+ *
+ * This structure contains all required parameters by
+ * the Smith-Waterman server function (@see sw_server).
+ * Smith-Waterman channel are re-usable by the different
+ * reads to align, in order to reduce memory allocations.
+ */
+typedef struct sw_channel {
+    size_t read_index;   /**< Index to the target read. */
+    unsigned int cal_index;   /**< Index to the target CAL. */
+    unsigned int header_len; /**< Read header length. */
+    unsigned int read_len;  /**< Read length. */
+
+    unsigned int allocated_ref_size;  /**< Allocated memory for the refence sequence. */
+    unsigned int ref_len;            /**< Reference sequence length. */
+    unsigned int start_splice;	    /**< Start splice site. */
+    unsigned int end_splice;	   /**< End splice site */
+    short int type; 		 /**< Type of CAL **/
+    unsigned int extra_search;  /**<  Multiples intron marks found **/
+    char* ref_p;                /**< Pointer to the reference sequence. */
+} sw_channel_t;
+
+//------------------------------------------------------------------------------------
+
+/**
+ * @brief Memory allocation for the Smith-Waterman channel reference sequence.
+ * @param length
+ * @param channel_p
+ *
+ * Allocates @a length bytes for storing the refernce sequence of the given channel.
+ */
+void sw_channel_allocate_ref(unsigned int length, sw_channel_t* channel_p);
+
+//------------------------------------------------------------------------------------
+
+/**
+ * @brief Smith-Waterman channel update.
+ * @param read_index
+ * @param cal_index
+ * @param read_len
+ * @param header_len
+ * @param ref_len
+ * @param channel_p
+ *
+ * Updates some fields of the @a sw_channel_t structure.
+ */
+void sw_channel_update(size_t read_index, unsigned int cal_index, unsigned int read_len,
+		       unsigned int header_len, unsigned int ref_len, sw_channel_t *channel_p);
+
+//====================================================================================
+//  Smith-Waterman server main function
+//====================================================================================
+
+/**
+ * @brief Smith-Waterman server main function.
+ * @param input_p pointer to the input structure containing the parameters required
+ *    by the Smith-Waterman server (@see sw_server_input_t)
+ *
+ * Basically, this function removes, from an input list, batches containing
+ * the sequences to align, then performs the Smith-Watermen algorithm based-on
+ * SSE or AVX instructions (depending on the system architecture), and the
+ * aligned sequences are packed into batches and insert these batches in an
+ * output list for further writting to disk.
+ */
+void sw_server(sw_server_input_t* input_p);
+
+//------------------------------------------------------------------------------------
+
+/**
+ * @brief Smith-Waterman output processing.
+ * @param sw_output_p
+ * @param sw_input_p
+ * @param min_score
+ * @param depth
+ * @param sw_channels_p
+ * @param sw_batch_p
+ * @param write_list_p
+ * @param[out] found_write_p
+ * @param write_size
+ * @param sw_id
+ * @param[out] total_valids_p
+ * @param[out] mapping_reads_p
+ * @param genome_p
+ *
+ * Basically, this function checks the aligned sequences by the Smith-Waterman
+ * algorithm, if they are valids (i.e., their scores are greater than the
+ * @a min_score), these sequences are pack in SAM format and insert in the
+ * @write_list_p list.
+ */
+write_batch_t* process_sw_output(sw_simd_output_t* sw_output_p, sw_simd_input_t* sw_input_p,
+				 float min_score, unsigned int depth, sw_channel_t* sw_channels_p,
+				 sw_batch_t* sw_batch_p, list_t* write_list_p, write_batch_t* found_write_p,
+				 unsigned int write_size, unsigned int sw_id, unsigned int* total_valids_p, 
+				 unsigned char* mapping_reads_p, genome_t* genome_p);
 
 //====================================================================================
 // apply_sw

@@ -5,100 +5,83 @@
 // a list
 //------------------------------------------------------------------------------------
 
-//unsigned long alignment_hash_code(void *p);
-//int alignment_compare(void *p1, void *p2);
-
-void batch_writer(batch_writer_input_t* input) {
+void batch_writer(batch_writer_input_t* input_p) {
 
   struct timespec ts;
   ts.tv_sec = 1;
   ts.tv_nsec = 0;
-  
-  alignment_t **alignments;
-  size_t num_alignments;
-  bam1_t *bam1;
-  bam_header_t *bam_header;
-  bam_file_t *bam_file;
 
-  cp_hashtable *hashtable = cp_hashtable_create_by_mode(COLLECTION_MODE_NOSYNC, 1000, 
-							cp_hash_istring, 
-							(cp_compare_fn) strcasecmp);
+  alignment_t **buffer_p;
+  bam1_t* bam1_p;
+  bam_header_t* bam_header_p;
+  bam_file_t* bam_file_p;
   
-  char* match_filename = input->match_filename;
+  char* match_filename = input_p->match_filename;
   //char* mismatch_filename = input_p->mismatch_filename;
-  char* splice_filename = input->splice_filename;
-  
-  list_t* list = input->list_p;
+
+  char* splice_exact_filename = input_p->splice_exact_filename;
+  char* splice_extend_filename = input_p->splice_extend_filename;
+
+  list_t* list_p = input_p->list_p;
 
   printf("batch_writer (%i): START\n", omp_get_thread_num());
 		
-  list_item_t *item = NULL;
-  write_batch_t* batch;
+  list_item_t *item_p = NULL;
+  write_batch_t* batch_p;
 
   FILE* fd;
-  FILE* splice_fd = fopen(splice_filename, "w");
-  
-  bam_header = bam_header_new(HUMAN, NCBI37);
-  bam_file = bam_fopen_mode(match_filename, bam_header, "w");
-  bam_fwrite_header(bam_header, bam_file);
+  FILE* splice_exact_fd  = fopen(splice_exact_filename, "w");
+  FILE* splice_extend_fd = fopen(splice_extend_filename, "w");
 
-  int pairs = 0;
-  size_t total_mappings = 0;
+  bam_header_p = bam_header_new(HUMAN, NCBI37);
+  //bam_file_p = bam_fopen(match_filename);
+  bam_file_p = bam_fopen_mode(match_filename, bam_header_p, "w");
+  bam_fwrite_header(bam_header_p, bam_file_p);
 
   // main loop
-  while ( (item = list_remove_item(list)) != NULL ) {
-
-    pairs = 0;
-    if ( (item->type & PAIR1_FLAG) || (item->type & PAIR2_FLAG) ) {
-      pairs = 1;
-    }
+  while ( (item_p = list_remove_item(list_p)) != NULL ) {
     
     if (time_on) { timing_start(BATCH_WRITER, 0, timing_p); }
 
-    batch = (write_batch_t*) item->data_p;
-
-    if (batch->flag == SPLICE_FLAG) { 
-      fwrite((char *) batch->buffer_p, batch->size, 1, splice_fd);
-    } else if (batch->flag == MATCH_FLAG || batch->flag == MISMATCH_FLAG) {
-
-      alignments = (alignment_t **) batch->buffer_p;
-      num_alignments = batch->size;
-
-      /*
-      if ( pairs ) {
-	process_pair((item->type & PAIR1_FLAG ? 1 : 2), 
-		     alignments, num_alignments, 
-		     bam_file, hashtable);
-      } else {
-      */
-	total_mappings += num_alignments;
-	for (size_t i = 0; i < num_alignments; i++) {
-	  //alignment_print(buffer_p[i]);
-	  //sprintf(alignments[i]->cigar, "100=");
-	  //printf("+++++ cigar = %s\n", alignments[i]->cigar);
-	  
-	  bam1 = convert_to_bam(alignments[i], 33);
-	  bam_fwrite(bam1, bam_file);
-	  bam_destroy1(bam1);
-	  alignment_free(alignments[i]);
-	}
-	//}
+    batch_p = (write_batch_t*) item_p->data_p;
+    //printf("*********************************Extract one item*********************************\n");
+    if (batch_p->flag == MATCH_FLAG || batch_p->flag == MISMATCH_FLAG) { //fd = match_fd; 
+      //printf("start write alignment. Total %d\n", batch_p->size);
+      buffer_p = (alignment_t **)batch_p->buffer_p;
+      for(int i = 0; i < batch_p->size; i++){
+	//alignment_print(buffer_p[i]);
+	bam1_p = convert_to_bam(buffer_p[i], 33);
+	bam_fwrite(bam1_p, bam_file_p);
+	bam_destroy1(bam1_p);
+	alignment_free(buffer_p[i]);
+      }
+    }else{
+      if (batch_p->flag == SPLICE_EXACT_FLAG){ fd = splice_exact_fd; }
+      else if (batch_p->flag == SPLICE_EXTEND_FLAG){ fd = splice_extend_fd; }
+      else { fd = NULL; }
+      
+      if (fd != NULL){
+	//printf("start write batch, %i bytes...\n", batch_p->size);
+	fwrite((char *)batch_p->buffer_p, batch_p->size, 1, fd);
+	//printf("write done !!\n");
+	//if (time_on) { stop_timer(t1_write, t2_write, write_time); }
+      }
     }
-
-    // free memory
-    write_batch_free(batch);
-    list_item_free(item);
+    //printf("Free batch\n");
+    write_batch_free(batch_p);
+    list_item_free(item_p);
 
     if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
   } // end of batch loop
   
-  
-  fclose(splice_fd);
-  
-  bam_fclose(bam_file);
-  bam_header_free(bam_header);
+  //fclose(match_fd);
+  //fclose(mismatch_fd);
+  fclose(splice_exact_fd);
+  fclose(splice_extend_fd);
 
-  printf("batch_writer (Total mappings %d): END\n", total_mappings);
+  bam_fclose(bam_file_p);
+  //bam_header_free(bam_header_p);
+  printf("batch_writer: END\n");
 }
 
 //------------------------------------------------------------------------------------
@@ -143,7 +126,7 @@ int alignment_compare(void *p1, void *p2) {
 }
 */
 //------------------------------------------------------------------------------------
-
+/*
 void process_pair(int pair_id, alignment_t **alignments, size_t num_alignments,
 		  bam_file_t *bam_file, cp_hashtable *hashtable) {
 
@@ -190,7 +173,7 @@ void process_pair(int pair_id, alignment_t **alignments, size_t num_alignments,
     }
   }
 }
-
+*/
 //------------------------------------------------------------------------------------
 
 void batch_writer2(batch_writer_input_t* input) {
@@ -371,13 +354,12 @@ void batch_writer2(batch_writer_input_t* input) {
       if (array_list != NULL) array_list_free(array_list, NULL);
     }
 
-
     if (batch != NULL) aligner_batch_free(batch);
     if (item != NULL) list_item_free(item);
 
     if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
-  } // end of batch loop
-  
+  } // end of batch loop                                                                                                                                                            
+
   // some cosmetic things before freeing the alignment,
   // to be sure to free twice
   alignment->query_name = NULL;
@@ -394,11 +376,12 @@ void batch_writer2(batch_writer_input_t* input) {
 
 //------------------------------------------------------------------------------------
 
-void batch_writer_input_init(char* match_filename, char* splice_filename, list_t* list, 
-			     batch_writer_input_t* input) {
-  input->match_filename = match_filename;
-  input->splice_filename = splice_filename;
-  input->list_p = list;
+void batch_writer_input_init(char* match_filename, char* splice_exact_filename, 
+			     char* splice_extend_filename, list_t* list_p, batch_writer_input_t* input_p) {
+  input_p->match_filename = match_filename;
+  input_p->splice_exact_filename = splice_exact_filename;
+  input_p->splice_extend_filename = splice_extend_filename;
+  input_p->list_p = list_p;
 }
 
 //------------------------------------------------------------------------------------
