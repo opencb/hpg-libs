@@ -12,7 +12,7 @@ NVCCFLAGS = -g -G -Xptxas -v  -arch=sm_12 -DVECTOR_O_COMPRESSION
 ifdef LIBS_HOME
 	LIBS_ROOT = $(LIBS_HOME)
 else
-	LIBS_ROOT = $(PWD)
+	LIBS_ROOT = $(PWD)/../../..
 endif
 
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers

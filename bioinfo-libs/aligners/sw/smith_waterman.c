@@ -170,17 +170,17 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
 	// generating score matrix
 #ifdef TIMING
-	partial_t = tic();
+	partial_t = get_tic();
 #endif // TIMING
 	sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		   optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #ifdef TIMING
-	sse_matrix_t[0] += toc(partial_t);
+	sse_matrix_t[0] += get_toc(partial_t);
 #endif // TIMING
 
 	// tracebacking
 #ifdef TIMING
-	partial_t = tic();
+	partial_t = get_tic();
 #endif // TIMING
 	simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 		       gap_open, gap_extend, H, C, &score_p[index],
@@ -188,7 +188,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 		       &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 		       q_aux, r_aux);
 #ifdef TIMING
-	sse_tracking_t[0] += toc(partial_t);
+	sse_tracking_t[0] += get_toc(partial_t);
 #endif // TIMING
 	
 	depth = 0;
@@ -215,17 +215,17 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
       // generating score matrix
 #ifdef TIMING
-      partial_t = tic();
+      partial_t = get_tic();
 #endif // TIMING
       sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		 optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #ifdef TIMING
-      sse_matrix_t[0] += toc(partial_t);
+      sse_matrix_t[0] += get_toc(partial_t);
 #endif // TIMING
 
       // tracebacking
 #ifdef TIMING
-      partial_t = tic();
+      partial_t = get_tic();
 #endif // TIMING
       simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 		     gap_open, gap_extend, H, C, max_score,
@@ -233,7 +233,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 		     &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 		     q_aux, r_aux);
 #ifdef TIMING
-      sse_tracking_t[0] += toc(partial_t);
+      sse_tracking_t[0] += get_toc(partial_t);
 #endif // TIMING
 
       for (unsigned int i = 0; i < depth; i++) {
@@ -306,17 +306,17 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	    
 	    // generating score matrix
 #ifdef TIMING
-	    partial_t = tic();
+	    partial_t = get_tic();
 #endif // TIMING
 	    sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		       optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #ifdef TIMING
-	    sse_matrix_t[tid] += toc(partial_t);
+	    sse_matrix_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	    
 	    // tracebacking
 #ifdef TIMING
-	    partial_t = tic();
+	    partial_t = get_tic();
 #endif // TIMING
 	    simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 			   gap_open, gap_extend, H, C, &score_p[index],
@@ -324,7 +324,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 			   &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 			   q_aux, r_aux);
 #ifdef TIMING
-	    sse_tracking_t[tid] += toc(partial_t);
+	    sse_tracking_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	    
 	    depth = 0;
@@ -351,17 +351,17 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	  
 	  // generating score matrix
 #ifdef TIMING
-	  partial_t = tic();
+	  partial_t = get_tic();
 #endif // TIMING
 	  sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		     optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #ifdef TIMING
-	  sse_matrix_t[tid] += toc(partial_t);
+	  sse_matrix_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	  
 	  // tracebacking
 #ifdef TIMING
-	  partial_t = tic();
+	  partial_t = get_tic();
 #endif // TIMING
 	  simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 			 gap_open, gap_extend, H, C, max_score,
@@ -369,7 +369,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 			 &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 			 q_aux, r_aux);
 #ifdef TIMING
-	  sse_tracking_t[tid] += toc(partial_t);
+	  sse_tracking_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	  
 	  for (unsigned int i = 0; i < depth; i++) {
@@ -445,17 +445,17 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 
 	// generating score matrix
 #ifdef TIMING
-	partial_t = tic();
+	partial_t = get_tic();
 #endif // TIMING
 	sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		   optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #ifdef TIMING
-	sse_matrix_t[0] += toc(partial_t);
+	sse_matrix_t[0] += get_toc(partial_t);
 #endif // TIMING
 
 	// tracebacking
 #ifdef TIMING
-	partial_t = tic();
+	partial_t = get_tic();
 #endif // TIMING
 	simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 		       gap_open, gap_extend, H, C, &score_p[index],
@@ -463,7 +463,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 		       &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 		       q_aux, r_aux);
 #ifdef TIMING
-	sse_tracking_t[0] += toc(partial_t);
+	sse_tracking_t[0] += get_toc(partial_t);
 #endif // TIMING
 	
 	depth = 0;
@@ -490,17 +490,17 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 
       // generating score matrix
 #ifdef TIMING
-      partial_t = tic();
+      partial_t = get_tic();
 #endif // TIMING
       sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		 optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #ifdef TIMING
-      sse_matrix_t[0] += toc(partial_t);
+      sse_matrix_t[0] += get_toc(partial_t);
 #endif // TIMING
 
       // tracebacking
 #ifdef TIMING
-      partial_t = tic();
+      partial_t = get_tic();
 #endif // TIMING
       simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 		     gap_open, gap_extend, H, C, max_score,
@@ -508,7 +508,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 		     &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 		     q_aux, r_aux);
 #ifdef TIMING
-      sse_tracking_t[0] += toc(partial_t);
+      sse_tracking_t[0] += get_toc(partial_t);
 #endif // TIMING
 
       for (unsigned int i = 0; i < depth; i++) {
@@ -577,17 +577,17 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 	    
 	    // generating score matrix
 #ifdef TIMING
-	    partial_t = tic();
+	    partial_t = get_tic();
 #endif // TIMING
 	    sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		       optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #ifdef TIMING
-	    sse_matrix_t[tid] += toc(partial_t);
+	    sse_matrix_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	    
 	    // tracebacking
 #ifdef TIMING
-	    partial_t = tic();
+	    partial_t = get_tic();
 #endif // TIMING
 	    simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 			   gap_open, gap_extend, H, C, &score_p[index],
@@ -595,7 +595,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 			   &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 			   q_aux, r_aux);
 #ifdef TIMING
-	    sse_tracking_t[tid] += toc(partial_t);
+	    sse_tracking_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	    
 	    depth = 0;
@@ -622,17 +622,17 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 	  
 	  // generating score matrix
 #ifdef TIMING
-	  partial_t = tic();
+	  partial_t = get_tic();
 #endif // TIMING
 	  sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len, 
 		     optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #ifdef TIMING
-	  sse_matrix_t[tid] += toc(partial_t);
+	  sse_matrix_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	  
 	  // tracebacking
 #ifdef TIMING
-	  partial_t = tic();
+	  partial_t = get_tic();
 #endif // TIMING
 	  simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
 			 gap_open, gap_extend, H, C, max_score,
@@ -640,7 +640,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 			 &output_p->ref_map_p[index], &output_p->ref_start_p[index], alig_lens,
 			 q_aux, r_aux);
 #ifdef TIMING
-	  sse_tracking_t[tid] += toc(partial_t);
+	  sse_tracking_t[tid] += get_toc(partial_t);
 #endif // TIMING
 	  
 	  for (unsigned int i = 0; i < depth; i++) {

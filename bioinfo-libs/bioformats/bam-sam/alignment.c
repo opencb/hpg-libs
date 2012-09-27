@@ -638,3 +638,158 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
     }
 }
 
+
+
+//=====================================//
+
+char select_op(unsigned char status){
+  char operation; 
+  switch(status){        
+  case CIGAR_MATCH_MISMATCH: 
+    operation = 'M';   
+    break;             
+  case CIGAR_DELETION:       
+    operation = 'D';   
+    break;             
+  case CIGAR_INSERTION:      
+    operation = 'I';   
+    break;         
+  case CIGAR_PERFECT_MATCH:
+    operation = '=';
+    break;
+  case CIGAR_PADDING:
+    operation = 'P';
+    break;
+  }                      
+  return operation;       
+}                      
+
+//--------------------------------------------------------------
+//Return a cigar string for dna. For Rna it's invalid
+//--------------------------------------------------------------
+char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot){
+  char *cigar_p;
+  unsigned int cigar_max_len = 200;
+  unsigned char status;
+  unsigned char transition;
+  short int cigar_soft;
+  short int value = 0;
+  unsigned int number_op = 0;
+  char operation;
+  char operation_number[200];
+  unsigned int perfect = 0;  
+  unsigned int deletions_tot = 0;
+  
+  *number_op_tot = 0;
+  cigar_p = (char *)malloc(sizeof(char)*cigar_max_len);
+  cigar_p[0] = '\0';
+  
+  //printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
+  //printf("ref(%d): %s\n", length, str_ref_p);
+  
+  //hard clipping start
+  if(start_seq > 0){
+    sprintf(operation_number, "%iH", start_seq);
+    cigar_p = strcat(cigar_p, operation_number);
+    *number_op_tot += 1;
+  }
+  
+  //First Status
+  if(str_seq_p[0] != '-' && str_ref_p[0] != '-'){
+    status = CIGAR_MATCH_MISMATCH;
+    //Soft clipping
+    cigar_soft = 0;
+    while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
+	  (str_ref_p[cigar_soft] != str_seq_p[cigar_soft])){
+      cigar_soft++;
+      value++;
+    }
+    if(value > 0){
+      sprintf(operation_number, "%iS", value);
+      cigar_p = strcat(cigar_p, operation_number);
+      *number_op_tot += 1;
+    } 
+  }else if(str_seq_p[0] == '-'){
+    if(str_ref_p[0] == '-'){
+      status = CIGAR_PADDING;
+    }else{
+      status = CIGAR_DELETION;
+    }
+  }else if(str_ref_p[0] == '-'){
+    status = CIGAR_INSERTION;
+  }
+  
+  for(int i = value; i < length; i++){
+    //Transition
+    if(str_seq_p[i] != '-' && str_ref_p[i] != '-'){
+      transition = CIGAR_MATCH_MISMATCH;
+      if(str_seq_p[i] == str_ref_p[i] ){
+        perfect++;
+      }
+    }else if(str_seq_p[i] == '-'){
+      if(str_ref_p[i] == '-'){
+        transition = CIGAR_PADDING;
+      }else{
+        transition = CIGAR_DELETION;
+        deletions_tot++;
+      }
+    }else if(str_ref_p[i] == '-'){
+      transition = CIGAR_INSERTION;
+    }
+    
+    if(transition != status){
+      //Insert operation in cigar string
+      operation = select_op(status);
+      sprintf(operation_number, "%d%c", number_op, operation);
+      cigar_p = strcat(cigar_p, operation_number);
+      number_op = 1;
+      *number_op_tot += 1;
+      status = transition;
+    }else{
+      number_op++;
+    }
+  }
+  
+  if((length == perfect) && (perfect == seq_orig_len)){
+    status = CIGAR_PERFECT_MATCH;
+  }
+
+  *number_op_tot += 1;
+  operation = select_op(status);
+  
+  
+  //Hard and Soft clipped end
+  if(status == CIGAR_MATCH_MISMATCH){
+    cigar_soft = length - 1;
+    value = 0;
+    while((str_ref_p[cigar_soft] != '-') && (str_seq_p[cigar_soft] != '-') && 
+	  (str_seq_p[cigar_soft] != str_ref_p[cigar_soft])){
+      cigar_soft--;
+      value++;
+      //printf("(Soft %c!=%c)", output_p->mapped_ref_p[i][cigar_soft], output_p->mapped_seq_p[i][cigar_soft]);
+    }
+    
+    sprintf(operation_number, "%d%c", number_op - value, operation);
+    cigar_p = strcat(cigar_p, operation_number);
+    
+    if(value > 0){
+      number_op -= value;
+      sprintf(operation_number, "%iS", value);
+      cigar_p = strcat(cigar_p, operation_number);
+      *number_op_tot += 1;
+    }
+  }else{
+    sprintf(operation_number, "%d%c", number_op, operation);
+    cigar_p = strcat(cigar_p, operation_number);
+  }
+  //printf("%d+%d < %d\n", length - deletions_tot, start_seq, seq_orig_len);
+  if( ((length - deletions_tot) + start_seq) < seq_orig_len ){
+    sprintf(operation_number, "%iH", seq_orig_len - ((length - deletions_tot) + start_seq));
+    cigar_p = strcat(cigar_p, operation_number);
+    *number_op_tot += 1;
+  }
+    
+  //printf("%d-%d\n", length, *number_op_tot);
+ 
+  return cigar_p;
+}
