@@ -1,6 +1,6 @@
 #include "region_seeker.h"
 
-void region_seeker_input_init(list_t *unmapped_reads_list, cal_optarg_t *cal_optarg, 
+void region_seeker_input_init(list_t *unmapped_read_list, cal_optarg_t *cal_optarg, 
 			      bwt_optarg_t *bwt_optarg, bwt_index_t *bwt_index, 
 			      list_t* region_list, unsigned int region_threads, 
 			      region_seeker_input_t *input_p) {

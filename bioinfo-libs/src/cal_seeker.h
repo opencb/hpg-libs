@@ -2,6 +2,7 @@
 #define CAL_SEEKER_H
 
 #include "buffers.h"
+#include "aligners/bwt/bwt.h"
 
 #define MAX_CALS 100
 
@@ -15,14 +16,14 @@
  * Structure for store some configuration values and data structures like lists 
  * to insert and read data batches.
  */
-typedef struct cal_seeker_input{
+typedef struct cal_seeker_input {
   unsigned batch_size;             /**< size of data batches*/
-  list_t *write_list_p;            /**< list for store write batches*/
-  list_t *regions_list_p;          /**< list for read batches with all regions found for each read */
-  list_t *sw_list_p;               /**< list to store batches with all CALs found for each read */
-  list_t *pair_list_p;
-  cal_optarg_t *cal_optarg_p;      /**< cal seeker configuration values */
-}cal_seeker_input_t;
+  list_t *write_list;            /**< list for store write batches*/
+  list_t *regions_list;          /**< list for read batches with all regions found for each read */
+  list_t *sw_list;               /**< list to store batches with all CALs found for each read */
+  list_t *pair_list;
+  cal_optarg_t *cal_optarg;      /**< cal seeker configuration values */
+} cal_seeker_input_t;
 
 /**
  * @brief  Initializer for the @a cal_seeker_input_t structure.
@@ -36,10 +37,10 @@ typedef struct cal_seeker_input{
  * 
  * Initialize all @a cal_seeker_input_t fields with the input parameters.
  */
-void cal_seeker_input_init(list_t *regions_list_p, cal_optarg_t *cal_optarg_p, 
-			   list_t* write_list_p, unsigned int write_size, 
-			   list_t *sw_list_p, list_t *pair_list_p,
-			   cal_seeker_input_t *input_p);
+void cal_seeker_input_init(list_t *regions_list, cal_optarg_t *cal_optarg, 
+			   list_t* write_list, unsigned int write_size, 
+			   list_t *sw_list, list_t *pair_list,
+			   cal_seeker_input_t *input);
 
 //--------------------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ void cal_seeker_input_init(list_t *regions_list_p, cal_optarg_t *cal_optarg_p,
  * CALs are stored in @a write_list_p because those reads aren't mapped and will be store in bam file,
  * the rest of reads are stored with their CALs in @a sw_list_p.      
  */
-void cal_seeker_server(cal_seeker_input_t* input_p);
+void cal_seeker_server(cal_seeker_input_t* input);
 
 //====================================================================================
 // apply_caling

@@ -166,12 +166,13 @@ void sw_server(sw_server_input_t* input_p);
  * @a min_score), these sequences are pack in SAM format and insert in the
  * @write_list_p list.
  */
+/*
 write_batch_t* process_sw_output(sw_simd_output_t* sw_output_p, sw_simd_input_t* sw_input_p,
 				 float min_score, unsigned int depth, sw_channel_t* sw_channels_p,
 				 sw_batch_t* sw_batch_p, list_t* write_list_p, write_batch_t* found_write_p,
 				 unsigned int write_size, unsigned int sw_id, unsigned int* total_valids_p, 
 				 unsigned char* mapping_reads_p, genome_t* genome_p);
-
+*/
 //====================================================================================
 // apply_sw
 //====================================================================================
