@@ -186,7 +186,7 @@ void batch_writer2(batch_writer_input_t* input) {
   alignment_t *alig, *alignment = alignment_new();
 
   char* match_filename = input->match_filename;
-  char* splice_filename = input->splice_filename;
+  //  char* splice_filename = input->splice_filename;
   
   list_t *write_list = input->list_p;
   array_list_t *array_list;
@@ -196,7 +196,7 @@ void batch_writer2(batch_writer_input_t* input) {
   fastq_batch_t *fq_batch = NULL;
 
   FILE* fd;
-  FILE* splice_fd = fopen(splice_filename, "w");
+  //  FILE* splice_fd = fopen(splice_filename, "w");
 
   char aux[2048], *seq;
   
@@ -368,7 +368,7 @@ void batch_writer2(batch_writer_input_t* input) {
   alignment->cigar = NULL;
   alignment_free(alignment);
   
-  fclose(splice_fd);
+  //  fclose(splice_fd);
   
   bam_fclose(bam_file);
   //  printf("END: batch_writer (total mappings %d)\n", total_mappings);

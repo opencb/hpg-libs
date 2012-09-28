@@ -133,7 +133,7 @@ void region_batch_init(array_list_t **allocate_mapping_p, fastq_batch_t *unmappe
 void region_batch_free(region_batch_t *allocate_regions_p);
 
 //====================================================================================
-
+/*
 typedef struct sw_batch {
   unsigned int num_reads;
   array_list_t **allocate_cals_p;
@@ -143,7 +143,7 @@ typedef struct sw_batch {
 void sw_batch_init(unsigned int num_reads, array_list_t **allocate_cals_p, 
 		   fastq_read_t **allocate_reads_p, sw_batch_t *sw_batch_p);
 void sw_batch_free(sw_batch_t *sw_data_p);
-
+*/
 //====================================================================================
 
 typedef struct pair_mng {
@@ -197,9 +197,9 @@ void aligner_batch_free(aligner_batch_t *p);
  * batch with all reads unmapped.
  */
 typedef struct cal_batch {
-  array_list_t **allocate_mapping_p;  /**< array list with all mappings found for all seeds in each read*/
-  fastq_batch_t *unmapped_batch_p;   /**< batch with all reads unmapped*/
-}cal_batch_t;
+  array_list_t **allocate_mapping;  /**< array list with all mappings found for all seeds in each read*/
+  fastq_batch_t *unmapped_batch;   /**< batch with all reads unmapped*/
+} cal_batch_t;
 
 //------------------------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ typedef struct cal_batch {
  * Constructor function that allocates memory for
  * the cal_batch_t structure and initialize it.
  */
-cal_batch_t* cal_batch_new(array_list_t **allocate_mapping_p, fastq_batch_t *unmapped_batch_p);
+cal_batch_t* cal_batch_new(array_list_t **allocate_mapping, fastq_batch_t *unmapped_batch);
 
 /**
  * @brief  Destrcutor for the @a cal_batch_t structure.
@@ -221,7 +221,7 @@ cal_batch_t* cal_batch_new(array_list_t **allocate_mapping_p, fastq_batch_t *unm
  * @a cal_batch_t destructor that frees the memory previosly
  * allocated by constructor @a cal_batch_new
  */
-void cal_batch_free(cal_batch_t *allocate_cal_p);
+void cal_batch_free(cal_batch_t *allocate_cal);
 
 //====================================================================================
 

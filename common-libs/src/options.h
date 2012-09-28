@@ -12,7 +12,7 @@
 #include <string.h>
 #include <argtable2.h>
 #include <libconfig.h>
-#include <log.h>
+//#include <log.h>
 
 #define NUM_OPTIONS			32
 
@@ -55,8 +55,9 @@ typedef struct options {
 
 options_t *options_new(void);
 
-
 void options_free(options_t *options);
+
+void options_display(options_t *options);
 
 
 /**

@@ -1,7 +1,7 @@
-#include <argtable2.h>
 #include "options.h"
 
 //============================ DEFAULT VALUES ============================
+
 #define DEFAULT_GPU_THREADS		32
 #define DEFAULT_CPU_THREADS		6
 #define DEFAULT_CAL_SEEKER_ERROS	0
@@ -28,6 +28,7 @@
 const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
 const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
 const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
+
 //========================================================================
 
 
@@ -87,6 +88,76 @@ void options_free(options_t *options) {
 	free(options);
 }
 
+
+void options_display(options_t *options) {
+
+  char* in_filename = strdup(options->in_filename);
+  char* bwt_dirname =  strdup(options->bwt_dirname);
+  char* genome_filename =  strdup(options->genome_filename);
+  char* chromosome_filename =  strdup(options->chromosome_filename);
+  char* output_filename =  strdup(options->output_filename);
+  unsigned int num_gpu_threads =  (unsigned int)options->num_gpu_threads;
+  unsigned int num_cpu_threads =  (unsigned int)options->num_cpu_threads;
+  unsigned int rna_seq =  (unsigned int)options->rna_seq; 
+  unsigned int cal_seeker_errors =  (unsigned int)options->cal_seeker_errors; 
+  unsigned int min_cal_size =  (unsigned int)options->min_cal_size; 
+  unsigned int seeds_max_distance =  (unsigned int)options->seeds_max_distance; 
+  unsigned int bwt_threads =  (unsigned int)options->bwt_threads; 
+  unsigned int batch_size =  (unsigned int)options->batch_size; 
+  unsigned int write_size =  (unsigned int)options->write_size;  
+  unsigned int num_cal_seekers =  (unsigned int)options->num_cal_seekers;
+  unsigned int region_threads =  (unsigned int)options->region_threads;
+  unsigned int num_sw_servers =  (unsigned int)options->num_sw_servers;
+  unsigned int min_seed_size =  (unsigned int)options->min_seed_size;
+  unsigned int seed_size =  (unsigned int)options->seed_size;
+  unsigned int max_intron_length =  (unsigned int)options->max_intron_length;
+  unsigned int flank_length =  (unsigned int)options->flank_length;
+  float min_score =  (float)options->min_score;
+  float match =   (float)options->match;
+  float mismatch =   (float)options->mismatch;
+  float gap_open =   (float)options->gap_open;
+  float gap_extend =   (float)options->gap_extend;
+  char *splice_exact_filename =  strdup(options->splice_exact_filename);
+  char *splice_extend_filename =  strdup(options->splice_extend_filename);
+  unsigned int min_intron_length =  options->min_intron_length;
+    
+  printf("PARAMETERS CONFIGURATION\n");
+  printf("=================================================\n");
+  printf("Num gpu threads %d\n", num_gpu_threads);
+  printf("Num cpu threads %d\n",  num_cpu_threads);
+  printf("RNA Server: %s\n",  rna_seq == 0 ? "Disable":"Enable");
+  printf("CAL seeker errors: %d\n",  cal_seeker_errors);
+  printf("Min CAL size: %d\n",  min_cal_size);
+  printf("Seeds max distance: %d\n",  seeds_max_distance);
+  printf("Batch size: %dBytes\n",  batch_size);
+  printf("Write size: %dBytes\n",  write_size);
+  printf("BWT Threads: %d\n",  bwt_threads);
+  printf("Region Threads: %d\n",  region_threads);
+  printf("Num CAL seekers: %d\n", num_cal_seekers);
+  printf("Num SW servers: %d\n",  num_sw_servers);
+  printf("Min seed size: %d\n",  min_seed_size);
+  printf("Seed size: %d\n",  seed_size);
+  printf("Max intron length: %d\n", max_intron_length);
+  printf("Min intron length: %d\n", min_intron_length);
+  printf("Flank length: %d\n", flank_length);
+  printf("SMITH-WATERMAN PARAMETERS\n");
+  printf("\tMin score  : %0.4f\n", min_score);
+  printf("\tMatch      : %0.4f\n", match);
+  printf("\tMismatch   : %0.4f\n", mismatch);
+  printf("\tGap open   : %0.4f\n", gap_open);
+  printf("\tGap extend : %0.4f\n", gap_extend);
+  printf("=================================================\n");
+
+  free(in_filename);
+  free(bwt_dirname);
+  free(genome_filename);
+  free(chromosome_filename);
+  free(output_filename);
+  free(splice_exact_filename);
+  free(splice_extend_filename);
+}
+
+//--------------------------------------------------------------------
 
 void** argtable_options_new(void) {
 	void **argtable = (void**)malloc((NUM_OPTIONS + 1) * sizeof(void*));	// NUM_OPTIONS +1 to allocate end structure
@@ -260,4 +331,3 @@ void usage(void **argtable) {
   arg_print_syntaxv(stdout, argtable, "\n");
   arg_print_glossary(stdout, argtable, "%-50s\t%s\n");
 }
-
