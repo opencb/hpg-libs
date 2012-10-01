@@ -300,21 +300,14 @@ filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain);
 
 /**
  * @brief Sorts a chain of several filters by priority
- * @details Given a chain of several filters, creates a list sorted by priority.
+ * @details Given a chain of several filters, creates a list sorted by priority. The original chain contents are 
+ * all popped out.
  * 
  * @param chain Filter chain to sort
  * @param num_filters Number of filters in the chain
  * @return Sorted list of filters
  */
 filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
-
-/**
- * @brief Deallocates memory allocated to store a filter chain
- * @details Deallocates memory allocated to store a filter chain
- * 
- * @param chain Chain of filters to free
- */
-void free_filter_chain(filter_chain *chain);
 
 /**
  * @brief Applies a collection of filters to a list of records.
@@ -327,6 +320,24 @@ void free_filter_chain(filter_chain *chain);
  * @return Records that passed the filters' tests
  */
 array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
+
+/**
+ * @brief Deallocates memory allocated to store a filter chain
+ * @details Deallocates memory allocated to store a filter chain
+ * 
+ * @param chain Chain of filters to free
+ */
+void free_filter_chain(filter_chain *chain);
+
+/**
+ * @brief Deallocates memory of a set of filters in form of array
+ * @details Since the sort_filter_chain builds an array of filters with the contents from a filter chain, 
+ * this function deallocates the memory of this array.
+ *
+ * @param filters The array of filters to deallocate
+ * @param num_filters The number of filters
+ **/
+void free_filters(filter_t **filters, int num_filters);
 
 #endif
 
