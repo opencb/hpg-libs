@@ -41,6 +41,7 @@ genome_t* genome_new(char* sequence_filename, char* chromosome_filename) {
   char line[MAXLINE];
 
   FILE *fd = fopen(chromosome_filename, "r");
+  //FILE *fd = fopen("/home/hmartinez/BenchMarks/HomoSapiens_BWT_Index/chromosome_index.txt", "r");
   while (fgets(line, MAXLINE, fd) ) {
     p = strrchr(line, '\n'); *p = '\0';
     p = strrchr(line, '\t'); *p = '\0';

@@ -178,7 +178,8 @@ void process_pair(int pair_id, alignment_t **alignments, size_t num_alignments,
 
 void batch_writer2(batch_writer_input_t* input) {
 
-  //  printf("START: batch_writer (%i)\n", omp_get_thread_num());
+  printf("START: batch_writer (%i): START, for file %s\n", 
+	 omp_get_thread_num(), input->match_filename);
 
   bam1_t *bam1;
   bam_header_t *bam_header;
@@ -207,6 +208,7 @@ void batch_writer2(batch_writer_input_t* input) {
 
   bam_header = bam_header_new(HUMAN, NCBI37);
   bam_file = bam_fopen_mode(match_filename, bam_header, "w");
+
   bam_fwrite_header(bam_header, bam_file);
 
   int flag = 0;
@@ -371,7 +373,7 @@ void batch_writer2(batch_writer_input_t* input) {
   //  fclose(splice_fd);
   
   bam_fclose(bam_file);
-  //  printf("END: batch_writer (total mappings %d)\n", total_mappings);
+  printf("END: batch_writer (total mappings %d)\n", total_mappings);
 }
 
 //------------------------------------------------------------------------------------

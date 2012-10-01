@@ -101,7 +101,8 @@ void options_free(options_t *options) {
 void options_display(options_t *options) {
 
   char* in_filename = strdup(options->in_filename);
-  char* in_filename2 = strdup(options->in_filename2);
+  char* in_filename2 = NULL;
+  if (options->in_filename2 != NULL) strdup(options->in_filename2);
   char* bwt_dirname =  strdup(options->bwt_dirname);
   char* genome_filename =  strdup(options->genome_filename);
   char* chromosome_filename =  strdup(options->chromosome_filename);
@@ -122,7 +123,7 @@ void options_display(options_t *options) {
   unsigned int seed_size =  (unsigned int)options->seed_size;
   unsigned int max_intron_length =  (unsigned int)options->max_intron_length;
   unsigned int flank_length =  (unsigned int)options->flank_length;
-  unsigned int pair_mode =  (unsigned int)options->flank_length;
+  unsigned int pair_mode =  (unsigned int)options->pair_mode;
   unsigned int pair_min_distance =  (unsigned int)options->pair_min_distance;
   unsigned int pair_max_distance =  (unsigned int)options->pair_max_distance;
   float min_score =  (float)options->min_score;
