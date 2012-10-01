@@ -28,9 +28,9 @@
 
 //------------------------------------------------------------------------------------
 
-#define SINGLE_END 0
-#define PAIRED_END 1
-#define MATE_PAIR  2
+#define SINGLE_END_MODE 0
+#define PAIRED_END_MODE 1
+#define MATE_PAIR_MODE  2
 
 //------------------------------------------------------------------------------------
 

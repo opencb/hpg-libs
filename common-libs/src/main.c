@@ -158,8 +158,8 @@ int main(int argc, char* argv[]) {
   // initialize some structures: Burrow-Wheeler objects, genome, nucletotide table...
   // (all these initializations could be performed in parallel)
 
+  // BWT parameters
   printf("Reading bwt index...\n");
-
   if (time_on) { timing_start(INIT_BWT_INDEX, 0, timing_p); }
   bwt_index_t *bwt_index = bwt_index_new(options->bwt_dirname);
   if (time_on) { timing_stop(INIT_BWT_INDEX, 0, timing_p); }
@@ -168,21 +168,26 @@ int main(int argc, char* argv[]) {
   // bwt_optarg_new(errors, threads, max aligns) 
   bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 500);
   
+  // CAL parameters
   //GOOD LUCK(20, 60, 18, 16, 0)
-  //                  cal_optarg_new(min_cal_size, max_cal_distance, seed_size, min_seed_size, num_error)
   cal_optarg_t *cal_optarg = cal_optarg_new(options->min_cal_size, options->seeds_max_distance, 
 					    options->seed_size, options->min_seed_size, 
 					    options->cal_seeker_errors);
   
+  // genome parameters
   printf("reading genome...\n");
-
   if (time_on) { timing_start(INIT_GENOME_INDEX, 0, timing_p); }
   genome_t* genome = genome_new(options->genome_filename, options->chromosome_filename);
   if (time_on) { timing_stop(INIT_GENOME_INDEX, 0, timing_p); }
   printf("reading genome done !!\n");
 
-
-
+  // pair mode parameters
+  pair_mng_t *pair_mng = NULL;
+  if (options->pair_mode != SINGLE_END_MODE) {
+    pair_mng = pair_mng_new(options->pair_mode, options->pair_min_distance, 
+			    options->pair_max_distance);
+  }
+    
   /*
   {
     //@6_13362459_13363092_0_1_0_0_3:0:0_2:0:0_13195/1
@@ -314,7 +319,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
     {
       fastq_batch_reader_input_t input;
       fastq_batch_reader_input_init(options->in_filename, options->in_filename2, 
-				    options->flags, options->batch_size, 
+				    options->pair_mode, options->batch_size, 
 				    &read_list, &input);
       fastq_batch_reader(&input);
     }
@@ -328,8 +333,8 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 	batch_aligner_input_t input;
 	batch_aligner_input_init(&read_list, &write_list,
 				 &bwt_input, &region_input, &cal_input,
-				 (options->is_pair ? &pair_input : NULL), &sw_input,
-				 &input);
+				 (options->pair_mode != SINGLE_END_MODE ? &pair_input : NULL), 
+				 &sw_input, &input);
 	
 	batch_aligner(&input);
       }
