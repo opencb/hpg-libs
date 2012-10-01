@@ -57,7 +57,7 @@ void fastq_batch_reader_single(fastq_batch_reader_input_t* input) {
   int batch_size = input->batch_size;
   list_t *list = input->list;
 
-  printf("fastq_batch_reader (%i): START, for file %s\n", 
+  printf("fastq_batch_reader (%i) SINGLE-MODE: START, for file %s\n", 
 	 omp_get_thread_num(), filename);
 		
   int num_reads = 0, num_batches = 0;
@@ -65,7 +65,7 @@ void fastq_batch_reader_single(fastq_batch_reader_input_t* input) {
   list_item_t *item = NULL;
 
   fastq_file_t *file = fastq_fopen(filename);
-  
+
   while (1) {
     //    if (time_on) { timing_start(FASTQ_READER, 0, timing_p); }
     // allocationg memory for the current fastq batch
@@ -128,7 +128,7 @@ void fastq_batch_reader_pair(fastq_batch_reader_input_t* input) {
   int batch_size = input->batch_size;
   list_t *list = input->list;
 
-  printf("fastq_batch_reader (%i): START, for files %s, %s\n", 
+  printf("fastq_batch_reader (%i) PAIR-MODE: START, for files %s, %s\n", 
 	 omp_get_thread_num(), filename1, filename2);
 		
   int num_reads1 = -1, num_batches1 = 0;

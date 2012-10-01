@@ -431,7 +431,7 @@ bam_header_t* bam_header_new(int specie, int assembly) {
     bam_header_t* bam_header_p;
 
     if ((specie == HUMAN) && (assembly == NCBI37)) {
-        bam_header_file = bam_open("./bam_headers/Human_NCBI37.hbam", "r");
+        bam_header_file = bam_open("Human_NCBI37.hbam", "r");
         bam_header_p = bam_header_read(bam_header_file);
 	bam_close(bam_header_file);
     }
