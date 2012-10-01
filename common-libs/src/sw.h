@@ -11,9 +11,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <immintrin.h>
-#include "smith_waterman.h"
-#include "macros.h"
-#include "sse.h"
+//#include "smith_waterman.h"
+#include "aligners/sw/smith_waterman.h"
+#include "aligners/sw/macros.h"
+#include "aligners/sw/sse.h"
+#include "aligners/sw/emboss.h"
 
 #ifdef __AVX__
 #define SIMD_DEPTH 8
@@ -273,7 +275,7 @@ void smith_waterman_simd(sw_simd_input_t* input_p, sw_simd_output_t* output_p, s
 float smith_waterman(char* seq_a, char* seq_b, float gapopen, float gapextend, char* m, char* n, int* start1, int* start2);
 
 //------------------------------------------------------------------------------------
-
+/*
 float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
                       float gapopen, float gapextend, float *path,
                       int *compass);
@@ -289,7 +291,7 @@ void AlignWalkSWMatrix(const float *path, const int *compass,
 //------------------------------------------------------------------------------------
 
 void revstr(char* str);
-
+*/
 #endif // SW1_H
 
 //------------------------------------------------------------------------------------

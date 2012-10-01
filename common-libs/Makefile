@@ -25,10 +25,10 @@ LIBS = -L$(LIB_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprop
 MISC_OBJS = $(COMMONS_DIR)/*.o $(CONTAINERS_DIR)/*.o $(BIOFORMATS_DIR)/fastq/*.o $(BIOFORMATS_DIR)/bam-sam/*.o $(ALIGNERS_DIR)/bwt/*.o $(ALIGNERS_DIR)/sw/*.o 
 
 # Project source files
-HPG_ALIGNER_FILES = bwt_server_cpu.c region_seeker.c cal_seeker.c pair_server.c sw_server.c batch_writer.c batch_aligner.c buffers.c timing.c genome.c statistics.c options.c
+HPG_ALIGNER_FILES = sw.c rna_server.c rna_splice.c bwt_server_cpu.c region_seeker.c cal_seeker.c pair_server.c sw_server.c batch_writer.c batch_aligner.c buffers.c timing.c genome.c statistics.c options.c
 
 # Project object files
-HPG_ALIGNER_OBJS = bwt_server_cpu.o region_seeker.o cal_seeker.o pair_server.o sw_server.o batch_writer.o batch_aligner.o buffers.o timing.o genome.o statistics.o options.c
+HPG_ALIGNER_OBJS = sw.o rna_server.o rna_splice.o bwt_server_cpu.o region_seeker.o cal_seeker.o pair_server.o sw_server.o batch_writer.o batch_aligner.o buffers.o timing.o genome.o statistics.o options.c
 
 ALL_OBJS = $(HPG_ALIGNER_OBJS) $(MISC_OBJS)
 
