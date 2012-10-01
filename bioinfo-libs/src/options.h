@@ -10,9 +10,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <argtable2.h>
-#include <libconfig.h>
-//#include <log.h>
+
+#include "argtable/argtable2.h"
+#include "config/libconfig.h"
+
+#include "commons/log.h"
 
 #define NUM_OPTIONS			32
 
@@ -38,6 +40,9 @@ typedef struct options {
   int rna_seq; 
   int help;
   int cal_seeker_errors;
+  int pair_mode;
+  int pair_min_distance;
+  int pair_max_distance;
   double min_score;
   double match;
   double mismatch;
@@ -46,6 +51,7 @@ typedef struct options {
   char *splice_exact_filename;
   char *splice_extend_filename;
   char* in_filename;
+  char* in_filename2;
   char* bwt_dirname;
   char* genome_filename;
   char* chromosome_filename;

@@ -23,6 +23,9 @@
 #define DEFAULT_SW_GAP_OPEN		10
 #define DEFAULT_SW_GAP_EXTEND		0.5
 #define DEFAULT_MIN_INTRON_LENGTH	40
+#define DEFAULT_PAIR_MODE	        0
+#define DEFAULT_PAIR_MIN_DISTANCE	200
+#define DEFAULT_PAIR_MAX_DISTANCE	800
 
 
 const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
@@ -35,6 +38,8 @@ const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
 options_t *options_new(void) {
 	options_t *options = (options_t*) calloc (1, sizeof(options_t));
 
+	options->in_filename = NULL;
+	options->in_filename2 = NULL;
 	/*options->in_filename = "";
 	options->bwt_dirname = "";
 	options->genome_filename = "";
@@ -64,6 +69,9 @@ options_t *options_new(void) {
 	options->gap_open = DEFAULT_SW_GAP_OPEN;
 	options->gap_extend = DEFAULT_SW_GAP_EXTEND;
 	options->min_intron_length = DEFAULT_MIN_INTRON_LENGTH;
+	options->pair_mode = DEFAULT_PAIR_MODE;
+	options->pair_min_distance = DEFAULT_PAIR_MIN_DISTANCE;
+	options->pair_max_distance = DEFAULT_PAIR_MAX_DISTANCE;
 	options->timming = 0;
 	options->statistics = 0;
 	//	options->help = DEFAULT_HELP;
@@ -80,6 +88,7 @@ void options_free(options_t *options) {
 	if (options->splice_exact_filename != NULL)	{ free(options->splice_exact_filename); }
 	if (options->splice_extend_filename  != NULL)	{ free(options->splice_extend_filename); }
 	if (options->in_filename  != NULL)		{ free(options->in_filename); }
+	if (options->in_filename2  != NULL)		{ free(options->in_filename2); }
 	if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
 	if (options->genome_filename  != NULL)		{ free(options->genome_filename); }
 	if (options->chromosome_filename  != NULL)	{ free(options->chromosome_filename); }
@@ -92,6 +101,7 @@ void options_free(options_t *options) {
 void options_display(options_t *options) {
 
   char* in_filename = strdup(options->in_filename);
+  char* in_filename2 = strdup(options->in_filename2);
   char* bwt_dirname =  strdup(options->bwt_dirname);
   char* genome_filename =  strdup(options->genome_filename);
   char* chromosome_filename =  strdup(options->chromosome_filename);
@@ -112,6 +122,9 @@ void options_display(options_t *options) {
   unsigned int seed_size =  (unsigned int)options->seed_size;
   unsigned int max_intron_length =  (unsigned int)options->max_intron_length;
   unsigned int flank_length =  (unsigned int)options->flank_length;
+  unsigned int pair_mode =  (unsigned int)options->flank_length;
+  unsigned int pair_min_distance =  (unsigned int)options->pair_min_distance;
+  unsigned int pair_max_distance =  (unsigned int)options->pair_max_distance;
   float min_score =  (float)options->min_score;
   float match =   (float)options->match;
   float mismatch =   (float)options->mismatch;
@@ -140,6 +153,10 @@ void options_display(options_t *options) {
   printf("Max intron length: %d\n", max_intron_length);
   printf("Min intron length: %d\n", min_intron_length);
   printf("Flank length: %d\n", flank_length);
+  printf("PAIR-MODE PARAMETERS\n");
+  printf("\tPair mode: %d\n", pair_mode);
+  printf("\tMin. distance: %d\n", pair_min_distance);
+  printf("\tMax. distance: %d\n", pair_max_distance);
   printf("SMITH-WATERMAN PARAMETERS\n");
   printf("\tMin score  : %0.4f\n", min_score);
   printf("\tMatch      : %0.4f\n", match);
@@ -149,6 +166,7 @@ void options_display(options_t *options) {
   printf("=================================================\n");
 
   free(in_filename);
+  if (in_filename2 != NULL) free(in_filename2);
   free(bwt_dirname);
   free(genome_filename);
   free(chromosome_filename);
