@@ -71,10 +71,15 @@ statistics_t *statistics_p;
 //--------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-  options_t *options = parse_options(argc, argv);
 
+  printf("parsing options...\n");
+  options_t *options = parse_options(argc, argv);
+  printf("done !\n");
+
+  printf("displaying options...\n");
   // display selected options
   options_display(options);
+  printf("done !\n");
 
   time_on =  (unsigned int) options->timming;
   statistics_on =  (unsigned int) options->statistics;
@@ -97,8 +102,7 @@ int main(int argc, char* argv[]) {
     timing_p = timing_new((char**) labels_time, (int*) num_threads, NUM_SECTIONS_TIME);
     
     timing_start(MAIN_INDEX, 0, timing_p);
-    //timing_start(INIT_INDEX, 0, timing_p);
-    
+    //timing_start(INIT_INDEX, 0, timing_p);    
   }
 
   if (statistics_on) {
@@ -166,7 +170,7 @@ int main(int argc, char* argv[]) {
   printf("Reading bwt index done !!\n");
 
   // bwt_optarg_new(errors, threads, max aligns) 
-  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 500);
+  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 200);
   
   // CAL parameters
   //GOOD LUCK(20, 60, 18, 16, 0)
@@ -179,7 +183,7 @@ int main(int argc, char* argv[]) {
   if (time_on) { timing_start(INIT_GENOME_INDEX, 0, timing_p); }
   genome_t* genome = genome_new(options->genome_filename, options->chromosome_filename);
   if (time_on) { timing_stop(INIT_GENOME_INDEX, 0, timing_p); }
-  printf("reading genome done !!\n");
+  printf("Done !!\n");
 
   // pair mode parameters
   pair_mng_t *pair_mng = NULL;
@@ -345,7 +349,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
     #pragma omp section
     {
       batch_writer_input_t input;
-      batch_writer_input_init("new.sam", NULL, NULL, &write_list, &input);
+      batch_writer_input_init(options->output_filename, NULL, NULL, &write_list, &input);
       batch_writer2(&input);
     }
   }
