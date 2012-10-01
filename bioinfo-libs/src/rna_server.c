@@ -1,13 +1,6 @@
 #include <omp.h>
-#include "buffers.h"
-#include "list.h"
+
 #include "rna_server.h"
-#include "genome.h"
-#include "commons.h"
-#include "system_utils.h"
-#include "timing.h"
-#include "sw_server.h"
-#include "string_utils.h"
 
 #define MINIMUN_CAL_LENGTH 10
 #define MINIMUM_INTRON_LENGTH 10

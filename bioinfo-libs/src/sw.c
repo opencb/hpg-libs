@@ -653,13 +653,13 @@ void smith_waterman_simd(sw_simd_input_t* input, sw_simd_output_t* output,
 		    &context->F_size, &context->F, 
 		    &context->aux_size, &context->q_aux, &context->r_aux);
 
-  sse1_matrix(num_queries, 
+  sse_matrix(num_queries, 
 	      input->seq_p, input->seq_len_p, max_q_len, 
 	      input->ref_p, input->ref_len_p, max_r_len, 
 	      context->matrix, context->gap_open, context->gap_extend, 
 	      context->H, context->F, context->C, output->score_p);
   
-  simd_traceback1(simd_depth, num_queries, 
+  simd_traceback(simd_depth, num_queries, 
 		  input->seq_p, input->seq_len_p, max_q_len, 
 		  input->ref_p, input->ref_len_p, max_r_len, 
 		  context->gap_open, context->gap_extend, 
@@ -727,7 +727,7 @@ float smith_waterman(char* seq_a, char* seq_b, float gapopen, float gapextend,
 ** Optimised to keep a maximum value to avoid looping down or left
 ** to find the maximum. (il 29/07/99)
 ******************************************************************************/
-
+/*
 float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
                       float gapopen, float gapextend, float* path,
                       int* compass)
@@ -749,11 +749,11 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
 
     ret= -FLT_MAX;
 
-    /* Create stores for the maximum values in a row or column */
+  //   Create stores for the maximum values in a row or column 
 
     maxa = (double*) calloc(lena, sizeof(double));
 
-    /* First initialise the first column and row */
+    // First initialise the first column and row 
     for(i=0;i<lena;++i)
     {
         result = (a[i]==b[0] ? 5.0 : -4.0);
@@ -808,7 +808,7 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
     }
 
 
-    /* xpos and ypos are the diagonal steps so start at 1 */
+    // xpos and ypos are the diagonal steps so start at 1 
     xpos = 1;
     float aux;
 
@@ -819,19 +819,19 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
 
 	while(ypos < lena)
 	{
-	    /* get match for current xpos/ypos */
+	    /* get match for current xpos/ypos 
             match = (a[ypos]==b[xpos] ? 5.0 : -4.0);
 
-	    /* Get diag score */
+	    /* Get diag score *
 	    mscore = path[(ypos-1)*lenb+xpos-1] + match;
 	    aux = mscore;
 
-	    /* Set compass to diagonal value 0 */
+	    /* Set compass to diagonal value 0 
 	    compass[ypos*lenb+xpos] = 0;
 	    path[ypos*lenb+xpos] = (float) mscore;
 
 
-	    /* Now parade back along X axis */
+	    /* Now parade back along X axis 
             maxa[ypos] -= gapextend;
             fnew=path[(ypos)*lenb+xpos-1];
             fnew-=gapopen;
@@ -843,10 +843,10 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
             {
                 mscore = maxa[ypos];
                 path[ypos*lenb+xpos] = (float) mscore;
-                compass[ypos*lenb+xpos] = LEFT; /* Score comes from left */
+                compass[ypos*lenb+xpos] = LEFT; /* Score comes from left 
             }
 
-	    /* And then bimble down Y axis */
+	    /* And then bimble down Y axis 
             bx -= gapextend;
             fnew = path[(ypos-1)*lenb+xpos];
             fnew-=gapopen;
@@ -858,14 +858,14 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
             {
                 mscore = bx;
                 path[ypos*lenb+xpos] = (float) mscore;
-                compass[ypos*lenb+xpos] = DOWN; /* Score comes from bottom */
+                compass[ypos*lenb+xpos] = DOWN; /* Score comes from bottom 
             }
 
 	    /*
 	    if (ypos == xpos) {
 	      printf("(%i, %i):\tmscore = %0.2f (%0.2f)\tmaxa[%i] = %0.2f\tbx = %0.2f\t-> compass = %i\n", xpos, ypos, mscore, aux, ypos, maxa[ypos], bx, compass[ypos*lenb+xpos]);
 	    }
-	    */
+	    
 
             if(mscore > ret)
                 ret = (float) mscore;
@@ -886,9 +886,9 @@ float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
 
     return ret;
 }
-
+	    */
 /******************************************************************************/
-
+/*
 void AlignWalkSWMatrix(const float* path, const int* compass,
 		       float gapopen, float gapextend,
 		       const char*  a, const char* b,
@@ -915,10 +915,10 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
   int ic;
   double errbounds;
 
-  /* errbounds = gapextend; */
+  /* errbounds = gapextend; *
   errbounds = (double) 0.01;
 
-  /* Get maximum path score and save position */
+  /* Get maximum path score and save position *
   pmax = -FLT_MAX;
   k = (long)lena*(long)lenb-1;
 
@@ -939,7 +939,7 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
 
   while(xpos>=0 && ypos>=0)
     {
-      if(!compass[ypos*lenb+xpos])    /* diagonal */
+      if(!compass[ypos*lenb+xpos])    /* diagonal *
         {
 	  //printf("emboss: diagonal\n");
 	  //ajStrAppendK(m,p[ypos--]);
@@ -953,7 +953,7 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
 
 	  continue;
         }
-      else if(compass[ypos*lenb+xpos]==LEFT) /* Left, gap(s) in vertical */
+      else if(compass[ypos*lenb+xpos]==LEFT) /* Left, gap(s) in vertical *
         {
 	  //printf("emboss: left\n");
 	  score  = path[ypos*lenb+xpos];
@@ -985,7 +985,7 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
 
 	  continue;
         }
-      else if(compass[ypos*lenb+xpos]==DOWN) /* Down, gap(s) in horizontal */
+      else if(compass[ypos*lenb+xpos]==DOWN) /* Down, gap(s) in horizontal *
         {
 	  //printf("emboss: down\n");
 	  score  = path[ypos*lenb+xpos];
@@ -1028,10 +1028,10 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
       }
     }
 
-  *start1 = (int) (ypos + 1); /* Potential lossy cast */
-  *start2 = (int) (xpos + 1); /* Potential lossy cast */
+  *start1 = (int) (ypos + 1); /* Potential lossy cast *
+  *start2 = (int) (xpos + 1); /* Potential lossy cast *
 
-  //ajStrReverse(m);            /* written with append, need to reverse */
+  //ajStrReverse(m);            /* written with append, need to reverse *
   //ajStrReverse(n);
   
   revstr(m);
@@ -1039,8 +1039,8 @@ void AlignWalkSWMatrix(const float* path, const int* compass,
 
   return;
 }
-
-
+*/
+/*
 void revstr(char* str) {
   int i;
 
@@ -1054,7 +1054,7 @@ void revstr(char* str) {
 
   strcpy(str, cpstr);
 }
-
+*/
 
 //-------------------------------------------------------------
 //-------------------------------------------------------------

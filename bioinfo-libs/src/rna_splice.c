@@ -16,7 +16,7 @@ int node_compare(node_element_splice_t* a, unsigned int b) {
 node_element_splice_t* node_copy(unsigned int b) {
  node_element_splice_t *node = (node_element_splice_t *)malloc(sizeof(node_element_splice_t));
 
- assert(node != NULL);
+ //assert(node != NULL);
  
  node->maximum_allocate_ends = 10;
  node->number_allocate_ends = 0;

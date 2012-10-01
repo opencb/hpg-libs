@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <string.h>
-#include "libcprops-0.1.12/avl.h"
-#include "list.h"
+#include "cprops/avl.h"
+#include "containers/list.h"
 #include "buffers.h"
 #include "timing.h"
 

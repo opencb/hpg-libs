@@ -2,10 +2,20 @@
 #ifndef RNA_SERVER_H
 #define RNA_SERVER_H
 
-#include "list.h"
 #include "genome.h"
 #include "sw_server.h"
 #include "rna_splice.h"
+#include "buffers.h"
+#include "timing.h"
+
+#include "containers/list.h"
+#include "commons/commons.h"
+#include "commons/system_utils.h"
+#include "bioformats/bam-sam/alignment.h"
+#include "sw.h"
+
+//#include "list.h"
+//#include "genome.h"
 
 //===============================================================================================================
 
