@@ -112,11 +112,11 @@ int fastq_fread_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, 
 *  Reads fastq reads from a fastq file until a given data size is reached and stores 
 *  them in a fastq read batch
 */
-int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, fastq_file_t *fq_file);
-int fastq_fread_paired_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, 
-				      int flag, fastq_file_t *fq_file);
-int fastq_fread_paired_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned long max_size, 
-				      int flag, fastq_file_t *fq_file, fastq_file_t *fq_file);
+int fastq_fread_batch_max_size(fastq_batch_t *fq_batch, unsigned long max_size, fastq_file_t *fq_file);
+int fastq_fread_paired_batch_max_size(fastq_batch_t *fq_batch, unsigned long max_size, 
+				      fastq_file_t *fq_file);
+int fastq_fread_paired_batch_max_size2(fastq_batch_t *fq_batch, unsigned long max_size, 
+				       fastq_file_t *fq_file, fastq_file_t *fq_file2);
 
 /**
 *  @brief Reads fastq reads in the given positions from a fastq file
