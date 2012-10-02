@@ -9,8 +9,8 @@ else
 	LIBS_ROOT = $(PWD)/../../..
 endif
 
-CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
+CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 
 # Include path and libraries
 INCLUDES = -I . -I $(LIBS_ROOT)/common-libs
