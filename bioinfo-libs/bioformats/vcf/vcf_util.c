@@ -18,7 +18,7 @@ char *get_field_value_in_info(const char *field, char *info) {
     char *save_strtok, *token;
     char *value;
     
-    // Search for field in info (has to begin with '<field>=')
+    // Search for field in info (must begin with '<field>=')
     token = strtok_r(info, ";", &save_strtok);
     while (token != NULL && !starts_with(token, field) && strlen(token) > strlen(field)+1 && token[strlen(field)] == '=') {
         token = strtok_r(NULL, ";", &save_strtok);
@@ -44,7 +44,7 @@ int get_field_position_in_format(const char *field, char *format) {
     assert(field);
     assert(format);
     
-    int field_pos = 0, cur_pos = 0;
+    int field_pos = 0;
     char *save_strtok, *token;
     token = strtok_r(format, ":", &save_strtok);
     while (token != NULL && strcmp(token, field)) {
@@ -53,6 +53,21 @@ int get_field_position_in_format(const char *field, char *format) {
     }
     
     return (token == NULL) ? -1 : field_pos;
+}
+
+char *get_field_value_in_sample(char *sample, int position) {
+    assert(sample);
+    assert(position >= 0);
+    
+    int field_pos = 0;
+    char *save_strtok, *token = NULL;
+    token = strtok_r(sample, ":", &save_strtok);
+    while (token != NULL && field_pos < position) {
+        token = strtok_r(NULL, ":", &save_strtok);
+        field_pos++;
+    }
+    
+    return token;
 }
 
 int get_alleles(char* sample, int genotype_position, int* allele1, int* allele2) {

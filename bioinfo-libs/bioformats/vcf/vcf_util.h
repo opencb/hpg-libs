@@ -65,6 +65,16 @@ char *get_field_value_in_info(const char *field, char *info);
 int get_field_position_in_format(const char *field, char *format);
 
 /**
+ * @brief Retrieves the value of the i-th field of a sample
+ * @details Retrieves the value of the i-th colon-separated field in a sample.
+ *
+ * @param sample The sample to extract the value of the field from
+ * @param position The position of the field whose value we are interested in
+ * @return The text of the value (must be cast by the user)
+ **/
+char *get_field_value_in_sample(char *sample, int position);
+
+/**
  * @brief Given the value of a sample and the position of its genotype, returns the value of its alleles
  * @details A sample in a VCF file is described in the FORMAT column, so its values are of the form 
  * value1:value2:value3. Given the position where the genotype field is, this function returns

@@ -199,8 +199,8 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         // Update variables finally used to update file_stats_t structure
         variants_count++;
         if (i == 0) { samples_count = record->samples->size; }  // Just once per batch
-        if (strcmp(record->id, ".")) { snps_count++; }
-        if (!strcmp(record->filter, "PASS")) { pass_count++; }
+        if (strncmp(record->id, ".", record->id_len)) { snps_count++; }
+        if (!strncmp(record->filter, "PASS", record->filter_len)) { pass_count++; }
         if (record->quality >= 0) { accum_quality += record->quality; } // -1 = N/A
         if (stats->num_alleles > 2) {
             multiallelics_count++; 

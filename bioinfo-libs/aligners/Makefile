@@ -3,7 +3,7 @@
 ifdef LIBS_HOME
 	LIBS_ROOT = $(LIBS_HOME)
 else
-	LIBS_ROOT = $(PWD)
+	LIBS_ROOT = $(PWD)/../..
 endif
 
 ALIGNERS_DIR = $(LIBS_ROOT)/bioinfo-libs/aligners

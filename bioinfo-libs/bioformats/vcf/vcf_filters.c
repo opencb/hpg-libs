@@ -19,12 +19,12 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
         
-        if (strlen(record->info) > strlen(aux_buffer)) {
-            aux_buffer = realloc (aux_buffer, strlen(record->info)+1);
-            memset(aux_buffer, 0, (strlen(record->info)+1) * sizeof(char));
+        if (record->info_len > strlen(aux_buffer)) {
+            aux_buffer = realloc (aux_buffer, record->info_len+1);
+            memset(aux_buffer, 0, (record->info_len+1) * sizeof(char));
         }
         
-        strncpy(aux_buffer, record->info, strlen(record->info));
+        strncpy(aux_buffer, record->info, record->info_len);
         
         char *record_coverage = get_field_value_in_info("DP", aux_buffer);
         if (record_coverage != NULL && is_numeric(record_coverage)) {
@@ -125,20 +125,22 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
         
-        LOG_DEBUG_F("record = %s, %ld\n", record->chromosome, record->position);
+//         LOG_DEBUG_F("record = %s, %ld\n", record->chromosome, record->position);
         
-        region->chromosome = record->chromosome;
+        region->chromosome = strndup(record->chromosome, record->chromosome_len);
         region->start_position = record->position;
         region->end_position = record->position;
         
         if (find_region(region, regions)) {
             // Add to the list of records that pass all checks for at least one region
             array_list_insert(record, passed);
-            LOG_DEBUG_F("%s, %ld passed\n", record->chromosome, record->position);
+//             LOG_DEBUG_F("%.*s, %ld passed\n", record->chromosome_len, record->chromosome, record->position);
         } else {
             // Add to the list of records that fail all checks for all regions
             array_list_insert(record, failed);
         }
+        
+        free(region->chromosome);
     }
 
     free(region);
@@ -158,7 +160,7 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void
     vcf_record_t *record;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
-        if (strcmp(".", record->id) == 0) {
+        if (record->id_len == 1 && strncmp(".", record->id, 1) == 0) {
             if (include_snps) {
                 array_list_insert(record, failed);
             } else {
@@ -351,13 +353,12 @@ int filter_compare(const void *filter1, const void *filter2) {
 
 filter_chain *add_to_filter_chain(filter_t *filter, filter_chain *chain) {
     assert(filter);
-    assert(chain);
     
     filter_chain *result = chain;
-
     if (result == NULL) {
         result = cp_heap_create((cp_compare_fn) filter_compare);
     }
+    assert(result);
     cp_heap_push(result, filter);
 
     return result;
@@ -403,6 +404,19 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
 
 void free_filter_chain(filter_chain* chain) {
     assert(chain);
+    filter_t *filter;
+    while ((filter = cp_heap_pop(chain) != NULL)) {
+        filter->free_func(filter);
+    }
     cp_heap_destroy(chain);
 }
 
+void free_filters(filter_t **filters, int num_filters) {
+    assert(filters);
+    filter_t *filter;
+    for (int i = 0; i < num_filters; i++) {
+        filter = filters[i];
+        filter->free_func(filter);
+    }
+    free(filters);
+}
