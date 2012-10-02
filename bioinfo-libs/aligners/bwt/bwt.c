@@ -480,7 +480,7 @@ size_t bwt_map_exact_seq(char *seq,
 
   replaceBases(seq, code_seq, len);
   
-  printf("---> EXACT Search Read (%d): %s\n", len, seq);
+  //  printf("---> EXACT Search Read (%d): %s\n", len, seq);
   
   for (short int type = 1; type >= 0; type--) {
     result.k = 0;
@@ -874,7 +874,7 @@ size_t bwt_map_exact_seed(char *seq,
   region_t *region;
   size_t start = 0;
   size_t end = seq_end - seq_start;
-  result *result_p = (result *) calloc(1, sizeof(result));
+  result result;
   char *code_seq = &seq[seq_start];/*(char *)malloc(sizeof(char)*(seq_end - seq_start + 1)); //= &seq[seq_start];
   memcpy(code_seq, &seq[seq_start], seq_end - seq_start);*/
   //code_seq[seq_end - seq_start] = '\0';
@@ -886,7 +886,7 @@ size_t bwt_map_exact_seed(char *seq,
   char plusminus[2] = "-+";
   size_t idx, key, direction, error, pos;
   results_list *r_list;
-  result *r;
+  //  result *r;
   size_t l_aux, k_aux;
   alignment_t *alignment;
   //  size_t len = strlen(seq);
@@ -896,21 +896,21 @@ size_t bwt_map_exact_seed(char *seq,
   
   
   for (short int type = 1; type >= 0; type--) {
-    //printf("Start search strand %c\n", plusminus[type]);
+       result.k = 0;
+       result.l = index->h_O.siz - 2;
+       result.start = start;
+       result.end = end;
       if (type == 1) {
-	result_p->k = 0;
-	result_p->l = index->h_O.m_count - 2;
-	BWExactSearchBackward(code_seq, &index->h_C, &index->h_C1, &index->h_O, result_p);
+	result.pos = end;
+	BWExactSearchBackward(code_seq, &index->h_C, &index->h_C1, &index->h_O, &result);
 	//BWExactSearchBackward(code_seq, start, end, &index->h_C, &index->h_C1, &index->h_O, result_p);
       }else{
-	result_p->k = 0;
-	result_p->l = index->h_rO.m_count - 2;
-	BWExactSearchForward(code_seq, &index->h_rC, &index->h_rC1, &index->h_rO, result_p);
+	result.pos = start;
+	BWExactSearchForward(code_seq, &index->h_rC, &index->h_rC1, &index->h_rO, &result);
 	//BWExactSearchForward(code_seq, start, end, &index->h_rC, &index->h_rC1, &index->h_rO, result_p);
       }
-      k_aux = result_p->k;
-      l_aux = result_p->l;
-      //printf("\tk=%d - l=%d\n", k_aux, l_aux);      
+      k_aux = result.k;
+      l_aux = result.l;
       if (l_aux - k_aux + 1 < bwt_optarg->max_alignments_per_read) {
 	for (size_t j = k_aux; j <= l_aux; j++) {
 	  if (index->S.ratio == 1) {
@@ -925,7 +925,7 @@ size_t bwt_map_exact_seed(char *seq,
 	  //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
  
 	  if(key + len <= index->karyotype.offset[idx]) {
-	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    //start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	    /*printf("Strand:%c\tchromosome:%s\tStart:%u\tend:%u\n",plusminus[type],
 		    index->karyotype.chromosome + (idx-1) * IDMAX,
 		    start_mapping, start_mapping + len);
@@ -933,7 +933,7 @@ size_t bwt_map_exact_seed(char *seq,
 	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	    // save all into one alignment structure and insert to the list
 	    region = region_new(idx, !type, start_mapping, start_mapping + len);
-	    
+
 	    if(!array_list_insert((void*) region, mapping_list)){
 		  printf("Error to insert item into array list\n");
 	    }
@@ -945,8 +945,7 @@ size_t bwt_map_exact_seed(char *seq,
 	//	printf("****** too many mappings (%d) for this sequence (max. %d)!!\n", l_aux - k_aux + 1, bwt_optarg->max_alignments_per_read);
       }
   }
-  //printf("Seeds end\n");
-  free(result_p);
+  //  free(result_p);
 	
   return num_mappings;
   
@@ -1156,7 +1155,7 @@ size_t bwt_map_inexact_seq(char *seq,
     r_list.num_results = 0;
     r_list.read_index = 0;
 
-    printf("*** bwt.c: calling BWSearch1 with type = %d...\n", type);
+    //    printf("*** bwt.c: calling BWSearch1 with type = %d...\n", type);
     if (type == 1) {
       BWSearch1(code_seq, start, end, k1, l1, ki1, li1, 
 		&index->h_C, &index->h_C1, &index->h_O, &index->h_Oi, &r_list);
@@ -1164,7 +1163,7 @@ size_t bwt_map_inexact_seq(char *seq,
       BWSearch1(code_seq, start, end, ki0, li0, k0, l0, 
 		&index->h_rC, &index->h_rC1, &index->h_rOi, &index->h_rO, &r_list);
     }
-    printf("*** bwt.c: calling BWSearch1 with type = %d (num_results = %d). Done !!\n", type, r_list.num_results);
+    //    printf("*** bwt.c: calling BWSearch1 with type = %d (num_results = %d). Done !!\n", type, r_list.num_results);
     
     for (size_t ii = 0; ii < r_list.num_results; ii++) {
       //for (size_t ii = 0; ii < r_list->n; ii++) {
@@ -1686,6 +1685,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
   // first 'pasada'
   offset = 0;
   for (size_t i = 0; i < num_seeds; i++) {
+    //printf("%s\n", &seq[offset]);
     //printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1694,6 +1694,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
 
   // special processing for the last seed !!
   if (len % seed_size >= min_seed_size) {
+    //printf("%s\n", &seq[offset]);
     //printf("1', : start = %d, end = %d\n", offset, len - 1);
     bwt_map_exact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1703,6 +1704,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
   offset = seed_size / 2;
   num_seeds = (len - seed_size / 2) / seed_size;
   for (size_t i = 0; i < num_seeds; i++) {
+    //printf("%s\n", &seq[offset]);
     //printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1711,6 +1713,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
 
   // again, special processing for the last seed !!
   if ((len - seed_size / 2) % seed_size >= min_seed_size) {
+    //printf("%s\n", &seq[offset]);
     //printf("2',: start = %d, end = %d\n", offset, len - 1);
     bwt_map_exact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
@@ -2258,7 +2261,7 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
                                       COLLECTION_MODE_SYNCHRONIZED);
   }
 
-  printf("Array list complete\n");
+  //  printf("Array list complete\n");
   
   size_t (*map_seeds)(char *, size_t, size_t, bwt_optarg_t *, bwt_index_t *, array_list_t *);
 

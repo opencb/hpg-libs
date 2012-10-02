@@ -284,7 +284,7 @@ typedef struct {
 
 inline void new_results_list(results_list *r_list, unsigned int max_results) {
 
-  printf("Size of result %lu\n", sizeof(result)*CHAR_BIT);
+  //  printf("Size of result %lu\n", sizeof(result)*CHAR_BIT);
 
   r_list->list = (result *) malloc(max_results * sizeof(result));
   checkMalloc(r_list->list, "new_result_list");
@@ -323,12 +323,9 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
     r->num_mismatches++;
 
   } else {
-
     fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
-    exit(1);
-
+    //    exit(1);
   }
-
 }
 
 inline void modify_last_mismatch_3(result *r, char err_kind, char base, int position) {
