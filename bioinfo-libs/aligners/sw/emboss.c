@@ -19,10 +19,10 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   int* compass = (int*) calloc(total, sizeof(int));
 
   double partial_t, partial1_t;
-  partial1_t = tic();
-  partial_t = tic();
+  partial1_t = sw_tic();
+  partial_t = sw_tic();
   score = AlignPathCalcSW(seq_a, seq_b, len_a, len_b, gapopen, gapextend, path, compass);
-  *matrix_time += toc(partial_t);
+  *matrix_time += sw_toc(partial_t);
 
 
   //char filename[200];
@@ -33,12 +33,12 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   //emboss_cnt++;
 
 
-  partial_t = tic();
+  partial_t = sw_tic();
   AlignWalkSWMatrix(path, compass, gapopen, gapextend, seq_a, seq_b,
   		    (char*) m, (char *) n, len_a, len_b, start1, start2);
-  *tracking_time += toc(partial_t);
+  *tracking_time += sw_toc(partial_t);
   
-  *total_time += toc(partial1_t);
+  *total_time += sw_toc(partial1_t);
 
   free(path);
   free(compass);
