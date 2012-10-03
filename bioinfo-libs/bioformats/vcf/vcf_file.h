@@ -133,9 +133,8 @@ int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *file);
  **/
 int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
 
-/** @cond PRIVATE */
-// int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files);
-/** @endcond */
+
+int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files);
 
 /**
  * @brief Notifies when the VCF file has been fully read.
