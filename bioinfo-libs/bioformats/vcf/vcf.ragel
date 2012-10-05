@@ -25,7 +25,7 @@ int batches = 0;
     }
 
     action fileformat_error {
-        printf("Line %d: Error in file format\n", lines);
+        printf("Line %d (%s): Error in file format\n", lines, file->filename);
     }
 
     action header_entry_begin {
@@ -37,7 +37,7 @@ int batches = 0;
     }
 
     action header_error {
-        printf("Line %d: Error in header\n", lines);
+        printf("Line %d (%s): Error in header\n", lines, file->filename);
     }
 
     action header_id_begin {
@@ -102,7 +102,7 @@ int batches = 0;
     }
 
     action chrom_error {
-        printf("Line %d: Error in 'chromosome' field\n", lines);
+        printf("Line %d (%s): Error in 'chromosome' field\n", lines, file->filename);
     }
 
     action pos_begin {
@@ -118,7 +118,7 @@ int batches = 0;
     }
 
     action pos_error {
-        printf("Line %d: Error in 'position' field\n", lines);
+        printf("Line %d (%s): Error in 'position' field\n", lines, file->filename);
     }
 
     action id_begin {
@@ -131,7 +131,7 @@ int batches = 0;
     }
 
     action id_error {
-        printf("Line %d: Error in 'id' field\n", lines);
+        printf("Line %d (%s): Error in 'id' field\n", lines, file->filename);
     }
 
     action ref_begin {
@@ -144,7 +144,7 @@ int batches = 0;
     }
 
     action ref_error {
-        printf("Line %d: Error in 'reference' field\n", lines);
+        printf("Line %d (%s): Error in 'reference' field\n", lines, file->filename);
     }
 
     action alt_begin {
@@ -161,7 +161,7 @@ int batches = 0;
     }
 
     action alt_error {
-        printf("Line %d: Error in 'alternate' field\n", lines);
+        printf("Line %d (%s): Error in 'alternate' field\n", lines, file->filename);
     }
 
     action qual_begin {
@@ -193,7 +193,7 @@ int batches = 0;
     }
 
     action filter_error {
-        printf("Line %d: Error in 'filter' field\n", lines);
+        printf("Line %d (%s): Error in 'filter' field\n", lines, file->filename);
     }
 
     action info_begin {
@@ -206,7 +206,7 @@ int batches = 0;
     }
 
     action info_error {
-        printf("Line %d: Error in 'info' field\n", lines);
+        printf("Line %d (%s): Error in 'info' field\n", lines, file->filename);
     }
 
     action format_begin {
@@ -219,7 +219,7 @@ int batches = 0;
     }
 
     action format_error {
-        printf("Line %d: Error in 'format' field\n", lines);
+        printf("Line %d (%s): Error in 'format' field\n", lines, file->filename);
     }
 
     action sample_begin {
@@ -232,7 +232,7 @@ int batches = 0;
     }
 
     action sample_error {
-        printf("Line %d: Error in sample\n", lines);
+        printf("Line %d (%s): Error in sample\n", lines, file->filename);
     }
 
     #################################################

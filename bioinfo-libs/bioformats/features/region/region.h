@@ -1,6 +1,7 @@
 #ifndef REGION_H
 #define REGION_H
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,10 @@ typedef struct {
     char *data;
     size_t length;
 } chromosome_ws_response;
+
+region_t *region_new(char *chromosome, uint32_t start_position, uint32_t end_position);
+
+void region_free(region_t *region);
 
 /**
  * Get an ordered list of chromosomes which will be used as reference in 
@@ -64,7 +69,7 @@ static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t n
  */
 int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, int num_chromosomes);
 
-static int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes);
+int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes);
 
 /**
  * Compare two regions' positions (could be start or end).

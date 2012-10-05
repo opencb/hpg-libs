@@ -1,6 +1,23 @@
 #include "region.h"
 
 
+region_t *region_new(char *chromosome, uint32_t start_position, uint32_t end_position) {
+    assert(chromosome);
+    region_t *region = malloc(sizeof(region));
+    region->chromosome = chromosome;
+    region->start_position = start_position;
+    region->end_position = end_position;
+    return region;
+}
+
+void region_free(region_t *region) {
+    assert(region);
+    free(region->chromosome);
+    free(region);
+}
+
+
+
 char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes)
 {
     int ret_code = init_http_environment(0);
@@ -142,21 +159,31 @@ int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, 
 	}
 }
 
-static int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes)
+int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes)
 {
+    assert(chromosome_1);
+    assert(chromosome_2);
+//     printf("chr1 = %s\t", chromosome_1);
+//     printf("chr 2 = %s\t", chromosome_2);
+//     printf("num chr = %d\n", num_chromosomes);
 	int chr_1_found = 0, chr_2_found = 0;
 	for (int i = 0; i < num_chromosomes; i++)
 	{
+        assert(chromosome_ordering[i]);
+//         printf("* 0\n");
 		if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0)
 		{
+//             printf("* 1\n");
 			if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0)
 			{
+//                 printf("* 2\n");
 				return 0;
 			}
 			return -1;
 		}
 		else if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0)
 		{
+//             printf("* 4\n");
 			return 1;
 		}
 	}
