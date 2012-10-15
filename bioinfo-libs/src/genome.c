@@ -12,20 +12,56 @@ const char NUCLEOTIDES[] = {'A', 'C', 'G', 'N', 'T'};
 const unsigned char TOTAL_CODES = pow(NUCLEOTIDES_NUM, 3) + pow(NUCLEOTIDES_NUM, 2) + NUCLEOTIDES_NUM; 
 
 //------------------------------------------------------------------------------------
-
-
+/*
 genome_t* genome_new(char* sequence_filename, char* chromosome_filename) {
   const int MAXLINE = 1024;
   genome_t* genome_p = (genome_t*) calloc(1, sizeof(genome_t));
   // genome file
   //
   size_t dna_size;
-  /*  printf("Generate done\n");
-      cp_hashtable *t = load_hasthable_codes();
-      printf("Loading done!\n");
-      printf("Genrate Binary Genome File...\n");
-      code_binary_file_generator(100000000, "", sequence_filename, t);
-  */
+
+  printf("Loading Binary File\n");
+  genome_p->X = load_binary_dna(sequence_filename, &dna_size);
+  printf("Load done!\n");
+  genome_p->code_table = load_array_codes();
+  
+  // read index file
+  unsigned int num_chromosomes = 0;
+  unsigned int offset = 0;
+
+  char* p;
+  char line[MAXLINE];
+  FILE *fd = fopen("/home/hmartinez/genome/human64/chromosome_index.txt", "r");
+  while (fgets(line, MAXLINE, fd) ) {
+    p = strrchr(line, '\n'); *p = '\0';
+    p = strrchr(line, '\t'); *p = '\0';
+    //printf("%s\n", line);
+    strcpy((char*) genome_p->chr_name[num_chromosomes], line);
+    genome_p->chr_name_length[num_chromosomes] = strlen(genome_p->chr_name[num_chromosomes]);
+    sscanf(p+1, "%i", &genome_p->chr_size[num_chromosomes]);
+    genome_p->chr_offset[num_chromosomes] = offset;
+
+    offset += (genome_p->chr_size[num_chromosomes] + 1);
+    num_chromosomes++;
+  }
+  fclose(fd);
+  //printf("In genome %d chromosome and %d\n", num_chromosomes, offset);
+  genome_p->num_chromosomes = num_chromosomes;
+
+  return genome_p;
+}*/
+
+genome_t* genome_new(char* sequence_filename, char* directory) {
+  const int MAXLINE = 1024;
+  genome_t* genome_p = (genome_t*) calloc(1, sizeof(genome_t));
+  // genome file
+  //
+  size_t dna_size;
+  size_t j, i;
+  char path[strlen(directory) + 512];
+  
+  strcpy(path, directory);
+  strcat(path, "/index");
 
   printf("Loading Binary File\n");
   genome_p->X = load_binary_dna(sequence_filename, &dna_size);
@@ -36,27 +72,39 @@ genome_t* genome_new(char* sequence_filename, char* chromosome_filename) {
   //
   unsigned int num_chromosomes = 0;
   unsigned int offset = 0;
-
   char* p;
   char line[MAXLINE];
-
-  FILE *fd = fopen(chromosome_filename, "r");
+  char value[1024];
+  FILE *fd = fopen(path, "r");
+  if(fd == NULL) { printf("FILE: '%s' not found\n", path);exit(-1); }
+  //printf("%s\n", path);
   //FILE *fd = fopen("/home/hmartinez/BenchMarks/HomoSapiens_BWT_Index/chromosome_index.txt", "r");
   while (fgets(line, MAXLINE, fd) ) {
-    p = strrchr(line, '\n'); *p = '\0';
-    p = strrchr(line, '\t'); *p = '\0';
     //printf("%s\n", line);
-
-    strcpy((char*) genome_p->chr_name[num_chromosomes], line);
+    i = 0; j= 1;
+    while(line[j] != ' ' ){genome_p->chr_name[num_chromosomes][i++] = line[j++];}
+    genome_p->chr_name[num_chromosomes][i] = '\0';
+    //printf("--> (%d):: %s\n", strlen(genome_p->chr_name[num_chromosomes]), genome_p->chr_name[num_chromosomes]);
     genome_p->chr_name_length[num_chromosomes] = strlen(genome_p->chr_name[num_chromosomes]);
-    sscanf(p+1, "%i", &genome_p->chr_size[num_chromosomes]);
-    genome_p->chr_offset[num_chromosomes] = offset;
+    
+    j++;
+    while(line[j] != ' '){j++;}
+    
+    i=0;j++;
+    //printf("START %i: %c\n", j, line[j]);
 
+    while(line[j] != '\n'){value[i++] = line[j++];}
+    value[i] = '\0';
+    
+    sscanf(value, "%i", &genome_p->chr_size[num_chromosomes]);
+    genome_p->chr_offset[num_chromosomes] = offset;
     offset += (genome_p->chr_size[num_chromosomes] + 1);
+    //printf("%i\n", genome_p->chr_size[num_chromosomes]);
     num_chromosomes++;
   }
-  fclose(fd);
 
+  fclose(fd);
+  
   //printf("In genome %d chromosome and %d\n", num_chromosomes, offset);
 
   genome_p->num_chromosomes = num_chromosomes;
@@ -450,8 +498,18 @@ char* genome_get_chr_name(unsigned int chr, unsigned int* len, genome_t* genome_
 */
 
 //------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------                                                                                  
+void generate_codes(char *dna_binary_filename, char *dna_filename){
+  printf("Loading hashtable Codes ...\n");
+  cp_hashtable *t = load_hasthable_codes();
+  printf("Loading done!\n");
 
-//------------------------------------------------------------------------------------
+  printf("Genrate Binary Genome File...\n");
+  code_binary_file_generator(100000000, dna_filename,
+                             dna_binary_filename, t);
+  printf("Generate done! Happy usage!\n");
+}
+/*
 void generate_codes(){
   char *dna_binary_filename = "dna_compression.bin";
   char *dna_filename = "/home/hmartinez/BenchMarks/HomoSapiens_BWT_Index/all.oneline";//"pruebecilla.fa";
@@ -489,7 +547,7 @@ void generate_codes(){
     printf("%i\n", values[i]);
   }
   exit(-1);
-  */
+  
  
-}
+  }*/
 //------------------------------------------------------------------------------------

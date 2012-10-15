@@ -4,7 +4,7 @@
 #include "buffers.h"
 #include "aligners/bwt/bwt.h"
 
-#define MAX_CALS 200
+#define MAX_CALS 100
 
 //====================================================================================
 //  structures and prototypes
