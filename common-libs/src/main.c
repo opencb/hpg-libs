@@ -22,9 +22,11 @@
 #include "sw_server.h"
 #include "pair_server.h"
 #include "batch_aligner.h"
-
 // rna server
-//#include "rna_server.h"
+#include "rna_splice.h"
+#include "rna_server.h"
+
+
 //#include "sw.h"
 //#include "smith_waterman.h"
 
@@ -66,6 +68,9 @@ timing_t* timing_p = NULL;
 int num_of_chromosomes;
 statistics_t *statistics_p;
 
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		     options_t *options);
 //--------------------------------------------------------------------
 // main parameters support
 //--------------------------------------------------------------------
@@ -74,6 +79,11 @@ int main(int argc, char* argv[]) {
 
   printf("parsing options...\n");
   options_t *options = parse_options(argc, argv);
+
+  if (options->flank_length < 20) {
+    options->flank_length = 20;
+  }
+
   printf("done !\n");
 
   printf("displaying options...\n");
@@ -101,7 +111,6 @@ int main(int argc, char* argv[]) {
 					  options->num_sw_servers, 1, 1, 1};
     timing_p = timing_new((char**) labels_time, (int*) num_threads, NUM_SECTIONS_TIME);
     
-    timing_start(MAIN_INDEX, 0, timing_p);
     //timing_start(INIT_INDEX, 0, timing_p);    
   }
 
@@ -170,8 +179,11 @@ int main(int argc, char* argv[]) {
   printf("Reading bwt index done !!\n");
 
   // bwt_optarg_new(errors, threads, max aligns) 
-  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 200);
-  
+  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 500,
+					    options->report_best,
+					    options->report_n_hits, 
+					    options->report_all);
+  //bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 200);
   // CAL parameters
   //GOOD LUCK(20, 60, 18, 16, 0)
   cal_optarg_t *cal_optarg = cal_optarg_new(options->min_cal_size, options->seeds_max_distance, 
@@ -181,7 +193,7 @@ int main(int argc, char* argv[]) {
   // genome parameters
   printf("reading genome...\n");
   if (time_on) { timing_start(INIT_GENOME_INDEX, 0, timing_p); }
-  genome_t* genome = genome_new(options->genome_filename, options->chromosome_filename);
+  genome_t* genome = genome_new(options->genome_filename, options->bwt_dirname);
   if (time_on) { timing_stop(INIT_GENOME_INDEX, 0, timing_p); }
   printf("Done !!\n");
 
@@ -218,13 +230,16 @@ int main(int argc, char* argv[]) {
     context_p = (void *) gpu_context_new(num_gpus, num_gpu_threads);
   }*/
   
+  if (time_on) { 
+    timing_start(MAIN_INDEX, 0, timing_p);
+  }
 
   // launch threads in parallel
   omp_set_nested(1);
 
   if (options->rna_seq) {
     // RNA version
-    run_rna_aligner();
+    run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, options);
 
   } else {
     // DNA version
@@ -232,6 +247,9 @@ int main(int argc, char* argv[]) {
   }
 
   printf("\nmain done !!\n");
+  if (time_on) { 
+    timing_stop(MAIN_INDEX, 0, timing_p);
+  }
 
   // free memory
   if (time_on) { timing_start(FREE_MAIN, 0, timing_p); }
@@ -250,7 +268,6 @@ int main(int argc, char* argv[]) {
   if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }*/
 
   if (time_on) { 
-    timing_stop(MAIN_INDEX, 0, timing_p);
     timing_display(timing_p);
   }
   
@@ -263,6 +280,11 @@ int main(int argc, char* argv[]) {
   if (statistics_on) { statistics_free(statistics_p); }
 
   options_free(options);
+
+  
+  printf("Time BWT Search %.3fs\n", time_bwt_seed/1000000);
+  printf("Time S Search %.3fs\n", time_search_seed/1000000);
+  
 
   return 0;
 }
@@ -308,7 +330,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   sw_server_input_t sw_input;
   sw_server_input_init(NULL, NULL, 0, options->match, options->mismatch, 
 		       options->gap_open, options->gap_extend, options->min_score, 
-		       options->flank_length, genome, 0, 0, 0, &sw_input);
+		       options->flank_length, genome, 0, 0, 0,  bwt_optarg, &sw_input);
    
 
   double t_total;
@@ -415,8 +437,10 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 
 //--------------------------------------------------------------------
 
-void run_rna_aligner() {
-  /*
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		     options_t *options) {
+  
   list_t read_list;
   list_init("read", 1, 10, &read_list);
   
@@ -427,11 +451,13 @@ void run_rna_aligner() {
   list_init("regions", 1, 10, &regions_list);
   
   list_t sw_list;
-  list_init("sw", num_cal_seekers, 10, &sw_list);
+  list_init("sw", options->num_cal_seekers, 10, &sw_list);
 
   list_t write_list;
-  list_init("write", 1 + num_cal_seekers + num_sw_servers, 10, &write_list);
-  
+  list_init("write", 1 + options->num_cal_seekers + options->num_sw_servers, 10, &write_list);
+
+  allocate_splice_elements_t chromosome_avls[CHROMOSOME_NUMBER];
+  init_allocate_splice_elements(&chromosome_avls);
 
   #pragma omp parallel sections num_threads(6)
   {
@@ -439,26 +465,30 @@ void run_rna_aligner() {
     #pragma omp section
     {
       fastq_batch_reader_input_t input;
-      fastq_batch_reader_input_init(in_filename, batch_size, &read_list, &input);
+      fastq_batch_reader_input_init(options->in_filename, options->in_filename2, 
+				    options->pair_mode, options->batch_size, 
+				    &read_list, &input);
+      
+      /*fastq_batch_reader_input_init( options->in_filename,  options->batch_size, &read_list, &input);*/
       fastq_batch_reader(&input);
     }
     #pragma omp section
     {
 	bwt_server_input_t input;
-        bwt_server_input_init(&read_list, batch_size, bwt_optarg_p, bwt_index_p, &write_list, write_size, &unmapped_reads_list, &input);
+        bwt_server_input_init(&read_list,  options->batch_size,  bwt_optarg, bwt_index, &write_list,  options->write_size, &unmapped_reads_list, &input);
 	bwt_server_cpu(&input);
     }
     #pragma omp section
     {
 	region_seeker_input_t input;
-	region_seeker_input_init(&unmapped_reads_list, cal_optarg_p, bwt_optarg_p, bwt_index_p, &regions_list, region_threads, &input);
+	region_seeker_input_init(&unmapped_reads_list, cal_optarg, bwt_optarg, bwt_index, &regions_list, options->region_threads, &input);
 	region_seeker_server(&input);
     }
     #pragma omp section
     {
       cal_seeker_input_t input;
-      cal_seeker_input_init(&regions_list, cal_optarg_p, &write_list, write_size, &sw_list, &input);
-      #pragma omp parallel num_threads(num_cal_seekers)
+      cal_seeker_input_init(&regions_list, cal_optarg, &write_list, options->write_size, &sw_list, NULL, &input);
+      #pragma omp parallel num_threads(options->num_cal_seekers)
       {
 	cal_seeker_server(&input);
       }
@@ -466,35 +496,28 @@ void run_rna_aligner() {
     }
     #pragma omp section
     {
-      allocate_splice_elements_t chromosome_avls[CHROMOSOME_NUMBER];
-      init_allocate_splice_elements(&chromosome_avls);
       sw_server_input_t input;
-      sw_server_input_init(&sw_list, &write_list, write_size, match, mismatch, gap_open, 
-			   gap_extend, min_score, flank_length, genome_p, max_intron_length,
-			   min_intron_length, seeds_max_distance, &input);
+
+      sw_server_input_init(&sw_list, &write_list, options->write_size,  options->match,  options->mismatch,  options->gap_open, 
+			    options->gap_extend,  options->min_score,  options->flank_length, genome,  options->max_intron_length,
+			   options->min_intron_length,  options->seeds_max_distance,  bwt_optarg, &input);
       list_incr_writers(&write_list);
-      #pragma omp parallel num_threads(num_sw_servers)
+      #pragma omp parallel num_threads( options->num_sw_servers)
       {
-	if (rna_seq){
-	  rna_server_omp_smith_waterman(&input, &chromosome_avls);
-	}else {
-	  sw_server(&input);
-	} 
+	rna_server_omp_smith_waterman(&input, &chromosome_avls);
       }
 
-      if(rna_seq){
-	process_and_free_chromosome_avls(&chromosome_avls, &write_list, write_size);
-      }
+      process_and_free_chromosome_avls(&chromosome_avls, &write_list,  options->write_size);     
 
       }
      #pragma omp section
     {
       batch_writer_input_t input;
-      batch_writer_input_init(output_filename, splice_exact_filename, splice_extend_filename, &write_list, &input);
+      batch_writer_input_init( options->output_filename,  options->splice_exact_filename,  options->splice_extend_filename, &write_list, &input);
       batch_writer(&input);
     }
   }  
-  */
+  
 }
 
 //--------------------------------------------------------------------

@@ -43,8 +43,8 @@ typedef struct sw_server_input {
      // to get inputs and to save outputs
      list_t* sw_list_p;    /**< Pointer to the list that contains the input sequences to align. */
      list_t* write_list_p; /**< Pointer to the list that contains the output aligned sequences. */
-
      genome_t* genome_p;   /**< Pointer to the genome structure to get the reference sequences. */
+     bwt_optarg_t* bwt_optarg_p;
 } sw_server_input_t;
 
 //------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ typedef struct sw_server_input {
 void sw_server_input_init(list_t* sw_list_p, list_t* write_list_p, unsigned int write_size, 
 			  float match, float mismatch, float gap_open, float gap_extend, 
 			  float min_score, unsigned int flank_length, genome_t* genome_p,
-			  size_t max_intron_size, size_t min_intron_size, size_t seed_max_distance,
+			  size_t max_intron_size, size_t min_intron_size, size_t seed_max_distance, bwt_optarg_t* bwt_optarg_p, 
 			  sw_server_input_t* input_p);
 
 //====================================================================================

@@ -16,8 +16,7 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			36
-
+#define NUM_OPTIONS			38
 
 typedef struct options {
   int min_intron_length;
@@ -43,6 +42,9 @@ typedef struct options {
   int pair_mode;
   int pair_min_distance;
   int pair_max_distance;
+  int report_all;
+  int report_best;
+  int report_n_hits;
   double min_score;
   double match;
   double mismatch;
@@ -54,7 +56,6 @@ typedef struct options {
   char* in_filename2;
   char* bwt_dirname;
   char* genome_filename;
-  char* chromosome_filename;
   char* output_filename;
 } options_t;
 

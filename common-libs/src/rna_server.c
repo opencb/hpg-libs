@@ -20,32 +20,7 @@
 
 #define STRANDS_NUMBER 2
 
-
-void seq_reverse_complementary(char *seq, unsigned int len){
-  unsigned int j = 0;
-  
-  char *seq_tmp = (char *)malloc(len*sizeof(char));
-  memcpy(seq_tmp, seq, len);
-  
-  for (int i = len - 1; i >= 0; i--){
-    if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a'){
-      seq[j] = 'T';
-    }
-    else if (seq_tmp[i] == 'C' || seq_tmp[i] == 'c'){
-       seq[j] = 'G';
-    }
-    else if (seq_tmp[i] == 'G' || seq_tmp[i] == 'g'){
-       seq[j] = 'C';
-    }
-    else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
-       seq[j] = 'A';
-    }
-    j++;  
-  }
-
-  free(seq_tmp);
-
-}
+int ii = -1;
 
 void cal_fusion_data_init(unsigned int id, unsigned int start, unsigned int end, unsigned int strand, unsigned int chromosome, unsigned int fusion_start, unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p){
   cal_fusion_data_p->genome_strand = strand;
@@ -109,17 +84,22 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int 
   
 }
 
-write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_t* output_p, unsigned int depth, allocate_fusion_data_t *depth_cal_fusion_p, 
-						 allocate_splice_elements_t *chromosome_avls_p,  unsigned char * mapping_reads_p, sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p,
-						 list_t* write_list_p, write_batch_t* write_batch_p, 
-						 unsigned int write_size, unsigned int sw_id,  size_t *sw_no_valids, float min_score, genome_t *genome_p, unsigned int min_intron_length){
+//list_t* write_list_p, write_batch_t* write_batch_p, unsigned int write_size,
+
+void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_t* output_p, 
+				       unsigned int depth, allocate_fusion_data_t *depth_cal_fusion_p, 
+				       allocate_splice_elements_t *chromosome_avls_p,  
+				       unsigned char * mapping_reads_p, sw_channel_t *sw_channels_p, 
+				       sw_batch_t *sw_batch_p,  unsigned int sw_id,  size_t *sw_no_valids, 
+				       float min_score, genome_t *genome_p, unsigned int min_intron_length,
+				       array_list_t **allocate_mappings){
   
   const unsigned char EXTRA_SEARCH = 8;
 
   char header_id[2048];
   alignment_t *alignment_p;
   
-  char *header_match, *read_match, *quality_match;
+  char *header_match, *read_match, *quality_match, *quality_strand;
   
   char extra_nt[EXTRA_SEARCH + 1];
   unsigned int extra_nt_len = 0;
@@ -145,7 +125,8 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
   int cal;
   unsigned int relative_gap_start;
   unsigned int nt_skipped;
-  unsigned int str_pos, quality_pos;
+  size_t str_pos;
+  unsigned int quality_pos;
   unsigned int reference_position_disp;
   unsigned int start_gap_padding;
   unsigned int start_search_j;
@@ -175,7 +156,7 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
   unsigned int change_cal = 0, change_cal_number = 0;
   char cigar_segment[10];
   unsigned int change_cal_index[20];
-  list_item_t* item_p = NULL;  
+  //list_item_t* item_p = NULL;  
   char *cigar_str;
   cigar_data_t *cigar_p = (cigar_data_t *)malloc(sizeof(cigar_data_t)*cigar_max_len);
   if (cigar_p == NULL) { exit(-1); }
@@ -198,7 +179,7 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
   canonical_CT_AC[3] = 'C';
   //================================================//
   
-  /*printf(" ======================== Process Output SW %d=========================\n", depth);
+  /*    printf(" ======================== Process Output SW %d=========================\n", depth);
   sw_simd_input_display(depth, input_p);
   sw_simd_output_display(depth, output_p);
   printf("======================================================================\n");
@@ -343,11 +324,11 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
     str_pos = 0;
     read_len = output_p->mapped_len_p[i];
     read_match = (char *)malloc(sizeof(char)*(read_len + 1));
-    if (read_match == NULL) { exit(-1); }
+    if (read_match == NULL) { printf("Error to allocate memory\n"); exit(-1); }
    
     quality_pos = output_p->start_seq_p[i];
     quality_match = (char *)malloc(sizeof(char)*(read_len + 1));
-    if (quality_match == NULL) { exit(-1); }
+    if (quality_match == NULL) { printf("Error to allocate memory\n"); exit(-1); }
     
     found = NOT_SPLICE;
     //===========Position Automata in initial State==========
@@ -714,16 +695,6 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
     //printf("Cigar(%d):%s\n", cigar_pos, cigar_str);
     //end cigar string
     
-    if ( write_batch_p->size >= write_batch_p->allocated_size - 1) {
-      item_p = list_item_new(0, WRITE_ITEM, write_batch_p);
-      if (time_on) { timing_stop(SW_SERVER, sw_id, timing_p); }
-      list_insert_item(item_p, write_list_p);
-      if (time_on) { timing_start(SW_SERVER, sw_id, timing_p); }
-      
-      write_batch_p = write_batch_new(write_size, MATCH_FLAG);
-      
-    }
-    
     if (mapping_reads_p[sw_channels_p[i].read_index] == 1) {
 	primary_alignment = 1;
     } else {
@@ -741,16 +712,30 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
     //printf("Header len = %d\n", header_len);
 
     read_match[str_pos] = '\0';
-    quality_match[str_pos] = '\0';
-    
+    //quality_match[str_pos] = '\0';
     //memcpy(quality_match, &(sw_batch_p->quality_p[sw_batch_p->read_indices_p[sw_channels_p[i].read_index]]), read_len );
-
-    alignment_init_single_end(header_match, read_match, quality_match, depth_cal_fusion_p[i].allocate_data->genome_strand, depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped, cigar_str, num_cigar_op, 255, 1, primary_alignment, alignment_p);
-    //printf("seq: %s\n", alignment_p->sequence);
+    if (depth_cal_fusion_p[i].allocate_data->genome_strand) {
+      quality_strand = (char *)malloc(sizeof(char)*(str_pos + 1));
+      reverse_str(quality_match, quality_strand, str_pos);
+      //memcpy(quality_strand, quality_match, str_pos);
+      free(quality_match);
+      quality_strand[str_pos] = '\0';
+      quality_match = quality_strand;
+    }
     
-    ((alignment_t **)write_batch_p->buffer_p)[write_batch_p->size] = alignment_p;
-    write_batch_p->size++;
-	     
+    alignment_init_single_end(header_match, read_match, quality_match, depth_cal_fusion_p[i].allocate_data->genome_strand, depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped, cigar_str, num_cigar_op, (int)output_p->score_p[i], 1, primary_alignment, alignment_p);
+
+    //printf("Score %i\n", alignment_p->map_quality);
+    //printf("seq: %s\n", alignment_p->sequence);
+    //printf("Insert mapping\n");
+    
+
+    //--------->
+    array_list_insert(alignment_p, allocate_mappings[sw_channels_p[i].read_index]);
+    //if (ii == sw_channels_p[i].read_index){ printf("SW READ list size %i - read position %i\n", array_list_size(allocate_mappings), sw_channels_p[i].read_index); 
+    //    alignment_print(alignment_p);
+    
+
     //============================================================================================
     
     //printf(" (score = %.2f, norm. score = %.2f)\n", output_p->score_p[i], output_p->norm_score_p[i]);
@@ -760,12 +745,19 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
       free(output_p->mapped_seq_p[i]);
       free(output_p->mapped_ref_p[i]);
     */
+
     mapping_reads_p[sw_channels_p[i].read_index] = 1;
     
     //Report Splice Junctions
     for (unsigned int s = 0; s < splice_number; s++) {
       pthread_mutex_lock(&(chromosome_avls_p[depth_cal_fusion_p[i].allocate_data[0].genome_chromosome].mutex));
-      allocate_new_splice(depth_cal_fusion_p[i].allocate_data->genome_chromosome, allocate_splice[s].strand_sp, allocate_splice[s].end_sp, allocate_splice[s].start_sp, allocate_splice[s].start_extend_sp, allocate_splice[s].end_extend_sp, chromosome_avls_p);
+      /* if ( (allocate_splice[s].start_sp == 1248330) && (allocate_splice[s].end_sp == 1248414)){ */
+      /*   printf("-->Depth %i :: %f<--\n", i, output_p->score_p[i]); */
+      /*   sw_simd_input_display(depth, input_p); */
+      /* } */
+      allocate_new_splice(depth_cal_fusion_p[i].allocate_data->genome_chromosome, allocate_splice[s].strand_sp, 
+			  allocate_splice[s].end_sp, allocate_splice[s].start_sp, allocate_splice[s].start_extend_sp, 
+			  allocate_splice[s].end_extend_sp, chromosome_avls_p);
       pthread_mutex_unlock(&(chromosome_avls_p[depth_cal_fusion_p[i].allocate_data[0].genome_chromosome].mutex));
     }
   }//End loop depth
@@ -782,7 +774,7 @@ write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_si
 
   free(cigar_p);
 
-  return write_batch_p;
+  //return write_batch_p;
   
 }
 
@@ -821,7 +813,10 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   unsigned int depth = 4, curr_depth = 0;
   sw_simd_input_t* sw_input_p = sw_simd_input_new(depth);
   sw_simd_output_t* sw_output_p = sw_simd_output_new(depth);
+  
   sw_simd_context_t *context_p = sw_simd_context_new(input_p->match, input_p->mismatch, input_p->gap_open, input_p->gap_extend);
+  
+
   float min_score = input_p->min_score;
 	
   // for tracking what reads are being mapped successfully
@@ -876,6 +871,16 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   char no_store;
   size_t distance;
   unsigned int max_intron_size = input_p->max_intron_size;
+  
+  size_t num_mappings;
+  alignment_t *alignment_aux;
+  array_list_t **allocate_mappings;
+
+  size_t n_alignments_report = 0; 
+  size_t n_total_reads_process = 0;
+
+
+  allocate_mappings = (array_list_t **)malloc(allocated_mapping_reads*sizeof(array_list_t *));
 
   reference = (char *)malloc(sizeof(char)*max_reference);
   
@@ -887,6 +892,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     //printf("RNA Server Processing Batch...\n");
     if (time_on) { timing_start(SW_SERVER, sw_id, timing_p); }
     
+    
+    
     curr_depth = 0;
     sw_batch_p = (sw_batch_t*) sw_item_p->data_p;
     num_reads = sw_batch_p->num_reads;
@@ -895,6 +902,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     if (num_reads > allocated_mapping_reads) {
       allocated_mapping_reads = num_reads;
       mapping_reads_p = (unsigned char *) realloc(mapping_reads_p, allocated_mapping_reads * sizeof(unsigned char));
+      allocate_mappings = (array_list_t **)realloc(allocate_mappings, allocated_mapping_reads *sizeof(array_list_t *));
     }
 
     memset(mapping_reads_p, 0, allocated_mapping_reads * sizeof(unsigned char));
@@ -902,6 +910,19 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     /** for each read **/
     total_reads_process += num_reads;
     for (i=0; i < num_reads; i++) {
+      /*      if(strcmp("GTGGCACAGTTGGCCTGGACATATCACGAGCGGCTGCGTAAGTGCTGTAGCCCCAGCTTGTCACTCAGCTCGCTCACGGGCATGGCGTTGGGCATGTCCT", 
+		sw_batch_p->allocate_reads_p[i]->sequence) == 0) {
+	printf("%s \n %s\n", "GTGGCACAGTTGGCCTGGACATATCACGAGCGGCTGCGTAAGTGCTGTAGCCCCAGCTTGTCACTCAGCTCGCTCACGGGCATGGCGTTGGGCATGTCCT", sw_batch_p->allocate_reads_p[i]->sequence);
+	ii = i;
+	printf("Read %i - %i\n", i, ii);
+	}*/
+      
+      //if (allocate_mappings[i] == NULL) {
+      allocate_mappings[i] = array_list_new(100, 
+					    1.25f, 
+					    COLLECTION_MODE_ASYNCHRONIZED);
+	//}
+	
       read_len = strlen(sw_batch_p->allocate_reads_p[i]->sequence);
       header_len = strlen(sw_batch_p->allocate_reads_p[i]->id);
       num_cals = array_list_size(sw_batch_p->allocate_cals_p[i]);
@@ -910,14 +931,14 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       //memcpy(read_seq, &(sw_batch_p->read_p[sw_batch_p->read_indices_p[read]]), read_len);
       
       memset(cals_per_chromosome, 0, CHROMOSOME_NUMBER * STRANDS_NUMBER *  sizeof(unsigned int));
-      /*
-      printf("\n");
+      
+      /*printf("\n");
       printf("CALS BEFORE ORDER:\n");
       for(int t = 0; t < array_list_size(sw_batch_p->allocate_cals_p[i]); t++){
 	cal_p = (cal_t *)array_list_get(t, sw_batch_p->allocate_cals_p[i]);
 	printf("\t%d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", t, cal_p->chromosome_id, cal_p->strand, cal_p->start, cal_p->end);
-      }*/
-      
+	}*/
+      //exit(-1);
       
       // Order CALs and count number of CALs per chromosome and initialize cal type array
       for (j = 0; j < num_cals; j++) {
@@ -956,13 +977,14 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       cal_p = (cal_t *)array_list_get(j , sw_batch_p->allocate_cals_p[i]);	
       cals_per_chromosome[cal_p->chromosome_id * STRANDS_NUMBER + cal_p->strand] += 1;
       */
-      /*printf("\n");
+
+      /*      printf("\n");
       printf("CALS AFTER ORDER:\n");
       for(int t = 0; t < array_list_size(sw_batch_p->allocate_cals_p[i]); t++){
 	cal_p = (cal_t *)array_list_get(t, sw_batch_p->allocate_cals_p[i]);
 	printf("\t%d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", t, cal_p->chromosome_id, cal_p->strand, cal_p->start, cal_p->end);
-	}*/
-      
+      }
+      */
 
       //CALs actualization and extend 
       j = 0;
@@ -990,14 +1012,15 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	}
       }
       
-      /*
-      printf("\n");
+      
+      /*      printf("\n");
       printf("CALS AFTER REFUSION:\n");
       for(int t = 0; t < array_list_size(sw_batch_p->allocate_cals_p[i]); t++){
 	cal_p = (cal_t *)array_list_get(t, sw_batch_p->allocate_cals_p[i]);
 	printf("\t%d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", t, cal_p->chromosome_id, cal_p->strand, cal_p->start, cal_p->end);
 	}	*/
       
+      //if (array_list_size(sw_batch_p->allocate_cals_p[i]) > 10) { printf("%s\n", sw_batch_p->allocate_reads_p[i]->sequence);exit(0);}
       chromosome_tot = 0;
       
       for(int c = 0; c < CHROMOSOME_NUMBER*STRANDS_NUMBER; c+=2){
@@ -1061,6 +1084,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	    genome_read_sequence_by_chr_index(reference, 0, 
 					      cal_p->chromosome_id - 1, &start, &end, genome_p);
 	    
+	    //printf("chr:%i - CAL[%i-%i] = %s\n", cal_p->chromosome_id, start, end, reference);
 	    reference_fusion_len += len;
 	    
 	    if(reference_fusion_len >= maximum_reference_len){
@@ -1094,6 +1118,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	  }
 	  
 	  //printf("\tProceses one sw\n");
+	  
 	  cal_indice = 0;
 	  cals_fusion_p->cal_number = num_cals_fusion;   	  
 	  channel_p = &sw_channels_p[curr_depth];
@@ -1119,15 +1144,18 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	  sw_simd_input_add(seq_p, read_len,
 			    channel_p->ref_p, channel_p->ref_len, 
 			    curr_depth, sw_input_p);
-	  
+
+	  //	  printf("Stored int position %i\n", i); 
+
+
 	  if ((++curr_depth) == depth) {
 	  
 	    smith_waterman_simd(sw_input_p, sw_output_p, context_p);
 	  
-	    write_batch_p = search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
-							      allocate_cals_fusion_p, chromosome_avls_p,  mapping_reads_p, sw_channels_p, 
-							      sw_batch_p, write_list_p, write_batch_p, write_size, sw_id, &sw_no_valids,
-							      min_score, genome_p, min_intron_length);
+	    search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
+					      allocate_cals_fusion_p, chromosome_avls_p,  mapping_reads_p, sw_channels_p, 
+					      sw_batch_p, sw_id, &sw_no_valids,
+					      min_score, genome_p, min_intron_length, allocate_mappings);
 	    num_sw_process += curr_depth;
 	    curr_depth = 0;
 	  }
@@ -1138,6 +1166,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	
       }//end for start to chromosome_tot
       
+
     } // end of for 0..num_reads
     
     //printf("%d.Seq(%d): %s\n",cal_p->strand, read_len, sw_batch_p->allocate_reads_p[i]->sequence);
@@ -1155,21 +1184,57 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 			  k, sw_input_p);
 	//printf("k=%d : %s\n", k , sw_input_p->seq_p[k]);
       }
-      //printf("Run smith waterman...\n");
+      //printf("Run smith waterman... %i\n", i);
       smith_waterman_simd(sw_input_p, sw_output_p, context_p);
-      write_batch_p = search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, allocate_cals_fusion_p, chromosome_avls_p,  mapping_reads_p, sw_channels_p, sw_batch_p, write_list_p, write_batch_p, write_size, sw_id, &sw_no_valids, min_score, genome_p, min_intron_length);
+      search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
+					allocate_cals_fusion_p, chromosome_avls_p,  
+					mapping_reads_p, sw_channels_p, sw_batch_p,
+					sw_id, &sw_no_valids, min_score, genome_p, 
+					min_intron_length, allocate_mappings);
       
       //found_write_p = process_sw_output(sw_output_p, sw_input_p, min_score, curr_depth, sw_channels_p, sw_batch_p, write_list_p, found_write_p, write_size, sw_id, &total_valids, mapping_reads_p, genome_p);
       curr_depth = 0;
     }
     
+    
+    //**************************************************
+    //PROCESS OUTPUT ALIGNMENTS
+    //printf("Process Alignments\n");
     for (i = 0; i < num_reads; i++) {
+      //printf("Read %i : %i\n", i, array_list_size(allocate_mappings[i]));
+      n_total_reads_process++;
+      
+      //if (ii == i && ii != -1) { printf("1.READ %i -- Mappings found %i\n", ii, array_list_size(allocate_mappings[i]));  }
+
+      num_mappings = alignments_filter(input_p->bwt_optarg_p->report_all, 
+				       input_p->bwt_optarg_p->report_best, 
+				       input_p->bwt_optarg_p->report_n_hits,
+				       allocate_mappings[i]);
+      
+      //if (ii == i && ii != -1) { printf("2.Mappings found %i\n", num_mappings); exit(-1); }
+
+      for (unsigned int m = 0; m < num_mappings; m++) {
+	alignment_aux = array_list_get(m, allocate_mappings[i]);
+	if ( write_batch_p->size >= write_batch_p->allocated_size - 1) {
+	  item_p = list_item_new(0, WRITE_ITEM, write_batch_p);
+	  if (time_on) { timing_stop(SW_SERVER, sw_id, timing_p); }
+	  list_insert_item(item_p, write_list_p);
+	  if (time_on) { timing_start(SW_SERVER, sw_id, timing_p); }
+	  
+	  write_batch_p = write_batch_new(write_size, MATCH_FLAG);
+	  
+	}
+
+	((alignment_t **)write_batch_p->buffer_p)[write_batch_p->size] = alignment_aux;
+	write_batch_p->size++;
+      }
+
       if (!mapping_reads_p[i]) {
 	//printf("****************** read %i NO MAPPED %i!!!\n", i, mapping_reads_p[i]);
 	total_reads_unmapped++;
 	read_len = strlen(sw_batch_p->allocate_reads_p[i]->sequence);
 	header_len = strlen(sw_batch_p->allocate_reads_p[i]->id);
-				
+	
 	if ( write_batch_p->size >= write_batch_p->allocated_size - 1) {
 	  item_p = list_item_new(0, WRITE_ITEM, write_batch_p);
 	  if (time_on) { timing_stop(SW_SERVER, sw_id, timing_p); }
@@ -1204,10 +1269,14 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	write_batch_p->size++;
 	
 	mapping_reads_p[i] = 2;
-      }else{
-	//printf("****************** read %i MAPPED %i!!!\n", i, mapping_reads_p[i]);
-      } // end of if mapping_reads_p[i] == 0
-    } // end of for 0..num_reads
+      }
+      //allocate_mappings[i]->size = 0;
+      array_list_free(allocate_mappings[i], NULL);
+    }
+
+
+    //**************************************************
+
     
     /*    printf("Reads mapped with global variable at this moment %d\n", reads_mapped_global);
     printf("Reads mapped with local  variable at this moment %d\n", total_reads_unmapped);
@@ -1244,6 +1313,11 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   list_decr_writers(write_list_p);
   free(reference_fusion_p);
   free(reference);
+  /*
+  for (i = 0; i < allocated_mapping_reads; i++){
+    array_list_free(allocate_mappings[i], NULL);
+    }*/
+  free(allocate_mappings);
 
   if (statistics_on) { 
     statistics_add(SW_SERVER_ST, 0, num_batches, statistics_p); 
@@ -1258,7 +1332,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     statistics_add(TOTAL_ST, 2, total_reads_unmapped, statistics_p); 
   }
 
-
+  printf("total_reads_process = %i =? alignments_report = %i \n", n_total_reads_process, n_alignments_report);
   printf("rna_server: END (%i reads -> unmapped %i, %i smith-waterman -> %i valids)\n", total_reads_process,  total_reads_unmapped, num_sw_process, total_reads_process - total_reads_unmapped);
   
   return;

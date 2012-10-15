@@ -8,7 +8,7 @@ void sw_server_input_init(list_t* sw_list, list_t* write_list, unsigned int writ
 			  float match, float mismatch, float gap_open, float gap_extend, 
 			  float min_score, unsigned int flank_length, genome_t* genome, 
 			  size_t max_intron_size, size_t min_intron_size, 
-			  size_t seed_max_distance, sw_server_input_t* input) {
+			  size_t seed_max_distance, bwt_optarg_t* bwt_optarg_p, sw_server_input_t* input) {
   
   input->sw_list_p = sw_list;
   input->write_list_p = write_list;
@@ -17,7 +17,7 @@ void sw_server_input_init(list_t* sw_list, list_t* write_list, unsigned int writ
   input->max_intron_size = max_intron_size;
   input->min_intron_size = min_intron_size;
   input->seed_max_distance = seed_max_distance;
-
+  input->bwt_optarg_p =  bwt_optarg_p; 
   // Smith-Waterman parameters
   input->match = match;
   input->mismatch = mismatch;
