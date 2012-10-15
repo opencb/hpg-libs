@@ -434,16 +434,16 @@ void saveCompMatrix(comp_matrix *matrix, const char *directory, const char *name
 int table[128];
 
 void initReplaceTable() {
-    table['a'] = AA;
-    table['A'] = AA;
-    table['c'] = CC;
-    table['C'] = CC;
-    table['t'] = TT;
-    table['T'] = TT;
-    table['g'] = GG;
-    table['G'] = GG;
-    table['n'] = AA;
-    table['N'] = AA;
+    table['a'] = AAA;
+    table['A'] = AAA;
+    table['c'] = CCC;
+    table['C'] = CCC;
+    table['t'] = TTT;
+    table['T'] = TTT;
+    table['g'] = GGG;
+    table['G'] = GGG;
+    table['n'] = AAA;
+    table['N'] = AAA;
 }
 
 char *replaceBases(char *uncoded, char *coded, size_t length) {
@@ -661,7 +661,7 @@ void load_reference(byte_vector *X, int duplicate, exome *ex, const char *path) 
 
   replaceBases(X->vector, X->vector, total_length);
 
-  X->vector[total_length] = DD;
+  X->vector[total_length] = DDD;
   X->n = total_length;
 
   fclose(ref_file);

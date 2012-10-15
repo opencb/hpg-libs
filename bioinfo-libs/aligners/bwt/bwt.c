@@ -436,7 +436,7 @@ bwt_index_t *bwt_index_new(const char *dirname) {
   reverseStrandO(&index->h_rOi, &index->h_Oi);
 
   // load karyotype
-  char path[4096];
+  char path[strlen(dirname) + 512];
   //  sprintf(path, "%s/index.txt", dirname);
   //load_exome_file(&index->karyotype, path);
 
@@ -666,7 +666,6 @@ size_t bwt_map_exact_seq(char *seq,
   //printf("---> EXACT Search Read (%d): %s\n", len, seq);
 
   
-
   for (short int type = 1; type >= 0; type--) {
     result.k = 0;
     result.l = index->h_O.siz - 2;
@@ -1000,17 +999,20 @@ size_t bwt_map_exact_seed(char *seq,
        result.end = end;
       if (type == 1) {
 	result.pos = end;
+
 	start_timer(t_start);
 	BWExactSearchBackward(code_seq, &index->h_C, &index->h_C1, &index->h_O, &result);
 	//BWExactSearchBackward(code_seq, start, end, &index->h_C, &index->h_C1, &index->h_O, result_p);
 	stop_timer(t_start, t_end, time_bwt_seed);
       }else{
 	result.pos = start;
+
 	start_timer(t_start);
 	BWExactSearchForward(code_seq, &index->h_rC, &index->h_rC1, &index->h_rO, &result);
 	//BWExactSearchForward(code_seq, start, end, &index->h_rC, &index->h_rC1, &index->h_rO, result_p);
 	stop_timer(t_start, t_end, time_bwt_seed);
       }
+
 
       start_timer(t_start);
       k_aux = result.k;
@@ -1048,7 +1050,6 @@ size_t bwt_map_exact_seed(char *seq,
       }
       stop_timer(t_start, t_end, time_search_seed);
   }
-
   //  free(result_p);
 	
   return num_mappings;
@@ -2479,7 +2480,7 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
                                       COLLECTION_MODE_SYNCHRONIZED);
   }
 
-  printf("Array list complete\n");
+  //  printf("Array list complete\n");
   
   size_t (*map_seeds)(char *, size_t, size_t, bwt_optarg_t *, bwt_index_t *, array_list_t *);
 

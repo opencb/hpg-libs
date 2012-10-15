@@ -14,7 +14,7 @@ void str_trim(char *line) {
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
-double get_tic() {
+double sw_tic() {
   struct timeval t1;
   gettimeofday(&t1, NULL);
   return ((double) t1.tv_sec*1000000 + (double) t1.tv_usec) / 1000000.0f;
@@ -22,7 +22,8 @@ double get_tic() {
 
 //------------------------------------------------------------------------
 
-double get_toc(double t1) {
+double sw_toc(double t1) {
+
   struct timeval t2;
 
   gettimeofday(&t2, NULL);

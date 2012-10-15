@@ -53,14 +53,16 @@
 #define MISMATCH  2
 #define INSERTION 3
 
-#define DD  -1
-#define AA  0
-#define CC  1
-#define GG  2
-#define TT  3
-#define XX  4
 
-extern const char alph_rep[];
+#define DDD  -1
+#define AAA  0
+#define CCC  1
+#define GGG  2
+#define TTT  3
+#define XXX  4
+
+
+//extern const char alph_rep[];
 //const char alph_rep[] ={'A','C','G','T'};
 
 #ifdef VERBOSE_DBG
@@ -322,13 +324,11 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
 
     r->num_mismatches++;
 
-  } else {
-
-    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
-    //exit(1);
+    //} else {
+    //    exit(1);
+    //    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
 
   }
-
 }
 
 inline void modify_last_mismatch_3(result *r, char err_kind, char base, int position) {
@@ -378,14 +378,7 @@ inline void add_result(result *orig, results_list *r_list) {
     r_list->num_results++;
 
     copy_result(dest, orig);
-
-  } /*else {
-
-    fprintf(stderr, "ERROR: Number of allowed results exceeded: %u\n", r_list->max_results);
-    exit(1);
-
-    }*/
-
+  }
 }
 
 #if defined VECTOR_O_32BIT_COMPRESSION
