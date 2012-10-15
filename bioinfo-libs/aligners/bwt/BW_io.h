@@ -327,6 +327,7 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
     //} else {
     //    exit(1);
     //    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
+
   }
 }
 
@@ -377,12 +378,7 @@ inline void add_result(result *orig, results_list *r_list) {
     r_list->num_results++;
 
     copy_result(dest, orig);
-
-    //} else {
-    //fprintf(stderr, "ERROR: Number of allowed results exceeded: %u\n", r_list->max_results);
-    //    exit(1);
   }
-
 }
 
 #if defined VECTOR_O_32BIT_COMPRESSION

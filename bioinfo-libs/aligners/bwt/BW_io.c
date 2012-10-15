@@ -674,7 +674,8 @@ void load_exome_file(exome *ex, const char *directory) {
 
   FILE *fp;
 
-  char path[500];
+  char path[strlen(directory) + 512];
+
   path[0]='\0';
   strcat(path, directory);
   strcat(path, "/index");

@@ -9,7 +9,7 @@ alignment_t* alignment_new() {
     return alignment_p;
 }
 
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p) {
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p) {
     alignment_p->query_name = query_name;
     alignment_p->sequence = sequence;
     alignment_p->quality = quality;

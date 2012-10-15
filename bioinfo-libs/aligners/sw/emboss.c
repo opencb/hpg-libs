@@ -24,7 +24,6 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   score = AlignPathCalcSW(seq_a, seq_b, len_a, len_b, gapopen, gapextend, path, compass);
   *matrix_time += sw_toc(partial_t);
 
-
   //char filename[200];
   //sprintf(filename, "/tmp/emboss-%i.score", emboss_cnt);
   //save_float_matrix(path, len_a+1, len_b+1, seq_b, len_b, seq_a, len_a, 0, 1, filename);
