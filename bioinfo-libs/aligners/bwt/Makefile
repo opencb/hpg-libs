@@ -4,8 +4,8 @@ CFLAGS =  -O3 -fopenmp -std=c99 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION -DVER
 #CFLAGS = -Wall -pg
 
 NVCC = nvcc
-#NVCCFLAGS = -g -G -Xptxas -v  -arch=sm_20 -Xcompiler " -fopenmp"
-NVCCFLAGS = -g -G -Xptxas -v  -arch=sm_12 -DVECTOR_O_COMPRESSION
+NVCCFLAGS = -g -G -Xptxas -v -arch=sm_20 -DVECTOR_O_64BIT_COMPRESSION -DVERBOSE
+#NVCCFLAGS = -g -G -Xptxas -v  -arch=sm_12 -DVECTOR_O_COMPRESSION
 #NVCCFLAGS = -g -G -Xptxas -v
 
 # Directories' path
@@ -31,9 +31,18 @@ LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
 LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -L $(LIBS_ROOT)/bam -lcprops -fopenmp -lm -lbam -lz
 
+CUDA_LIBS = -L $(CUDA_HOME)/lib64 -lcudart
+
 # Source and object files
 MAIN_SOURCES = bwt.c BW_io.c BW_search.c BW_preprocess.c
 MAIN_OBJECTS = bwt.o BW_io.o BW_search.o BW_preprocess.o
+
+GPU_SOURCES = bwt_gpu.c
+GPU_OBJECTS = bwt_gpu.o
+
+CUDA_SOURCES = gpu.cu BW_gpu.cu
+CUDA_OBJECTS = gpu.o BW_gpu.o
+
 MISC_OBJECTS = $(FASTQ_DIR)/fastq_file.o $(FASTQ_DIR)/fastq_read.o $(FASTQ_DIR)/fastq_batch.o $(FASTQ_DIR)/fastq_batch_reader.o $(BAM_DIR)/alignment.o $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/system_utils.o $(COMMONS_DIR)/string_utils.o
 
 
@@ -64,14 +73,26 @@ test-preprocess: compile-static test-preprocess.c
 test-search-cpu: compile-static test-search-cpu.c
 	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-cpu.c -o bin/test-search-cpu $(INCLUDES) $(LIBS_STATIC)
 
+<<<<<<< HEAD
 test-search-batch-cpu: compile-static test-search-batch-cpu.c
 	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-batch-cpu.c -o bin/test-search-batch-cpu $(INCLUDES) $(LIBS_STATIC)
+=======
+test-search-gpu: compile-static compile-gpu test-search-gpu.c
+	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-gpu.c -o bin/test-search-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
+
+compile-gpu: compile-cuda
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(GPU_SOURCES) $(INCLUDES_STATIC)
+
+compile-cuda: 
+	$(NVCC) $(NVCCFLAGS) -c $(CUDA_SOURCES) $(INCLUDES_STATIC)
+
+>>>>>>> 65a2ff6dd5c0285a5eaef185a462a2e197ccd932
 
 compile: compile-dependencies
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES)
 
 compile-static: compile-dependencies-static
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES_STATIC) $(LIBS_STATIC)
+	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES_STATIC)
 
 compile-dependencies:
 	cd $(CONTAINERS_DIR) && make compile && \

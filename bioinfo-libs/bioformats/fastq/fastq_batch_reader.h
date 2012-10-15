@@ -20,6 +20,12 @@
 
 //====================================================================================
 
+#define SINGLE_END_MODE 0
+#define PAIRED_END_MODE 1
+#define MATE_PAIR_MODE  2
+
+//====================================================================================
+
 #define SINGLE_END_FLAG    4
 #define PAIRED_END_FLAG    8
 #define MATE_PAIR_FLAG    16
