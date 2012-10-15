@@ -116,7 +116,7 @@ size_t array_list_index_of(void *item_p, array_list_t* array_list_p) {
 		if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 			pthread_mutex_lock(&array_list_p->lock);
 		}
-
+		
 		for(size_t i=0; i<array_list_p->size; i++) {
 			if(array_list_p->compare_fn(array_list_p->items[i], item_p) == 0) {
 				return i;

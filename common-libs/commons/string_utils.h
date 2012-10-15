@@ -382,4 +382,5 @@ char* encodeBases(char *dest, char* src, unsigned int length);
  */
 char* decodeBases(char *dest, char* src, unsigned int length);
 
+
 #endif	/*    STRING_UTILS_H	*/
