@@ -309,6 +309,110 @@ void seq_reverse_complementary(char *seq, unsigned int len){
 
 }
 
+size_t select_n_hits(array_list_t *mapping_list, 
+		     size_t report_n_hits) {
+
+  array_list_t *mapping_list_filter;
+  alignment_t *aux_alignment;
+  int i;
+  size_t num_mappings = array_list_size(mapping_list);
+  
+  mapping_list_filter = array_list_new(num_mappings + 1, 
+				       1.25f, 
+				       COLLECTION_MODE_ASYNCHRONIZED);
+  
+  for (i = num_mappings - 1; i >= report_n_hits; i--) {
+    //printf("Remove... \n");
+    aux_alignment = array_list_remove_at(i, mapping_list);
+    alignment_free(aux_alignment);
+    //printf("Remove ok!\n");
+  }
+
+  return array_list_size(mapping_list);
+}
+
+size_t select_best_hits(array_list_t *mapping_list, 
+			size_t report_best) {
+  int j, i, z;
+  size_t best_pos, array_size;
+  alignment_t *best_alignment, *aux_alignment;
+  array_list_t *mapping_list_filter;
+  size_t num_mappings = array_list_size(mapping_list);
+  
+  mapping_list_filter = array_list_new(num_mappings + 1, 
+				       1.25f, 
+				       COLLECTION_MODE_ASYNCHRONIZED);
+    
+  //allocate_pos_alignments = (size_t *)malloc(sizeof(size_t)*numm_mappings);
+  //z = 0;
+  //printf("Initial array size %i\n", array_list_size(mapping_list));
+  for (j = 0; j < report_best; j++) {     
+    best_pos = 0;
+    best_alignment = array_list_get( 0, mapping_list);
+    array_size = array_list_size(mapping_list);
+    for (i = 1; i < array_size; i++) {
+      aux_alignment = array_list_get(i, mapping_list);
+      if (alignmentcmp(best_alignment, aux_alignment) == 2) {
+	best_alignment = aux_alignment;
+	best_pos = i;
+      }
+    }
+    //printf("Remove item %i\n", best_pos);
+    array_list_insert(array_list_remove_at(best_pos, mapping_list), 
+		      mapping_list_filter);
+  }
+  
+  //Free all mapings discarded
+  array_size = array_list_size(mapping_list);
+  //printf("Array Size %i\n", array_size);
+  for (j = array_size - 1; j >= 0; j--) {
+    aux_alignment = array_list_remove_at(j, mapping_list);
+    alignment_free(aux_alignment);
+  }
+
+  //printf("Move %i elements to list with %i elements\n", array_list_size(mapping_list_filter), array_list_size(mapping_list));
+  for (j = report_best - 1; j >= 0; j--) {
+    aux_alignment = array_list_remove_at(j, mapping_list_filter);
+    array_list_insert(aux_alignment, mapping_list);
+  }
+
+      
+
+  
+  array_list_free(mapping_list_filter, NULL);
+  //mapping_list = mapping_list_filter;
+
+  return array_list_size(mapping_list);
+ 
+}
+
+size_t alignments_filter(char report_all, 
+			 size_t report_best, 
+			 size_t report_n_hits,
+			 array_list_t *mapping_list) {
+
+  size_t num_mappings = array_list_size(mapping_list);
+
+  if (!report_all && num_mappings) {
+    if (report_best > 0) {
+      //BEST ALIGNMENTS OPTION
+      if (num_mappings <= report_best) { return num_mappings; }
+      num_mappings = select_best_hits(mapping_list, report_best);
+
+      
+    }else if (report_n_hits > 0) {
+      //N HITS
+      if (num_mappings <= report_n_hits) { return num_mappings; }
+      
+      num_mappings = select_n_hits(mapping_list,  report_n_hits);        
+      
+    }
+  }
+  
+  return num_mappings;
+}
+
+
 bwt_index_t *bwt_index_new(const char *dirname) {
 
   bwt_index_t *index = (bwt_index_t*) calloc(1, sizeof(bwt_index_t));
@@ -1083,109 +1187,6 @@ size_t bwt_map_inexact_seed(char *seq,
 }
 
 //-----------------------------------------------------------------------------
-size_t select_n_hits(array_list_t *mapping_list, 
-		     size_t report_n_hits) {
-
-  array_list_t *mapping_list_filter;
-  alignment_t *aux_alignment;
-  int i;
-  size_t num_mappings = array_list_size(mapping_list);
-  
-  mapping_list_filter = array_list_new(num_mappings + 1, 
-				       1.25f, 
-				       COLLECTION_MODE_ASYNCHRONIZED);
-  
-  for (i = num_mappings - 1; i >= report_n_hits; i--) {
-    //printf("Remove... \n");
-    aux_alignment = array_list_remove_at(i, mapping_list);
-    alignment_free(aux_alignment);
-    //printf("Remove ok!\n");
-  }
-
-  return array_list_size(mapping_list);
-}
-
-size_t select_best_hits(array_list_t *mapping_list, 
-			size_t report_best) {
-  int j, i, z;
-  size_t best_pos, array_size;
-  alignment_t *best_alignment, *aux_alignment;
-  array_list_t *mapping_list_filter;
-  size_t num_mappings = array_list_size(mapping_list);
-  
-  mapping_list_filter = array_list_new(num_mappings + 1, 
-				       1.25f, 
-				       COLLECTION_MODE_ASYNCHRONIZED);
-    
-  //allocate_pos_alignments = (size_t *)malloc(sizeof(size_t)*numm_mappings);
-  //z = 0;
-  //printf("Initial array size %i\n", array_list_size(mapping_list));
-  for (j = 0; j < report_best; j++){ 
-    
-    best_pos = 0;
-    best_alignment = array_list_get( 0, mapping_list);
-    array_size = array_list_size(mapping_list);
-    for (i = 1; i < array_size; i++) {
-      aux_alignment = array_list_get(i, mapping_list);
-      if (alignmentcmp(best_alignment, aux_alignment) == 2) {
-	best_alignment = aux_alignment;
-	best_pos = i;
-      }
-    }
-    //printf("Remove item %i\n", best_pos);
-    array_list_insert(array_list_remove_at(best_pos, mapping_list), 
-		      mapping_list_filter);
-  }
-  
-  //Free all mapings discarded
-  array_size = array_list_size(mapping_list);
-  //printf("Array Size %i\n", array_size);
-  for (j = array_size - 1; j >= 0; j--) {
-    aux_alignment = array_list_remove_at(j, mapping_list);
-    alignment_free(aux_alignment);
-  }
-
-  //printf("Move %i elements to list with %i elements\n", array_list_size(mapping_list_filter), array_list_size(mapping_list));
-  for (j = report_best - 1; j >= 0; j--) {
-    aux_alignment = array_list_remove_at(j, mapping_list_filter);
-    array_list_insert(aux_alignment, mapping_list);
-  }
-
-      
-
-  
-  array_list_free(mapping_list_filter, NULL);
-  //mapping_list = mapping_list_filter;
-
-  return array_list_size(mapping_list);
- 
-}
-
-size_t alignments_filter(char report_all, 
-			 size_t report_best, 
-			 size_t report_n_hits,
-			 array_list_t *mapping_list) {
-
-  size_t num_mappings = array_list_size(mapping_list);
-
-  if (!report_all && num_mappings) {
-    if (report_best > 0) {
-      //BEST ALIGNMENTS OPTION
-      if (num_mappings <= report_best) { return num_mappings; }
-      num_mappings = select_best_hits(mapping_list, report_best);
-
-      
-    }else if (report_n_hits > 0) {
-      //N HITS
-      if (num_mappings <= report_n_hits) { return num_mappings; }
-      
-      num_mappings = select_n_hits(mapping_list,  report_n_hits);        
-      
-    }
-  }
-  
-  return num_mappings;
-}
 
 size_t bwt_map_inexact_seq(char *seq, 
 			   bwt_optarg_t *bwt_optarg, 
