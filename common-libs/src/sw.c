@@ -137,71 +137,45 @@ void sw_simd_output_display(unsigned int depth, sw_simd_output_t* output_p) {
 
 sw_simd_context_t* sw_simd_context_new(float match, float mismatch, float gap_open, float gap_extend) {
   sw_simd_context_t* context_p = (sw_simd_context_t*) malloc(sizeof(sw_simd_context_t));
-  //sw_simd_context_t* context_p = (sw_simd_context_t*) calloc(1, sizeof(sw_simd_context_t));
 
   context_p->gap_open = gap_open;
   context_p->gap_extend = gap_extend;
-  /*
-#ifdef __AVX__
-  //printf("avx....size of zero (%i)\n", sizeof(context_p->zero));
-  context_p->zero_simd = _mm256_setzero_ps();
-  context_p->gap_open_simd = _mm256_set1_ps(gap_open);
-  context_p->gap_extend_simd = _mm256_set1_ps(gap_extend);
   
-  /*
-  context_p->zero_p = (__m256 *) _mm_malloc(sizeof(__m256), SIMD_ALIGN);
-  context_p->gap_open_p = (__m256 *) _mm_malloc(sizeof(__m256), SIMD_ALIGN);
-  context_p->gap_extend_p = (__m256 *) _mm_malloc(sizeof(__m256), SIMD_ALIGN);
-
-  *(context_p->zero_p) = _mm256_setzero_ps();
-  *(context_p->gap_open_p) = _mm256_set1_ps(gap_open);
-  *(context_p->gap_extend_p) = _mm256_set1_ps(gap_extend);
+  context_p->substitution[0] = mismatch;
+  context_p->substitution[1] = match;
   
-#else
-  //printf("sse....size of zero (%i)\n", sizeof(context_p->zero));
+  context_p->x_size = 0;
+  context_p->y_size = 0;
+  context_p->max_size = 0;
+  
+  context_p->E = NULL;
+  context_p->F = NULL;
+  context_p->H = NULL;
+  context_p->C = NULL;
+  
+  context_p->compass_p = NULL;
+  
+  context_p->a_map = NULL;
+  context_p->b_map = NULL;
+  
+  context_p->q_aux = NULL;
+  context_p->r_aux = NULL;
+  context_p->aux_size = 0;
+  context_p->H_size = 0;
+  context_p->F_size = 0; 
+  
+  // init matrix to -1000.0f
+  for (int i = 0; i<128; i++) {
+    for (int j = 0; j<128; j++) {
+      context_p->matrix[i][j] = -1000.0f;
+    }
+  }
+  
+     context_p->matrix['A']['A'] = match; context_p->matrix['C']['A'] = mismatch; context_p->matrix['T']['A'] = mismatch; context_p->matrix['G']['A'] = mismatch;
 
-     context_p->zero_simd = _mm_setzero_ps();
-     context_p->gap_open_simd = _mm_set1_ps(gap_open);
-     context_p->gap_extend_simd = _mm_set1_ps(gap_extend);
-#endif // __AVX__     
-*/
-     //printf("mismatch = %0.2f, match = %0.2f\n", mismatch, match);
-
-     context_p->substitution[0] = mismatch;
-     context_p->substitution[1] = match;
-          
-     context_p->x_size = 0;
-     context_p->y_size = 0;
-     context_p->max_size = 0;
-     
-     context_p->E = NULL;
-     context_p->F = NULL;
-     context_p->H = NULL;
-     context_p->C = NULL;
-
-     context_p->compass_p = NULL;
-     
-     context_p->a_map = NULL;
-     context_p->b_map = NULL;
-     
-     context_p->q_aux = NULL;
-     context_p->r_aux = NULL;
-     context_p->aux_size = 0;
-     context_p->H_size = 0;
-     context_p->F_size = 0; 
-
-       // init matrix to -1000.0f
-     for (int i = 0; i<128; i++) {
-       for (int j = 0; j<128; j++) {
-	 context_p->matrix[i][j] = -1000.0f;
-       }
-     }
-
-     context_p->matrix['A']['A'] = 5.0f; context_p->matrix['C']['A'] = -4.0f; context_p->matrix['T']['A'] = -4.0f; context_p->matrix['G']['A'] = -4.0f;
-
-     context_p->matrix['A']['C'] = -4.0f; context_p->matrix['C']['C'] = 5.0f; context_p->matrix['T']['C'] = -4.0f; context_p->matrix['G']['C'] = -4.0f;
-     context_p->matrix['A']['G'] = -4.0f; context_p->matrix['C']['T'] = -4.0f; context_p->matrix['T']['T'] = 5.0f; context_p->matrix['G']['T'] = -4.0f;
-     context_p->matrix['A']['T'] = -4.0f; context_p->matrix['C']['G'] = -4.0f; context_p->matrix['T']['G'] = -4.0f; context_p->matrix['G']['G'] = 5.0f;
+     context_p->matrix['A']['C'] = mismatch; context_p->matrix['C']['C'] = match; context_p->matrix['T']['C'] = mismatch; context_p->matrix['G']['C'] = mismatch;
+     context_p->matrix['A']['G'] = mismatch; context_p->matrix['C']['T'] = mismatch; context_p->matrix['T']['T'] = match; context_p->matrix['G']['T'] = mismatch;
+     context_p->matrix['A']['T'] = mismatch; context_p->matrix['C']['G'] = mismatch; context_p->matrix['T']['G'] = mismatch; context_p->matrix['G']['G'] = match;
 
      //     sw_simd_context_update(200, 800, context_p);
 
@@ -706,357 +680,6 @@ float smith_waterman(char* seq_a, char* seq_b, float gapopen, float gapextend,
   return score;
 }
 
-//-------------------------------------------------------------
-
-/* @func embAlignPathCalcSW ***************************************************
-**
-** Create path matrix for Smith-Waterman
-** Nucleotides or proteins as needed.
-**
-** @param [r] a [const char *] first sequence
-** @param [r] b [const char *] second sequence
-** @param [r] lena [ajint] length of first sequence
-** @param [r] lenb [ajint] length of second sequence
-** @param [r] gapopen [float] gap opening penalty
-** @param [r] gapextend [float] gap extension penalty
-** @param [w] path [float *] path matrix
-** @param [w] compass [ajint *] Path direction pointer array
-**
-** @return [float] Maximum score
-** @@
-** Optimised to keep a maximum value to avoid looping down or left
-** to find the maximum. (il 29/07/99)
-******************************************************************************/
-/*
-float AlignPathCalcSW(const char *a, const char *b, int lena, int lenb,
-                      float gapopen, float gapextend, float* path,
-                      int* compass)
-{
-    float ret;
-    long xpos;
-    long ypos;
-    long i;
-    long j;
-
-    double match;
-    double mscore;
-    double result;
-    double fnew;
-    double* maxa;
-
-    double bx;
-    char compasschar;
-
-    ret= -FLT_MAX;
-
-  //   Create stores for the maximum values in a row or column 
-
-    maxa = (double*) calloc(lena, sizeof(double));
-
-    // First initialise the first column and row 
-    for(i=0;i<lena;++i)
-    {
-        result = (a[i]==b[0] ? 5.0 : -4.0);
-
-	fnew = i==0 ? 0. :
-		path[(i-1)*lenb] -(compass[(i-1)*lenb]==DOWN ?
-			gapextend : gapopen);
-
-	if (result > fnew && result>0)
-	{
-	  path[i*lenb] = (float) result;
-	  compass[i*lenb] = 0;
-	}
-	else if (fnew>0)
-	{
-	  path[i*lenb] = (float) fnew;
-	  compass[i*lenb] = DOWN;
-	}
-	else
-	{
-	    path[i*lenb] = 0.;
-	    compass[i*lenb] = 3;
-	}
-
-	maxa[i] = i==0 ? path[i*lenb]-gapopen :
-	path[i*lenb] - (compass[(i-1)*lenb]==DOWN ? gapextend : gapopen);
-    }
-
-    for(j=0;j<lenb;++j)
-    {
-        result = (a[0]==b[j] ? 5.0 : -4.0);
-
-	fnew = j==0 ? 0. :
-		path[j-1] -(compass[j-1]==LEFT ? gapextend : gapopen);
-
-	if (result > fnew && result > 0)
-	{
-	  path[j] = (float) result;
-	    compass[j] = 0;
-	}
-	else if (fnew >0)
-	{
-	  path[j] = (float) fnew;
-	    compass[j] = LEFT;
-	}
-	else
-	{
-	    path[j] = 0.;
-	    compass[j] = 3;
-	}
-
-    }
-
-
-    // xpos and ypos are the diagonal steps so start at 1 
-    xpos = 1;
-    float aux;
-
-    while(xpos!=lenb)
-    {
-	ypos  = 1;
-	bx = path[xpos]-gapopen-gapextend;
-
-	while(ypos < lena)
-	{
-	    /* get match for current xpos/ypos 
-            match = (a[ypos]==b[xpos] ? 5.0 : -4.0);
-
-	    /* Get diag score *
-	    mscore = path[(ypos-1)*lenb+xpos-1] + match;
-	    aux = mscore;
-
-	    /* Set compass to diagonal value 0 
-	    compass[ypos*lenb+xpos] = 0;
-	    path[ypos*lenb+xpos] = (float) mscore;
-
-
-	    /* Now parade back along X axis 
-            maxa[ypos] -= gapextend;
-            fnew=path[(ypos)*lenb+xpos-1];
-            fnew-=gapopen;
-
-            if(fnew > maxa[ypos])
-                maxa[ypos] = fnew;
-
-            if( maxa[ypos] > mscore)
-            {
-                mscore = maxa[ypos];
-                path[ypos*lenb+xpos] = (float) mscore;
-                compass[ypos*lenb+xpos] = LEFT; /* Score comes from left 
-            }
-
-	    /* And then bimble down Y axis 
-            bx -= gapextend;
-            fnew = path[(ypos-1)*lenb+xpos];
-            fnew-=gapopen;
-
-            if(fnew > bx)
-                bx = fnew;
-
-            if(bx > mscore)
-            {
-                mscore = bx;
-                path[ypos*lenb+xpos] = (float) mscore;
-                compass[ypos*lenb+xpos] = DOWN; /* Score comes from bottom 
-            }
-
-	    /*
-	    if (ypos == xpos) {
-	      printf("(%i, %i):\tmscore = %0.2f (%0.2f)\tmaxa[%i] = %0.2f\tbx = %0.2f\t-> compass = %i\n", xpos, ypos, mscore, aux, ypos, maxa[ypos], bx, compass[ypos*lenb+xpos]);
-	    }
-	    
-
-            if(mscore > ret)
-                ret = (float) mscore;
-
-	    result = path[ypos*lenb+xpos];
-	    if(result < 0.) {
-		path[ypos*lenb+xpos] = 0.;
-		compass[ypos*lenb+xpos] = 3;
-	    }
-
-	    ypos++;
-	}
-	++xpos;
-    }
-
-    //printf("before free maxa: %x\n", maxa);
-    free(maxa);
-
-    return ret;
-}
-	    */
-/******************************************************************************/
-/*
-void AlignWalkSWMatrix(const float* path, const int* compass,
-		       float gapopen, float gapextend,
-		       const char*  a, const char* b,
-		       char* m, char* n,
-		       int lena, int lenb,
-		       int *start1, int *start2)
-{
-  long i;
-  long j;
-  long k;
-  long gapcnt;
-  double pmax;
-  double score;
-  double bimble;
-
-  long ix;
-  long iy;
-  
-  long xpos = 0;
-  long ypos = 0;
-  const char *p;
-  const char *q;
-  
-  int ic;
-  double errbounds;
-
-  /* errbounds = gapextend; *
-  errbounds = (double) 0.01;
-
-  /* Get maximum path score and save position *
-  pmax = -FLT_MAX;
-  k = (long)lena*(long)lenb-1;
-
-  for(i=lena-1; i>=0; --i)
-    for(j=lenb-1; j>=0; --j)
-      if((path[k--] > pmax) || E_FPEQ(path[k+1],pmax,U_FEPS))
-	{
-	    pmax = path[k+1];
-	    xpos = j;
-	    ypos = i;
-	  }
-
-  //ajStrAssignClear(m);
-  //ajStrAssignClear(n);
-
-  p = a;
-  q = b;
-
-  while(xpos>=0 && ypos>=0)
-    {
-      if(!compass[ypos*lenb+xpos])    /* diagonal *
-        {
-	  //printf("emboss: diagonal\n");
-	  //ajStrAppendK(m,p[ypos--]);
-	  //ajStrAppendK(n,q[xpos--]);
-
-	  strncat(m, &p[ypos--], 1);
-	  strncat(n, &q[xpos--], 1);
-
-	  if(ypos >= 0 && xpos>=0 && path[(ypos)*lenb+xpos]<=0.)
-	    break;
-
-	  continue;
-        }
-      else if(compass[ypos*lenb+xpos]==LEFT) /* Left, gap(s) in vertical *
-        {
-	  //printf("emboss: left\n");
-	  score  = path[ypos*lenb+xpos];
-	  gapcnt = 0;
-	  ix     = xpos-1;
-
-	  while(1)
-            {
-	      bimble = path[ypos*lenb+ix]-gapopen-(gapcnt*gapextend);
-
-	      if(!ix || fabs((double)score-(double)bimble)<errbounds)
-		break;
-
-	      --ix;
-	      ++gapcnt;
-            }
-
-	  if(bimble<=0.0)
-	    break;
-
-	  //printf("LEFT: gapcnt = %i\n", gapcnt);
-	  for(ic=0;ic<=gapcnt;++ic)
-            {
-	      //ajStrAppendK(m,'.');
-	      //ajStrAppendK(n,q[xpos--]);
-	      strcat(m, "-");
-	      strncat(n, &q[xpos--], 1);
-            }
-
-	  continue;
-        }
-      else if(compass[ypos*lenb+xpos]==DOWN) /* Down, gap(s) in horizontal *
-        {
-	  //printf("emboss: down\n");
-	  score  = path[ypos*lenb+xpos];
-	  gapcnt = 0;
-	  iy = ypos-1;
-
-	  while(1)
-            {
-	      bimble=path[iy*lenb+xpos]-gapopen-(gapcnt*gapextend);
-
-	      if(!iy || fabs((double)score-(double)bimble)<errbounds)
-		break;
-
-              --iy;
-
-	      if(iy<0) {
-		printf("SW: Error walking down");
-		exit(-1);
-	      }
-
-	      ++gapcnt;
-            }
-
-	  if(bimble<=0.0)
-	    break;
-
-	  //printf("DOWN: gapcnt = %i\n", gapcnt);
-	  for(ic=0;ic<=gapcnt;++ic)
-            {
-	      //ajStrAppendK(m,p[ypos--]);
-	      //ajStrAppendK(n,'.');
-	      strncat(m, &p[ypos--], 1);
-	      strcat(n, "-");
-            }
-	  continue;
-        }
-      else {
-	printf("Walk Error in SW");
-	exit(-1);
-      }
-    }
-
-  *start1 = (int) (ypos + 1); /* Potential lossy cast *
-  *start2 = (int) (xpos + 1); /* Potential lossy cast *
-
-  //ajStrReverse(m);            /* written with append, need to reverse *
-  //ajStrReverse(n);
-  
-  revstr(m);
-  revstr(n);
-
-  return;
-}
-*/
-/*
-void revstr(char* str) {
-  int i;
-
-  int len = strlen(str);
-  char cpstr[len+1];
-
-  for(i=0; i < len ; i++) {
-    cpstr[i] = str[len-i-1];
-  }
-  cpstr[i] = '\0';
-
-  strcpy(str, cpstr);
-}
-*/
-
-//-------------------------------------------------------------
 //-------------------------------------------------------------
 
 

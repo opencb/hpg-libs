@@ -27,7 +27,7 @@ void bwt_server_cpu(bwt_server_input_t* input_p){
 	unmapped_batch_p = fastq_batch_new(input_p->batch_size);
 
 	//printf("Batch Init done. Processing batch ...\n");
-	mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_SYNCHRONIZED);
+	mappings = array_list_new(100000, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
 	//start_timer(start_time);
 	//printf("\tCall function process\n");
 	num_mappings = bwt_map_inexact_batch(fastq_batch_p, input_p->bwt_optarg_p, input_p->bwt_index_p, unmapped_batch_p, mappings);

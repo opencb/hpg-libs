@@ -16,7 +16,7 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			32
+#define NUM_OPTIONS			34
 
 
 typedef struct options {
@@ -43,6 +43,9 @@ typedef struct options {
   int pair_mode;
   int pair_min_distance;
   int pair_max_distance;
+  int report_all;
+  int report_best;
+  int report_n_hits;
   double min_score;
   double match;
   double mismatch;
@@ -54,7 +57,6 @@ typedef struct options {
   char* in_filename2;
   char* bwt_dirname;
   char* genome_filename;
-  char* chromosome_filename;
   char* output_filename;
 } options_t;
 

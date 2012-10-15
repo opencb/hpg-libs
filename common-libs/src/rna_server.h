@@ -7,12 +7,13 @@
 #include "rna_splice.h"
 #include "buffers.h"
 #include "timing.h"
+#include "sw.h"
 
 #include "containers/list.h"
 #include "commons/commons.h"
 #include "commons/system_utils.h"
 #include "bioformats/bam-sam/alignment.h"
-#include "sw.h"
+
 
 //#include "list.h"
 //#include "genome.h"
@@ -47,16 +48,6 @@ typedef struct cal_fusion_data{
   unsigned int  fusion_end;   /**< fusion string end position */
 }cal_fusion_data_t;
 
-/**
- * @brief  Makes the reverse and complementary from the input sequence.
- * @param  seq input sequence
- * @param  len sequence length input
- * 
- * Makes the reverse and complementary read from input sequence. For it
- * the read input is walked from end to start and all nucleotides are 
- * changed for their complementaries. 
- */
-void seq_reverse_complementary(char *seq, unsigned int len);
 
 /**
  * @brief  Initializer for the @a cal_fusion_data_t structure.
@@ -143,17 +134,16 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int 
  * @param  genome_p structure that allocates all genome
  * @param  min_intron_length minimum intron length for store it
  *
- * @return Batch with all data stored.
  * 
  * After observe if the Smith-Waterman score output is major that @a min_score 
  * process Smith-Waterman output for search big gaps, search splice junctions and 
  * generate cigar string. 
  */
-write_batch_t* search_splice_junctions_sw_output(sw_simd_input_t* sw_output_p, sw_simd_output_t* sw_input_p, unsigned int depth, 
-						 allocate_fusion_data_t *depth_cal_fusion_p, allocate_splice_elements_t *chromosome_avls_p, 
-						 unsigned char *mapping_reads_p, sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
-						 list_t* write_list_p, write_batch_t* write_batch_p, unsigned int write_size, 
-						 unsigned int sw_id, size_t *sw_no_valids, float min_score, genome_t *genome_p, 
-						 unsigned int min_intron_length);
+void search_splice_junctions_sw_output(sw_simd_input_t* sw_input_p, 
+				       sw_simd_output_t* sw_output_p, unsigned int depth, 
+				       allocate_fusion_data_t *depth_cal_fusion_p, allocate_splice_elements_t *chromosome_avls_p, 
+				       unsigned char *mapping_reads_p, sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
+				       unsigned int sw_id, size_t *sw_no_valids, float min_score, genome_t *genome_p, 
+				       unsigned int min_intron_length, array_list_t **allocate_mappings);
 
 #endif

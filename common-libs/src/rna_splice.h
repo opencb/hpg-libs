@@ -1,3 +1,6 @@
+#ifndef RNA_SPLICE_H
+#define RNA_SPLICE_H
+
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -7,6 +10,11 @@
 #include "containers/list.h"
 #include "buffers.h"
 #include "timing.h"
+
+typedef struct allocate_buffers {
+  write_batch_t *write_exact_sp;
+  write_batch_t *write_extend_sp;
+}allocate_buffers_t;
 
 
 /**
@@ -151,7 +159,7 @@ allocate_splice_elements_t* allocate_new_splice(unsigned int chromosome, unsigne
  * Recursive function that process first the left node of the avl tree, then de root node
  * and finally the right node. 
  */
-void process_avlnode_in_order(cp_avlnode *node, unsigned int chromosome, list_t* write_list_p, unsigned int write_size);
+allocate_buffers_t* process_avlnode_in_order(cp_avlnode *node, unsigned int chromosome, list_t* write_list_p, unsigned int write_size,  allocate_buffers_t* buffers_write_p);
 
 /**
  * @brief  Sequential function for process all splice junctions ends allocate in one node.
@@ -164,7 +172,7 @@ void process_avlnode_in_order(cp_avlnode *node, unsigned int chromosome, list_t*
  * calls the function @a pack_junction for generate the buffer with all information corresponding
  * with the splice junction found, then with all it is created a write batch. 
  */
-void process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chromosome, list_t* write_list_p, unsigned int write_size);
+allocate_buffers_t* process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chromosome, list_t* write_list_p, unsigned int write_size, allocate_buffers_t *buffers_write_p);
 
 
 /**
@@ -185,3 +193,5 @@ void cp_avlnode_print_new(cp_avlnode *node, int level);
 void cp_avlnode_print_in_order(cp_avlnode *node);
 
 void node_list_print(node_element_splice_t *node);
+
+#endif
