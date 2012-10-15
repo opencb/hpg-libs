@@ -253,7 +253,7 @@ bwt_index_t *bwt_index_new(const char *dirname) {
   reverseStrandO(&index->h_rOi, &index->h_Oi);
 
   // load karyotype
-  char path[4096];
+  char path[strlen(dirname) + 512];
   //  sprintf(path, "%s/index.txt", dirname);
   //load_exome_file(&index->karyotype, path);
 
