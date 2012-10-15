@@ -40,6 +40,11 @@ hpg-aligner: compile-dependencies
 	$(CC) $(CFLAGS) -c main.c $(HPG_ALIGNER_FILES) $(INCLUDES) $(LIBS) &&    \
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ main.o $(ALL_OBJS) $(INCLUDES) $(LIBS)
 
+preprocess-dna: 
+	cd $(SRC_DIR) &&                                                         \
+	$(CC) $(CFLAGS) -c preprocess_dna.c genome.c $(INCLUDES) $(LIBS) &&    \
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@  preprocess_dna.o genome.o $(INCLUDES) $(LIBS)
+
 compile-dependencies: bam-dependencies
 	cd $(COMMONS_DIR) && make &&           \
 	cd $(CONTAINERS_DIR) && make &&        \

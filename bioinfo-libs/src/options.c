@@ -31,6 +31,7 @@
 const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
 const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
 const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
+const char INDEX_NAME[30]  = "index";
 
 //========================================================================
 
@@ -40,10 +41,7 @@ options_t *options_new(void) {
 
 	options->in_filename = NULL;
 	options->in_filename2 = NULL;
-	/*options->in_filename = "";
-	options->bwt_dirname = "";
-	options->genome_filename = "";
-	options->chromosome_filename = "";*/
+	options->report_all =  0;
 	options->output_filename = strdup(DEFAULT_OUTPUT_FILENAME);
 	options->splice_exact_filename = strdup(SPLICE_EXACT_FILENAME);
 	options->splice_extend_filename = strdup(SPLICE_EXTEND_FILENAME);
@@ -74,6 +72,8 @@ options_t *options_new(void) {
 	options->pair_max_distance = DEFAULT_PAIR_MAX_DISTANCE;
 	options->timming = 0;
 	options->statistics = 0;
+	options->report_best = 0;
+	options->report_n_hits = 0;
 	//	options->help = DEFAULT_HELP;
 	
 	return options;
@@ -91,7 +91,6 @@ void options_free(options_t *options) {
 	if (options->in_filename2  != NULL)		{ free(options->in_filename2); }
 	if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
 	if (options->genome_filename  != NULL)		{ free(options->genome_filename); }
-	if (options->chromosome_filename  != NULL)	{ free(options->chromosome_filename); }
 	if (options->output_filename  != NULL)		{ free(options->output_filename); }
 	
 	free(options);
@@ -105,7 +104,14 @@ void options_display(options_t *options) {
   if (options->in_filename2 != NULL) strdup(options->in_filename2);
   char* bwt_dirname =  strdup(options->bwt_dirname);
   char* genome_filename =  strdup(options->genome_filename);
-  char* chromosome_filename =  strdup(options->chromosome_filename);
+  unsigned int  report_all = (unsigned int)options->report_all;
+  unsigned int  report_best = (unsigned int)options->report_best;
+  unsigned int  report_n_hits = (unsigned int)options->report_n_hits;
+
+  if ((report_best == 0) && (report_n_hits == 0)) {
+    report_all = 1;
+  }
+
   char* output_filename =  strdup(options->output_filename);
   unsigned int num_gpu_threads =  (unsigned int)options->num_gpu_threads;
   unsigned int num_cpu_threads =  (unsigned int)options->num_cpu_threads;
@@ -140,6 +146,9 @@ void options_display(options_t *options) {
   printf("Num gpu threads %d\n", num_gpu_threads);
   printf("Num cpu threads %d\n",  num_cpu_threads);
   printf("RNA Server: %s\n",  rna_seq == 0 ? "Disable":"Enable");
+  printf("Report all hits: %s\n",  report_all == 0 ? "Disable":"Enable");
+  printf("Report best hits: %d\n",  report_best);
+  printf("Report n hits: %d\n",  report_n_hits);
   printf("CAL seeker errors: %d\n",  cal_seeker_errors);
   printf("Min CAL size: %d\n",  min_cal_size);
   printf("Seeds max distance: %d\n",  seeds_max_distance);
@@ -170,7 +179,6 @@ void options_display(options_t *options) {
   if (in_filename2 != NULL) free(in_filename2);
   free(bwt_dirname);
   free(genome_filename);
-  free(chromosome_filename);
   free(output_filename);
   free(splice_exact_filename);
   free(splice_extend_filename);
@@ -185,7 +193,7 @@ void** argtable_options_new(void) {
 	argtable[0] = arg_file1("i", "fq,fastq", NULL, "Reads file input");
 	argtable[1] = arg_file1("b", "bwt", NULL, "BWT directory name");
 	argtable[2] = arg_file1("g", "genome", NULL, "Genome filename");
-	argtable[3] = arg_file1("c", "chromosome", NULL, "Chromosome filename");
+	argtable[3] = arg_lit0(NULL, "report-all", "Report all alignments");
 	argtable[4] = arg_file0("m", "match-output", NULL, "Match output filename");
 	argtable[5] = arg_int0(NULL, "gpu-threads", NULL, "Number of GPU Threads");
 	argtable[6] = arg_int0(NULL, "cpu-threads", NULL, "Number of CPU Threads");
@@ -208,7 +216,7 @@ void** argtable_options_new(void) {
 	argtable[23] = arg_dbl0(NULL, "gap-extend", NULL, "Gap extend penalty for Smith-Waterman algorithm");
 	argtable[24] = arg_dbl0(NULL, "min-sw-score", NULL, "Minimum score for valid mappings");
 	argtable[25] = arg_int0(NULL, "max-intron-length", NULL, "Maximum intron length");
-	argtable[26] = arg_int0(NULL, "min-itron-length", NULL, "Minimum intron length");
+	argtable[26] = arg_int0(NULL, "min-intron-length", NULL, "Minimum intron length");
 	argtable[27] = arg_lit0("t", "timing", "Timming mode active");
 	argtable[28] = arg_lit0("s", "statistics", "Statistics mode active");
 	argtable[29] = arg_lit0("h", "help", "Help option");
@@ -221,7 +229,10 @@ void** argtable_options_new(void) {
 	argtable[34] = arg_int0(NULL, "pair-min-distance", NULL, "Minimum distance between pairs");
 	argtable[35] = arg_int0(NULL, "pair-max-distance", NULL, "Maximum distance between pairs");
 	
-	argtable[36] = arg_end(20);
+	argtable[36] = arg_int0(NULL, "report-best", NULL, "Report the <n> best alignments");
+	argtable[37] = arg_int0(NULL, "report-n-hits", NULL, "Report <n> hits");
+
+	argtable[38] = arg_end(20);
 
 	return argtable;
 }
@@ -275,7 +286,7 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_file*)argtable[0])->count) { options->in_filename = strdup(*(((struct arg_file*)argtable[0])->filename)); }
   if (((struct arg_file*)argtable[1])->count) { options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); }
   if (((struct arg_file*)argtable[2])->count) { options->genome_filename = strdup(*(((struct arg_file*)argtable[2])->filename)); }
-  if (((struct arg_file*)argtable[3])->count) { options->chromosome_filename = strdup(*(((struct arg_file*)argtable[3])->filename)); }
+  if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); } 
   if (((struct arg_file*)argtable[4])->count) { free(options->output_filename); options->output_filename = strdup(*(((struct arg_file*)argtable[4])->filename)); }
   if (((struct arg_int*)argtable[5])->count) { options->num_gpu_threads = *(((struct arg_int*)argtable[5])->ival); }
   if (((struct arg_int*)argtable[6])->count) { options->num_cpu_threads = *(((struct arg_int*)argtable[6])->ival); }
@@ -310,6 +321,9 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
   if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
   if (((struct arg_int*)argtable[35])->count) { options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); }
+
+  if (((struct arg_int*)argtable[36])->count) { options->report_best = *(((struct arg_int*)argtable[32])->ival); }
+  if (((struct arg_int*)argtable[37])->count) { options->report_n_hits = *(((struct arg_int*)argtable[33])->ival); }
 
   return options;
 }

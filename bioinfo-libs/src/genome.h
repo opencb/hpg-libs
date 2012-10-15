@@ -12,18 +12,17 @@
 //====================================================================================
 
 typedef struct genome {
-  unsigned long int nX;
+  size_t genome_length;
   unsigned int num_chromosomes;
-  unsigned int chr_name_length[200];
-  unsigned int chr_size[200];
-  unsigned int chr_offset[200];
-  unsigned int chr_name[200][100];
-
+  size_t chr_name_length[200];
+  size_t chr_size[200];
+  size_t chr_offset[200];
+  char chr_name[200][100];
   unsigned char* X;
   char **code_table;
 } genome_t;
 
-genome_t* genome_new(char* sequence_filename, char* chromosome_filename);
+genome_t* genome_new(char* sequence_filename, char* directory);
 
 void genome_free(genome_t* genome_p);
 
