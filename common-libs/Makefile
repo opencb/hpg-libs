@@ -17,7 +17,7 @@ BIOFORMATS_DIR = $(BIOINFO_LIBS_DIR)/bioformats
 ALIGNERS_DIR = $(BIOINFO_LIBS_DIR)/aligners
 
 # Include and lib folders
-INCLUDES = -I . -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include
+INCLUDES = -I . -I ./include -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include
 LIBS = -L$(LIB_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprops -fopenmp -largtable2 -lconfig -lbam -lcurl -lm -lz -lxml2
 # -largtable2 -lconfig 
 
