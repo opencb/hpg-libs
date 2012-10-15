@@ -325,7 +325,7 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
   } else {
 
     fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
-    exit(1);
+    //exit(1);
 
   }
 
@@ -379,12 +379,12 @@ inline void add_result(result *orig, results_list *r_list) {
 
     copy_result(dest, orig);
 
-  } else {
+  } /*else {
 
     fprintf(stderr, "ERROR: Number of allowed results exceeded: %u\n", r_list->max_results);
     exit(1);
 
-  }
+    }*/
 
 }
 

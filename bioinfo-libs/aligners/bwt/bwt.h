@@ -18,10 +18,14 @@
 #include "BW_io.h"
 #include "BW_search.h"
 
+#define NONE_HARD_CLIPPING 0
+#define START_HARD_CLIPPING 1
+#define END_HARD_CLIPPING 2
+
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 double global_parallel, global_sequential;
-
+double time_bwt, time_search, time_bwt_seed, time_search_seed;
 //-----------------------------------------------------------------------------
 // Paratemers for the candidate alignment localizations (CALs)
 //-----------------------------------------------------------------------------
@@ -101,11 +105,19 @@ typedef struct bwt_optarg {
   size_t num_errors;
   size_t num_threads;
   size_t max_alignments_per_read;
+  size_t report_best;
+  size_t report_n_hits;
+  char report_all;
 } bwt_optarg_t;
 
 bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
 			     const size_t num_threads,
-			     const size_t max_alginments_per_read);
+			     const size_t max_alginments_per_read,
+			     const size_t report_best,
+			     const size_t report_n_hits,
+			     const size_t report_all
+			     );
+
 void bwt_optarg_free(bwt_optarg_t *optarg);
 
 //-----------------------------------------------------------------------------
@@ -145,6 +157,22 @@ void read_cals_free(read_cals_t *read_cals);
 //-----------------------------------------------------------------------------
 // general functions
 //-----------------------------------------------------------------------------
+
+/**
+ * @brief  Makes the reverse and complementary from the input sequence.
+ * @param  seq input sequence
+ * @param  len sequence length input
+ * 
+ * Makes the reverse and complementary read from input sequence. For it
+ * the read input is walked from end to start and all nucleotides are 
+ * changed for their complementaries. 
+ */
+void seq_reverse_complementary(char *seq, unsigned int len);
+
+/**
+ */
+char* reverse_str(char *src, char *dsp, size_t length);
+
 
 size_t bwt_map_seq(char *seq, 
 		   bwt_optarg_t *bwt_optarg, 
