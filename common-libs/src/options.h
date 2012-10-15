@@ -16,7 +16,7 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			32
+#define NUM_OPTIONS			36
 
 
 typedef struct options {
