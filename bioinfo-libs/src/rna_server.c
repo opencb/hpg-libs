@@ -22,7 +22,9 @@
 
 int ii = -1;
 
-void cal_fusion_data_init(unsigned int id, unsigned int start, unsigned int end, unsigned int strand, unsigned int chromosome, unsigned int fusion_start, unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p){
+void cal_fusion_data_init(unsigned int id, unsigned int start, unsigned int end, 
+			  unsigned int strand, unsigned int chromosome, unsigned int fusion_start, 
+			  unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p) {
   cal_fusion_data_p->genome_strand = strand;
   cal_fusion_data_p->id = id;
   cal_fusion_data_p->genome_start = start;
@@ -60,7 +62,8 @@ char* cigar_automata_status(unsigned char status){
   return str_status;
 }
 
-void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int *pos, unsigned int status, unsigned int *number){
+void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, 
+		     unsigned int *pos, unsigned int status, unsigned int *number){
   char cigar_info[20];
   
   if (*number <= 0){
@@ -205,7 +208,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
       continue;
     }
     /*
-    printf("=========================== BEFORE [Depth %d - Total CALs %d]==================================\n", i, depth_cal_fusion_p[i].cal_number);
+    printf("=========================== BEFORE [Depth %d - Total CALs %d]==================================\n",
+    i, depth_cal_fusion_p[i].cal_number);
     for(int c = 0; c < depth_cal_fusion_p[i].cal_number; c++){
       printf("CAL %d :\n", c);
       printf("\t->Genome Start : %d\n", depth_cal_fusion_p[i].allocate_data[c].genome_start);
@@ -412,14 +416,18 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 	   //printf("gap_start=%d , gap_end=%d\n", gap_start, gap_end);
 
 	   //Canonical marks strand + (GT-AG)
-	   if ((output_p->mapped_ref_p[i][gap_start] == canonical_GT_AG[0]) && (output_p->mapped_ref_p[i][gap_start + 1] == canonical_GT_AG[1])) {
-	     if ((output_p->mapped_ref_p[i][gap_end - 1] == canonical_GT_AG[2]) && (output_p->mapped_ref_p[i][gap_end] == canonical_GT_AG[3])) {
+	   if ((output_p->mapped_ref_p[i][gap_start] == canonical_GT_AG[0]) && 
+	       (output_p->mapped_ref_p[i][gap_start + 1] == canonical_GT_AG[1])) {
+	     if ((output_p->mapped_ref_p[i][gap_end - 1] == canonical_GT_AG[2]) && 
+		 (output_p->mapped_ref_p[i][gap_end] == canonical_GT_AG[3])) {
 	       found = GT_AG_SPLICE; 
 	     }
 	   }
 	   //Canonical marks strand - (CT-AC)
-	   if ((output_p->mapped_ref_p[i][gap_start] == canonical_CT_AC[0]) && (output_p->mapped_ref_p[i][gap_start + 1] == canonical_CT_AC[1])) {
-	     if ((output_p->mapped_ref_p[i][gap_end - 1] == canonical_CT_AC[2]) && (output_p->mapped_ref_p[i][gap_end] == canonical_CT_AC[3])) {
+	   if ((output_p->mapped_ref_p[i][gap_start] == canonical_CT_AC[0]) && 
+	       (output_p->mapped_ref_p[i][gap_start + 1] == canonical_CT_AC[1])) {
+	     if ((output_p->mapped_ref_p[i][gap_end - 1] == canonical_CT_AC[2]) && 
+		 (output_p->mapped_ref_p[i][gap_end] == canonical_CT_AC[3])) {
 	       found = CT_AC_SPLICE;
 	     }
 	   }
@@ -436,15 +444,19 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 		 end_exceded = 1; break;
 	       }
 
-	       if ((output_p->mapped_ref_p[i][position] == canonical_GT_AG[0]) && (output_p->mapped_ref_p[i][position + 1] == canonical_GT_AG[1])) {
+	       if ((output_p->mapped_ref_p[i][position] == canonical_GT_AG[0]) && 
+		   (output_p->mapped_ref_p[i][position + 1] == canonical_GT_AG[1])) {
 		 //printf("-Found GT-");
-		 if ((output_p->mapped_ref_p[i][gap_end - 1 + count_extra_search] == canonical_GT_AG[2]) && (output_p->mapped_ref_p[i][gap_end + count_extra_search] == canonical_GT_AG[3])) {
+		 if ((output_p->mapped_ref_p[i][gap_end - 1 + count_extra_search] == canonical_GT_AG[2]) && 
+		     (output_p->mapped_ref_p[i][gap_end + count_extra_search] == canonical_GT_AG[3])) {
 		   confirmation_type = GT_AG_SPLICE; 
 		   //printf("Found GT_AG Extra Search\n");
 		 }
 		 
-	       } else if ((output_p->mapped_ref_p[i][position] == canonical_CT_AC[0]) && (output_p->mapped_ref_p[i][position + 1] == canonical_CT_AC[1])) {
-		 if ((output_p->mapped_ref_p[i][gap_end - 1 + count_extra_search] == canonical_CT_AC[2]) && (output_p->mapped_ref_p[i][gap_end + count_extra_search] == canonical_CT_AC[3])) {
+	       } else if ((output_p->mapped_ref_p[i][position] == canonical_CT_AC[0]) && 
+			  (output_p->mapped_ref_p[i][position + 1] == canonical_CT_AC[1])) {
+		 if ((output_p->mapped_ref_p[i][gap_end - 1 + count_extra_search] == canonical_CT_AC[2]) && 
+		     (output_p->mapped_ref_p[i][gap_end + count_extra_search] == canonical_CT_AC[3])) {
 		   confirmation_type = CT_AC_SPLICE; 
 		   //printf("Found CT_AC Extra Search\n");
 		 }
@@ -510,7 +522,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 	    if (gap_end >  depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end) {
 	      //printf("\tChange to Next CAL\n");
 	     
-	      tmp = ((depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end - j_start) - (depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_start - j_start) + 1) - relative_gap_start ;
+	      tmp = ((depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end - j_start) - 
+		     (depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_start - j_start) + 1) - relative_gap_start ;
 	      
 	      relative_gap_start = n_deletions_seq - tmp;
 	     
@@ -519,7 +532,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 
 	      if (gap_end >  depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end) {
 		while (gap_end >  depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end) {
-		  nt_skipped += (depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end -depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_start);
+		  nt_skipped += (depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_end - 
+				 depth_cal_fusion_p[i].allocate_data[actual_cal].fusion_start);
 		  actual_cal++;
 		}
 		nt_skipped++;
@@ -583,7 +597,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 	      } else {
 		relative_gap_start = gap_end   - (depth_cal_fusion_p[i].allocate_data[actual_cal - 1].fusion_end + insertion_number);
 		
-		cigar_value = (depth_cal_fusion_p[i].allocate_data[actual_cal].genome_start + relative_gap_start) -  (depth_cal_fusion_p[i].allocate_data[actual_cal - 1].genome_end - ((gap_end - gap_start) - relative_gap_start));
+		cigar_value = (depth_cal_fusion_p[i].allocate_data[actual_cal].genome_start + relative_gap_start) -  
+		  (depth_cal_fusion_p[i].allocate_data[actual_cal - 1].genome_end - ((gap_end - gap_start) - relative_gap_start));
 	      }
 	      cigar_generator(cigar_p, &cigar_max_len, &cigar_pos,  CIGAR_BIG_DELETION, &cigar_value);
 	    } else {
@@ -687,7 +702,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
      }
     
     if (((output_p->mapped_len_p[i] - deletions_tot) + output_p->start_seq_p[i]) < input_p->seq_len_p[i]) {
-      sprintf(cigar_segment, "%iH", input_p->seq_len_p[i] - ((output_p->mapped_len_p[i] - deletions_tot) + output_p->start_seq_p[i]));
+      sprintf(cigar_segment, "%iH", input_p->seq_len_p[i] - 
+	      ((output_p->mapped_len_p[i] - deletions_tot) + output_p->start_seq_p[i]));
       cigar_str = strcat(cigar_str, cigar_segment);
       num_cigar_op++;
     }
@@ -723,7 +739,9 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
       quality_match = quality_strand;
     }
     
-    alignment_init_single_end(header_match, read_match, quality_match, depth_cal_fusion_p[i].allocate_data->genome_strand, depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped, cigar_str, num_cigar_op, (int)output_p->score_p[i], 1, primary_alignment, alignment_p);
+    alignment_init_single_end(header_match, read_match, quality_match, depth_cal_fusion_p[i].allocate_data->genome_strand, 
+			      depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped, cigar_str, num_cigar_op, 
+			      (int)output_p->score_p[i], 1, primary_alignment, alignment_p);
 
     //printf("Score %i\n", alignment_p->map_quality);
     //printf("seq: %s\n", alignment_p->sequence);
@@ -1074,7 +1092,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	  while(distance < max_intron_size){
 	    
 	    cal_fusion_data_init(j, start, end, cal_p->strand, cal_p->chromosome_id, 
-				 reference_fusion_len, reference_fusion_len + len -1, &cals_fusion_p->allocate_data[num_cals_fusion]);
+				 reference_fusion_len, reference_fusion_len + len -1, 
+				 &cals_fusion_p->allocate_data[num_cals_fusion]);
 	    
 	    if(len > max_reference){
 	      max_reference += 1.25*len;
@@ -1262,7 +1281,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	sprintf(cigar_p, "%d%c\0", read_len, 'X');
 	//TODO:chromosome 0??
 	
-	alignment_init_single_end(header_id_match_p, search_match_p, quality_match_p, 0, 0, 0, cigar_p, 1, 255, 0, 0, alignment_p);
+	alignment_init_single_end(header_id_match_p, search_match_p, quality_match_p, 
+				  0, 0, 0, cigar_p, 1, 0, 0, 0, alignment_p);
 	
 	//printf("seq: %s\n", alignment_p->sequence);
 	((alignment_t **)write_batch_p->buffer_p)[write_batch_p->size] = alignment_p;
@@ -1333,7 +1353,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   }
 
   printf("total_reads_process = %i =? alignments_report = %i \n", n_total_reads_process, n_alignments_report);
-  printf("rna_server: END (%i reads -> unmapped %i, %i smith-waterman -> %i valids)\n", total_reads_process,  total_reads_unmapped, num_sw_process, total_reads_process - total_reads_unmapped);
+  printf("rna_server: END (%i reads -> unmapped %i, %i smith-waterman -> %i valids)\n", 
+	 total_reads_process,  total_reads_unmapped, num_sw_process, total_reads_process - total_reads_unmapped);
   
   return;
   }
