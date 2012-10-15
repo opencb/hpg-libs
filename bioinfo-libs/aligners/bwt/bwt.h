@@ -121,6 +121,7 @@ typedef struct bwt_index {
 bwt_index_t *bwt_index_new(const char *dirname);
 void bwt_index_free(bwt_index_t *index);
 
+
 void bwt_generate_index_files(char *ref_file, char *output_dir, 
 			      unsigned int s_ratio);
 

@@ -194,6 +194,7 @@ void simd_traceback(int depth, int num_seqs,
     q_alig[i] = qq_alig;
     r_alig[i] = rr_alig;
 
+    len_alig[i] = len;
     //    printf("rev. index %i\tq = %s\n", i, qq_alig);
     //    printf("rev. index %i\tr = %s\n", i, rr_alig);
   }
