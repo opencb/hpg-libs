@@ -73,10 +73,10 @@ test-preprocess: compile-static test-preprocess.c
 test-search-cpu: compile-static test-search-cpu.c
 	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-cpu.c -o bin/test-search-cpu $(INCLUDES) $(LIBS_STATIC)
 
-<<<<<<< HEAD
+
 test-search-batch-cpu: compile-static test-search-batch-cpu.c
 	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-batch-cpu.c -o bin/test-search-batch-cpu $(INCLUDES) $(LIBS_STATIC)
-=======
+
 test-search-gpu: compile-static compile-gpu test-search-gpu.c
 	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-gpu.c -o bin/test-search-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
 
@@ -86,7 +86,6 @@ compile-gpu: compile-cuda
 compile-cuda: 
 	$(NVCC) $(NVCCFLAGS) -c $(CUDA_SOURCES) $(INCLUDES_STATIC)
 
->>>>>>> 65a2ff6dd5c0285a5eaef185a462a2e197ccd932
 
 compile: compile-dependencies
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES)
