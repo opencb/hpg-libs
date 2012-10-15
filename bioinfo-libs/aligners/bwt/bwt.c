@@ -1685,7 +1685,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
   // first 'pasada'
   offset = 0;
   for (size_t i = 0; i < num_seeds; i++) {
-    printf("%s\n", &seq[offset]);
+    //printf("%s\n", &seq[offset]);
     //printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1694,7 +1694,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
 
   // special processing for the last seed !!
   if (len % seed_size >= min_seed_size) {
-    printf("%s\n", &seq[offset]);
+    //printf("%s\n", &seq[offset]);
     //printf("1', : start = %d, end = %d\n", offset, len - 1);
     bwt_map_exact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1704,7 +1704,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
   offset = seed_size / 2;
   num_seeds = (len - seed_size / 2) / seed_size;
   for (size_t i = 0; i < num_seeds; i++) {
-    printf("%s\n", &seq[offset]);
+    //printf("%s\n", &seq[offset]);
     //printf("2, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
     bwt_map_exact_seed(code_seq, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list);
@@ -1713,7 +1713,7 @@ size_t bwt_map_exact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size
 
   // again, special processing for the last seed !!
   if ((len - seed_size / 2) % seed_size >= min_seed_size) {
-    printf("%s\n", &seq[offset]);
+    //printf("%s\n", &seq[offset]);
     //printf("2',: start = %d, end = %d\n", offset, len - 1);
     bwt_map_exact_seed(code_seq, offset, len - 1,
 			 bwt_optarg, index, mapping_list);
@@ -2261,7 +2261,7 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
                                       COLLECTION_MODE_SYNCHRONIZED);
   }
 
-  printf("Array list complete\n");
+  //  printf("Array list complete\n");
   
   size_t (*map_seeds)(char *, size_t, size_t, bwt_optarg_t *, bwt_index_t *, array_list_t *);
 

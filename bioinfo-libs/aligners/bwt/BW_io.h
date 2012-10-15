@@ -323,12 +323,9 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
     r->num_mismatches++;
 
   } else {
-
     fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
-    exit(1);
-
+    //    exit(1);
   }
-
 }
 
 inline void modify_last_mismatch_3(result *r, char err_kind, char base, int position) {
