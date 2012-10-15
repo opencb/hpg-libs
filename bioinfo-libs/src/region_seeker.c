@@ -123,8 +123,8 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
       outputs[num_outputs++] = index;
       batch->num_to_do += num_mappings;
     }
-    printf("\tSEED  : read %d (%d items): %s\n", 
-    	   index, num_mappings, &(fq_batch->header[fq_batch->header_indices[index]]));
+    //    printf("\tSEED  : read %d (%d items): %s\n", 
+    //    	   index, num_mappings, &(fq_batch->header[fq_batch->header_indices[index]]));
 
     batch->num_done += 2 * (strlen(seq) / seed_size);
     batch->num_to_do += num_mappings;

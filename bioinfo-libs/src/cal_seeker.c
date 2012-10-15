@@ -205,7 +205,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	   &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
     printf("--------------------------------------------------------------\n");
     */
-    printf("cal_seeker.c: num_cals = %d (MAX = %d)\n", num_cals, MAX_CALS);
+    //    printf("cal_seeker.c: num_cals = %d (MAX = %d)\n", num_cals, MAX_CALS);
 
     if (num_cals > 0 && num_cals <= MAX_CALS) {
 

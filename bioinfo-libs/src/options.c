@@ -214,8 +214,14 @@ void** argtable_options_new(void) {
 	argtable[29] = arg_lit0("h", "help", "Help option");
 	argtable[30] = arg_file0(NULL, "splice-exact", NULL, "Splice Junctions exact filename");
 	argtable[31] = arg_file0(NULL, "splice-extend", NULL, "Splice Junctions extend filename");
+
+	argtable[32] = arg_file1("j", "fq2,fastq2", NULL, "Reads file input #2 (for paired mode)");
+
+	argtable[33] = arg_int0(NULL, "pair-mode", NULL, "Pair mode: 0 = single-end, 1 = paired-end, 2 = mate-pair");
+	argtable[34] = arg_int0(NULL, "pair-min-distance", NULL, "Minimum distance between pairs");
+	argtable[35] = arg_int0(NULL, "pair-max-distance", NULL, "Maximum distance between pairs");
 	
-	argtable[32] = arg_end(20);
+	argtable[36] = arg_end(20);
 
 	return argtable;
 }
@@ -298,7 +304,13 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_int*)argtable[29])->count) { options->help = ((struct arg_int*)argtable[29])->count; }
   if (((struct arg_file*)argtable[30])->count) { free(options->splice_exact_filename); options->splice_exact_filename = strdup(*(((struct arg_file*)argtable[30])->filename)); }
   if (((struct arg_file*)argtable[31])->count) { free(options->splice_extend_filename); options->splice_extend_filename = strdup(*(((struct arg_file*)argtable[31])->filename)); }
+
+  if (((struct arg_file*)argtable[32])->count) { free(options->in_filename2); options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); }
   
+  if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
+  if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
+  if (((struct arg_int*)argtable[35])->count) { options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); }
+
   return options;
 }
 
@@ -326,6 +338,7 @@ options_t *parse_options(int argc, char **argv) {
     if (num_errors > 0) {
       arg_print_errors(stdout, argtable[NUM_OPTIONS], "hpg-aligner");	// struct end is always allocated in the last position
       usage(argtable);
+      exit(-1);
     }else {
       options = read_CLI_options(argtable, options);
       if(options->help) {

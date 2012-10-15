@@ -58,6 +58,8 @@ clean:
 	-rm -f $(CONTAINERS_DIR)/*.o
 	-rm -f $(BIOFORMATS_DIR)/fastq/*.o
 	-rm -f $(BIOFORMATS_DIR)/bam-sam/alignment.o
+	-rm -f $(ALIGNERS_DIR)/bwt/*.o
+	-rm -f $(ALIGNERS_DIR)/sw/*.o
 	-rm -f $(BIN_DIR)/*
 
 
