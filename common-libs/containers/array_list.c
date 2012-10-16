@@ -376,7 +376,7 @@ int array_list_swap(const int pos1, const int pos2, array_list_t *array_list_p){
 		pthread_mutex_lock(&array_list_p->lock);
 	}
 	
-	size_t size = array_list_p->items;
+	size_t size = array_list_p->size;
 	
 	if(((pos1 < 0) || (pos1 > size)) || ((pos2 < 0) || (pos2 > size)) ){
 	  return 0;
