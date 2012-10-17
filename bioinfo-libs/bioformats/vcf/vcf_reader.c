@@ -762,7 +762,8 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
             int c = 0;
             int lines = 0;
 
-            for (int i = 0; !eof_found[f] && lines < batch_lines; i++) {
+            int i;
+            for (i = 0; !eof_found[f] && lines < batch_lines; i++) {
                 c = fgetc(files[f]->fd);
 
                 if (c != EOF) {
@@ -775,14 +776,15 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
                     eof_found[f] = 1;
                     num_eof_found++;
                     list_decr_writers(text_lists[f]);
-//                     data[i+1] = '\0';
                 }
             }
+            
+            data[i] = '\0';
             
             // Enqueue current batch
             list_item_t *item = list_item_new(get_num_vcf_batches(files[f]), 1, data);
             list_insert_item(item, text_lists[f]);
-//             printf("Text batch inserted = '%s'\n", data);
+//             printf("Text batch inserted = '%.*s'\n", 200, data + strlen(data) - 200);
         }
     }
 

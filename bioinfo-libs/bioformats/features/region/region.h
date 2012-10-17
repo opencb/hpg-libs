@@ -82,7 +82,7 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
  * @return
  * 	Less, equal or greater than zero if position_1 is less than, equal or greater than position_2.
  */
-int compare_positions(uint32_t *position_1, uint32_t *position_2);
+int compare_positions(uint32_t position_1, uint32_t position_2);
 
 /**
  * Compare two regions' position ranges.

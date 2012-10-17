@@ -143,8 +143,8 @@ int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files) {
-    return vcf_light_multiread(batches_list, batch_size, vcf_files, num_files);
+int vcf_multiread_batches(list_t **text_lists, size_t batch_lines, vcf_file_t **vcf_files, int num_files) {
+    return vcf_light_multiread(text_lists, batch_lines, vcf_files, num_files);
 }
 
 void notify_end_reading(vcf_file_t *vcf_file) {

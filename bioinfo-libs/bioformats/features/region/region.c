@@ -155,7 +155,7 @@ int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, 
 	} else
 	{
 // 		return compare_position_ranges(reg_1, reg_2);
-		return compare_positions(&reg_1->start_position, &reg_2->start_position);
+		return compare_positions(reg_1->start_position, reg_2->start_position);
 	}
 }
 
@@ -190,9 +190,9 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
 	return 0;
 }
 
-int compare_positions(uint32_t *position_1, uint32_t *position_2)
+int compare_positions(uint32_t position_1, uint32_t position_2)
 {
-	return *position_1 - *position_2;
+	return position_1 - position_2;
 }
 
 int compare_position_ranges(region_t *region_1, region_t *region_2)
