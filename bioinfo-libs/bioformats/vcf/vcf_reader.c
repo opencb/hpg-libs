@@ -736,7 +736,7 @@ int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
  *      Only reading from multiple files        *
  * **********************************************/
 
-int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files) {
+int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **files, size_t num_files) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     // Initialize file-private variables
@@ -747,60 +747,46 @@ int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **f
         files[i]->data_len = 0;
     }
     
-//     char *data = NULL;
-    __ssize_t line_len = 0;
-    char *line = NULL;
-    char *aux;
-    
     int num_eof_found = 0;
     int eof_found[num_files];
     memset(eof_found, 0, num_files * sizeof(int));
 
-    // Read text of a batch and call ragel parser in a loop
+    // Read text of a batch from each file and call ragel parser in a loop
     while (num_eof_found < num_files) {
-        // Read text of each file
         for (int f = 0; f < num_files; f++) {
             if (eof_found[f]) {
-                printf("EOF found in file %d\n", f);
                 continue;
             }
 
             char *data = (char*) calloc (max_len[f], sizeof(char));
+            int c = 0;
+            int lines = 0;
 
-            for (int i = 0; i < batch_size && !eof_found[f]; i++) {
-                line_len = getline(&line, &line_len, files[f]->fd);
-                if (line_len != -1) {
-                    LOG_DEBUG_F("#%d Line (len %zu): %s", i, line_len, line);
-                    // Line too long to be stored in data, realloc
-                    if (files[f]->data_len + line_len + 1 > max_len[f]) {
-                        aux = realloc(data, max_len[f] + line_len * 20);
-                        if (aux) {
-                            data = aux;
-                            max_len[f] += line_len * 20;
-                        } else {
-                            LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-                        }
+            int i;
+            for (i = 0; !eof_found[f] && lines < batch_lines; i++) {
+                c = fgetc(files[f]->fd);
+
+                if (c != EOF) {
+                    max_len[f] = consume_input(c, &data, max_len[f], i);
+                    if (c == '\n') {
+                        lines++;
                     }
-                    // Concat previous data with new line
-                    strncat(data, line, line_len);
-                    files[f]->data_len += line_len;
                 } else {
+                    printf("EOF found in file %d\n", f);
                     eof_found[f] = 1;
                     num_eof_found++;
-                    list_decr_writers(batches_list[f]);
+                    list_decr_writers(text_lists[f]);
                 }
             }
-
-            files[f]->data_len = 0;
-
+            
+            data[i] = '\0';
+            
+            // Enqueue current batch
             list_item_t *item = list_item_new(get_num_vcf_batches(files[f]), 1, data);
-            list_insert_item(item, batches_list[f]);
-            printf("[%d] Text batch inserted\n", f);
-    //             printf("Text batch inserted = '%s'\n", data);
+            list_insert_item(item, text_lists[f]);
+//             printf("Text batch inserted = '%.*s'\n", 200, data + strlen(data) - 200);
         }
     }
-
-    if (line != NULL) { free(line); }
 
     return 0;
 }
@@ -817,10 +803,10 @@ size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
     (*data)[position_in_data] = c;
     // Text too long to be stored in 'data', realloc
     if (position_in_data == max_len - 1) {
-        char *aux = realloc(*data, max_len + 10000);
+        char *aux = realloc(*data, max_len + 10240);
         if (aux) {
             *data = aux;
-            return max_len + 10000;
+            return max_len + 10240;
         } else {
             LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
         }

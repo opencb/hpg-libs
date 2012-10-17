@@ -112,12 +112,36 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
     assert(file);
     assert(fd);
     
+    if (write_vcf_delimiter_from_samples(file->samples_names->items, file->samples_names->size, fd) > 0) {
+        return 1;
+    }
+//     if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
+//         return 1;
+//     }
+//     
+//     for (int i = 0; i < file->samples_names->size; i++) {
+//         if (fprintf(fd, "\t%s", (char*) array_list_get(i, file->samples_names)) < 0) {
+//             return 1;
+//         }
+//     }
+//        
+//     if (fprintf(fd, "\n") < 0) {
+//         return 1;
+//     }
+    
+    return 0;
+}
+
+int write_vcf_delimiter_from_samples(char **sample_names, int num_samples, FILE *fd) {
+    assert(sample_names);
+    assert(fd);
+    
     if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
         return 1;
     }
     
-    for (int i = 0; i < file->samples_names->size; i++) {
-        if (fprintf(fd, "\t%s", (char*) array_list_get(i, file->samples_names)) < 0) {
+    for (int i = 0; i < num_samples; i++) {
+        if (fprintf(fd, "\t%s", sample_names[i]) < 0) {
             return 1;
         }
     }
@@ -128,6 +152,7 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
     
     return 0;
 }
+
 
 int write_vcf_batch(vcf_batch_t *batch, FILE *fd) {
     assert(batch);
