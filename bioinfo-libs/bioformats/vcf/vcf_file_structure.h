@@ -210,6 +210,15 @@ int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file);
  **/
 vcf_batch_t *fetch_vcf_batch(vcf_file_t *file);
 
+/**
+ * @brief Removes and returns the first batch in the queue of a VCF file.
+ * @details Removes and returns the first batch in the queue of a VCF file, without blocking if no 
+ * batches are available. This is the recommended function to use when reading from multiple files.
+ *
+ * @param file The file to fetch the batch from
+ * @return The fetched batch
+ **/
+vcf_batch_t *fetch_vcf_batch_non_blocking(vcf_file_t *file);
 
 /**
  * @brief Returns the number of header entries in a VCF file.

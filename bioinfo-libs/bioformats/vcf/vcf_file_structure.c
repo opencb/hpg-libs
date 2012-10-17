@@ -108,6 +108,17 @@ int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file) {
 
 vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {
     assert(file);
+    list_item_t *item = list_remove_item(file->record_batches);
+    if (item) {
+        vcf_batch_t *batch = item->data_p;
+        list_item_free(item);
+        return batch;
+    }
+    return NULL;
+}
+
+vcf_batch_t *fetch_vcf_batch_non_blocking(vcf_file_t *file) {
+    assert(file);
     list_item_t *item = list_remove_item_async(file->record_batches);
     if (item) {
         vcf_batch_t *batch = item->data_p;
