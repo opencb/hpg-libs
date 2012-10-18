@@ -225,9 +225,305 @@ void process_pair(int pair_id, alignment_t **alignments, size_t num_alignments,
     }
   }
 }
+*/
+
+static void prepare_single_alignments(pair_server_input_t *input, aligner_batch_t *batch) {
+
+  static char aux[4096];
+
+  fastq_batch_t *fq_batch = batch->fq_batch;
+  size_t index, num_items, num_targets = batch->num_targets;
+
+  int secondary_alignment;
+  size_t read_len, header_len, mapped_len, pos;
+  size_t deletion_n, num_cigar_ops;
+  char *cigar, *header_match, *read_match, *quality_match;
+
+  alignment_t *alignment;
+
+  sw_output_t *sw_output;
+  array_list_t *sw_list, *alignment_list;
+
+  // convert the SW output to alignments
+  for (size_t i = 0; i < num_targets; i++) {
+    index = batch->targets[i];
+    sw_list = batch->mapping_lists[index];
+
+    header_len = fq_batch->header_indices[index + 1] - fq_batch->header_indices[index] - 1;   
+    num_items = array_list_size(sw_list);
+
+    alignment_list = array_list_new(1000, 
+				    1.25f, 
+				    COLLECTION_MODE_ASYNCHRONIZED);
+
+
+    for (size_t j = 0; j < num_items; j++) {
+      sw_output = (sw_output_t *) array_list_get(j, sw_list);
+      
+      mapped_len = sw_output->mref_len;
+      
+      // gaps counting
+      deletion_n = 0;
+      for (int ii = 0; ii < mapped_len; ii++){
+	if (sw_output->mquery[ii] == '-') {
+	  deletion_n++;
+	}
+      }
+      
+      secondary_alignment = (j == 0 ? 1 : 0);
+	    
+      header_len = get_to_first_blank(&(fq_batch->header[fq_batch->header_indices[index]]), header_len, aux);
+      
+      header_match = (char *) malloc(sizeof(char) * (header_len + 1));
+      memcpy(header_match, aux, header_len);
+      header_match[header_len] = '\0';
+      
+      read_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
+      memcpy(read_match, 
+	     &fq_batch->seq[fq_batch->data_indices[index]] + sw_output->mquery_start, 
+	     mapped_len - deletion_n);
+      read_match[mapped_len - deletion_n ] = '\0';
+      
+      quality_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
+      memcpy(quality_match, 
+	     &fq_batch->quality[fq_batch->data_indices[index]] + sw_output->mquery_start, 
+	     mapped_len - deletion_n);
+      quality_match[mapped_len - deletion_n] = '\0';
+      
+      cigar =  generate_cigar_str(sw_output->mquery, 
+				  sw_output->mref, 
+				  sw_output->mquery_start, 
+				  read_len, 
+				  sw_output->mref_len, 
+				  &num_cigar_ops);
+      
+      
+      if (sw_output->strand == 0) {
+	pos = sw_output->ref_start + sw_output->mref_start - sw_output->strand;
+      } else {
+	pos = sw_output->ref_start + (sw_output->ref_len - 
+				      sw_output->mref_len - 
+				      sw_output->mref_start);
+      }
+      
+      // create the alignment and insert into the list
+      alignment = alignment_new();
+      alignment_init_single_end(header_match, read_match, quality_match, 
+				sw_output->strand, 
+				sw_output->chromosome - 1, 
+				pos - 1,
+				cigar, num_cigar_ops, 255, secondary_alignment, 1, alignment);
+      array_list_insert(alignment, alignment_list);
+
+      // free memory (sw output)
+      sw_output_free(sw_output);
+    } // end for sw items
+
+    // free the sw list, and update the mapping list with the alignment list
+    array_list_free(sw_list, NULL);
+    batch->mapping_lists[index] = alignment_list;
+  } // end for targets
+}
 
 //------------------------------------------------------------------------------------
-*/
+inline void update_mispaired_pair(int pair_num, size_t num_items, array_list_t *list) {
+  alignment_t *alig;
+
+  for (size_t i = 0; i < num_items; i++) {
+    alig = (alignment_t *) array_list_get(i, list);
+
+    // set pair fields
+    alig->mate_position = 0;
+    alig->mate_chromosome = 0;
+    alig->template_length = 0;
+     
+    alig->is_paired_end = 1;
+    alig->is_paired_end_mapped = 0;
+    alig->is_mate_mapped = 0;
+    alig->mate_strand = 0;
+    alig->pair_num = pair_num;
+  }
+}
+
+//------------------------------------------------------------------------------------
+
+inline void update_mispaired_pairs(size_t num_items1, size_t num_items2,
+				   array_list_t *list1, array_list_t *list2) {
+  alignment_t *alig;
+  alignment_t *first1 = array_list_get(0, list1);
+  alignment_t *first2 = array_list_get(0, list2);
+
+  for (size_t i = 0; i < num_items1; i++) {
+    alig = (alignment_t *) array_list_get(i, list1);
+
+    // set pair1 fields
+    alig->mate_position = first2->position;
+    alig->mate_chromosome = first2->chromosome;
+    alig->template_length = first2->position - alig->position;;
+     
+    alig->is_paired_end = 1;
+    alig->is_paired_end_mapped = 0;
+    alig->is_mate_mapped = 1;
+    alig->mate_strand = first2->seq_strand;
+    alig->pair_num = 1;
+  }
+
+  for (size_t i = 0; i < num_items2; i++) {
+    alig = (alignment_t *) array_list_get(i, list2);
+
+    // set pair1 fields
+    alig->mate_position = first1->position;
+    alig->mate_chromosome = first1->chromosome;
+    alig->template_length = first1->position - alig->position;;
+     
+    alig->is_paired_end = 1;
+    alig->is_paired_end_mapped = 0;
+    alig->is_mate_mapped = 1;
+    alig->mate_strand = first1->seq_strand;
+    alig->pair_num = 2;
+  }
+}
+
+//------------------------------------------------------------------------------------
+
+void prepare_paired_alignments(pair_server_input_t *input, aligner_batch_t *batch) {
+
+  fastq_batch_t *fq_batch = batch->fq_batch;
+  size_t num_items1, num_items2, num_reads = fq_batch->num_reads;
+
+  int distance;
+  int min_distance = input->pair_mng->min_distance;
+  int max_distance = input->pair_mng->max_distance;
+  int pair_mode = input->pair_mng->pair_mode;
+
+  array_list_t *list1, *list2;
+
+  alignment_t *alig1, *alig2;
+  size_t mapped1_counter = 0, mapped2_counter = 0;
+  size_t allocated_mapped1 = 100, allocated_mapped2 = 100;
+  size_t *mapped1 = (size_t *) calloc(allocated_mapped1, sizeof(size_t));
+  size_t *mapped2 = (size_t *) calloc(allocated_mapped2, sizeof(size_t));
+
+  short int chr1, chr2, strand1, strand2;
+  size_t end1, start2;
+
+  int pair_found;
+
+  for (int i = 0; i < num_reads; i += 2) {
+
+    list1 = batch->mapping_lists[i];
+    list2 = batch->mapping_lists[i+1];
+
+    num_items1 = array_list_size(list1);
+    num_items2 = array_list_size(list2);
+
+    if (num_items1 > 0 && num_items2 > 0) {
+      // initializes conters to zero
+      mapped1_counter = 0;
+      mapped2_counter = 0;
+
+      if (allocated_mapped1 < num_items1) {
+	free(mapped1);
+	mapped1 = (size_t *) calloc(num_items1, sizeof(size_t));
+	allocated_mapped1 = num_items1;
+      }
+
+      if (allocated_mapped2 < num_items2) {
+	free(mapped2);
+	mapped2 = (size_t *) calloc(num_items2, sizeof(size_t));
+	allocated_mapped2 = num_items1;
+      }
+
+      // search for pair properly aligned
+      for (size_t j1 = 0; j1 < num_items1; j1++) {
+	alig1 = (alignment_t *) array_list_get(j1, list1);
+	chr1 = alig1->chromosome;
+	strand1 = alig1->seq_strand;
+	end1 = alig1->position;
+	
+	for (size_t j2 = 0; j2 < num_items2; j2++) {
+	  if (mapped2[j2] == 1) continue;
+	  alig2 = (alignment_t *) array_list_get(j2, list2);
+	  chr2 = alig2->chromosome;
+	  strand2 = alig2->seq_strand;
+	  start2 = alig2->position;
+	  
+	  // computes distance between alignments,
+	  // is a valid distance ?
+	  distance = (start2 > end1 ? start2 - end1 : end1 - start2); // abs                                      
+	  if ( (chr1 == chr2) &&
+	       (distance >= min_distance) && (distance <= max_distance) &&
+	       ((strand1 != strand2 && pair_mode == PAIRED_END_MODE) ||
+		(strand1 == strand2 && pair_mode == MATE_PAIR_MODE )   ) ) {
+	    
+            mapped1[j1] = 1;
+	    mapped2[j2] = 1;
+	    
+	    mapped1_counter++;
+	    mapped2_counter++;
+	    
+	    // set pair1 fields
+	    alig1->mate_position = alig2->position;
+	    alig1->mate_chromosome = alig2->chromosome;
+	    alig1->template_length = alig2->position - alig1->position;
+     
+	    alig1->is_paired_end = 1;
+	    alig1->is_paired_end_mapped = 1;
+	    alig1->is_mate_mapped = 1;
+	    alig1->mate_strand = alig2->seq_strand;
+	    alig1->pair_num = 1;
+
+	    // set pair2 fields
+	    alig2->mate_position = alig1->position;
+	    alig2->mate_chromosome = alig1->chromosome;
+	    alig2->template_length = alig1->position - alig2->position;
+	    
+	    alig2->is_paired_end = 1;
+	    alig2->is_paired_end_mapped = 1;
+	    alig2->is_mate_mapped = 1;
+	    alig2->mate_strand = alig1->seq_strand;
+	    alig2->pair_num = 2;
+	    
+	    printf("***** reads %i, %i : pair1 (mapping #%i of %i), pair2 (mapping #%i of %i) : abs(end1 - start2)\n",
+                   i, i+1, j1, num_items1, j2, num_items2, end1, start2, distance, min_distance, max_distance);
+	    
+	    pair_found = 1;
+            break;
+	  }
+	}
+      }
+
+      // check if there are unproperly aligned pairs
+      if (pair_found) {
+	// remove unpaired alignments
+	//if (mapped1_counter != num_items1) remove_items(mapped1, list1); 
+	//if (mapped2_counter != num_items2) remove_items(mapped2, list2); 
+      } else {
+	// all aligments are unpaired
+	update_mispaired_pairs(num_items1, num_items2, list1, list2);
+      }
+    } else {
+      // pairs are not properly aligned, only one is mapped
+      update_mispaired_pair(1, num_items1, list1);
+      update_mispaired_pair(2, num_items2, list2);
+    }
+  } // end for num_reads
+
+  free(mapped1);
+  free(mapped2);
+}
+
+//------------------------------------------------------------------------------------
+
+void prepare_alignments(pair_server_input_t *input, aligner_batch_t *batch) {
+  prepare_single_alignments(input, batch);
+  if (input->pair_mng->pair_mode != SINGLE_END_MODE) {
+    prepare_paired_alignments(input, batch);
+  }
+}
+
+
+//------------------------------------------------------------------------------------
 
 void pair_server_input_init(pair_mng_t *pair_mng, list_t* pair_list, list_t *sw_list,
 			    list_t *write_list, pair_server_input_t* input) {
