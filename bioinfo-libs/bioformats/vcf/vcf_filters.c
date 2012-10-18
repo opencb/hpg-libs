@@ -43,6 +43,55 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
     return passed;
 }
 
+array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, void* args) {
+    assert(input_records);
+    assert(failed);
+    
+    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
+    list_init("stats", 1, input_records->size + 1, input_stats);
+    file_stats_t *file_stats = file_stats_new();
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+
+    float max_maf = ((maf_filter_args*) args)->max_maf;
+    float record_maf = 1.0;
+
+    // TODO candidate for parallelization
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
+    
+    list_item_t *stats_item = NULL;
+    variant_stats_t *variant_stats;
+    // The stats returned by get_variants_stats are related to a record in the same
+    // position of the input_records list, so when a variant_stats_t fulfills the condition,
+    // it means the related vcf_record_t passes the filter
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        stats_item = list_remove_item(input_stats);
+        variant_stats = stats_item->data_p;
+        
+        record_maf = 1.0;
+        for (int j = 0; j < variant_stats->num_alleles; j++) {
+            record_maf = fmin(record_maf, variant_stats->alleles_freq[j]);
+        }
+        
+        if (record_maf <= max_maf) {
+            array_list_insert(record, passed);
+        } else {
+            array_list_insert(record, failed);
+        }
+        
+        variant_stats_free(variant_stats);
+        list_item_free(stats_item);
+    }
+    
+    list_decr_writers(input_stats);
+    file_stats_free(file_stats);
+    
+    return passed;
+}
+
+
 array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, void* args) {
     assert(input_records);
     assert(failed);
@@ -60,7 +109,7 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
     
     list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
-    // The stats returned by get_variants_stats are related to the records in the same
+    // The stats returned by get_variants_stats are related to a record in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
     // it means the related vcf_record_t passes the filter
     vcf_record_t *record;
@@ -80,6 +129,7 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
     }
     
     list_decr_writers(input_stats);
+    file_stats_free(file_stats);
     
     return passed;
 }
@@ -198,6 +248,26 @@ filter_t *coverage_filter_new(int min_coverage) {
 }
 
 void coverage_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+filter_t *maf_filter_new(float max_maf) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    filter->type = MAF;
+    filter->filter_func = maf_filter;
+    filter->free_func = maf_filter_free;
+    filter->priority = 4;
+    
+    maf_filter_args *filter_args = (maf_filter_args*) malloc (sizeof(maf_filter_args));
+    filter_args->max_maf = max_maf;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void maf_filter_free(filter_t *filter) {
     assert(filter);
     free(filter->args);
     free(filter);

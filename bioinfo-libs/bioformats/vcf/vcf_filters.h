@@ -2,11 +2,12 @@
 #define VCF_FILTERS_H
 
 #include <assert.h>
+#include <math.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include <cprops/heap.h>
 
@@ -33,7 +34,7 @@
 /**
  * @brief The type of the filter to apply
  **/
-enum filter_type { COVERAGE, NUM_ALLELES, QUALITY, REGION, SNP  };
+enum filter_type { COVERAGE, MAF, NUM_ALLELES, QUALITY, REGION, SNP  };
 
 /**
  * @brief Arguments for the filter by coverage
@@ -43,6 +44,14 @@ enum filter_type { COVERAGE, NUM_ALLELES, QUALITY, REGION, SNP  };
 typedef struct {
     int min_coverage;   /**< Minimum coverage a record must have */
 } coverage_filter_args;
+
+/**
+ * @brief Arguments for the filter by Minumum Allele Frequency (MAF)
+ * @details The only argument of a filter by MAF is the maximum MAF of a record.
+ **/
+typedef struct {
+    float max_maf;      /**< Maximum MAF a record must have */
+} maf_filter_args;
 
 /**
  * @brief Arguments for the filter by number of alleles
@@ -107,8 +116,7 @@ typedef cp_heap filter_chain;
 
 /**
  * @brief Given a list of records, check which ones have a coverage greater or equals to the one specified.
- * @details Given a list of records, check which ones have a coverage greater or equals than 
- * the one specified.
+ * @details Given a list of records, check which ones have a coverage greater or equals to the one specified.
  * 
  * @param input_records List of records to filter
  * @param[out] failed Records that failed the filter's test
@@ -118,9 +126,19 @@ typedef cp_heap filter_chain;
 array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed, void *args);
 
 /**
+ * @brief Given a list of records, check which ones have a MAF less or equals to the one specified.
+ * @details Given a list of records, check which ones have a MAF less or equals to the one specified.
+ * 
+ * @param input_records List of records to filter
+ * @param[out] failed Records that failed the filter's test
+ * @param args Filter arguments
+ * @return Records that passed the filter's test
+ */
+array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, void *args);
+
+/**
  * @brief Given a list of records, check which ones have a num_alleles equals to the one specified.
- * @details Given a list of records, check which ones have a num_alleles equals to 
- * the one specified.
+ * @details Given a list of records, check which ones have a num_alleles equals to the one specified.
  * 
  * @param input_records List of records to filter
  * @param[out] failed Records that failed the filter's test
@@ -131,6 +149,7 @@ array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *fail
 
 /**
  * @brief Given a list of records, check which ones have a quality greater or equals to the one specified.
+ * @details Given a list of records, check which ones have a quality greater or equals to the one specified.
  * 
  * @param input_records List of records to filter
  * @param[out] failed Records that failed the filter's test
@@ -184,6 +203,23 @@ filter_t *coverage_filter_new(int min_coverage);
  * @param filter The filter to deallocate
  **/
 void coverage_filter_free(filter_t *filter);
+
+/**
+ * @brief Creates a new filter by maximum MAF.
+ * @details Creates a new filter by maximum MAF.
+ *
+ * @param max_maf Maximum MAF for the records to pass the filter
+ * @return The new filter
+ **/
+filter_t *maf_filter_new(float max_maf);
+
+/**
+ * @brief Deallocates memory of a filter by maximum MAF.
+ * @details Deallocates memory of a filter by maximum MAF.
+ *
+ * @param filter The filter to deallocate
+ **/
+void maf_filter_free(filter_t *filter);
 
 /**
  * @brief Creates a new filter by number of alleles.
