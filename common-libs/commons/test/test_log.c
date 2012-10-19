@@ -9,7 +9,7 @@ int main(void) {
 	LOG_LEVEL(1);
 	LOG_VERBOSE(1);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
@@ -18,7 +18,7 @@ verbose);
 	LOG_LEVEL(3);
 	LOG_VERBOSE(1);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
@@ -27,7 +27,7 @@ verbose);
 	LOG_LEVEL(1);
 	LOG_VERBOSE(0);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
@@ -40,7 +40,7 @@ verbose);
 	LOG_LEVEL(LOG_DEBUG_LEVEL);
 	LOG_VERBOSE(1);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_IF(LOG_DEBUG_LEVEL, (1>0), "debug message");
 	LOG_IF(LOG_INFO_LEVEL, (1>0), "info message");
 	LOG_IF(LOG_WARN_LEVEL, (1>0), "warn message");
@@ -53,9 +53,9 @@ verbose);
 	printf("==============================================\n");
 	LOG_LEVEL(1);
 	LOG_VERBOSE(1);
-	LOG_FILE("/tmp/test_log.log");
+	LOG_FILE("/tmp/test_log.log", "w");
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
@@ -64,7 +64,7 @@ verbose);
 	LOG_LEVEL(3);
 	LOG_VERBOSE(1);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
@@ -73,7 +73,7 @@ verbose);
 	LOG_LEVEL(1);
 	LOG_VERBOSE(0);
 	printf("Testing logs with log_level=%i and verbose=%i\n", log_level,
-verbose);
+log_verbose);
 	LOG_DEBUG("debug message");
 	LOG_INFO("info message");
 	LOG_WARN("warn message");
