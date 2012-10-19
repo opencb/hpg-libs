@@ -22,6 +22,8 @@ void batch_aligner(batch_aligner_input_t *input) {
 
   struct timeval t1, t2;
 
+  array_list_t *list1, *list2;
+
   // main loop
   while ( (read_item = list_remove_item(read_list)) != NULL ) {
     
@@ -37,6 +39,18 @@ void batch_aligner(batch_aligner_input_t *input) {
     bwt_time[tid] += ((t2.tv_sec - t1.tv_sec) * 1e6 + (t2.tv_usec - t1.tv_usec));
     //printf("---> %d, bwt, num targets = %d\n", tid, aligner_batch->num_targets);
 
+    /*
+    printf("***** after BWT\n");
+    for (size_t i = 0; i < aligner_batch->fq_batch->num_reads; i += 2) {
+      list1 = aligner_batch->mapping_lists[i];
+      list2 = aligner_batch->mapping_lists[i + 1];
+      
+      printf("%i : list1 = %x (size = %d, flag = %i), list2 = %x (size = %d, flag = %i)\n", 
+	     i, list1, array_list_size(list1), array_list_get_flag(list1), 
+	     list2, array_list_size(list2), array_list_get_flag(list2));
+    }
+    */
+
 
     if (aligner_batch->num_targets > 0) {
       // seeding
@@ -46,21 +60,19 @@ void batch_aligner(batch_aligner_input_t *input) {
       seeding_time[tid] += ((t2.tv_sec - t1.tv_sec) * 1e6 + (t2.tv_usec - t1.tv_usec));
       thr_seeding_items[tid] += aligner_batch->num_targets;
       //printf("---> %d, seeding, num targets = %d\n", tid, aligner_batch->num_targets);
+
       /*
-      {
-	aligner_batch_t *batch = aligner_batch;
-	array_list_t *list;
-	size_t index;
-	size_t num_seqs = batch->num_targets;
-	for (size_t i = 0; i < num_seqs; i++) {
-	  index = batch->targets[i];
-	  list = batch->mapping_lists[index];
-	  array_list_free(list, region_free);
-	  batch->mapping_lists[index] = NULL;
-	}
+      printf("***** after SEEDING\n");
+      for (size_t i = 0; i < aligner_batch->fq_batch->num_reads; i += 2) {
+	list1 = aligner_batch->mapping_lists[i];
+	list2 = aligner_batch->mapping_lists[i + 1];
+	
+	printf("%i : list1 = %x (size = %d, flag = %i), list2 = %x (size = %d, flag = %i)\n", 
+	       i, list1, array_list_size(list1), array_list_get_flag(list1), 
+	       list2, array_list_size(list2), array_list_get_flag(list2));
       }
       */
-
+      
       // seeking CALs
       gettimeofday(&t1, NULL);
       apply_caling(input->cal_input, aligner_batch);
@@ -70,25 +82,22 @@ void batch_aligner(batch_aligner_input_t *input) {
       //printf("---> %d, cal, num targets = %d\n", tid, aligner_batch->num_targets);
 
       /*
-      {
-	aligner_batch_t *batch = aligner_batch;
-	array_list_t *list;
-	size_t index;
-	size_t num_seqs = batch->num_targets;
-	for (size_t i = 0; i < num_seqs; i++) {
-	  index = batch->targets[i];
-	  list = batch->mapping_lists[index];
-	  array_list_free(list, cal_free);
-	  batch->mapping_lists[index] = NULL;
-	}
+      printf("***** after CAL\n");
+      for (size_t i = 0; i < aligner_batch->fq_batch->num_reads; i += 2) {
+	list1 = aligner_batch->mapping_lists[i];
+	list2 = aligner_batch->mapping_lists[i + 1];
+	
+	printf("%i : list1 = %x (size = %d, flag = %i), list2 = %x (size = %d, flag = %i)\n", 
+	       i, list1, array_list_size(list1), array_list_get_flag(list1), 
+	       list2, array_list_size(list2), array_list_get_flag(list2));
       }
       */
     }
 
     // pair-mode managing
-    if (input->pair_input != NULL) {
-      //apply_pair(&bwt_input, aligner_batch);
-      //printf("---> %d, pair, num targets = %d\n", tid, aligner_batch->num_targets);
+    if (input->pair_input != NULL) {      
+      apply_pair(input->pair_input, aligner_batch);
+      printf("---> %d, pair, num targets = %d\n", tid, aligner_batch->num_targets);
     }
 
     if (aligner_batch->num_targets > 0) {
@@ -100,7 +109,12 @@ void batch_aligner(batch_aligner_input_t *input) {
       thr_sw_items[tid] += aligner_batch->num_targets;
       //printf("---> %d, sw, num targets = %d\n", tid, aligner_batch->num_targets);
     }
-
+    /*
+    if (aligner_batch->num_targets > 0) {
+      // prepare alignments (processes sw-output, pair mode...)
+      prepare_alignments(input->pair_input, aligner_batch);
+    }
+    */
     write_item = list_item_new(total_batches, 0, aligner_batch);
     list_insert_item(write_item, write_list);
 

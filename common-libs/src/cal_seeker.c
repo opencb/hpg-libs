@@ -208,7 +208,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
     //    printf("cal_seeker.c: num_cals = %d (MAX = %d)\n", num_cals, MAX_CALS);
 
     if (num_cals > 0 && num_cals <= MAX_CALS) {
-
+      array_list_set_flag(2, list);
       batch->num_to_do += num_cals;
 
       outputs[num_outputs++] = index;
@@ -218,6 +218,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
       batch->mapping_lists[index] = list;
       list = NULL;
     } else {
+      array_list_set_flag(0, batch->mapping_lists[index]);
       if (strncmp("@rand", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]), 5)) {
 	unmapped_by_max_cals_counter[tid]++;
       }

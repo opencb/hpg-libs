@@ -120,6 +120,8 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
 					   input->bwt_optarg_p, input->bwt_index_p, 
 					   list);
     if (num_mappings > 0) {
+      //      printf("\tregion_seeker.c: apply_seeding, setting flag to 2 for list %i\n", index);
+      array_list_set_flag(2, list);
       outputs[num_outputs++] = index;
       batch->num_to_do += num_mappings;
     }

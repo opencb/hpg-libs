@@ -36,6 +36,11 @@ void pair_server_input_init(pair_mng_t *pair_mng, list_t* pair_list, list_t *sw_
 void pair_server(pair_server_input_t* input);
 
 //------------------------------------------------------------------------------------
+
+void apply_pair(pair_server_input_t* input, aligner_batch_t *batch);
+void prepare_alignments(pair_server_input_t* input, aligner_batch_t *batch);
+
+//------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
 #endif // PAIR_SERVER_H
