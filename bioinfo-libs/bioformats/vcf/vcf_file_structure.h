@@ -351,16 +351,6 @@ void set_file_format(char *fileformat, int length, vcf_file_t *file);
 void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry);
 
 /**
- * @brief Links a key with a header entry.
- * @details Links a key with a header entry.
- *
- * @param key The key
- * @param length The length of the key
- * @param entry The header entry
- **/
-void add_header_entry_key(char *key, int length, vcf_header_entry_t *entry);
-
-/**
  * @brief Links a value with a header entry.
  * @details Links a value with a header entry.
  *

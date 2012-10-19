@@ -88,6 +88,19 @@ int write_vcf_header_entry(vcf_header_entry_t *entry, FILE *fd);
  **/
 int write_vcf_delimiter(vcf_file_t *file, FILE *fd);
 
+/**
+ * @brief Given a list of sample names, writes the line that separates the header and the body of a VCF file
+ * @details Given a list of sample names, writes the line that delimits the end of the header and the beginning 
+ * of the body of a VCF file. This line contains the name of the different fields, as well as the name of the 
+ * samples from the sequencing process.
+ * 
+ * @param sample_names The names of the samples
+ * @param num_sample The number of samples
+ * @param fd The descriptor of the file to serialize to
+ * @return 0 if the data is successfully written, 1 otherwise
+ **/
+int write_vcf_delimiter_from_samples(char **sample_names, int num_samples, FILE *fd);
+
 
 /* **********************************************
  *                  Body writing                *
