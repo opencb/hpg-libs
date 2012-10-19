@@ -12,6 +12,7 @@
 
 #include "buffers.h"
 #include "timing.h"
+#include "sw_server.h"
 //#include "hashtable.h"
 
 //====================================================================================

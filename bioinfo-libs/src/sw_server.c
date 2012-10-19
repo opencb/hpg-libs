@@ -490,6 +490,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     fclose(fd);
   }
 
+  size_t num_targets = 0;
   // filter alignments by min_score
   for (size_t i = 0; i < sw_total; i++) {
 
@@ -519,8 +520,8 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
 	array_list_set_flag(0, mapping_list);
 	
 	batch->mapping_lists[index] = mapping_list;
+	batch->targets[num_targets++] = index;
       }
-
 
       sw_output = sw_output_new(strands[i],
 				chromosomes[i],
@@ -544,6 +545,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     // free reference
     free(r[i]);
   }
+  batch->num_targets = num_targets;
   /*
   // debugging
   for (size_t i = 0; i < num_seqs; i++) {
