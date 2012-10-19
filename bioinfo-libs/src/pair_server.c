@@ -229,6 +229,187 @@ void process_pair(int pair_id, alignment_t **alignments, size_t num_alignments,
 //------------------------------------------------------------------------------------
 */
 
+//------------------------------------------------------------------------------------
+
+inline void remove_items(size_t *valid_items, array_list_t *list) {
+  void *item;
+  size_t num_items = array_list_size(list);
+  int flag = array_list_get_flag(list);
+
+  printf("list of %i items\n", num_items);
+  for (int k = num_items - 1; k >= 0; k--) {
+    if (valid_items[k] == 0) {
+      printf("%i, ", k);
+      item = (void *) array_list_remove_at(k, list);
+      if (flag == 1) {
+	alignment_free((alignment_t *) item);
+      } else {
+	cal_free((cal_t *) item);
+      }
+    }
+  }
+  printf("\n");
+}
+
+//====================================================================================
+// apply_pair
+//====================================================================================
+
+void apply_pair(pair_server_input_t* input, aligner_batch_t *batch) {
+
+  //  printf("START: apply_pair\n"); 
+
+  char *seq;
+  list_t *list = NULL;
+  size_t index, num_mappings;
+  fastq_batch_t *fq_batch = batch->fq_batch;
+
+  int pair_mode = input->pair_mng->pair_mode;
+  size_t min_distance = input->pair_mng->min_distance;
+  size_t max_distance = input->pair_mng->max_distance;
+
+  size_t num_reads = batch->num_mapping_lists; // it must be equal to fq_batch->num_reads
+  size_t num_targets = batch->num_targets;
+  printf("total seqs = %d, num_seqs to process = %d\n", num_reads, batch->num_targets);
+
+  int flag1, flag2;
+  array_list_t *list1, *list2;
+  size_t num_items1 = 0, num_items2 = 0;
+  size_t num_allocated_items1 = 0, num_allocated_items2 = 0;
+  alignment_t *alig;
+  cal_t *cal;
+   // size_t num_outputs = 0;
+  //  size_t *outputs = (size_t *) calloc(num_seqs, sizeof(size_t));
+
+  size_t end1, start2, distance;
+  int pair_found, chr1, chr2, strand1, strand2;
+  
+  size_t *mapped1 = NULL, *mapped2 = NULL;
+  int mapped1_counter, mapped2_counter;
+
+  printf("pair_server.c:apply_pair: pair_mode = %i, min_distance = %lu, max_distance = %lu\n",
+	 pair_mode, min_distance, max_distance);
+
+  for (size_t i = 0; i < num_reads; i += 2) {
+
+    list1 = batch->mapping_lists[i];
+    list2 = batch->mapping_lists[i + 1];
+
+    flag1 = array_list_get_flag(list1);
+    flag2 = array_list_get_flag(list2);
+
+    num_items1 = array_list_size(list1);
+    num_items2 = array_list_size(list2);
+
+    if (num_items1 > 1 && num_items2 > 1) {
+
+      // allocated memory for items from list #1
+      mapped1_counter = 0;
+      if (num_allocated_items1 < num_items1) {
+	free(mapped1);
+	num_allocated_items1 = num_items1;
+	mapped1 = (size_t *) calloc(num_items1, sizeof(size_t));
+      } else {
+	memset(mapped1, 0, num_items1 * sizeof(size_t));
+      }
+
+      // allocated memory for items from list #2
+      mapped2_counter = 0;
+      if (num_allocated_items2 < num_items2) {
+	free(mapped2);
+	num_allocated_items2 = num_items2;
+	mapped2 = (size_t *) calloc(num_items2, sizeof(size_t));
+      } else {
+	memset(mapped2, 0, num_items2 * sizeof(size_t));
+      }
+
+      pair_found = 0;
+
+      for (size_t j1 = 0; j1 < num_items1; j1++) {
+
+	if (flag1 == 1) {
+	  alig = (alignment_t *) array_list_get(j1, list1);
+	  chr1 = alig->chromosome;
+	  strand1 = alig->seq_strand;
+	  end1 = alig->position + strlen(alig->sequence);
+	} else if (flag1 == 2) {
+	  cal = (cal_t *) array_list_get(j1, list1);
+	  chr1 = cal->chromosome_id - 1;
+	  strand1 = cal->strand;
+	  end1 = cal->end;
+	} else {
+	  end1 = -1;
+	}
+	
+	//for (size_t j2 = num_items2 - 1; j2 > 0; j2--) {
+	for (size_t j2 = 0; j2 < num_items2; j2++) {
+	  if (mapped2[j2] == 1) continue;
+
+	  if (flag2 == 1) {
+	    alig = (alignment_t *) array_list_get(j2, list2);
+	    chr2 = alig->chromosome;
+	    strand2 = alig->seq_strand;
+	    start2 = alig->position;
+	  } else if (flag2 == 2) {
+	    cal = (cal_t *) array_list_get(j2, list2);
+	    chr2 = cal->chromosome_id - 1;
+	    strand2 = cal->strand;
+	    start2 = cal->start;
+	  } else {
+	    start2 = -1;
+	  }
+
+	  distance = (start2 > end1 ? start2 - end1 : end1 - start2); // abs
+	  if ( (chr1 == chr2) &&
+	       (distance >= min_distance) && (distance <= max_distance) &&
+	       ((strand1 != strand2 && pair_mode == PAIRED_END_MODE) ||
+		(strand1 == strand2 && pair_mode == MATE_PAIR_MODE )   ) ) {
+
+	    
+	    mapped1[j1] = 1;
+	    mapped2[j2] = 1;
+	    mapped1_counter++;
+	    mapped2_counter++;
+
+	    printf("***** reads %i, %i : pair1 (mapping #%i of %i), pair2 (mapping #%i of %i) : abs(end1 - start2) = (%lu - %lu) = %lu (%lu - %lu)\n", 
+		   i, i+1, j1, num_items1, j2, num_items2, end1, start2, distance, min_distance, max_distance);
+
+	    pair_found = 1;
+	    break;
+	  }
+	}
+      }
+
+      if (pair_found) {
+	void *item;
+	printf("before removing: counters (mapped1, mapped2) = (%i of %i, %i of %i)\n", 
+	       mapped1_counter, num_items1, mapped2_counter, num_items2);
+
+	// removing no valid items
+	//	if (mapped1_counter != num_items1) remove_items(mapped1, list1);
+	//	if (mapped2_counter != num_items2) remove_items(mapped2, list2);
+
+
+	printf("after removing: counters (mapped1, mapped2) = (%i of %i, %i of %i)\n", 
+	       mapped1_counter, array_list_size(list1), mapped2_counter, array_list_size(list2));
+	printf("\n");
+      }      
+    }
+    //    index = batch->targets[i];
+    //    printf("read to process %d\n", index);
+  }
+
+  if (mapped1 != NULL) free(mapped1);
+  if (mapped2 != NULL) free(mapped2);
+}
+
+//------------------------------------------------------------------------------------
+
+void prepare_alignments(pair_server_input_t* input, aligner_batch_t *batch) {
+}
+
+//------------------------------------------------------------------------------------
+
 void pair_server_input_init(pair_mng_t *pair_mng, list_t* pair_list, list_t *sw_list,
 			    list_t *write_list, pair_server_input_t* input) {
 

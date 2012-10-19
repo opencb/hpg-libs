@@ -466,6 +466,9 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
       chromosomes[sw_count] = cal->chromosome_id;
       starts[sw_count] = start;
 
+
+      printf("read #%i: query: %s (%i)\nref  : %s (%i)\n\n", index, q[sw_count], strlen(q[sw_count]), r[sw_count], strlen(r[sw_count]));
+
       // increase counter
       sw_count++;
     }
@@ -476,7 +479,9 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   }
 
   // run Smith-Waterman
+  printf("before smith_waterman\n");
   smith_waterman_mqmr(q, r, sw_total, &sw_optarg, 1, output);
+  printf("after smith_waterman\n");
 
   // debugging
   {

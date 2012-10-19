@@ -35,7 +35,6 @@ const char INDEX_NAME[30]  = "index";
 
 //========================================================================
 
-
 options_t *options_new(void) {
 	options_t *options = (options_t*) calloc (1, sizeof(options_t));
 
@@ -101,7 +100,9 @@ void options_display(options_t *options) {
 
   char* in_filename = strdup(options->in_filename);
   char* in_filename2 = NULL;
-  if (options->in_filename2 != NULL) strdup(options->in_filename2);
+  if (options->in_filename2 != NULL) {
+    in_filename2 = strdup(options->in_filename2);
+  }
   char* bwt_dirname =  strdup(options->bwt_dirname);
   char* genome_filename =  strdup(options->genome_filename);
   unsigned int  report_all = (unsigned int)options->report_all;
