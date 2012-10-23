@@ -265,3 +265,62 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     return 0;
 }
 
+
+/* ******************************
+ *     Per sample statistics    *
+ * ******************************/
+
+sample_stats_t* sample_stats_new(char* name) {
+    assert(name);
+    sample_stats_t *stats = malloc (sizeof(sample_stats_t));
+    stats->name = strdup(name);
+    stats->mendelian_errors = 0;
+    stats->missing_genotypes = 0;
+    return stats;
+}
+
+void sample_stats_free(sample_stats_t* stats) {
+    assert(stats);
+    free(stats->name);
+    free(stats);
+}
+
+int get_sample_stats(vcf_record_t **variants, int num_variants, sample_stats_t **sample_stats, file_stats_t *file_stats) {
+    assert(variants);
+    assert(sample_stats);
+    assert(file_stats);
+    
+    char *copy_buf, *token, *sample;
+    char *save_strtok;
+    
+    int num_alternates, gt_pos, cur_pos;
+    int allele1, allele2, alleles_code;
+    
+    // Variant stats management
+    vcf_record_t *record;
+    for (int i = 0; i < num_variants; i++) {
+        record = variants[i];
+        
+        // Traverse samples and find the missing alleles
+        for(int j = 0; j < record->samples->size; j++) {
+            sample = (char*) array_list_get(j, record->samples);
+            
+            // Get to GT position
+            copy_buf = strdup(sample);
+            alleles_code = get_alleles(copy_buf, gt_pos, &allele1, &allele2);
+            if (copy_buf) {
+                free(copy_buf);
+            }
+            LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
+            
+            if (alleles_code > 0) {
+                // Missing genotype (one or both alleles missing)
+                (sample_stats[j]->missing_genotypes)++;
+            }
+            
+            // TODO check mendelian errors
+        }
+    }
+    
+    return 0;
+}

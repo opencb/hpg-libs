@@ -68,6 +68,19 @@ typedef struct variant_stats {
     int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
 } variant_stats_t;
 
+/**
+ * @brief Statistics of a sample of a VCF file
+ * 
+ * @details Statistics of a samples of a VCF file. These are, among others, the number of missing 
+ * genotypes and menderial errors.
+ **/
+typedef struct sample_stats {
+    char *name;                 /**< Name of the sample. */
+    
+    size_t mendelian_errors;    /**< Number of mendelian errors. */
+    size_t missing_genotypes;   /**< Number of genotypes with at least one allele missing. */
+} sample_stats_t;
+
 
 /* ********************************
  * Initialization and destruction *
@@ -111,6 +124,24 @@ variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, cha
 void variant_stats_free(variant_stats_t *stats);
 
 
+/**
+ * @brief Initializes a sample_stats_t structure mandatory fields
+ * @details Initializes a sample_stats_t structure mandatory field, the sample name.
+ * 
+ * @param name Name of the sample
+ * @return A new sample_stats_t structure
+ */
+sample_stats_t *sample_stats_new(char *name);
+
+/**
+ * @brief Deallocates memory associated to a sample_stats_t structure
+ * @details Deallocates memory associated to a sample_stats_t structure
+ * 
+ * @param stats The structure to be freed
+ */
+void sample_stats_free(sample_stats_t *stats);
+
+
 
 /* ******************************
  *           Execution          *
@@ -129,6 +160,19 @@ void variant_stats_free(variant_stats_t *stats);
  * @return Whether the statistics were successfully retrieved
  **/
 int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats);
+
+/**
+ * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file
+ * @details 
+ * 
+ * @param variants The list of variants whose samples' statistics will be got
+ * @param num_variants The number of variants
+ * @param sample_stats [in,out] The statistics of the samples
+ * @param num_samples Number of samples
+ * @param file_stats [in,out] The statistics of the VCF file
+ * @return Whether the statistics were successfully retrieved
+ **/
+int get_sample_stats(vcf_record_t **variants, int num_variants, sample_stats_t **sample_stats, file_stats_t *file_stats);
 
 /**
  * @brief Given the statistics of a file (supposedly not full-processed), updates the value of its statistics
