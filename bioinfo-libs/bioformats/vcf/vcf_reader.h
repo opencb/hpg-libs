@@ -50,8 +50,6 @@ typedef struct {
     
     size_t num_samples;                         /**< Number of sample subjects. */
     size_t num_records;                         /**< Number of records read. */
-    
-    int store_samples;                          /**< Whether to parse and save all the information about the samples. */
 } vcf_reader_status;
 
 
@@ -63,10 +61,9 @@ typedef struct {
  * memory usage.
  * 
  * @param batch_lines The initial number of lines in a batch
- * @param store_samples Whether to parse the values of the sequenced samples 
  * @return A new vcf_reader_status structure
  **/
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples);
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines);
 
 /**
  * @brief Deallocates memory associated to a vcf_reader_status structure.
@@ -87,10 +84,9 @@ void vcf_reader_status_free(vcf_reader_status *status);
  * 
  * @param batch_lines The number of lines to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
+int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read and parse blocks of the given number of bytes from a VCF file
@@ -103,10 +99,9 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
  * 
  * @param batch_bytes The number of bytes to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples);
+int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read and parse blocks of the given number of lines from a gzipped VCF file
@@ -118,10 +113,9 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
  * 
  * @param batch_lines The number of lines to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
+int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read and parse blocks of the given number of bytes from a gzipped VCF file
@@ -134,10 +128,9 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
  * 
  * @param batch_bytes The number of bytes to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples);
+int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
 
 /**

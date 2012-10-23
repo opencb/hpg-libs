@@ -2324,14 +2324,10 @@ case 122:
 //         printf("Batch added - %zu records\n", status->current_batch->records->size);
     }
 
-//     printf("ragel - first chromosome = %.*s\n", 
-//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome_len, 
-//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome);
-// 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < 
-#line 2334 "vcf_ragel.c"
+#line 2330 "vcf_ragel.c"
 123
-#line 326 "vcf.ragel"
+#line 322 "vcf.ragel"
 ;
 }

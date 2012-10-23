@@ -1,6 +1,6 @@
 #include "vcf_reader.h"
 
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples) {
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
     status->current_header_entry = vcf_header_entry_new();
@@ -12,9 +12,7 @@ vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples) 
 
     status->num_samples = 0;
     status->num_records = 0;
-
-    status->store_samples = store_samples;
-
+    
     return status;
 }
 
@@ -38,14 +36,14 @@ void vcf_reader_status_free(vcf_reader_status *status) {
  *              Reading and parsing             *
  * **********************************************/
 
-int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
+int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     assert(file);
     assert(batch_lines > 0);
     
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_lines, read_samples);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
@@ -113,14 +111,14 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
     return cs ;
 }
 
-int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
+int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     assert(file);
     assert(batch_bytes > 0);
     
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0, read_samples);
+    vcf_reader_status *status = vcf_reader_status_new(0);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
@@ -191,14 +189,14 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
     return cs ;
 }
 
-int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples) {
+int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     assert(file);
     assert(batch_lines > 0);
     
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_lines, read_samples);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
@@ -314,14 +312,14 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
     return cs ;
 }
 
-int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples) {
+int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     assert(file);
     assert(batch_bytes > 0);
     
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0, read_samples);
+    vcf_reader_status *status = vcf_reader_status_new(0);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 

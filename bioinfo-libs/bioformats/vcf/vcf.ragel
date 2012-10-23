@@ -232,7 +232,7 @@
     #               Machine definition              #
     #################################################
 
-    number		= (digit)+ ("." (digit)+)? ;					# Integer or floating-point number
+    number		= (digit)+ ("." (digit)+)? ;	# Integer or floating-point number
     bases		= ("A" | "C" | "G" | "T" | "N")+ ;
     identifier	= (alnum)+ ;
 
@@ -255,12 +255,12 @@
     # Records
     record_chrom	= (alnum | "_")+ ;
     record_pos	= (digit)+ ;
-    record_id	= (alnum)+ | "." ;					# Alphanumeric string or one dot
+    record_id	= (alnum)+ | "." ;
     record_ref	= bases ;
     record_alt	= (bases ("," bases)*)+ | "." | "0" | 
                    "<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" |
                    "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">" ;
-    record_qual	= number | "." ;					# Number or dot
+    record_qual	= number | "." ;
 
     filter_value	= (alnum | "_")+ ;
     filter_entry	= filter_value ("," filter_value)* ;
@@ -318,10 +318,6 @@ int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_r
 //         printf("Batch added - %zu records\n", status->current_batch->records->size);
     }
 
-//     printf("ragel - first chromosome = %.*s\n", 
-//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome_len, 
-//            ((vcf_record_t*) status->current_batch->records->items[0])->chromosome);
-// 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < %%{ write first_final; }%%;
 }
