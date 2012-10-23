@@ -19,7 +19,7 @@
     }
 
     action fileformat_end {
-        set_file_format(ts, p-ts, file);
+        set_vcf_file_format(ts, p-ts, file);
     }
 
     action fileformat_error {
@@ -43,7 +43,7 @@
     }
 
     action header_id_end {
-        set_header_entry_name(ts, p-ts, status->current_header_entry);
+        set_vcf_header_entry_name(ts, p-ts, status->current_header_entry);
     }
 
     action header_field_value_begin {
@@ -52,11 +52,11 @@
 
     action header_field_value_end {
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 

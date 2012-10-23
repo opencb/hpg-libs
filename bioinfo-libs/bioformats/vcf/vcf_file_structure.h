@@ -347,7 +347,7 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch);
  * @param length The length of the file format
  * @param file The entry whose file format will be set
  **/
-void set_file_format(char *fileformat, int length, vcf_file_t *file);
+void set_vcf_file_format(char *fileformat, int length, vcf_file_t *file);
 
 /**
  * @brief Sets the name of a header entry, if applies.
@@ -357,7 +357,7 @@ void set_file_format(char *fileformat, int length, vcf_file_t *file);
  * @param length The length of the name
  * @param entry The entry whose name will be set
  **/
-void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry);
+void set_vcf_header_entry_name(char *name, int length, vcf_header_entry_t *entry);
 
 /**
  * @brief Links a value with a header entry.
@@ -367,7 +367,7 @@ void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry);
  * @param length The length of the value
  * @param entry The header entry
  **/
-void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry);
+void add_vcf_header_entry_value(char *value, int length, vcf_header_entry_t *entry);
 
 
 /* ********************************************************

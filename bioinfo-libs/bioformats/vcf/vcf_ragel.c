@@ -128,7 +128,7 @@ cs = 0;
 tr149:
 #line 21 "vcf.ragel"
 	{
-        set_file_format(ts, p-ts, file);
+        set_vcf_file_format(ts, p-ts, file);
     }
 #line 12 "vcf.ragel"
 	{
@@ -138,11 +138,11 @@ tr149:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 #line 33 "vcf.ragel"
@@ -230,11 +230,11 @@ tr5:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 #line 33 "vcf.ragel"
@@ -1523,7 +1523,7 @@ case 104:
 tr130:
 #line 45 "vcf.ragel"
 	{
-        set_header_entry_name(ts, p-ts, status->current_header_entry);
+        set_vcf_header_entry_name(ts, p-ts, status->current_header_entry);
     }
 	goto st105;
 st105:
@@ -1558,11 +1558,11 @@ tr133:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 	goto st107;
@@ -1570,11 +1570,11 @@ tr134:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 #line 49 "vcf.ragel"
@@ -1950,7 +1950,7 @@ case 119:
 tr146:
 #line 45 "vcf.ragel"
 	{
-        set_header_entry_name(ts, p-ts, status->current_header_entry);
+        set_vcf_header_entry_name(ts, p-ts, status->current_header_entry);
     }
 	goto st120;
 st120:
@@ -1998,11 +1998,11 @@ tr151:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 	goto st122;
@@ -2010,11 +2010,11 @@ tr153:
 #line 53 "vcf.ragel"
 	{
         if (*ts == '<') {
-            add_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
         } else if (*(p-1) == '>') {
-            add_header_entry_value(ts, p-ts-1, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts-1, status->current_header_entry);
         } else {
-            add_header_entry_value(ts, p-ts, status->current_header_entry);
+            add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
 #line 49 "vcf.ragel"

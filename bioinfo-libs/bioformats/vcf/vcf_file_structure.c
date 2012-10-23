@@ -223,7 +223,7 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch) {
  *                    Header management                   *
  * ********************************************************/
 
-void set_file_format(char *fileformat, int length, vcf_file_t *file) {
+void set_vcf_file_format(char *fileformat, int length, vcf_file_t *file) {
     assert(fileformat);
     assert(file);
     file->format = strndup(fileformat, length);
@@ -231,7 +231,7 @@ void set_file_format(char *fileformat, int length, vcf_file_t *file) {
 //     LOG_DEBUG_F("set format = %.*s\n", file->format_len, file->format);
 }
 
-void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
+void set_vcf_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
     assert(name);
     assert(entry);
     entry->name = strndup(name, length);
@@ -239,7 +239,7 @@ void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
 //     LOG_DEBUG_F("set entry name: %.*s\n", entry->name_len, entry->name);
 }
 
-void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
+void add_vcf_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
     assert(value);
     assert(entry);
     int result = array_list_insert(strndup(value, length), entry->values);
