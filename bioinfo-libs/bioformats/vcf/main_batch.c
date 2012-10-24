@@ -75,14 +75,16 @@ int main (int argc, char *argv[])
                     batch->records->size, batch->records->capacity);
 //             }
             
-            // Writing to a new file
-            if (!header_written) {
-                write_vcf_header(file, out_file);
-                header_written = 1;
+            if (out_file) {
+                // Writing to a new file
+                if (!header_written) {
+                    write_vcf_header(file, out_file);
+                    header_written = 1;
+                }
+                    
+//                 vcf_batch_print(stdout, item->data_p);
+                write_vcf_batch(batch, out_file);
             }
-                
-//             vcf_batch_print(stdout, item->data_p);
-            write_vcf_batch(batch, out_file);
             vcf_batch_free(batch);
             
             i++;

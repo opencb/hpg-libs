@@ -50,8 +50,6 @@ typedef struct {
     
     size_t num_samples;                         /**< Number of sample subjects. */
     size_t num_records;                         /**< Number of records read. */
-    
-    int store_samples;                          /**< Whether to parse and save all the information about the samples. */
 } vcf_reader_status;
 
 
@@ -63,10 +61,9 @@ typedef struct {
  * memory usage.
  * 
  * @param batch_lines The initial number of lines in a batch
- * @param store_samples Whether to parse the values of the sequenced samples 
  * @return A new vcf_reader_status structure
  **/
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines, int store_samples);
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines);
 
 /**
  * @brief Deallocates memory associated to a vcf_reader_status structure.
@@ -78,7 +75,7 @@ void vcf_reader_status_free(vcf_reader_status *status);
 
 
 /**
- * @brief Read and parse the given number of lines from a VCF file
+ * @brief Read and parse blocks of the given number of lines from a VCF file
  * @details Read and parse the given number of lines from a VCF file. The data read will be stored in 
  * members of the vcf_file_t structure.
  * 
@@ -87,14 +84,13 @@ void vcf_reader_status_free(vcf_reader_status *status);
  * 
  * @param batch_lines The number of lines to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
+int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 /**
- * @brief Read and parse the given number of bytes from a VCF file
- * @details Read and parse the given number of bytes from a VCF file. If the last byte does not correspond to a 
+ * @brief Read and parse blocks of the given number of bytes from a VCF file
+ * @details Read and parse blocks of the given number of bytes from a VCF file. If the last byte does not correspond to a 
  * linebreak character, it keeps reading until next linebreak is found. The data read will be stored in 
  * members of the vcf_file_t structure.
  * 
@@ -103,14 +99,13 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
  * 
  * @param batch_bytes The number of bytes to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples);
+int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
- * @brief Read and parse the given number of lines from a gzipped VCF file
- * @details Read and parse the given number of lines from a gzipped VCF file. The data read will be stored in 
+ * @brief Read and parse blocks of the given number of lines from a gzipped VCF file
+ * @details Read and parse blocks of the given number of lines from a gzipped VCF file. The data read will be stored in 
  * members of the vcf_file_t structure.
  * 
  * The user can also decide whether to parse and store the value of each sample or ignore them for 
@@ -118,14 +113,13 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samp
  * 
  * @param batch_lines The number of lines to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_samples);
+int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 /**
- * @brief Read and parse the given number of bytes from a gzipped VCF file
- * @details Read and parse the given number of bytes from a gzipped VCF file. If the last byte does not correspond to a 
+ * @brief Read and parse blocks of the given number of bytes from a gzipped VCF file
+ * @details Read and parse blocks of the given number of bytes from a gzipped VCF file. If the last byte does not correspond to a 
  * linebreak character, it keeps reading until next linebreak is found. The data read will be stored in 
  * members of the vcf_file_t structure.
  * 
@@ -134,15 +128,14 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file, int read_sampl
  * 
  * @param batch_bytes The number of bytes to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples);
+int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
 
 /**
- * @brief Read (without parsing) the given number of lines from a VCF file
- * @details Read the given number of lines from a VCF file. The data read will be stored in a list that 
+ * @brief Read (without parsing) blocks of the given number of lines from a VCF file
+ * @details Read blocks of the given number of lines from a VCF file. The data read will be stored in a list that 
  * must be consumed from the outside.
  *
  * @param text_list [out] List of blocks where the current text block will be queued
@@ -153,8 +146,8 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file, int read
 int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file);
 
 /**
- * @brief Read (without parsing) the given number of bytes from a VCF file
- * @details Read the given number of bytes from a VCF file. The data read will be stored in a list that 
+ * @brief Read (without parsing) blocks of the given number of bytes from a VCF file
+ * @details Read blocks of the given number of bytes from a VCF file. The data read will be stored in a list that 
  * must be consumed from the outside.
  *
  * @param text_list [out] List of blocks where the current text block will be queued
@@ -165,8 +158,8 @@ int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file);
 int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
 
 /**
- * @brief Read (without parsing) the given number of lines from a gzipped VCF file
- * @details Read the given number of lines from a gzipped VCF file. The data read will be stored in a list that 
+ * @brief Read (without parsing) blocks of the given number of lines from a gzipped VCF file
+ * @details Read blocks of the given number of lines from a gzipped VCF file. The data read will be stored in a list that 
  * must be consumed from the outside.
  * 
  * @param text_list [out] List of blocks where the current text block will be queued
@@ -177,8 +170,8 @@ int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file
 int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file);
 
 /**
- * @brief Read (without parsing) the given number of bytes from a gzipped VCF file
- * @details Read the given number of bytes from a gzipped VCF file. The data read will be stored in a list that 
+ * @brief Read (without parsing) blocks of the given number of bytes from a gzipped VCF file
+ * @details Read blocks of the given number of bytes from a gzipped VCF file. The data read will be stored in a list that 
  * must be consumed from the outside.
  * 
  * @param text_list [out] List of blocks where the current text block will be queued
@@ -188,9 +181,18 @@ int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file)
  **/
 int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
 
-/** @cond PRIVATE */
-int vcf_light_multiread(list_t **batches_list, size_t batch_size, vcf_file_t **files, size_t num_files);
-/** @endcond */
+/**
+ * @brief Read (without parsing) blocks of the given number of lines from multiple VCF files
+ * @details Read blocks of the given number of lines from multiple VCF files. The data read will be stored in per-file lists 
+ * that must be consumed from the outside.
+ *
+ * @param text_lists [out] Lists of blocks where the current text block from each file will be queued
+ * @param batch_lines The number of lines to read
+ * @param files The files the data will be read from
+ * @param num_files The number of files to read from
+ * @return 0 if the files were successfully read, 1 otherwise
+ **/
+int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **files, size_t num_files);
 
 /**
  * @brief Parses the text from an input buffer and links the data to the VCF file given as argument

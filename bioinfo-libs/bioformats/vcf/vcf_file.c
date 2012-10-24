@@ -88,7 +88,6 @@ void vcf_close(vcf_file_t *vcf_file) {
     array_list_free(vcf_file->header_entries, vcf_header_entry_free);
     // Free records list
     list_free_deep(vcf_file->record_batches, vcf_batch_free);
-//     array_list_free(vcf_file->records, vcf_record_free);
 
     if (mmap_vcf) {
         munmap((void*) vcf_file->data, vcf_file->data_len);
@@ -103,24 +102,20 @@ void vcf_close(vcf_file_t *vcf_file) {
 // I/O operations (read and write) in various ways
 //-----------------------------------------------------
 
-// int vcf_read(vcf_file_t *vcf_file) {
-// 	return vcf_ragel_read(NULL, 1, vcf_file, 0);
-// }
-
-int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file, int read_samples) {
+int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_read_and_parse(batch_lines, vcf_file, read_samples);
+        return vcf_read_and_parse(batch_lines, vcf_file);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_read_and_parse(batch_lines, vcf_file, read_samples);
+        return vcf_gzip_read_and_parse(batch_lines, vcf_file);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *vcf_file, int read_samples) {
+int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *vcf_file) {
     if (ends_with(vcf_file->filename, ".vcf")) {
-        return vcf_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
+        return vcf_read_and_parse_bytes(batch_bytes, vcf_file);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_read_and_parse_bytes(batch_bytes, vcf_file, read_samples);
+        return vcf_gzip_read_and_parse_bytes(batch_bytes, vcf_file);
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
@@ -143,8 +138,8 @@ int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
 }
 
-int vcf_multiread_batches(list_t **batches_list, size_t batch_size, vcf_file_t **vcf_files, int num_files) {
-    return vcf_light_multiread(batches_list, batch_size, vcf_files, num_files);
+int vcf_multiread_batches(list_t **text_lists, size_t batch_lines, vcf_file_t **vcf_files, int num_files) {
+    return vcf_light_multiread(text_lists, batch_lines, vcf_files, num_files);
 }
 
 void notify_end_reading(vcf_file_t *vcf_file) {

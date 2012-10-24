@@ -117,6 +117,17 @@ vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {
     return NULL;
 }
 
+vcf_batch_t *fetch_vcf_batch_non_blocking(vcf_file_t *file) {
+    assert(file);
+    list_item_t *item = list_remove_item_async(file->record_batches);
+    if (item) {
+        vcf_batch_t *batch = item->data_p;
+        list_item_free(item);
+        return batch;
+    }
+    return NULL;
+}
+
 
 size_t get_num_vcf_header_entries(vcf_file_t *file) {
     assert(file);
@@ -212,31 +223,26 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch) {
  *                    Header management                   *
  * ********************************************************/
 
-void set_file_format(char *fileformat, int length, vcf_file_t *file) {
+void set_vcf_file_format(char *fileformat, int length, vcf_file_t *file) {
     assert(fileformat);
     assert(file);
     file->format = strndup(fileformat, length);
     file->format_len = length;
-//     LOG_DEBUG_F("set format = %s\n", file->format);
+//     LOG_DEBUG_F("set format = %.*s\n", file->format_len, file->format);
 }
 
-void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
+void set_vcf_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
     assert(name);
     assert(entry);
     entry->name = strndup(name, length);
     entry->name_len = length;
-//     LOG_DEBUG_F("set entry name: %s\n", entry->name);
+//     LOG_DEBUG_F("set entry name: %.*s\n", entry->name_len, entry->name);
 }
 
-void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
+void add_vcf_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
     assert(value);
     assert(entry);
     int result = array_list_insert(strndup(value, length), entry->values);
-//     if (result) {
-//         LOG_DEBUG_F("value %zu = %s\n", entry->values->size, (char*) item->data_p);
-//     } else {
-//         LOG_DEBUG_F("value %zu not inserted\n", entry->values->size);
-//     }
 }
 
 
