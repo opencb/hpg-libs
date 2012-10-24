@@ -30,7 +30,9 @@ fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
 	return fq_file;
 }
 
-size_t fastq_fread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file) {
+
+
+size_t fastq_fread_se(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file) {
 	size_t count = 0;
 	char header1[MAX_READ_ID_LENGTH];
 	char sequence[MAX_READ_SEQUENCE_LENGTH];
@@ -54,14 +56,6 @@ size_t fastq_fread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *f
 		chomp_at(qualities, quality_length - 1);
 
 		read = fastq_read_new(header1, sequence, qualities);
-//		read = (fastq_read_t*)malloc(sizeof(fastq_read_t));
-//		read.id = (char*)malloc(sizeof(char) * header_length);
-//		read.sequence = (char*)malloc(sizeof(char) * sequence_length);
-//		read.quality = (char*)malloc(sizeof(char) * quality_length);
-//		strcpy(read.id, header1);
-//		strcpy(read.sequence, sequence);
-//		strcpy(read.quality, qualities);
-
 		array_list_insert(read, reads);
 
 		count++;
@@ -70,8 +64,8 @@ size_t fastq_fread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *f
 	return count;
 }
 
-size_t fastq_gzread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file) {
-	size_t count = 0;
+size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_file) {
+	size_t accumulated_size = 0;
 	char header1[MAX_READ_ID_LENGTH];
 	char sequence[MAX_READ_SEQUENCE_LENGTH];
 	char header2[MAX_READ_ID_LENGTH];
@@ -79,7 +73,7 @@ size_t fastq_gzread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *
 	int header_length, sequence_length, quality_length;
 	fastq_read_t *read;
 
-	while (count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
+	while (accumulated_size < bytes && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
 		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
 		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
@@ -94,16 +88,19 @@ size_t fastq_gzread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *
 		chomp_at(qualities, quality_length - 1);
 
 		read = fastq_read_new(header1, sequence, qualities);
-
 		array_list_insert(read, reads);
 
-		count++;
+		accumulated_size += header_length + sequence_length + quality_length;
 	}
 
-	return count;
+	return accumulated_size;
 }
 
 
+
+/*
+ * OLD, BUT IN USE!!
+ */
 
 
 int fastq_fread(fastq_read_t *read, fastq_file_t *fq_file) {
@@ -334,4 +331,21 @@ void fastq_remove_Ns(fastq_read_t* buffer_reads, qc_read_t* qc_read, int max_N_p
 void fastq_fclose(fastq_file_t* fq_file) {
 	fclose(fq_file->fd);
 	free(fq_file);
+}
+
+size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
+	assert(data);
+
+	(*data)[position_in_data] = c;
+	// Text too long to be stored in 'data', realloc
+	if (position_in_data == max_len - 1) {
+		char *aux = realloc(*data, max_len + 10000);
+		if (aux) {
+			*data = aux;
+			return max_len + 10000;
+		} else {
+			LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+		}
+	}
+	return max_len;
 }

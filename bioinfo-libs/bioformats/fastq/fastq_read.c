@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdlib.h>
+
 #include "fastq_read.h"
 
 //--------------------------------------------
@@ -39,37 +42,19 @@ void fastq_read_free(fastq_read_t *fq_read) {
   free(fq_read);
 }
 
-fastq_read_stats_t *fastq_read_stats_new() {
-	fastq_read_stats_t *read_stats = (fastq_read_stats_t *)malloc(size_of(fastq_read_stats_t));
-	return read_stats;
+
+void fastq_read_print(fastq_read_t *read) {
+	printf("%s\n", read->id);
+	printf("%s\n", read->sequence);
+	printf("+\n");
+	printf("%s\n", read->quality);
 }
 
-void fastq_read_stats_init(int length, float qual_average, int Ns, int N_out_qual, fastq_read_stats_t *read_stats) {
-	if(read_stats == NULL) {
-		return;
+float fastq_quality_average(fastq_read_t *fq_read_t) {
+	int qual = 0;
+	for(size_t i=0; i<fq_read_t->length; i++) {
+		qual += fq_read_t->quality[i];
 	}
-	read_stats->length = length;
-	read_stats->quality_average = qual_average;
-	read_stats->Ns = Ns;
-	read_stats->N_out_quality = N_out_qual;
+	return (float)qual/fq_read_t->length;
 }
-
-void fastq_read_stats_free(fastq_read_stats_t *read_stats) {
-	if(read_stats != NULL) {
-		free(read_stats);
-	}
-}
-
-int fastq_read_stats(fastq_read_t *fq_read, fastq_read_stats_t *read_stats) {
-	for(int i=0; i<fq_read->length; i++) {
-
-	}
-	return 0;
-}
-
-int fastq_reads_stats(array_list_t *fq_reads, array_list_t *reads_stats) {
-
-	return 0;
-}
-
 

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "containers/array_list.h"
+
 #define ID_MAX_BYTES		(1 * 1024 * 1024)
 #define INDEX_MAX		100000
 #define SEQUENCE_MAX_BYTES	(2 * 1024 * 1024)
@@ -26,50 +28,32 @@ typedef struct fastq_read {
     int length;
 } fastq_read_t;
 
-/**
-* @brief Fastq read statistics
-* 
-* Structure for storing statistics from a fastq read
-*/
-typedef struct fastq_read_stats {
-    int length;
-    float quality_average;	/**< Mean quality average. */
-	int Ns;
-	int N_out_quality;
+typedef struct fastq_read_pe {
+    char *id;			/**< Id of the read. */
+    char *sequence1;		/**< Sequence of nts. */
+    char *sequence2;
+    char *quality1;		/**< Qualities. */
+    char *quality2;
 
-	int num_A;
-	int num_T;
-	int num_C;
-	int num_G;
-	int num_N;
-} fastq_read_stats_t;
+    int length;
+    int mode;
+} fastq_read_pe_t;
 
 
 /* **************************************
  *  		Functions		*
  * *************************************/
 
-
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
 
 void fastq_read_free(fastq_read_t *fq_read);
 
+void fastq_read_print(fastq_read_t *read);
 
-
-fastq_read_stats_t *fastq_read_stats_new();
-
-void fastq_read_stats_init(int length, float qual_average, int Ns, int N_out_qual, fastq_read_stats_t *read_stats);
-
-void fastq_read_stats_free(fastq_read_stats_t *read_stats);
-
-int fastq_read_stats(fastq_read_t *fq_read, fastq_read_stats_t *read_stats);
-
-int fastq_reads_stats(array_list_t *fq_reads, array_list_t *reads_stats);
+float fastq_quality_average(fastq_read_t *fq_read_t);
 
 
 
-
-float fastq_quality_average(fastq_read_t fq_read_t);
 void fastq_nt_quality_average(fastq_read_t fq_read_t);
 void fastq_nt_count(fastq_read_t fq_read_t);
 void fastq_length(fastq_read_t fq_read_t);

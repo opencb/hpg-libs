@@ -1,9 +1,13 @@
 #ifndef FASTQ_FILE_H
 #define FASTQ_FILE_H
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <zlib.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "commons/commons.h"
 #include "commons/file_utils.h"
@@ -24,6 +28,7 @@
 #define FQ_SEEK_BEGIN 	0
 #define FQ_SEEK_CURR  	1
 #define FQ_SEEK_RND   	2
+
 
 /* **************************************
  *  		Structures		*
@@ -76,10 +81,26 @@ fastq_file_t *fastq_fopen(char *filename);
 fastq_file_t *fastq_fopen_mode(char *filename, char *mode);
 
 
+/*
+ * SINGLE-END READ FUNCTIONS
+ */
+size_t fastq_fread_se(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file);
 
-size_t fastq_fread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file);
+size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_file);
 
-size_t fastq_gzread_nreads(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file);
+//size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file);
+//
+//size_t fastq_gzread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_file);
+
+
+/*
+ * PAIRED-END READ FUNCTIONS
+ */
+size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
+
+size_t fastq_fread_bytes_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
+
+//size_t fastq_gzread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
 
 
 
@@ -181,5 +202,9 @@ unsigned int fastq_fcount(fastq_file_t *fq_file);
 */
 
 void fastq_fclose(fastq_file_t *fq_file);
+
+
+/** @cond PRIVATE */
+//size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
 
 #endif	/*  FASTQ_FILE_H  */
