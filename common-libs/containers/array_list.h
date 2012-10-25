@@ -6,6 +6,8 @@
 #include <math.h>
 #include <limits.h>
 
+#include <cprops/hashtable.h>
+
 #include <commons/string_utils.h>
 #include <commons/log.h>
 
