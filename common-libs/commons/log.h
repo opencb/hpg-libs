@@ -41,7 +41,7 @@
 }
 
 #define LOG_INFO(msg) {			\
-    if (LOG_DEBUG_LEVEL >= log_level) { \
+    if (LOG_INFO_LEVEL >= log_level) { \
         print_log_message(LOG_INFO_LEVEL, "INFO",     \
         __FILE__, __LINE__, __func__, msg);             \
     }   \
