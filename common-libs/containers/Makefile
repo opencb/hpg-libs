@@ -5,7 +5,7 @@ CFLAGS_DEBUG = -std=c99 -g
 LIBS_ROOT = $(PWD)/..
 
 INCLUDES = -I . -I $(LIBS_ROOT)
-LIBS = 
+LIBS = -lcprops
 
 MISC_FILES = $(LIBS_ROOT)/commons/log.c
 
