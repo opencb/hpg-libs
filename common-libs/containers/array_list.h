@@ -2,7 +2,7 @@
 #define ARRAY_LIST_H
 
 #include <stdio.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <math.h>
 #include <limits.h>
 
