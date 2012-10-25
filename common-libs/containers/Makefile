@@ -7,7 +7,8 @@ LIBS_ROOT = $(PWD)/..
 INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops
 
-MISC_FILES = $(LIBS_ROOT)/commons/log.c
+#MISC_FILES = $(LIBS_ROOT)/commons/log.c
+MISC_FILES = 
 
 all: list.o array_list.o
 test: list.o array_list.o test-utils
