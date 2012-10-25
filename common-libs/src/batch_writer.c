@@ -184,7 +184,7 @@ void batch_writer2(batch_writer_input_t* input) {
   bam1_t *bam1;
   bam_header_t *bam_header;
   bam_file_t *bam_file;
-  alignment_t *alig, *alignment = alignment_new();
+  alignment_t *alig;
 
   char* match_filename = input->match_filename;
   //  char* splice_filename = input->splice_filename;
@@ -197,161 +197,83 @@ void batch_writer2(batch_writer_input_t* input) {
   fastq_batch_t *fq_batch = NULL;
 
   FILE* fd;
-  //  FILE* splice_fd = fopen(splice_filename, "w");
 
-  char aux[2048], *seq;
+  static char aux[10];
   
-  sw_output_t *sw_output;
-  size_t read_len, header_len, mapped_len, pos;
-  size_t deletion_n, primary_alignment, num_cigar_ops;
-  char *cigar, *header_match, *read_match, *quality_match;
+  size_t read_len;
 
   bam_header = bam_header_new(HUMAN, NCBI37);
   bam_file = bam_fopen_mode(match_filename, bam_header, "w");
 
   bam_fwrite_header(bam_header, bam_file);
 
-  int flag = 0;
   size_t num_reads = 0, num_items = 0, total_mappings = 0;
 
   // main loop
   while ( (item = list_remove_item(write_list)) != NULL ) {
 
+    //    if (array_list == NULL) printf("batch_writer.c...\n");
+
     batch = (aligner_batch_t *) item->data_p;
     fq_batch = batch->fq_batch;
     num_reads = batch->num_mapping_lists;
 
-    // single mode (single-end)
     for (size_t i = 0; i < num_reads; i++) {
 
       array_list = batch->mapping_lists[i];
-      //if (array_list == NULL) printf("READ %d, writer, list is NULL\n", i);
+      //      if (array_list == NULL) printf("READ %d, writer, list is NULL\n", i);
 
       //      printf("----> list == NULL ? %d\n", (array_list == NULL));
       num_items = (array_list == NULL ? 0 : array_list_size(array_list));
-      //printf("----> number of items = %d, num_items <= 0 ? %d\n", num_items, num_items <= 0);
+      //      printf("----> number of items = %d, num_items <= 0 ? %d\n", num_items, num_items <= 0);
 
       read_len = fq_batch->data_indices[i + 1] - fq_batch->data_indices[i] - 1;
+
+      // mapped or not mapped ?
       if (num_items == 0) {
 
-	// unmapped read
-	//printf("\tWRITE : read %d (%d items): unmapped!!\n", i, num_items);
+	//	printf("\tWRITE : read %i (%d items): unmapped...\n", i, num_items);
 
 	// calculating cigar
 	sprintf(aux, "%dX", read_len);
 	
+	alig = alignment_new();
 	alignment_init_single_end(&(fq_batch->header[fq_batch->header_indices[i]])+1,
 				  &(fq_batch->seq[fq_batch->data_indices[i]]),
 				  &(fq_batch->quality[fq_batch->data_indices[i]]),
 				  0, 
 				  0,
 				  0, 
-				  aux, 1, 255, 0, 0, alignment);
+				  aux, 1, 255, 0, 0, alig);
 
-	bam1 = convert_to_bam(alignment, 33);
+	bam1 = convert_to_bam(alig, 33);
 	bam_fwrite(bam1, bam_file);
 	bam_destroy1(bam1);
 
+	// some cosmetic stuff before freeing the alignment,
+	// (in order to not free twice some fields)
+	alig->query_name = NULL;
+	alig->sequence = NULL;
+	alig->quality = NULL;
+	alig->cigar = NULL;
+	alignment_free(alig);
+
+	//	printf("\tWRITE : read %i (%d items): unmapped...done !!\n", i, num_items);
+
       } else {
-
-	// mapped read by BWT or SW ??
-	flag = array_list_get_flag(array_list);
-
-	if (flag == 1) {
-	  // mapped by BWT
-	  // here we have alignment_t objects 
-	  //printf("WRITE : read %d (%d items): mapped by BWT\n", i, num_items);
-
-	  for (size_t j = 0; j < num_items; j++) {
-	    alig = (alignment_t *) array_list_get(j, array_list);
-	    if (alig != NULL) {
-
-	      bam1 = convert_to_bam(alig, 33);
-	      bam_fwrite(bam1, bam_file);
-	      bam_destroy1(bam1);
-
-	      alignment_free(alig);
-	    }
-	  }
-	} else {
-	  // mapped by SW
-	  // here we have sw_output_t objects
-	  //printf("WRITE : read %d (%d items): mapped by SW\n", i, num_items);
-
-	  header_len = fq_batch->header_indices[i + 1] - fq_batch->header_indices[i] - 1;
-
-	  for (size_t j = 0; j < num_items; j++) {
-	    sw_output = (sw_output_t *) array_list_get(j, array_list);
-
-	    mapped_len = sw_output->mref_len;
-
-	    deletion_n = 0;
-	    for (int ii = 0; ii < mapped_len; ii++){
-	      if (sw_output->mquery[ii] == '-') {
-		deletion_n++;
-	      }
-	    }
+	//	printf("\tWRITE : read %d (%d items): mapped...\n", i, num_items);
+	for (size_t j = 0; j < num_items; j++) {
+	  alig = (alignment_t *) array_list_get(j, array_list);
+	  if (alig != NULL) {
 	    
-	    if (j == 0) {
-	      primary_alignment = 1;
-	    } else {
-	      primary_alignment = 0;
-	    }
-	    
-	    header_len = get_to_first_blank(&(fq_batch->header[fq_batch->header_indices[i]]), header_len, aux);
-	    //	    aux = &(fq_batch->header_indices[i]);
-
-	    header_match = (char *) malloc(sizeof(char) * (header_len + 1));
-	    memcpy(header_match, aux, header_len);
-	    header_match[header_len] = '\0';
-
-	    read_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
-	    memcpy(read_match, 
-		   &fq_batch->seq[fq_batch->data_indices[i]] + sw_output->mquery_start, 
-		   mapped_len - deletion_n);
-	    read_match[mapped_len - deletion_n ] = '\0';
-
-	    quality_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
-	    memcpy(quality_match, 
-		   &fq_batch->quality[fq_batch->data_indices[i]] + sw_output->mquery_start, 
-		   mapped_len - deletion_n);
-	    quality_match[mapped_len - deletion_n] = '\0';
-
-	    cigar =  generate_cigar_str(sw_output->mquery, 
-					sw_output->mref, 
-					sw_output->mquery_start, 
-					read_len, 
-					sw_output->mref_len, 
-					&num_cigar_ops);
-
-
-	    if (sw_output->strand == 0) {
-	      pos = sw_output->ref_start + sw_output->mref_start - sw_output->strand;
-	    } else {
-	      pos = sw_output->ref_start + (sw_output->ref_len - 
-					   sw_output->mref_len - 
-					   sw_output->mref_start);
-	    }
-	    
-	    alignment_init_single_end(header_match, read_match, quality_match, 
-				      sw_output->strand, 
-				      sw_output->chromosome - 1, 
-				      pos - 1,
-				      cigar, num_cigar_ops, 255, primary_alignment, 1, alignment);
-
-	    bam1 = convert_to_bam(alignment, 33);
+	    bam1 = convert_to_bam(alig, 33);
 	    bam_fwrite(bam1, bam_file);
 	    bam_destroy1(bam1);
-
-	    // free memory
-	    free(header_match);
-	    free(read_match);
-	    free(quality_match);
-	    free(cigar);
-
-	    sw_output_free(sw_output);
+	  
+	    alignment_free(alig);
 	  }
 	}
+	//	printf("\tWRITE : read %d (%d items): mapped...done !!\n", i, num_items);
       }
       if (array_list != NULL) array_list_free(array_list, NULL);
     }
@@ -360,18 +282,7 @@ void batch_writer2(batch_writer_input_t* input) {
     if (item != NULL) list_item_free(item);
 
     if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
-  } // end of batch loop                                                                                                                                                            
-
-  // some cosmetic things before freeing the alignment,
-  // to be sure to free twice
-  alignment->query_name = NULL;
-  alignment->sequence = NULL;
-  alignment->quality = NULL;
-  alignment->cigar = NULL;
-  alignment_free(alignment);
-  
-  //  fclose(splice_fd);
-  
+  } // end of batch loop                                                                                           
   bam_fclose(bam_file);
   printf("END: batch_writer (total mappings %d)\n", total_mappings);
 }

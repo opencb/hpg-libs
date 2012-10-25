@@ -35,6 +35,8 @@ typedef struct sw_server_input {
      unsigned int flank_length; /**< Length to extend the CAL region. */
      unsigned int write_size;   /**< Size of the writing batch (to disk). */
 
+     sw_optarg_t sw_optarg;
+
      // for RNA 
      unsigned int max_intron_size; /**< Intron max size */
      unsigned int min_intron_size; /**< Intron max size */

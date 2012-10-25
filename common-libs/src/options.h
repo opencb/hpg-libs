@@ -16,13 +16,14 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			38
+#define NUM_OPTIONS			39
 
 typedef struct options {
   int min_intron_length;
   int num_gpu_threads;
   int num_cpu_threads;
   int min_cal_size; 
+  int num_seeds; 
   int seeds_max_distance;
   int bwt_threads;
   int batch_size;

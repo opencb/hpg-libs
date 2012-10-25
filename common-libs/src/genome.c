@@ -407,7 +407,7 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
 				       size_t *end_p, genome_t* genome_p) {
 
   size_t s, e;
-  
+
   if (*start_p < 1) (*start_p) = 1;
   if (*start_p > genome_p->chr_size[chr]) (*start_p) = genome_p->chr_size[chr];
   if (*end_p < 1) (*end_p) = 1;
