@@ -26,5 +26,5 @@ test-utils:
 	cd test && make
 
 clean:
-	rm list.o
-	rm array_list.o
+	rm -f list.o
+	rm -f array_list.o
