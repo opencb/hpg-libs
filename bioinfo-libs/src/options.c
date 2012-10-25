@@ -15,6 +15,7 @@
 #define DEFAULT_NUM_SW_THREADS		1
 #define DEFAULT_MIN_SEED_SIZE		16
 #define DEFAULT_SEED_SIZE		18
+#define DEFAULT_NUM_SEEDS		8
 #define DEFAULT_MAX_INTRON_LENGTH	1000000
 #define DEFAULT_FLANK_LENGTH		20
 #define DEFAULT_SW_MIN_SCORE		300
@@ -58,6 +59,7 @@ options_t *options_new(void) {
 	options->num_sw_servers = DEFAULT_NUM_SW_THREADS;
 	options->min_seed_size = DEFAULT_MIN_SEED_SIZE;
 	options->seed_size = DEFAULT_SEED_SIZE;
+	options->num_seeds = DEFAULT_NUM_SEEDS;
 	options->max_intron_length = DEFAULT_MAX_INTRON_LENGTH;
 	options->flank_length = DEFAULT_FLANK_LENGTH;
 	options->min_score = DEFAULT_SW_MIN_SCORE;
@@ -128,6 +130,7 @@ void options_display(options_t *options) {
   unsigned int num_sw_servers =  (unsigned int)options->num_sw_servers;
   unsigned int min_seed_size =  (unsigned int)options->min_seed_size;
   unsigned int seed_size =  (unsigned int)options->seed_size;
+  unsigned int num_seeds =  (unsigned int)options->num_seeds;
   unsigned int max_intron_length =  (unsigned int)options->max_intron_length;
   unsigned int flank_length =  (unsigned int)options->flank_length;
   unsigned int pair_mode =  (unsigned int)options->pair_mode;
@@ -151,19 +154,22 @@ void options_display(options_t *options) {
   printf("Report best hits: %d\n",  report_best);
   printf("Report n hits: %d\n",  report_n_hits);
   printf("CAL seeker errors: %d\n",  cal_seeker_errors);
-  printf("Min CAL size: %d\n",  min_cal_size);
-  printf("Seeds max distance: %d\n",  seeds_max_distance);
   printf("Batch size: %dBytes\n",  batch_size);
   printf("Write size: %dBytes\n",  write_size);
   printf("BWT Threads: %d\n",  bwt_threads);
   printf("Region Threads: %d\n",  region_threads);
   printf("Num CAL seekers: %d\n", num_cal_seekers);
   printf("Num SW servers: %d\n",  num_sw_servers);
-  printf("Min seed size: %d\n",  min_seed_size);
-  printf("Seed size: %d\n",  seed_size);
-  printf("Max intron length: %d\n", max_intron_length);
-  printf("Min intron length: %d\n", min_intron_length);
-  printf("Flank length: %d\n", flank_length);
+  printf("SEEDING and CAL PARAMETERS\n");
+  printf("\tNum seeds: %d\n",  num_seeds);
+  printf("\tSeed size: %d\n",  seed_size);
+  printf("\tMin seed size: %d\n",  min_seed_size);
+  printf("\tMin CAL size: %d\n",  min_cal_size);
+  printf("\tSeeds max distance: %d\n",  seeds_max_distance);
+  printf("\tFlank length: %d\n", flank_length);
+  printf("\tRNA PARAMETERS\n");
+  printf("\tMax intron length: %d\n", max_intron_length);
+  printf("\tMin intron length: %d\n", min_intron_length);
   printf("PAIR-MODE PARAMETERS\n");
   printf("\tPair mode: %d\n", pair_mode);
   printf("\tMin. distance: %d\n", pair_min_distance);
@@ -233,7 +239,9 @@ void** argtable_options_new(void) {
 	argtable[36] = arg_int0(NULL, "report-best", NULL, "Report the <n> best alignments");
 	argtable[37] = arg_int0(NULL, "report-n-hits", NULL, "Report <n> hits");
 
-	argtable[38] = arg_end(20);
+	argtable[38] = arg_int0(NULL, "num-seeds", NULL, "Number of seeds per read");
+
+	argtable[39] = arg_end(20);
 
 	return argtable;
 }
@@ -326,6 +334,8 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_int*)argtable[36])->count) { options->report_best = *(((struct arg_int*)argtable[32])->ival); }
   if (((struct arg_int*)argtable[37])->count) { options->report_n_hits = *(((struct arg_int*)argtable[33])->ival); }
 
+  if (((struct arg_int*)argtable[38])->count) { options->num_seeds = *(((struct arg_int*)argtable[38])->ival); }
+
   return options;
 }
 
@@ -370,6 +380,11 @@ options_t *parse_options(int argc, char **argv) {
   argtable_options_free(argtable);
   //	free(end);
   //	free(argtable_options);
+
+  if (options->flank_length < 20) {
+    options->flank_length = 20;
+  }
+
   return options;
 }
 

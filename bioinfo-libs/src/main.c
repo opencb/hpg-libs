@@ -77,19 +77,11 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 
 int main(int argc, char* argv[]) {
 
-  printf("parsing options...\n");
+  // parsing options
   options_t *options = parse_options(argc, argv);
 
-  if (options->flank_length < 20) {
-    options->flank_length = 20;
-  }
-
-  printf("done !\n");
-
-  printf("displaying options...\n");
   // display selected options
   options_display(options);
-  printf("done !\n");
 
   time_on =  (unsigned int) options->timming;
   statistics_on =  (unsigned int) options->statistics;
@@ -187,7 +179,7 @@ int main(int argc, char* argv[]) {
   // CAL parameters
   //GOOD LUCK(20, 60, 18, 16, 0)
   cal_optarg_t *cal_optarg = cal_optarg_new(options->min_cal_size, options->seeds_max_distance, 
-					    options->seed_size, options->min_seed_size, 
+					    options->num_seeds, options->seed_size, options->min_seed_size, 
 					    options->cal_seeker_errors);
   
   // genome parameters
@@ -290,7 +282,10 @@ int main(int argc, char* argv[]) {
 }
 
 //--------------------------------------------------------------------
+extern int mapped_by_bwt[100];
+
 extern int unmapped_by_max_cals_counter[100];
+extern int unmapped_by_zero_cals_counter[100];
 extern int unmapped_by_score_counter[100];
 
 void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
@@ -299,7 +294,10 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 
   // for debugging
   for (int i = 0; i < options->num_cpu_threads; i++) {
+    mapped_by_bwt[i] = 0;
+
     unmapped_by_max_cals_counter[i] = 0;
+    unmapped_by_zero_cals_counter[i] = 0;
     unmapped_by_score_counter[i] = 0;
   }
 
@@ -349,6 +347,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 				    &read_list, &input);
       fastq_batch_reader(&input);
     }
+
 
     // batch aligner
     #pragma omp section
@@ -421,17 +420,23 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   }
   printf("\n\tTotal SWs: %d, Max time = %0.4f, Throughput = %0.2f SW/s\n", total_item, max_time / 1e6, total_throughput);
 
+
   //if (cuda) {
   //   gpu_context_free((gpu_context_t*) context_p);
   //   }
   //   if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }
   
-  int by_cals = 0, by_score = 0;
+  int reads_by_bwt = 0, by_max_cals = 0, by_zero_cals, by_score = 0;
   for (int i = 0; i < options->num_cpu_threads; i++) {
-    by_cals += unmapped_by_max_cals_counter[i];
+    by_max_cals += unmapped_by_max_cals_counter[i];
+    by_zero_cals += unmapped_by_zero_cals_counter[i];
     by_score += unmapped_by_score_counter[i];
+    reads_by_bwt += mapped_by_bwt[i];
   }
-  printf("unmapped by MAX_CALS = %d\n", by_cals);
+  printf("mapped by BWT = %d\n", reads_by_bwt);
+
+  printf("unmapped by MAX_CALS = %d\n", by_max_cals);
+  printf("unmapped by ZERO_CALS = %d\n", by_zero_cals);
   printf("unmapped by SW score = %d\n", by_score);
 }
 

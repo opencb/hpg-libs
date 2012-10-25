@@ -36,7 +36,7 @@ void bwt_server_cpu(bwt_server_input_t* input_p){
 	total_reads += fastq_batch_p->num_reads;
 	reads_no_mapped += unmapped_batch_p->num_reads;
 	//Results
-	//printf("Process Batch (bwt_server_cpu): (%d)Mappings - (%d)Unmappings\n", num_mappings, unmapped_batch_p->num_reads);
+	//	printf("Process Batch (bwt_server_cpu): (%d)Mappings - (%d)Unmappings\n", num_mappings, unmapped_batch_p->num_reads);
 	for(int i = 0; i < num_mappings; i++){
 	  
 	  if ( write_batch_p->size >= write_batch_p->allocated_size - 1) {
@@ -121,10 +121,12 @@ void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
 				     size_t *num_unmapped, size_t *unmapped);
 
 //------------------------------------------------------------------------------------
+int mapped_by_bwt[100];
 
 void apply_bwt(bwt_server_input_t* input, aligner_batch_t *batch) {
 
   //    printf("START: apply_bwt\n"); 
+  int tid = omp_get_thread_num();
 
     size_t num_mapped_reads = 0;
     size_t *mapped_reads = (size_t *) calloc(batch->num_mapping_lists, 
@@ -142,6 +144,7 @@ void apply_bwt(bwt_server_input_t* input, aligner_batch_t *batch) {
 				    &batch->num_targets, batch->targets);
 
     batch->num_to_do = num_mapped_reads;
+    mapped_by_bwt[tid] = num_mapped_reads;
 
     // free memory
     free(mapped_reads);

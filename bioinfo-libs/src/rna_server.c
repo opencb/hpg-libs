@@ -178,8 +178,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
   canonical_CT_AC[2] = 'A';
   canonical_CT_AC[3] = 'C';
   //================================================//
-  
-  /*    printf(" ======================== Process Output SW %d=========================\n", depth);
+  /*  
+  printf(" ======================== Process Output SW %d=========================\n", depth);
   sw_simd_input_display(depth, input_p);
   sw_simd_output_display(depth, output_p);
   printf("======================================================================\n");
@@ -978,7 +978,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       cals_per_chromosome[cal_p->chromosome_id * STRANDS_NUMBER + cal_p->strand] += 1;
       */
 
-      /*      printf("\n");
+      /*
+      printf("\n");
       printf("CALS AFTER ORDER:\n");
       for(int t = 0; t < array_list_size(sw_batch_p->allocate_cals_p[i]); t++){
 	cal_p = (cal_t *)array_list_get(t, sw_batch_p->allocate_cals_p[i]);
@@ -1084,7 +1085,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	    genome_read_sequence_by_chr_index(reference, 0, 
 					      cal_p->chromosome_id - 1, &start, &end, genome_p);
 	    
-	    //printf("chr:%i - CAL[%i-%i] = %s\n", cal_p->chromosome_id, start, end, reference);
+	    //	    printf("chr:%i - CAL[%i-%i] = %s\n", cal_p->chromosome_id, start, end, reference);
 	    reference_fusion_len += len;
 	    
 	    if(reference_fusion_len >= maximum_reference_len){

@@ -161,6 +161,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
 // apply_caling
 //====================================================================================
 int unmapped_by_max_cals_counter[100];
+int unmapped_by_zero_cals_counter[100];
 
 void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 
@@ -168,11 +169,12 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
   int tid = omp_get_thread_num();
 
   array_list_t *list = NULL;
-  size_t index, num_cals;
+  size_t index, num_cals, min_seeds, max_seeds;
   size_t num_seqs = batch->num_targets;
 
   size_t num_outputs = 0;
   size_t *outputs = (size_t *) calloc(num_seqs, sizeof(size_t));
+  
 
   // set to zero
   batch->num_done = batch->num_to_do;
@@ -188,24 +190,42 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 			    COLLECTION_MODE_ASYNCHRONIZED);
     }
 
-
-    // previous version
-    //num_cals = bwt_generate_cal_list(batch->mapping_lists[index], 
-    //input->cal_optarg,
-    //				     list);
-
+    printf("cal_seeker.c: %s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
+    printf("\tcal_seeker.c: array_list_size = %d\n", array_list_size(list));
+    /*
+    {
+      // for debugging
+      region_t *region;
+      int size = array_list_size(batch->mapping_lists[index]);
+      for (int i = 0; i < size; i++) {
+	region = array_list_get(i, batch->mapping_lists[index]);
+	printf("region %i: strand %d chromosome %d [%d-%d], seq [%d-%d]\n", 
+	       i, region->strand, region->chromosome_id, region->start, region->end,
+	       region->seq_start, region->seq_end);
+      }
+    }
+    */
     // optimized version
     num_cals = bwt_generate_cal_list_linkedlist(batch->mapping_lists[index], 
 						input->cal_optarg,
+						&min_seeds, &max_seeds,
 						list);
+
     /*
-    printf("--------------------------------------------------------------\n");
-    printf("cal_seeker.c: read %d (input %d seed-mappings -> output %d CALs): %s\n", 
-	   index, array_list_size(batch->mapping_lists[index]), num_cals,
-	   &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
-    printf("--------------------------------------------------------------\n");
+    {
+      // for debugging
+      cal_t *cal;
+      int size = array_list_size(list);
+      for (int i = 0; i < size; i++) {
+	cal = array_list_get(i, list);
+	printf("\tcal %i: strand %d chromosome %d [%d-%d]\n", 
+	       i, cal->strand, cal->chromosome_id, cal->start, cal->end);
+      }
+    }
     */
-    //    printf("cal_seeker.c: num_cals = %d (MAX = %d)\n", num_cals, MAX_CALS);
+
+    printf("\tcal_seeker.c: num_cals = %d, array_list_size = %d, (MAX = %d), num seeds (min, max) = (%d, %d)\n", 
+	   num_cals, array_list_size(list), MAX_CALS, min_seeds, max_seeds);
 
     if (num_cals > 0 && num_cals <= MAX_CALS) {
       array_list_set_flag(2, list);
@@ -219,8 +239,15 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
       list = NULL;
     } else {
       array_list_set_flag(0, batch->mapping_lists[index]);
-      if (strncmp("@rand", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]), 5)) {
-	unmapped_by_max_cals_counter[tid]++;
+      if (num_cals > 0) {
+	if (strncmp("@rand", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]), 5)) {
+	  unmapped_by_max_cals_counter[tid]++;
+	  //	  printf("--> %s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
+	}
+      } else {
+	if (strncmp("@rand", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]), 5)) {
+	  unmapped_by_zero_cals_counter[tid]++;
+	}
       }
       array_list_clear(batch->mapping_lists[index], region_free);
       array_list_clear(list, cal_free);
