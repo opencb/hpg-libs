@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include <bioformats/family.h>
+#include <bioformats/family/family.h>
 #include <commons/log.h>
 
 #include "ped_file_structure.h"

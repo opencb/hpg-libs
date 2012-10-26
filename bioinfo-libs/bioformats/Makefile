@@ -21,8 +21,14 @@ bam-sam:
 vcf:
 	cd $(BIOFORMATS_DIR)/vcf && make LIBS_HOME=$(LIBS_HOME)
 
+ped:
+	cd $(BIOFORMATS_DIR)/ped && make LIBS_HOME=$(LIBS_HOME)
+
 gff:
 	cd $(BIOFORMATS_DIR)/gff && make LIBS_HOME=$(LIBS_HOME)
+
+family:
+	cd $(BIOFORMATS_DIR)/family && make LIBS_HOME=$(LIBS_HOME)
 
 region:
 	cd $(BIOFORMATS_DIR)/features/region && make LIBS_HOME=$(LIBS_HOME)

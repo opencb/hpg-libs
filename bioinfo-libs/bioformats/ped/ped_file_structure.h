@@ -5,7 +5,7 @@
 
 #include <cprops/hashtable.h>
 
-#include <bioformats/family.h>
+#include <bioformats/family/family.h>
 #include <commons/file_utils.h>
 
 /**

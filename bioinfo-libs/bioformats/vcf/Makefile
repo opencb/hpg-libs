@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -O3 -D_GNU_SOURCE
+CFLAGS = -std=c99 -O3 -D_GNU_SOURCE -D_XOPEN_SOURCE=600
 CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 
 # Directories' paths
@@ -38,10 +38,10 @@ VCF_FILTER_OBJECTS = main_filter.c $(MAIN_OBJECTS) $(MISC_OBJECTS) $(REGION_TABL
 all: compile-dependencies compile
 
 compile: compile-dependencies
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 compile-static: compile-dependencies-static
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES_STATIC) $(LIBS_STATIC)
+	$(CC) $(CFLAGS) -c $(MAIN_OBJECTS) $(INCLUDES_STATIC) $(LIBS_STATIC)
 
 ragel:
 	ragel -o vcf_ragel.c -C -G2 vcf.ragel
@@ -50,21 +50,23 @@ ragel_graphviz:
 	ragel -o vcf_ragel.dot -V -C -G2 vcf.ragel
 
 main_batch: compile-dependencies compile
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(VCF_BATCH_OBJECTS) $(INCLUDES) $(LIBS)
 
 main_filter: compile-dependencies ragel compile $(VCF_FILTER_OBJECTS)
-	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(VCF_FILTER_OBJECTS) $(INCLUDES) $(LIBS)
 
 compile-dependencies:
 	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(REGION_DIR) && make region.o && \
+	cd $(BIOFORMATS_DIR) && make region gff
+#	cd $(REGION_DIR) && make region.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile
 
 compile-dependencies-static:
 	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(REGION_DIR) && make region.o && \
+	cd $(BIOFORMATS_DIR) && make region gff
+#	cd $(REGION_DIR) && make region.o && \
 	cd $(BIOFORMATS_DIR)/gff && make compile-static
 
 clean:
