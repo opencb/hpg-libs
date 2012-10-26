@@ -171,10 +171,13 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
   array_list_t *list = NULL;
   size_t index, num_cals, min_seeds, max_seeds;
   size_t num_seqs = batch->num_targets;
+  int min_limit;
 
   size_t num_outputs = 0;
   size_t *outputs = (size_t *) calloc(num_seqs, sizeof(size_t));
   
+  cal_t *cal;
+  array_list_t *cal_list;
 
   // set to zero
   batch->num_done = batch->num_to_do;
@@ -190,8 +193,8 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 			    COLLECTION_MODE_ASYNCHRONIZED);
     }
 
-    printf("cal_seeker.c: %s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
-    printf("\tcal_seeker.c: array_list_size = %d\n", array_list_size(list));
+    //    printf("cal_seeker.c: %s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
+    //    printf("\tcal_seeker.c: array_list_size = %d\n", array_list_size(list));
     /*
     {
       // for debugging
@@ -224,19 +227,46 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
     }
     */
 
-    printf("\tcal_seeker.c: num_cals = %d, array_list_size = %d, (MAX = %d), num seeds (min, max) = (%d, %d)\n", 
-	   num_cals, array_list_size(list), MAX_CALS, min_seeds, max_seeds);
+    //    printf("\tcal_seeker.c: num_cals = %d, array_list_size = %d, (MAX = %d), num seeds (min, max) = (%d, %d)\n", 
+    //	   num_cals, array_list_size(list), MAX_CALS, min_seeds, max_seeds);
+
+    // filter CALs by the number of seeds
+    min_limit = max_seeds - 3;
+    if (min_seeds == max_seeds || min_limit < min_seeds) {
+      cal_list = list;
+      list = NULL;
+    } else {
+      cal_list = array_list_new(MAX_CALS, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+      for (size_t j = 0; j < num_cals; j++) {
+	cal = array_list_get(j, list);
+	if (cal->num_seeds > min_limit) {
+	  array_list_insert(cal, cal_list);
+	  array_list_set(j, NULL, list);
+	}
+      }
+      array_list_clear(list, cal_free);
+      num_cals = array_list_size(cal_list);
+    }
+    
+    if (num_cals > MAX_CALS) {
+      for (size_t j = num_cals - 1; j >= MAX_CALS; j--) {
+	cal = (cal_t *) array_list_remove_at(j, cal_list);
+	cal_free(cal);
+      }
+      num_cals = array_list_size(cal_list);
+    }
+
+    //    printf("\tcal_seeker.c: after filter: num_cals = %d\n", num_cals);
 
     if (num_cals > 0 && num_cals <= MAX_CALS) {
-      array_list_set_flag(2, list);
+      array_list_set_flag(2, cal_list);
       batch->num_to_do += num_cals;
 
       outputs[num_outputs++] = index;
       
       // we have to free the region list
       array_list_free(batch->mapping_lists[index], region_free);
-      batch->mapping_lists[index] = list;
-      list = NULL;
+      batch->mapping_lists[index] = cal_list;
     } else {
       array_list_set_flag(0, batch->mapping_lists[index]);
       if (num_cals > 0) {
@@ -249,8 +279,10 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	  unmapped_by_zero_cals_counter[tid]++;
 	}
       }
+      // we have to free the region list
       array_list_clear(batch->mapping_lists[index], region_free);
-      array_list_clear(list, cal_free);
+      if (cal_list) array_list_free(cal_list, cal_free);
+      if (list) array_list_clear(list, cal_free);
     }
   } // end for 0 ... num_seqs
 
