@@ -1,6 +1,3 @@
-#include <math.h>
-#include <sys/stat.h>
-
 #include "genome.h"
 
 #define NUCLEOTIDES_NUM 5
@@ -9,7 +6,7 @@
 //                     GLOBAL VARIABLES
 
 const char NUCLEOTIDES[] = {'A', 'C', 'G', 'N', 'T'};
-const unsigned char TOTAL_CODES = pow(NUCLEOTIDES_NUM, 3) + pow(NUCLEOTIDES_NUM, 2) + NUCLEOTIDES_NUM; 
+const unsigned char TOTAL_CODES = NUCLEOTIDES_NUM*NUCLEOTIDES_NUM*NUCLEOTIDES_NUM + NUCLEOTIDES_NUM*NUCLEOTIDES_NUM + NUCLEOTIDES_NUM; 
 
 //------------------------------------------------------------------------------------
 /*

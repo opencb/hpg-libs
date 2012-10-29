@@ -2,6 +2,10 @@
 #define STATISTICS_H
 
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "timing.h"
 
 typedef struct statistics{
