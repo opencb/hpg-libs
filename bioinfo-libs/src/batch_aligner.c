@@ -30,6 +30,7 @@ void batch_aligner(batch_aligner_input_t *input) {
     aligner_batch = aligner_batch_new((fastq_batch_t *) read_item->data_p);
 
     thr_batches[tid]++;
+
     //printf("********************** BATCH %d (batch aligner %d)\n", total_batches, omp_get_thread_num());
 
     // Burros-Wheeler transform
