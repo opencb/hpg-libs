@@ -492,8 +492,8 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
       // reference sequence
       //printf("\tSW: %d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", j, cal->chromosome_id, cal->strand, cal->start, cal->end);
   
-      start = cal->start - 5; // - flank_length;
-      end = cal->end + 5; // + flank_length;
+      start = cal->start - flank_length;
+      end = cal->end + flank_length;
       r[sw_count] = calloc(1, end - start + 2);
       genome_read_sequence_by_chr_index(r[sw_count], cal->strand,
 					cal->chromosome_id - 1, &start, &end, genome);

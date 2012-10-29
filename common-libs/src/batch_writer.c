@@ -232,7 +232,7 @@ void batch_writer2(batch_writer_input_t* input) {
       // mapped or not mapped ?
       if (num_items == 0) {
 
-	//	printf("\tWRITE : read %i (%d items): unmapped...\n", i, num_items);
+	//printf("\tWRITE : read %i (%d items): unmapped...\n", i, num_items);
 
 	// calculating cigar
 	sprintf(aux, "%dX", read_len);
