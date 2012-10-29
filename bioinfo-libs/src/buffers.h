@@ -6,10 +6,10 @@
 
 #include "bioformats/bam-sam/alignment.h"
 #include "aligners/bwt/bwt.h"
-
 #include "genome.h"
 #include "timing.h"
 #include "statistics.h"
+
 //#include "bam_commons.h"
 
 //====================================================================================
@@ -69,12 +69,11 @@
 
 //------------------------------------------------------------------------------------
 
-#define FASTQ_READER_ST	 	0
-#define BWT_SERVER_ST	   	1
-#define REGION_SEEKER_ST	2
-#define CAL_SEEKER_ST	   	3
-#define SW_SERVER_ST	    	4
-#define TOTAL_ST         	5
+#define BWT_SERVER_ST	   	0
+#define REGION_SEEKER_ST	1
+#define CAL_SEEKER_ST	   	2
+#define SW_SERVER_ST	    	3
+#define TOTAL_ST         	4
 //------------------------------------------------------------------------------------
 
 #define CHROMOSOME_NUMBER 30

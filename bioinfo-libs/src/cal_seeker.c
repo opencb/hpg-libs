@@ -36,9 +36,9 @@ void cal_seeker_server(cal_seeker_input_t* input) {
   fastq_read_t **allocate_reads; 
   size_t reads_with_cals;
   alignment_t *alignment;
-  size_t num_batches = 0, num_reads_unmapped = 0 ;
+  size_t num_batches = 0, num_reads_unmapped = 0, num_without_cals = 0;
   size_t total_reads = 0;
-  
+
   while ( (item = list_remove_item(input->regions_list)) != NULL ) {
     //printf("Cal Seeker %d processing batch...\n", omp_get_thread_num());
     num_batches++;
@@ -61,9 +61,9 @@ void cal_seeker_server(cal_seeker_input_t* input) {
 		// }
       total_cals += num_cals;
       //printf("CAL SEEKER: %d cals for read %d\n", num_cals, i);
-      if(num_cals <= 0 || num_cals > MAX_CALS){
-	
+      if(num_cals <= 0 || num_cals > MAX_CALS){	
 	//printf("READ WITH cals <= 0 or cals %d > %d!!\n", array_list_size(allocate_cals_p[reads_with_cals]), MAX_CALS);
+	if (num_cals <= 0) { num_without_cals++; }
 	
 	num_reads_unmapped++;
 	
@@ -106,7 +106,6 @@ void cal_seeker_server(cal_seeker_input_t* input) {
 	array_list_free(allocate_cals[reads_with_cals], cal_free);
       }else{
 	//array_list_free(allocate_cals_p[reads_with_cals], cal_free);
-	
 	read = fastq_read_new(&(cal_batch->unmapped_batch->header[cal_batch->unmapped_batch->header_indices[i]]), 
 			      &(cal_batch->unmapped_batch->seq[cal_batch->unmapped_batch->data_indices[i]]),
 			      &(cal_batch->unmapped_batch->quality[cal_batch->unmapped_batch->data_indices[i]]));
@@ -152,7 +151,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
    statistics_add(TOTAL_ST, 2, num_reads_unmapped, statistics_p); 
   }
  
-  printf("cal_seeker_server (%d reads unmapped): END\n", num_reads_unmapped); 
+  printf("cal_seeker_server (%d reads unmapped by No CALs | %d reads unmapped by MAX CALs): END\n", num_without_cals, num_reads_unmapped - num_without_cals); 
   // free memory for mapping list
   
 }

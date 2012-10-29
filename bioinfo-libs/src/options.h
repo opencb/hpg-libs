@@ -16,10 +16,14 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			34
+#define NUM_OPTIONS			35
 
 
 typedef struct options {
+  unsigned char bwt_set;
+  unsigned char reg_set;
+  unsigned char cal_set;
+  unsigned char sw_set;
   int min_intron_length;
   int num_gpu_threads;
   int num_cpu_threads;
@@ -46,6 +50,7 @@ typedef struct options {
   int report_all;
   int report_best;
   int report_n_hits;
+  int gpu_process;
   double min_score;
   double match;
   double mismatch;

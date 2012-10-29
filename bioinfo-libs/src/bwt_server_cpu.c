@@ -84,6 +84,7 @@ void bwt_server_cpu(bwt_server_input_t* input_p){
       statistics_set(BWT_SERVER_ST, 4, num_mappings_tot, statistics_p); 
       
       statistics_add(TOTAL_ST, 1, total_reads - reads_no_mapped, statistics_p); 
+      statistics_set(TOTAL_ST, 0, total_reads, statistics_p); 
     }
     
     printf("bwt_server_cpu (Total reads process %i, Reads unmapped %i, Total mappings %i): END\n", 
