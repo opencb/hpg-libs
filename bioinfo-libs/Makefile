@@ -6,6 +6,8 @@ then\
 fi
 
 CC = gcc
+CC = /opt/intel/bin/icc -xSSE4.2 -msse4.2
+
 CFLAGS = -std=c99 -O3 -fopenmp $(SIMD)
 
 SW_DIR = ./sw

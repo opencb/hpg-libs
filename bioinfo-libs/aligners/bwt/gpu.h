@@ -63,12 +63,14 @@ void gpu_reallocate_memory(size_t *new_size, size_t *old_size, void **data);
 //-----------------------------------------------------------------------------
 // gpu get k and l values
 //-----------------------------------------------------------------------------
-
-void gpu_get_kl_values(size_t num_reads, size_t seqs_size,
-		       char *seqs, size_t *indices,
-		       gpu_context_t *context, 
-		       size_t *k_values, size_t *l_values);
   
+  void gpu_get_kl_values(size_t seed_size, size_t min_seed_size, 
+			 size_t num_max_seeds,
+			 size_t num_reads, size_t seqs_size,
+			 char *seqs, size_t *indices,
+			 gpu_context_t *context, 
+			 size_t *k_values, size_t *l_values, unsigned char mode);
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

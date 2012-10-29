@@ -1,4 +1,6 @@
 CC = gcc
+#CC = /opt/intel/bin/icc
+
 CFLAGS =  -O3 -fopenmp -std=c99 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION -DVERBOSE
 #CFLAGS = -DVERBOSE_DBG -Wall
 #CFLAGS = -Wall -pg
@@ -31,6 +33,7 @@ LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
 LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -L $(LIBS_ROOT)/bam -lcprops -fopenmp -lm -lbam -lz
 
+CUDA_HOME = /usr/local/cuda
 CUDA_LIBS = -L $(CUDA_HOME)/lib64 -lcudart
 
 # Source and object files
@@ -80,6 +83,9 @@ test-search-batch-cpu: compile-static test-search-batch-cpu.c
 test-search-gpu: compile-static compile-gpu test-search-gpu.c
 	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-gpu.c -o bin/test-search-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
 
+test-search-seeds-gpu: compile-static compile-gpu test-search-gpu.c
+	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-seeds-gpu.c -o bin/test-search-seeds-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
+
 compile-gpu: compile-cuda
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(GPU_SOURCES) $(INCLUDES_STATIC)
 
@@ -96,13 +102,14 @@ compile-static: compile-dependencies-static
 compile-dependencies:
 	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compile
+	cd $(BIOFORMATS_DIR)/fastq && make compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make compile
 
 compile-dependencies-static:
 	cd $(CONTAINERS_DIR) && make compile && \
 	cd $(COMMONS_DIR) && make compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compile
-
+	cd $(BIOFORMATS_DIR)/fastq && make compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make compile
 clean:
 	-rm -f *~ \#*\# *.o $(ALL) 
 

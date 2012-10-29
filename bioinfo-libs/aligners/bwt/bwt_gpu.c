@@ -1,9 +1,215 @@
 #include "bwt_gpu.h"
+#include "bwt.h"
+#include "containers/array_list.h" 
 
 //-----------------------------------------------------------------------------
 // exact functions
 //-----------------------------------------------------------------------------
 double kl_time = 0.0, s_time = 0.0;
+
+
+
+size_t bwt_map_exact_seed_batch_gpu(fastq_batch_t *batch,
+				    bwt_optarg_t *bwt_optarg,
+				    cal_optarg_t *cal_optarg,
+				    bwt_index_t *index,
+				    gpu_context_t *gpu_context,
+				    array_list_t **mapping_list) {
+  
+  struct timeval start_time, end_time;
+
+  
+
+  size_t num_mappings = 0;
+  alignment_t *alignment;
+  region_t *region;
+
+  size_t num_reads = batch->num_reads;
+  size_t max_seeds = 0, num_seeds, min_seed_size;
+  char *code_seqs = (char *) malloc(batch->data_size);
+
+
+  char *cigar, *seq_dup, *header, *quality;
+  size_t idx, key, error, pos;
+
+  size_t l_aux, k_aux, len, offset, start;
+
+  int found = 0;
+  size_t num_mapped_reads = 0, num_unmapped_reads = 0;
+  
+  /*printf("Real solutions\n");
+  array_list_t *test_list = array_list_new(num_reads + 1, 1.25f, 
+			     COLLECTION_MODE_SYNCHRONIZED);
+  */
+  /* char *seq = (char *)malloc(sizeof(char)*300);
+  size_t seq_len = batch->data_indices[1] -  batch->data_indices[0] - 1;
+
+  memcpy(seq, batch->seq, seq_len);
+  seq[seq_len] = '\0';
+  num_mappings = bwt_map_exact_seeds_seq(seq, 
+					 cal_optarg->seed_size, 
+					 cal_optarg->min_seed_size, 
+					 bwt_optarg, index, 
+					 test_list);
+  
+  //printf("===================================\n");
+  //printf("num_mappings = %d\n", num_mappings);
+  
+  //printf("seq: %s\n", seq);
+      
+  for (size_t i = 0; i < num_mappings; i++) {
+    printf("mapping: %i\n", i);
+    region_t *alignment = array_list_get(i, test_list);
+    printf("@DNA chromosome:%i | strand:%i | position:%i\n", 
+	   alignment->chromosome_id,
+	   alignment->strand,
+	   alignment->start);
+  }
+  printf("===================================\n\n");
+  
+  printf("---------------\n");
+  */
+
+  replaceBases(batch->seq, code_seqs, batch->data_size);
+
+  
+  //printf("Reads %i\n", num_reads);
+  for (int r = 0; r < num_reads; r++) {
+    len = batch->data_indices[r+1] - batch->data_indices[r] - 1;
+    num_seeds = len / cal_optarg->seed_size;
+    min_seed_size = len % cal_optarg->seed_size;
+    
+    if (min_seed_size > 0) {
+      num_seeds++;
+    }
+    //FOR EXACT PROCESS NEED PROCESS NEXT 'PASADA :)'
+    //if ( min_seed_size > cal_optarg->min_seed_size) {
+    //num_seeds++;
+    //}
+
+    if (num_seeds > max_seeds) {
+      max_seeds = num_seeds;
+    }
+  }
+
+  size_t num_kls = 2 * (num_reads * (2 * max_seeds));
+  //printf("kl length = %i\n", (2 * num_reads)*(2 * max_seeds));
+  size_t *k_values = (size_t*) calloc(num_kls, sizeof(size_t));
+  size_t *l_values = (size_t*) calloc(num_kls, sizeof(size_t));
+  unsigned int offset_strand = 0;
+  unsigned int offset_pasada = 0;
+  unsigned int offset_read = 0;
+
+  /*
+  // for debugging
+  printf("num_reads = %d\n", num_reads);
+  for (int r = 0; r < num_reads; r++) {
+    printf("\nread #%d\n", r);
+    for (int i =  batch->data_indices[r]; i < batch->data_indices[r+1]; i++) {
+      printf("%c", batch->seq[i]);
+    }
+    printf("\n");
+    for (int i =  batch->data_indices[r]; i < batch->data_indices[r+1]; i++) {
+      printf("%i", code_seqs[i]);
+    }  
+  }
+
+  printf("\n");
+
+  printf("(k, l) : before\n");
+  for (int i = 0; i < num_kls; i++) {
+    printf("%i :(k, l) : (%lu, %lu)\n", i, k_values[i], l_values[i]);
+    if (i == num_reads) printf("---\n");
+  }
+  */
+
+
+  start_timer(start_time);
+  //printf("Calculating kl values in gpu...\n");
+  gpu_get_kl_values(cal_optarg->seed_size, cal_optarg->min_seed_size, 
+		    max_seeds, num_reads, batch->data_size,
+		    code_seqs, batch->data_indices,
+		    gpu_context, k_values, l_values, SEED_MODE);
+  
+  stop_timer(start_time, end_time, kl_time);
+  num_mappings = 0;
+  start_timer(start_time);
+  //printf("Calculating kl values in gpu END\n");
+
+  //printf("Process kl in cpu...\n");
+  // for debugging
+  //#pragma omp parallel for private(offset_strand, offset_read, offset_pasada, len, k_aux, l_aux, key, start, region, idx) reduction(+:unm_mappings)
+  for (unsigned int r = 0; r < num_reads; r++) {
+    //printf("Read %i :: (k, l) : after searching\n", r);
+    offset_strand = 0;
+    offset_read = r * (2*max_seeds);
+    for (unsigned int s = 0; s < 2; s++) {
+      //printf(" Strand %i\n", s);
+      offset_pasada = 0;
+      for(unsigned int p = 0; p < 2; p++) {
+	//printf("\t\tPasada %i\n", p);
+	for(unsigned int v = 0; v < max_seeds; v++) { 
+	  /*printf("\t\tPos: %i :(k, l) : (%lu, %lu)\n", 
+		 offset_read + v + offset_strand + offset_pasada,
+	  	 k_values[offset_read + v + offset_strand + offset_pasada], 
+	  	 l_values[offset_read + v + offset_strand + offset_pasada]);
+	  */
+	  /**************************** Process KL Values ***************************/
+	  
+	  len = batch->data_indices[r + 1] - batch->data_indices[r] - 1;
+	  k_aux =  k_values[offset_read + v + offset_strand + offset_pasada];
+	  l_aux =  l_values[offset_read + v + offset_strand + offset_pasada];
+	  
+	  if (l_aux - k_aux + 1 < bwt_optarg->max_alignments_per_read) {
+	    for (size_t j = k_aux; j <= l_aux; j++) {
+	      if (index->S.ratio == 1) {
+		key = index->S.vector[j];
+	      } else {
+		key = getScompValue(j, &index->S, &index->h_C, &index->h_O);
+	      }
+	      //printf("----> key value: %d\n", key);
+	      
+	      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	      //printf("----> idx value: %d\n", idx);
+	      //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+	      
+	      if(key + len <= index->karyotype.offset[idx]) {
+		start = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+		
+		//printf("\tStrand:%i\tchromosome:%d\tStart:%u\tLength:%u\n",
+		//       (r > num_reads), idx, start, len);
+		
+		// save all into one alignment structure and insert to the list
+		num_mappings++;
+		region = region_new(idx, s, start, start + cal_optarg->seed_size - 1);
+		//printf("Insert region\n");
+		if (!array_list_insert((void*) region, mapping_list[r])) {
+		  printf("Error to insert item into array list\n");
+		}
+		//printf("Insert ok!\n");
+	      }
+	    }	    
+	    /**************************************************************************/
+	  }
+	  
+	}
+	offset_pasada = max_seeds;	
+      }
+      offset_strand =  num_reads * (2 * max_seeds);
+    }
+  }
+
+  stop_timer(start_time, end_time, time_search_seed);  
+
+  //  printf("Process kl END\n");
+  free(code_seqs);
+  free(k_values);
+  free(l_values);
+
+  return num_mappings;
+}
+
+
 
 size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 			       bwt_optarg_t *bwt_optarg, 
@@ -52,9 +258,9 @@ size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 
   start_timer(start_time);
 
-  gpu_get_kl_values(num_reads, batch->data_size,
+  gpu_get_kl_values(0, 0, 0, num_reads, batch->data_size,
 		    code_seqs, batch->data_indices,
-		    gpu_context, k_values, l_values);
+		    gpu_context, k_values, l_values, NORMAL_MODE);
 
   stop_timer(start_time, end_time, kl_time);
 
@@ -122,8 +328,7 @@ size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 	    alignment_init_single_end(header, seq_dup, quality, (r > num_reads), 
 				      idx - 1,				      
 				      start, 
-				      cigar, 1, 255, 1, (num_mappings > 0), alignment);
-	    
+				      cigar, 1, 255, 1, (num_mappings > 0), alignment);	    
 	    
 	    if (!array_list_insert((void*) alignment, mapping_list)) {
 	      printf("Error to insert item into array list\n");

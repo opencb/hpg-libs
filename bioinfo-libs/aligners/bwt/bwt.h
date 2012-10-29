@@ -25,6 +25,7 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 double global_parallel, global_sequential;
+
 double time_bwt, time_search, time_bwt_seed, time_search_seed;
 //-----------------------------------------------------------------------------
 // Paratemers for the candidate alignment localizations (CALs)
