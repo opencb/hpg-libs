@@ -98,6 +98,7 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
   list_t *list = NULL;
   size_t index, num_mappings;
   fastq_batch_t *fq_batch = batch->fq_batch;
+  size_t num_seeds = input->cal_optarg_p->num_seeds;
   size_t seed_size = input->cal_optarg_p->seed_size;
   size_t min_seed_size = input->cal_optarg_p->min_seed_size;
   size_t num_seqs = batch->num_targets;
@@ -114,16 +115,29 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
       
     index = batch->targets[i];
     list = batch->mapping_lists[index];
-
+    //printf("region_seeker.c: apply_seeding: list #%i size = %i\n", i, array_list_size(list));
+    
     seq = &(fq_batch->seq[fq_batch->data_indices[index]]);
-    num_mappings = bwt_map_exact_seeds_seq(seq, seed_size,min_seed_size,
+    /*
+    num_mappings = bwt_map_exact_seeds_seq(seq, seed_size, min_seed_size,
 					   input->bwt_optarg_p, input->bwt_index_p, 
-					   list);
+    					   list);
+    */
+    num_mappings = bwt_map_exact_seeds_seq_by_num(seq, num_seeds, seed_size, min_seed_size,
+    						  input->bwt_optarg_p, input->bwt_index_p, 
+    						  list);
     if (num_mappings > 0) {
       //      printf("\tregion_seeker.c: apply_seeding, setting flag to 2 for list %i\n", index);
       array_list_set_flag(2, list);
       outputs[num_outputs++] = index;
       batch->num_to_do += num_mappings;
+      //    } else {
+      //	if (strncmp("@rand", &(fq_batch->header[fq_batch->header_indices[index]]), 5)) {
+      //	  printf("\tno seeds for read #%d: %s\n", 
+      //		 index, &(fq_batch->header[fq_batch->header_indices[index]]));
+      //	} 
+      //   } else {
+      //      printf("\tregion_seeker.c: apply_seeding: %s: list #%i, size = %i\n", &(fq_batch->header[fq_batch->header_indices[index]]), i, array_list_size(list));
     }
     //    printf("\tSEED  : read %d (%d items): %s\n", 
     //    	   index, num_mappings, &(fq_batch->header[fq_batch->header_indices[index]]));
@@ -141,6 +155,8 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
   // update counter
   thr_seeding_items[omp_get_thread_num()] += batch->num_done;
   
+  //  printf("region_seeker.c: apply_seeding: num_outputs = %i\n", num_outputs);
+
   //  printf("END: apply_seeding, (seeding %d reads)\n", num_outputs);
 }
 

@@ -334,7 +334,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   double t_total;
   struct timeval t1, t2;
   
-  #pragma omp parallel sections num_threads(3 + options->num_cpu_threads)
+  #pragma omp parallel sections num_threads(3) //options->num_cpu_threads)
   {
     printf("Principal Sections %d threads\n", omp_get_num_threads());
     
