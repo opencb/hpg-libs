@@ -2,7 +2,7 @@
 #CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -xavx -vec-report1
 
 CC = gcc
-CFLAGS = -std=c99 -O3 -fopenmp
+CFLAGS = -std=c99 -O3 -fopenmp -g
 
 INCLUDES = -I .
 LIBS = -lxml2 -lm

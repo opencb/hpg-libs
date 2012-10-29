@@ -147,7 +147,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
     depth = 0;
     for (unsigned int i = 0; i < num_queries; i++) {
-
+      //printf("smith_waterman.c: query: #%i\n", i);
       len = strlen(query_p[i]);
       if (len > max_q_len) max_q_len = len;
       q_lens[depth] = len;

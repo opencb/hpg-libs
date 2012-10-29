@@ -34,6 +34,7 @@ double time_bwt, time_search, time_bwt_seed, time_search_seed;
 typedef struct cal_optarg {
   size_t min_cal_size;
   size_t max_cal_distance;
+  size_t num_seeds;
   size_t seed_size;
   size_t min_seed_size;
   size_t num_errors;
@@ -41,6 +42,7 @@ typedef struct cal_optarg {
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
+			     const size_t num_seeds,
 			     const size_t seed_size,
 			     const size_t min_seed_size,
 			     const size_t num_errors);
@@ -54,35 +56,59 @@ typedef struct cal {
   short int strand;
   size_t start;
   size_t end;
+  size_t num_seeds;
 } cal_t;
 
 cal_t *cal_new(const size_t chromosome_id, 
 	       const short int strand,
 	       const size_t start, 
-	       const size_t end);
+	       const size_t end,
+	       const size_t num_seeds);
 
 void cal_free(cal_t *cal);
 
 //-----------------------------------------------------------------------------
 
-typedef cal_t region_t;
+typedef struct region {
+  size_t chromosome_id;
+  short int strand;
+  size_t start;
+  size_t end;
+
+  size_t seq_start;
+  size_t seq_end;
+  size_t seq_len;
+} region_t;
 
 region_t *region_new(const size_t chromosome_id, 
 	             const short int strand,
 	             const size_t start, 
-	             const size_t end);
+	             const size_t end,
+		     const size_t seq_start,
+		     const size_t seq_end,
+		     const size_t seq_len);
 
-void region_free(region_t *cal);
+void region_free(region_t *region);
 
 //-----------------------------------------------------------------------------
 
 typedef struct short_cal {
-	size_t start;
-	size_t end;
+  size_t start;
+  size_t end;
+
+  size_t seq_start;
+  size_t seq_end;
+  size_t seq_len;
+
+  size_t num_seeds;
 } short_cal_t;
 
 short_cal_t *short_cal_new(const size_t start, 
-	                   const size_t end);
+	                   const size_t end,
+			   const size_t seq_start,
+			   const size_t seq_end,
+			   const size_t seq_len,
+			   const size_t num_seeds);
 
 void short_cal_free(short_cal_t *short_cal_p);
 
@@ -125,6 +151,7 @@ void bwt_optarg_free(bwt_optarg_t *optarg);
 typedef struct bwt_index {
   comp_matrix h_O, h_rO, h_Oi, h_rOi;
   vector h_C, h_rC, h_C1, h_rC1;
+  byte_vector B;
   comp_vector S, Si;
   exome karyotype;
   char *dirname;
@@ -203,6 +230,26 @@ size_t bwt_map_batch(fastq_batch_t *batch,
 		     bwt_index_t *index, 
 		     fastq_batch_t *unmapped_batch,
 		     array_list_t *mapping_list);
+
+//-----------------------------------------------------------------------------
+// seed functions
+//-----------------------------------------------------------------------------
+
+size_t bwt_map_exact_seeds_seq(char *seq, 
+			       size_t seed_size, size_t min_seed_size,
+			       bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+			       array_list_t *mapping_list);
+
+size_t bwt_map_exact_seeds_seq_by_num(char *seq, size_t num_seeds, 
+				      size_t seed_size, size_t min_seed_size,
+				      bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				      array_list_t *mapping_list);
+
+//-----------------------------------------------------------------------------
+
+size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
+				 bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
+				 array_list_t *mapping_list);
 
 //-----------------------------------------------------------------------------
 // cal functions
