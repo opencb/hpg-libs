@@ -2,6 +2,8 @@
 #CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -xavx -vec-report1
 
 CC = gcc
+#CC = /opt/intel/bin/icc
+
 CFLAGS = -std=c99 -O3 -fopenmp -g
 
 INCLUDES = -I .

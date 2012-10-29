@@ -115,10 +115,13 @@ extern "C" void gpu_reallocate_memory(size_t *new_size, size_t *old_size, void *
 // gpu get k and l values
 //-----------------------------------------------------------------------------
 
-extern "C" void gpu_get_kl_values(size_t num_reads, size_t seqs_size,
+extern "C" void gpu_get_kl_values(size_t seed_size, size_t min_seed_size, 
+       	   			  size_t num_max_seeds,
+				  size_t num_reads, size_t seqs_size,
 				  char *seqs, size_t *indices,
 				  gpu_context_t *context, 
-				  size_t *k_values, size_t *l_values) {
+				  size_t *k_values, size_t *l_values,
+				  unsigned char mode) {
   
   unsigned int num_threads = context->num_threads;
   unsigned int num_blocks = (num_reads / num_threads) + ((num_reads % num_threads == 0) ? 0 : 1);
@@ -128,8 +131,16 @@ extern "C" void gpu_get_kl_values(size_t num_reads, size_t seqs_size,
 
   size_t indices_size = (num_reads + 1) * sizeof(size_t);
   gpu_reallocate_memory(&indices_size, &context->d_nWe_size, (void **) &context->d_nWe);
-    
-  size_t kl_size = num_reads * sizeof(size_t);
+  size_t kl_size;
+
+  if (mode == SEED_MODE) {
+    kl_size = num_reads * (2 * num_max_seeds) * sizeof(size_t);
+  }else {  
+    kl_size = num_reads * sizeof(size_t);
+  }
+
+  //printf("KL %i\n", num_reads * (2 * num_max_seeds));
+
   gpu_reallocate_memory(&kl_size, &context->d_k_size, (void **) &context->d_k);
   gpu_reallocate_memory(&kl_size, &context->d_l_size, (void **) &context->d_l);
   
@@ -142,10 +153,18 @@ extern "C" void gpu_get_kl_values(size_t num_reads, size_t seqs_size,
   // call CUDA kernels and copy gpu results to cpu and insert them to list to be processed    
 
   // searching with d_O (normal strand)
-  BWExactSearchBackwardGPUWrapper_ex(num_blocks, num_threads, context->d_We, context->d_nWe, 
-				     context->d_k, context->d_l, 0, context->d_O.siz-2, 
-				     &context->d_C, &context->d_C1, &context->d_O, num_reads);
+  if (mode == SEED_MODE) {
+     //printf("SEED MODE :\n Num Reads: %i\n Seed Size: %i\n Min Seed Size: %i\n Num Max Seeds: %i\n", num_reads, seed_size, min_seed_size, num_max_seeds);
 
+     BWExactSearchBackwardGPUSeedsWrapper_ex(num_blocks, num_threads, context->d_We, context->d_nWe, 
+     					context->d_k, context->d_l, 0, context->d_O.siz-2, 
+				        &context->d_C, &context->d_C1, &context->d_O, num_reads, 
+					seed_size, min_seed_size, num_max_seeds);
+  }else {
+     BWExactSearchBackwardGPUWrapper_ex(num_blocks, num_threads, context->d_We, context->d_nWe, 
+     					context->d_k, context->d_l, 0, context->d_O.siz-2, 
+				        &context->d_C, &context->d_C1, &context->d_O, num_reads);
+  }
 
   // copy back the results (GPU -> CPU);
   cudaMemcpy(k_values, context->d_k, kl_size, cudaMemcpyDeviceToHost);
@@ -155,16 +174,34 @@ extern "C" void gpu_get_kl_values(size_t num_reads, size_t seqs_size,
 
 
   // searching with d_rO (reverse strand)
-  BWExactSearchForwardGPUWrapper_ex(num_blocks, num_threads, context->d_We, context->d_nWe, 
-				    context->d_k, context->d_l, 0, context->d_O.siz-2, 
-				    &context->d_rC, &context->d_rC1, &context->d_rO, num_reads);
+  if (mode == SEED_MODE) {
+     //printf("SEED MODE\n");
+     BWExactSearchForwardGPUSeedsWrapper_ex(num_blocks, num_threads, context->d_We, 
+					    context->d_nWe,	
+					    context->d_k, context->d_l, 0, 
+					    context->d_O.siz-2, &context->d_rC, 
+					    &context->d_rC1, &context->d_rO, num_reads, 
+					    seed_size, min_seed_size, num_max_seeds);
+     // copy back the results (GPU -> CPU);
+     cudaMemcpy(k_values + (num_reads * (2 * num_max_seeds)), context->d_k, kl_size, cudaMemcpyDeviceToHost);
+     //manageCudaError();
+     cudaMemcpy(l_values + (num_reads * (2 * num_max_seeds)), context->d_l, kl_size, cudaMemcpyDeviceToHost);
+     //manageCudaError();
+     
+  }else {
+     BWExactSearchForwardGPUWrapper_ex(num_blocks, num_threads, context->d_We, context->d_nWe,	
+     				       context->d_k, context->d_l, 0, context->d_O.siz-2, 
+                                       &context->d_rC, &context->d_rC1, &context->d_rO, num_reads);
+     // copy back the results (GPU -> CPU);
+     cudaMemcpy(k_values + num_reads, context->d_k, kl_size, cudaMemcpyDeviceToHost);
+     //manageCudaError();
+     cudaMemcpy(l_values + num_reads, context->d_l, kl_size, cudaMemcpyDeviceToHost);
+     //manageCudaError();
+     
+  }
 
-  // copy back the results (GPU -> CPU);
-  cudaMemcpy(k_values + num_reads, context->d_k, kl_size, cudaMemcpyDeviceToHost);
-  //manageCudaError();
-  cudaMemcpy(l_values + num_reads, context->d_l, kl_size, cudaMemcpyDeviceToHost);
-  //manageCudaError();
 }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

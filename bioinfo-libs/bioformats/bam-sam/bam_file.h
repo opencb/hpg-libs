@@ -6,11 +6,11 @@
 #include <stdlib.h>
 
 #ifdef THRUST-GPU
-    #include <thrust/host_vector.h>
-    #include <thrust/device_vector.h>
-    #include <thrust/sort.h>
-    #include <thrust/copy.h>
-#endif
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include <thrust/sort.h>
+#include <thrust/copy.h>
+#endif // THRUST-GPU
 
 #include "bam/bam.h"
 

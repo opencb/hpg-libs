@@ -64,6 +64,7 @@ void freeCompMatrixGPUHost(comp_matrix *matrix);
 void freeCompMatrixGPUDevice(comp_matrix *matrix);
 
 void BWExactSearchBackwardGPUWrapper(unsigned int num_bloques, unsigned int tam_bloque, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O);
+
 void BWExactSearchForwardGPUWrapper(unsigned int num_bloques, unsigned int tam_bloque, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O);
 
 //-----------------------------------------------------------------------------
@@ -74,8 +75,26 @@ void BWExactSearchForwardGPUWrapper(unsigned int num_bloques, unsigned int tam_b
 // of the read as the original functions ("no _ex") do
 //
 //-----------------------------------------------------------------------------
-void BWExactSearchBackwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O, size_t num_reads);
-void BWExactSearchForwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O, size_t num_reads);
+void BWExactSearchBackwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, 
+     				        unsigned int *nW, size_t *k, size_t *l, size_t k_ini, 
+					size_t l_ini, vector *C, vector *C1, comp_matrix *O, size_t num_reads);
+
+void BWExactSearchForwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, 
+     				       unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, 
+				       vector *C, vector *C1, comp_matrix *O, size_t num_reads);
+
+void BWExactSearchBackwardGPUSeedsWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+     					     char *W, unsigned int *nW, size_t *k, size_t *l, 
+					     size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+					     comp_matrix *O, size_t num_reads, size_t seed_size, 
+					     size_t min_seed_size, size_t num_max_seeds);
+
+void BWExactSearchForwardGPUSeedsWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+     					    char *W, unsigned int *nW, size_t *k, size_t *l, 
+					    size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+					    comp_matrix *O, size_t num_reads, size_t seed_size, 
+					    size_t min_seed_size, size_t num_max_seeds);
+
 //-----------------------------------------------------------------------------
 // end of _ex functions
 //-----------------------------------------------------------------------------

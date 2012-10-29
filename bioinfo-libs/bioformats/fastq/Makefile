@@ -1,4 +1,6 @@
+#CC = /opt/intel/bin/icc
 CC = gcc
+
 CFLAGS = -std=c99 -O3 -D_GNU_SOURCE -g
 CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 

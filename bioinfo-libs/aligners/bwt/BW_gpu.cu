@@ -324,6 +324,105 @@ __global__ void BWExactSearchBackwardGPU_ex(char *W, unsigned int *nW, size_t *k
   }
 }
 
+
+//-----------------------------------------------------------------------------
+__global__ void BWExactSearchBackwardSeedsGPU_ex(char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, unsigned int *C, unsigned int *C1, comp_matrix O, size_t num_reads, size_t seed_size, size_t min_seed_size, size_t num_max_seeds) {
+
+  int i, len, s, start_seed, end_seed, last_seed_size, num_seeds;
+  BWiterationVariablesGPU();
+  size_t k2, l2, index;
+  unsigned int offset  = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int offset_write;
+  unsigned int offset_seed;
+  unsigned int write_offset = offset * (num_max_seeds*2);
+
+  __shared__ unsigned int Cshared[4];
+  __shared__ unsigned int C1shared[4];
+  
+  if (threadIdx.x<4) {
+    Cshared[threadIdx.x]  = C[threadIdx.x];
+    C1shared[threadIdx.x] = C1[threadIdx.x];
+  }
+
+  __syncthreads();
+
+  if (offset < num_reads) {
+    index = nW[offset];
+    len = nW[offset + 1] - index - 1;
+    offset_write = offset * (2 * num_max_seeds);
+    memset(k + offset_write, 0, 2*num_max_seeds*sizeof(size_t));
+    memset(l + offset_write, 0, 2*num_max_seeds*sizeof(size_t));
+
+    num_seeds = len / seed_size ;
+    
+    start_seed = 0;
+    end_seed = seed_size - 1;
+    
+    //First 'pasada'
+    for (s = 0; s < num_seeds; s++) {
+      k2 = k_ini; l2 = l_ini;
+      for (i = end_seed; (k2 <= l2) && (i >= start_seed); i--) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+
+      k[offset_write + s] = k2; //k_ini; //k2;
+      l[offset_write + s] = l2; //l_ini; //l2;
+      end_seed += seed_size;  
+      start_seed += seed_size;
+    }
+
+            
+    last_seed_size = len % seed_size;
+    if (last_seed_size >= min_seed_size) {
+      k2 = k_ini; l2 = l_ini;
+      start_seed = start_seed + seed_size;
+      for (i = len - 1; (k2 <= l2) && (i >= start_seed); i--) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i] + start_seed, Cshared, C1shared, O);
+      }
+      k[offset + s] = k2; //k_ini; //k2;
+      l[offset + s] = l2; //l_ini; //l2;
+    }/*else {
+      k[offset_write + s] = 0;
+      l[offset_write + s] = 0;
+      }*/
+
+
+    //Second 'pasada'
+    offset_seed = seed_size / 2;
+    num_seeds = (len - seed_size / 2) / seed_size;
+    offset_write += num_max_seeds;
+    start_seed = offset_seed;
+    end_seed = start_seed + seed_size - 1;
+    
+    for (s = 0; s < num_seeds; s++) {
+      k2 = k_ini; l2 = l_ini;
+      for (i = end_seed; (k2 <= l2) && (i >= start_seed); i--) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+
+      k[offset_write + s] = k2; //k_ini; //k2;
+      l[offset_write + s] = l2; //l_ini; //l2;
+      end_seed += seed_size;  
+      start_seed += seed_size;
+    }
+
+    last_seed_size = (len - seed_size / 2) % seed_size;
+    if (last_seed_size >= min_seed_size) {
+      k2 = k_ini; l2 = l_ini;
+      start_seed = start_seed + seed_size;
+      for (i = len - 1; (k2 <= l2) && (i >= start_seed); i--) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i] + start_seed, Cshared, C1shared, O);
+      }
+      k[offset + s] = k2; //k_ini; //k2;
+      l[offset + s] = l2; //l_ini; //l2;
+    }/*else {
+      k[offset_write + s] = 0;
+      l[offset_write + s] = 0;
+      }*/
+  }
+
+}
+
 //-----------------------------------------------------------------------------
 
 __global__ void BWExactSearchForwardGPU_ex(char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, unsigned int *C, unsigned int *C1, comp_matrix O, size_t num_reads) {
@@ -354,6 +453,99 @@ __global__ void BWExactSearchForwardGPU_ex(char *W, unsigned int *nW, size_t *k,
 
     k[offset] = k2; //index; // k_ini; //k2;
     l[offset] = l2; //len; // l_ini; //l2;
+  }
+}
+
+__global__ void BWExactSearchForwardSeedsGPU_ex(char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, unsigned int *C, unsigned int *C1, comp_matrix O, size_t num_reads, size_t seed_size, size_t min_seed_size, size_t num_max_seeds) {
+
+  int s, i, len, start_seed, end_seed, num_seeds;
+  BWiterationVariablesGPU();
+  size_t k2, l2, index;
+  unsigned int offset  = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int offset_write;
+  unsigned int offset_seed;
+  unsigned int last_seed_size;
+
+  __shared__ unsigned int Cshared[4];
+  __shared__ unsigned int C1shared[4];
+
+  if (threadIdx.x<4) {
+    Cshared[threadIdx.x] = C[threadIdx.x];
+    C1shared[threadIdx.x] = C1[threadIdx.x];
+  }
+
+  __syncthreads();
+
+  if (offset < num_reads) {
+    index = nW[offset];
+    len = nW[offset + 1] - index - 1;
+    offset_write = offset * (2 * num_max_seeds);
+    num_seeds = len / seed_size ;
+    start_seed = 0;
+    end_seed = seed_size;
+
+    memset(k + offset_write, 0, 2*num_max_seeds*sizeof(size_t));
+    memset(l + offset_write, 0, 2*num_max_seeds*sizeof(size_t));
+
+    //First 'pasada'
+    for (s = 0; s < num_seeds; s++) {
+      k2 = k_ini;  l2 = l_ini;
+      for (i = start_seed; (k2 <= l2) && (i < end_seed); i++) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+
+      k[offset_write + s] = k2; //index; // k_ini; //k2;
+      l[offset_write + s] = l2; //len; // l_ini; //l2;
+      end_seed = end_seed + seed_size;  
+      start_seed = start_seed + seed_size;   
+    }
+  
+    last_seed_size = len % seed_size;
+    if (last_seed_size >= min_seed_size) {
+      k2 = k_ini;  l2 = l_ini;
+      start_seed = start_seed + seed_size;
+      for (i = start_seed; (k2 <= l2) && (i < len-1); i++) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+      k[offset_write + s] = k2; //index; // k_ini; //k2;
+      l[offset_write + s] = l2; //len; // l_ini; //l2;
+    }/*else {
+      k[offset_write + s] = 0;
+      l[offset_write + s] = 0;
+      }*/
+    
+    //Second 'pasada'
+    offset_write += num_max_seeds;
+    offset_seed = seed_size / 2;
+    num_seeds = (len - seed_size / 2) / seed_size;
+    start_seed = offset_seed;
+    end_seed = start_seed + seed_size;
+    
+    for (s = 0; s < num_seeds; s++) {
+       k2 = k_ini;  l2 = l_ini;
+      for (i = start_seed; (k2 <= l2) && (i < end_seed); i++) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+      k[offset_write + s] = k2; //index; // k_ini; //k2;
+      l[offset_write + s] = l2; //len; // l_ini; //l2;
+      end_seed = end_seed + seed_size;  
+      start_seed = start_seed + seed_size;   
+    }
+    
+    last_seed_size = (len - seed_size / 2) % seed_size;
+    if (last_seed_size >= min_seed_size) {
+      k2 = k_ini;  l2 = l_ini;
+      start_seed = start_seed + seed_size;
+      for (i = start_seed; (k2 <= l2) && (i < len-1); i++) {
+	BWiterationGPU(k2, l2, k2, l2, W[index + i], Cshared, C1shared, O);
+      }
+      k[offset_write + s] = k2; //index; // k_ini; //k2;
+      l[offset_write + s] = l2; //len; // l_ini; //l2;
+    }/*else {
+      k[offset_write + s] = 0;
+      l[offset_write + s] = 0;
+      }*/
+    
   }
 }
 
@@ -735,16 +927,44 @@ __global__ void BWExactIterativeSearchGPURev(char *W, int *nW, int *nWe, int *k,
 }
 */
 
-void BWExactSearchBackwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O, size_t num_reads) {
+void BWExactSearchBackwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+                                        char *W, unsigned int *nW, size_t *k, size_t *l, 
+					size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+					comp_matrix *O, size_t num_reads) {
   BWExactSearchBackwardGPU_ex<<<num_bloques,tam_bloques>>>(W, nW, k, l, k_ini, l_ini, C->vector, C1->vector, *O, num_reads);
 }
 
-void BWExactSearchForwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O, size_t num_reads) {
+void BWExactSearchBackwardGPUSeedsWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+     				             char *W, unsigned int *nW, size_t *k, size_t *l, 
+					     size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+					     comp_matrix *O, size_t num_reads, size_t seed_size, 
+					     size_t min_seed_size, size_t num_max_seeds) {
+  BWExactSearchBackwardSeedsGPU_ex<<<num_bloques,tam_bloques>>>(W, nW, k, l, k_ini, l_ini, C->vector, 
+  								C1->vector, *O, num_reads, seed_size, 
+							        min_seed_size, num_max_seeds);
+}
+
+
+void BWExactSearchForwardGPUWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+     				       char *W, unsigned int *nW, size_t *k, size_t *l, 
+				       size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+				       comp_matrix *O, size_t num_reads) {
   BWExactSearchForwardGPU_ex<<<num_bloques,tam_bloques>>>(W, nW, k, l, k_ini, l_ini, C->vector, C1->vector, *O, num_reads);
 }
 
 
 
+void BWExactSearchForwardGPUSeedsWrapper_ex(unsigned int num_bloques, unsigned int tam_bloques, 
+     				            char *W, unsigned int *nW, size_t *k, size_t *l, 
+					    size_t k_ini, size_t l_ini, vector *C, vector *C1, 
+					    comp_matrix *O, size_t num_reads, size_t seed_size, 
+					    size_t min_seed_size, size_t num_max_seeds) {
+  BWExactSearchForwardSeedsGPU_ex<<<num_bloques,tam_bloques>>>(W, nW, k, l, k_ini, l_ini, C->vector, 
+  							       C1->vector, *O, num_reads, seed_size, 
+							       min_seed_size, num_max_seeds);
+}
+
+//===============================================================================================================================
 
 void BWExactSearchBackwardGPUWrapper(unsigned int num_bloques, unsigned int tam_bloques, char *W, unsigned int *nW, size_t *k, size_t *l, size_t k_ini, size_t l_ini, vector *C, vector *C1, comp_matrix *O) {
   BWExactSearchBackwardGPU<<<num_bloques,tam_bloques>>>(W, nW, k, l, k_ini, l_ini, C->vector, C1->vector, *O);

@@ -669,14 +669,16 @@ char select_op(unsigned char status){
 //--------------------------------------------------------------
 char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot){
   char *cigar_p;
-  unsigned int cigar_max_len = length * 2; //200;
+
+  unsigned int cigar_max_len = length * 2;
+  char operation_number[cigar_max_len];
+
   unsigned char status;
   unsigned char transition;
   short int cigar_soft;
   short int value = 0;
   unsigned int number_op = 0;
   char operation;
-  char operation_number[200];
   unsigned int perfect = 0;  
   unsigned int deletions_tot = 0;
   
