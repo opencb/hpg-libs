@@ -1,6 +1,10 @@
 CC = gcc
-CFLAGS = -std=c99 -O3 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION
-CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION
+#CC = /opt/intel/bin/icc 
+
+# -xSSE4.2 -msse4.2 -march=native 
+
+CFLAGS = -g -std=c99 -O3 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION
+#CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION
 
 # Main folders
 SRC_DIR = $(PWD)/src
@@ -19,6 +23,11 @@ ALIGNERS_DIR = $(BIOINFO_LIBS_DIR)/aligners
 # Include and lib folders
 INCLUDES = -I . -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include
 LIBS = -L$(LIB_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprops -fopenmp -largtable2 -lconfig -lbam -lcurl -lm -lz -lxml2
+
+CUDA_HOME = /usr/local/cuda
+CUDA_LIBS = -L $(CUDA_HOME)/lib64 -lcudart
+#CUDA_LIBS = -L /usr/local/cuda/lib64 -lcudart
+
 # -largtable2 -lconfig 
 
 # Object file dependencies
@@ -34,6 +43,11 @@ ALL_OBJS = $(HPG_ALIGNER_OBJS) $(MISC_OBJS)
 
 # Targets
 all: compile-dependencies hpg-aligner
+
+hpg-aligner-gpu: compile-dependencies compile-dependencies-gpu  
+	cd $(SRC_DIR) &&                                                         \
+	$(CC) $(CFLAGS) -DHPG_GPU -c main.c $(HPG_ALIGNER_FILES) $(INCLUDES) $(LIBS) $(CUDA_LIBS) &&    \
+	$(CC) $(CFLAGS) -DHPG_GPU -o $(BIN_DIR)/$@ main.o $(ALL_OBJS) $(INCLUDES) $(LIBS) $(CUDA_LIBS)
 
 hpg-aligner: compile-dependencies
 	cd $(SRC_DIR) &&                                                         \
@@ -52,6 +66,9 @@ compile-dependencies: bam-dependencies
 	cd $(ALIGNERS_DIR)/sw && make &&       \
 	cd $(BIOFORMATS_DIR)/fastq && make
 
+compile-dependencies-gpu:
+	cd $(ALIGNERS_DIR)/bwt && make test-search-gpu
+
 bam-dependencies:
 	cd $(BIOFORMATS_DIR)/bam-sam &&  \
         $(CC) $(CFLAGS) -c -o $(BIOFORMATS_DIR)/bam-sam/alignment.o $(BIOFORMATS_DIR)/bam-sam/alignment.c $(INCLUDES) $(LIBS) && \
@@ -63,7 +80,8 @@ clean:
 	-rm -f $(CONTAINERS_DIR)/*.o
 	-rm -f $(BIOFORMATS_DIR)/fastq/*.o
 	-rm -f $(BIOFORMATS_DIR)/bam-sam/alignment.o
-	-rm -f $(BIN_DIR)/*
+	-rm -f $(BIN_DIR)/hpg-aligner-gpu
+	-rm -f $(BIN_DIR)/hpg-aligner
 
 
 

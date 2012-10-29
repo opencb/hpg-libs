@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "statistics.h"
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -70,7 +69,7 @@ void statistics_display(statistics_t* statistics_p) {
       end += statistics_p->num_values[i];
       s = 0;
       for (j = start; j < end; j++) {
-	printf("\t%s:%-7d\n", statistics_p->section_sublabels_p[j], statistics_p->values_p[i][s]);
+	printf("\t%s:%-7lu\n", statistics_p->section_sublabels_p[j], statistics_p->values_p[i][s]);
 	s++;
       }
       //printf("\n");
@@ -85,6 +84,7 @@ void statistics_display(statistics_t* statistics_p) {
 //-------------------------------------------------------------------------------------------------------------------
 
 void timing_and_statistics_display(statistics_t* statistics_p, timing_t *t_p) {
+
   if (t_p == NULL) return;
 
   printf("\n");
@@ -102,14 +102,16 @@ void timing_and_statistics_display(statistics_t* statistics_p, timing_t *t_p) {
     }
 
     if ( i ==  (t_p->num_sections - 4)) {
-      printf("%s\t: %i/%4.04f = %4.04f(op/sec)\n", t_p->section_labels_p[i], statistics_p->values_p[i - 2][4], t_p->section_times_p[i]/1000000, 
+      printf("%s\t: %lu/%4.04f = %4.04f(op/sec)\n", t_p->section_labels_p[i], statistics_p->values_p[i - 2][4], t_p->section_times_p[i]/1000000, 
 	     (statistics_p->values_p[i - 2][4] / (t_p->section_times_p[i]/1000000)) );
     } else {
-      printf("%s\t: %i/%4.04f = %4.04f(op/sec)\n", t_p->section_labels_p[i], statistics_p->values_p[i- 2][1], t_p->section_times_p[i]/1000000, 
+      printf("%s\t: %lu/%4.04f = %4.04f(op/sec)\n", t_p->section_labels_p[i], statistics_p->values_p[i- 2][1], t_p->section_times_p[i]/1000000, 
 	     (statistics_p->values_p[i][1] / (t_p->section_times_p[i]/1000000)) );
     }
   }
   printf("=============================================================================\n");
   printf("=============================================================================\n");
   printf("\n");
+
 }
+
