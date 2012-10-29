@@ -1,5 +1,8 @@
 CC = gcc
+#CC = /opt/intel/bin/icc
+
 CFLAGS = -std=c99 -O3
+
 CFLAGS_DEBUG = -std=c99 -g
 
 LIBS_ROOT = $(PWD)/..

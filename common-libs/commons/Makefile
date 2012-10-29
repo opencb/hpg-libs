@@ -4,7 +4,10 @@ LIB = .
 ALL = io
 
 CC = gcc
+#CC = /opt/intel/bin/icc
+
 CFLAGS = -Wall -O3 -std=c99
+
 CFLAGS_DEBUG = -Wall -g
 
 LIBS = -lcurl -Wl,-Bsymbolic-functions
