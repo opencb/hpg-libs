@@ -22,6 +22,12 @@
 #include "sw_server.h"
 #include "pair_server.h"
 #include "batch_aligner.h"
+
+#ifdef HPG_GPU
+#include "aligners/bwt/gpu.h"
+#include "aligners/bwt/bwt_gpu.h"
+#endif
+
 // rna server
 #include "rna_splice.h"
 #include "rna_server.h"
@@ -39,6 +45,7 @@ double sse1_matrix_t = 0.0f, sse1_tracking_t = 0.0f;
 double avx_matrix_t = 0.0f, avx_tracking_t = 0.0f;
 double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
+
 //--------------------------------------------------------------------
 // constants
 //--------------------------------------------------------------------
@@ -46,8 +53,8 @@ double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 #define OPTIONS 			30
 #define MIN_ARGC  			5
 #define NUM_SECTIONS_TIME 		10
-#define NUM_SECTIONS_STATISTICS 	6
-#define NUM_SECTIONS_STATISTICS_SB	23
+#define NUM_SECTIONS_STATISTICS 	5
+#define NUM_SECTIONS_STATISTICS_SB	21
 //#define REQUIRED 1
 //#define NO_REQUIRED 0
 
@@ -67,10 +74,18 @@ char statistics_on = 0;
 timing_t* timing_p = NULL;
 int num_of_chromosomes;
 statistics_t *statistics_p;
+double kl_time;
 
+#ifdef HPG_GPU
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		     gpu_context_t *context, options_t *options);
+#else
 void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     options_t *options);
+#endif
+
 //--------------------------------------------------------------------
 // main parameters support
 //--------------------------------------------------------------------
@@ -80,12 +95,44 @@ int main(int argc, char* argv[]) {
   // parsing options
   options_t *options = parse_options(argc, argv);
 
+  //************** Set Threads to sections **************//
+  size_t cpu_threads = options->num_cpu_threads; 
+  if (options->rna_seq) {
+    if (!options->bwt_set && 
+	!options->reg_set && 
+	!options->cal_set &&
+	!options->sw_set &&
+	cpu_threads > 4) {
+      printf("Auto Thread configuration ...\n");
+      if (cpu_threads == 5) { options->region_threads++; }
+      else if (cpu_threads == 6) { 
+	options->region_threads++; 
+	options->num_sw_servers++; 
+      }
+      else {
+	options->region_threads = options->num_cpu_threads / 2;
+	cpu_threads -= options->region_threads;
+	cpu_threads -= options->bwt_threads;
+	
+	options->num_sw_servers = (cpu_threads / 2) + 1;
+	cpu_threads -= options->num_sw_servers;
+	
+	options->num_cal_seekers = cpu_threads;
+      }
+      printf("Set %d Threads successful\n", options->num_cpu_threads);
+    }
+  }
+  //****************************************************//
+
+  printf("done !\n");
+  printf("displaying options...\n");
   // display selected options
   options_display(options);
 
   time_on =  (unsigned int) options->timming;
   statistics_on =  (unsigned int) options->statistics;
 
+  
   // timing
   if (time_on) { 
     char* labels_time[NUM_SECTIONS_TIME] = {"Initialization BWT index   ", 
@@ -116,17 +163,13 @@ int main(int argc, char* argv[]) {
      * Batch writer       : Total num mappings report %d
      * Total 		  : Total reads %d, Total reads mapped %d, Total reads unmapped %d, Total splice junctions %d 	
      */				
-    char* labels_statistics[NUM_SECTIONS_STATISTICS] = {"FastqQ reader              ", 
-							"BWT server                 ", 
-							"Region seeker              ", 
-							"CAL seeker                 ", 
-							"Rna server                 ",
-							"Total 	Statistics	    "};
+    char* labels_statistics[NUM_SECTIONS_STATISTICS] = { "BWT server                 ", 
+							 "Region seeker              ", 
+							 "CAL seeker                 ", 
+							 "Rna server                 ",
+							 "Total 	Statistics	    "};
     
-    char *sub_labels_statistics[NUM_SECTIONS_STATISTICS_SB] = { "Num batches             ",
-								"Total reads             ",
-								
-								"Num batches process     ",
+    char *sub_labels_statistics[NUM_SECTIONS_STATISTICS_SB] = {	"Num batches process     ",
 								"Reads process           ",
 								"   Reads mapped         ", 
 								"   Reads unmapped       ",
@@ -137,7 +180,6 @@ int main(int argc, char* argv[]) {
 								
 								"Num batches process     ",
 								"Total reads process     ",
-
 								"Num reads unmapped      ",
 								
 								"Num batches process     ",
@@ -154,7 +196,7 @@ int main(int argc, char* argv[]) {
 								"Total splice junctions  "
 								};
 				      
-    unsigned int num_values[NUM_SECTIONS_STATISTICS] = {2, 5, 2, 3, 7, 4};
+    unsigned int num_values[NUM_SECTIONS_STATISTICS] = {5, 2, 3, 7, 4};
     statistics_p = statistics_new((char **)labels_statistics, (char **)sub_labels_statistics, 
 				  (unsigned int *)num_values, NUM_SECTIONS_STATISTICS, NUM_SECTIONS_STATISTICS_SB);
     
@@ -181,7 +223,13 @@ int main(int argc, char* argv[]) {
   cal_optarg_t *cal_optarg = cal_optarg_new(options->min_cal_size, options->seeds_max_distance, 
 					    options->num_seeds, options->seed_size, options->min_seed_size, 
 					    options->cal_seeker_errors);
-  
+  #ifdef HPG_GPU
+  gpu_context_t *context;
+  if (options->gpu_process) {
+    context = gpu_context_new(0, options->num_gpu_threads, bwt_index);      
+  }
+  #endif
+
   // genome parameters
   printf("reading genome...\n");
   if (time_on) { timing_start(INIT_GENOME_INDEX, 0, timing_p); }
@@ -215,7 +263,6 @@ int main(int argc, char* argv[]) {
   initTable();
   printf("init table done !!\n");
 
-  void *context = NULL;
 
  /* if (cuda) {
     int num_gpus = 2;
@@ -231,11 +278,18 @@ int main(int argc, char* argv[]) {
 
   if (options->rna_seq) {
     // RNA version
-    run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, options);
-
+    #ifdef HPG_GPU
+      run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, context, options);
+    #else
+      run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, options);
+    #endif
   } else {
     // DNA version
-    run_dna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, pair_mng, options);
+    #ifdef HPG_GPU
+      run_dna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, pair_mng, context, options);
+    #else
+      run_dna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, pair_mng, options);
+    #endif
   }
 
   printf("\nmain done !!\n");
@@ -265,7 +319,7 @@ int main(int argc, char* argv[]) {
   
   if (statistics_on) { statistics_display(statistics_p); }
   
-  if (statistics_on && time_on) { timing_and_statistics_display(statistics_p, timing_p); }
+  //  if (statistics_on && time_on) { timing_and_statistics_display(statistics_p, timing_p); }
 
   if (time_on){ timing_free(timing_p); }
 
@@ -274,9 +328,9 @@ int main(int argc, char* argv[]) {
   options_free(options);
 
   
-  printf("Time BWT Search %.3fs\n", time_bwt_seed/1000000);
-  printf("Time S Search %.3fs\n", time_search_seed/1000000);
-  
+  printf("CPU :: Time BWT Search %.3fs\n", time_bwt_seed/1000000);
+  printf("CPU :: Time S Search %.3fs\n", time_search_seed/1000000);
+  printf("GPU :: Time BWT Search %.3fs\n", kl_time/1000000);
 
   return 0;
 }
@@ -287,10 +341,15 @@ extern int mapped_by_bwt[100];
 extern int unmapped_by_max_cals_counter[100];
 extern int unmapped_by_zero_cals_counter[100];
 extern int unmapped_by_score_counter[100];
-
-void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
-		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
-		     pair_mng_t *pair_mng, options_t *options) {
+#ifdef HPG_GPU
+   void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		        bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		        pair_mng_t *pair_mng, gpu_context_t *context, options_t *options) {
+#else
+   void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		        bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		        pair_mng_t *pair_mng, options_t *options) {
+#endif
 
   // for debugging
   for (int i = 0; i < options->num_cpu_threads; i++) {
@@ -315,9 +374,16 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 			NULL, 0, NULL, &bwt_input);
   
   region_seeker_input_t region_input;
-  region_seeker_input_init(NULL, cal_optarg, bwt_optarg, 
-			   bwt_index, NULL, 0, &region_input);
-  
+  #ifdef HPG_GPU
+     region_seeker_input_init(NULL, cal_optarg, bwt_optarg, 
+			      bwt_index, NULL, 0, options->gpu_process, 
+			      context, &region_input);
+  #else 
+     region_seeker_input_init(NULL, cal_optarg, bwt_optarg, 
+			      bwt_index, NULL, 0, options->gpu_process, 
+			      &region_input);
+  #endif
+
   cal_seeker_input_t cal_input;
   cal_seeker_input_init(NULL, cal_optarg, NULL, 0, 
 			NULL, NULL, &cal_input);
@@ -441,11 +507,16 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 }
 
 //--------------------------------------------------------------------
-
+#ifdef HPG_GPU
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+		     gpu_context_t *context, options_t *options) {
+#else
 void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     options_t *options) {
-  
+#endif
+
   list_t read_list;
   list_init("read", 1, 10, &read_list);
   
@@ -485,9 +556,19 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
     }
     #pragma omp section
     {
-	region_seeker_input_t input;
-	region_seeker_input_init(&unmapped_reads_list, cal_optarg, bwt_optarg, bwt_index, &regions_list, options->region_threads, &input);
-	region_seeker_server(&input);
+      
+      region_seeker_input_t input;
+      #ifdef HPG_GPU
+         region_seeker_input_init(&unmapped_reads_list, cal_optarg, 
+			          bwt_optarg, bwt_index, &regions_list, 
+			          options->region_threads, options->gpu_process, context, &input);
+      #else 
+         region_seeker_input_init(&unmapped_reads_list, cal_optarg, 
+			          bwt_optarg, bwt_index, &regions_list, 
+			          options->region_threads, options->gpu_process, &input);
+      #endif
+
+      region_seeker_server(&input);
     }
     #pragma omp section
     {
