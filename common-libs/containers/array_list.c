@@ -426,3 +426,108 @@ int array_list_get_flag(array_list_t *array_list_p) {
 //int list_incr_writers(list_t* list_p);
 //int list_decr_writers(list_t* list_p);
 
+array_list_t* array_list_unique(array_list_t *orig, int (*compare)(const void *a, const void *b), array_list_t *dest) {
+    char* item_description = NULL;
+    size_t orig_list_length = array_list_size(orig);
+    cp_hashtable* visited = cp_hashtable_create(orig_list_length, cp_hash_string, cp_hash_compare_string);
+    int value; // variable for inserting a pointer as a value for key-value pair
+    
+    for (size_t i = 0; i < orig_list_length; i++) {
+        item_description = (char*) array_list_get(i, orig);
+
+        if (cp_hashtable_contains(visited, (void*) item_description) == 0) {
+            array_list_insert(item_description, dest);
+            cp_hashtable_put(visited, item_description, &value);  // inserting NULL does not allow future searches
+        }
+    }
+    
+    // free visited hashtable
+    cp_hashtable_destroy(visited);
+    
+    return dest;
+}
+
+array_list_t* array_list_intersect(array_list_t *al1, array_list_t *al2, int (*compare)(const void *a, const void *b), array_list_t *dest) {
+    char* item_description = NULL;
+    array_list_t *al_little = NULL, *al_big = NULL;
+    size_t al1_length = array_list_size(al1);
+    size_t al2_length = array_list_size(al2);
+    size_t al_little_length, al_big_length;
+    int value; // variable for inserting a pointer as a value for key-value pair
+    
+    if (al1_length <= al2_length) {
+        al_little = al1;
+        al_big = al2;
+        al_little_length = al1_length;
+        al_big_length = al2_length;
+    } else {
+        al_little = al2;
+        al_big = al1;
+        al_little_length = al2_length;
+        al_big_length = al1_length;
+    }    
+    
+    // put into the hash the largest array list for time efficiency (i.e.: 10*log(70) < 70*log(10)
+    cp_hashtable* visited = cp_hashtable_create(al_big_length, cp_hash_string, cp_hash_compare_string);
+
+    // fill the hash with the biggest array list
+    for (size_t i = 0; i < al_big_length; i++) {
+        item_description = (char*) array_list_get(i, al_big);
+
+        if (cp_hashtable_contains(visited, item_description) == 0) {
+            cp_hashtable_put(visited, item_description, &value);
+        }
+    }
+    
+    // if item is contained in the hash/big array list then put it in the destination array list
+    for (size_t i = 0; i < al_little_length; i++) {
+        item_description = (char*) array_list_get(i, al_little);
+
+        if (cp_hashtable_contains(visited, item_description) != 0) {
+            array_list_insert(item_description, dest);        
+        }
+    }
+    
+    // free visited hashtable
+    cp_hashtable_destroy(visited);
+    
+    return dest;
+}
+
+array_list_t* array_list_complement(array_list_t *al1, array_list_t *al2, int (*compare)(const void *a, const void *b), array_list_t *dest) {
+    char* item_description = NULL;
+    size_t al1_length = array_list_size(al1);
+    size_t al2_length = array_list_size(al2);
+    int value; // variable for inserting a pointer as a value for key-value pair
+
+    // put into the hash the array list 1 (it will be the search space)
+    cp_hashtable* visited = cp_hashtable_create(al1_length, cp_hash_string, cp_hash_compare_string);
+
+    // fill the hash with array list 1
+    for (size_t i = 0; i < al1_length; i++) {
+        item_description = (char*) array_list_get(i, al1);
+
+        // OPTIMIZATION: this condition can be eliminated if array list have unique values
+        if (cp_hashtable_contains(visited, item_description) == 0) {
+            cp_hashtable_put(visited, item_description, &value);
+        }
+    }
+    
+    // if item from array list 2 is NOT contained in the array list 1 then put it in the destination array list
+    for (size_t i = 0; i < al2_length; i++) {
+        item_description = (char*) array_list_get(i, al2);
+
+        if (cp_hashtable_contains(visited, item_description) == 0) {
+            array_list_insert(item_description, dest); 
+        }
+    }
+    
+    // free visited hashtable
+    cp_hashtable_destroy(visited);
+    
+    return dest;
+}
+
+int compare(const void *a, const void *b) {
+    return strcmp((char*)a, (char*)b);
+}
