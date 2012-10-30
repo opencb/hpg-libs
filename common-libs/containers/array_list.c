@@ -62,7 +62,7 @@ int array_list_clear(array_list_t *array_list_p,  void (*data_callback) (void* d
 	if(array_list_p != NULL) {
 		// Free c
 		for(size_t i=0; i < array_list_p->size; i++) {
-			if(data_callback != NULL && array_list_p->items[i] != NULL) {
+			if(data_callback != NULL && array_list_p->items != NULL && array_list_p->items[i] != NULL) {
 				data_callback(array_list_p->items[i]);
 			}
 		}
