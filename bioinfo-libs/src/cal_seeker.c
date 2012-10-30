@@ -233,6 +233,24 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
     //	   num_cals, array_list_size(list), MAX_CALS, min_seeds, max_seeds);
 
     // filter CALs by the number of seeds
+    if (min_seeds == max_seeds) {
+      cal_list = list;
+      list = NULL;
+    } else {
+      cal_list = array_list_new(MAX_CALS, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+      for (size_t j = 0; j < num_cals; j++) {
+	cal = array_list_get(j, list);
+	if (cal->num_seeds == max_seeds) {
+	  array_list_insert(cal, cal_list);
+	  array_list_set(j, NULL, list);
+	}
+      }
+      array_list_clear(list, cal_free);
+      num_cals = array_list_size(cal_list);
+    }
+
+
+    /*
     min_limit = max_seeds - 3;
     if (min_seeds == max_seeds || min_limit < min_seeds) {
       cal_list = list;
@@ -249,6 +267,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
       array_list_clear(list, cal_free);
       num_cals = array_list_size(cal_list);
     }
+    */
     
     if (num_cals > MAX_CALS) {
       for (size_t j = num_cals - 1; j >= MAX_CALS; j--) {
