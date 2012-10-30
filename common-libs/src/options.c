@@ -31,7 +31,7 @@
 #define MINIMUM_CAL_SIZE                15
 #define MINIMUM_FLANK_LENGTH            10
 #define MINIMUM_SEED_MAX_DISTANCE       40
-#define MINIMUM_BATCH_SIZE              100000
+#define MINIMUM_BATCH_SIZE              10000
 #define MINIMUM_SEED_SIZE               14
 #define MINIMUM_MIN_SEED_SIZE           10
 

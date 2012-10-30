@@ -459,8 +459,8 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   int read_len;
 
   // debugging: to kown how many reads are not mapped by SW score
-  int unmapped_by_score[fq_batch->num_reads];
-  memset(unmapped_by_score, 0, fq_batch->num_reads * sizeof(int));
+  //  int unmapped_by_score[fq_batch->num_reads];
+  //  memset(unmapped_by_score, 0, fq_batch->num_reads * sizeof(int));
 
   //  printf("num of sw to do: %i\n", sw_total);
 
@@ -578,7 +578,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
       batch->num_to_do++;
 
       // debugging
-      unmapped_by_score[index] = 1;
+      //unmapped_by_score[index] = 1;
     }
 
     // free query and reference
@@ -586,7 +586,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     free(r[i]);
   }
   batch->num_targets = num_targets;
-
+  /*
   // debugging
   for (size_t i = 0; i < fq_batch->num_reads; i++) {
     if (unmapped_by_score[i] == 0) {
@@ -594,7 +594,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
 	//printf("by score: %s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]));
       }
   }
-
+  */
 
   // update counter
   thr_sw_items[tid] += batch->num_done;
