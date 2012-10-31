@@ -3,7 +3,7 @@
 //============================ DEFAULT VALUES ============================
 
 #define DEFAULT_GPU_THREADS		32
-#define DEFAULT_CPU_THREADS		4
+#define DEFAULT_CPU_THREADS		1
 #define DEFAULT_CAL_SEEKER_ERRORS	0
 #define DEFAULT_MIN_CAL_SIZE		20
 #define DEFAULT_SEEDS_MAX_DISTANCE	60
