@@ -71,7 +71,7 @@ void batch_aligner(batch_aligner_input_t *input) {
       apply_sw(input->sw_input, aligner_batch);
       gettimeofday(&t2, NULL);
       sw_time[tid] += ((t2.tv_sec - t1.tv_sec) * 1e6 + (t2.tv_usec - t1.tv_usec));
-      thr_sw_items[tid] += aligner_batch->num_targets;
+      //thr_sw_items[tid] += aligner_batch->num_targets;
       //printf("---> %d, sw, num targets = %d\n", tid, aligner_batch->num_targets);
     }
 
