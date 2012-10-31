@@ -389,6 +389,7 @@ inline void sw_channel_update(size_t read_index, unsigned int cal_index, unsigne
 // apply_sw
 //====================================================================================
 int unmapped_by_score_counter[100];
+int num_revcomp = 0;
 
 void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
 
@@ -486,6 +487,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
       memcpy(q[sw_count], &(fq_batch->seq[fq_batch->data_indices[index]]), read_len);
       if (cal->strand == 1) {
 	seq_reverse_complementary(q[sw_count], read_len);
+	num_revcomp++;
       }
       //q[sw_count] = &(fq_batch->seq[fq_batch->data_indices[index]]);
 
