@@ -599,7 +599,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   */
 
   // update counter
-  thr_sw_items[tid] += batch->num_done;
+  thr_sw_items[tid] += sw_count;
 
   // free
   sw_multi_output_free(output);
