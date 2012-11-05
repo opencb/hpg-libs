@@ -57,12 +57,6 @@ size_t bwt_map_inexact_seqs(char **seqs,
 			    char *out_status,
 			    array_list_t *mapping_list);
 
-size_t bwt_map_inexact_batch(fastq_batch_t *batch,
-			     bwt_optarg_t *bwt_optarg, 
-			     bwt_index_t *index, 
-			     fastq_batch_t *unmapped_batch,
-			     array_list_t *mapping_list);
-
 //------------------------------------------------------------------------------
 
 size_t bwt_map_inexact_seed(char *seq, size_t seq_len, 
@@ -186,7 +180,7 @@ void region_free(region_t *region){
 
 //------------------------------------------------------------------------------
 
-read_cals_t *read_cals_new(const fastq_read_t *read) {
+read_cals_t *read_cals_new(fastq_read_t *read) {
 
     read_cals_t *read_cals = (read_cals_t *) malloc(sizeof(read_cals_t));
 
@@ -198,7 +192,7 @@ read_cals_t *read_cals_new(const fastq_read_t *read) {
 
 void read_cals_free(read_cals_t *read_cals){
   fastq_read_free(read_cals->read);
-  array_list_free(read_cals->cal_list, cal_free);
+  array_list_free(read_cals->cal_list, (void *)cal_free);
   free(read_cals);
 }
 
@@ -253,6 +247,25 @@ char *bwt_error_type(char error_kind){
       break;
   }
   return msg_eror;
+}
+
+//-----------------------------------------------------------------------------
+char *strcpy_capitalize(char *dest, const char *src, size_t n) {
+  size_t i;
+  
+  for (i = 0 ; i < n && src[i] != '\0' ; i++) {
+    if (src[i] > 96) {
+      dest[i] = src[i] - 32;
+    } else {
+      dest[i] = src[i];
+    }
+  }
+
+  for ( ; i < n ; i++) {
+    dest[i] = '\0';
+  }
+
+  return dest;
 }
 
 //-----------------------------------------------------------------------------
@@ -327,6 +340,7 @@ unsigned int alignmentcmp(alignment_t *alignment_1, alignment_t *alignment_2) {
       
       if (alignment_1->cigar[cigar1_len - 1] == 'M') { return 1; }
       else if (alignment_2->cigar[cigar2_len - 1] == 'M') { return 2; }
+      
     }else {
       if (alignment_1->num_cigar_operations < 
 	  alignment_2->num_cigar_operations) {
@@ -337,6 +351,8 @@ unsigned int alignmentcmp(alignment_t *alignment_1, alignment_t *alignment_2) {
       } else { return 0; }
     }
   }
+
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -1441,7 +1457,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	  sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
 	  seq_dup = (char *) malloc(sizeof(char)*(len + 1));
 	  if (error == 0) {
-	    sprintf(cigar, "%i=\0", len);
+	    sprintf(cigar, "%lu=\0", len);
 	    num_cigar_ops = 1;
 	    memcpy(seq_dup, seq_strand, len);
 	    seq_dup[len] = '\0';
@@ -1450,16 +1466,16 @@ size_t bwt_map_inexact_seq(char *seq,
 
 	    if (pos == 0) {
 	      //Positive strand
-	      if(type) { sprintf(cigar, "1S%iM\0", len-1); }
-	      else{ sprintf(cigar, "%iM1S\0", len-1); }
+	      if(type) { sprintf(cigar, "1S%luM\0", len-1); }
+	      else{ sprintf(cigar, "%luM1S\0", len-1); }
 	      num_cigar_ops = 2;
 	    } else if (pos == len - 1) {
 	      //Positive strand
-	      if(type) { sprintf(cigar, "%iM1S\0", len-1); }
-	      else{ sprintf(cigar, "1S%iM\0", len-1); }
+	      if(type) { sprintf(cigar, "%luM1S\0", len-1); }
+	      else{ sprintf(cigar, "1S%luM\0", len-1); }
 	      num_cigar_ops = 2;
 	    } else {
-	      sprintf(cigar, "%iM\0", len);
+	      sprintf(cigar, "%luM\0", len);
 	      num_cigar_ops = 1;
 	    }
 	    memcpy(seq_dup, seq_strand, len);
@@ -1471,12 +1487,12 @@ size_t bwt_map_inexact_seq(char *seq,
 	    //printf("INSERTION\n");
 	    if (pos == 0) {
 	      if(type) { 
-		sprintf(cigar, "1H%iM\0", len-1); 
+		sprintf(cigar, "1H%luM\0", len-1); 
 		memcpy(seq_dup, seq_strand + 1, len - 1);
 		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
 	      }
 	      else{ 
-		sprintf(cigar, "%iM1H\0", len-1); 
+		sprintf(cigar, "%luM1H\0", len-1); 
 		memcpy(seq_dup, seq_strand, len - 1);
 		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
 	      }
@@ -1485,12 +1501,12 @@ size_t bwt_map_inexact_seq(char *seq,
 	      
 	    } else if (pos == len - 1) {
 	      if(type) { 
-		sprintf(cigar, "%iM1H\0", len-1); 
+		sprintf(cigar, "%luM1H\0", len-1); 
 		memcpy(seq_dup, seq_strand, len - 1);
 		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
 	      }
 	      else{ 
-		sprintf(cigar, "1H%iM\0", len-1); 
+		sprintf(cigar, "1H%luM\0", len-1); 
 		memcpy(seq_dup, seq_strand + 1, len - 1);
 		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
 	      }
@@ -1498,8 +1514,8 @@ size_t bwt_map_inexact_seq(char *seq,
 	      num_cigar_ops = 2;
 	      
 	    } else {
-	      if(type) { sprintf(cigar, "%iM1D%iM\0", pos, len - pos); }
-	      else{ sprintf(cigar, "%iM1D%iM\0", len - pos, pos); }
+	      if(type) { sprintf(cigar, "%iM1D%luM\0", pos, len - pos); }
+	      else{ sprintf(cigar, "%luM1D%dM\0", len - pos, pos); }
 	      memcpy(seq_dup, seq_strand , len );
 	      seq_dup[len] = '\0';
 	      num_cigar_ops = 3;
@@ -1507,24 +1523,24 @@ size_t bwt_map_inexact_seq(char *seq,
 	  } else if (error == DELETION) {	     
 	    //printf("DELETION\n");
 	    if (pos == 0) {
-	      if(type) { sprintf(cigar, "1I%iM\0", len -1); }
-	      else{ sprintf(cigar, "%iM1I\0", len -1); }
+	      if(type) { sprintf(cigar, "1I%luM\0", len -1); }
+	      else{ sprintf(cigar, "%luM1I\0", len -1); }
 	      
 	      num_cigar_ops = 2;		
 	    } else if (pos == len - 1) {
-	      if(type) { sprintf(cigar, "%iM1I\0", len -1); }
-	      else{ sprintf(cigar, "1I%iM\0", len -1); }
+	      if(type) { sprintf(cigar, "%luM1I\0", len -1); }
+	      else{ sprintf(cigar, "1I%luM\0", len -1); }
 	      num_cigar_ops = 2;
 	    } else {
-	      if(type) { sprintf(cigar, "%iM1I%iM\0", pos, len - pos - 1); }
-	      else{ sprintf(cigar, "%iM1I%iM\0", len - pos - 1, pos); }
+	      if(type) { sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); }
+	      else{ sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); }
 	      num_cigar_ops = 3;
 	    }
 	    memcpy(seq_dup, seq_strand , len );
 	    seq_dup[len] = '\0';
 	    
 	  }else{
-	    printf("NUM MAPPINGS %d -> POS %d -> ERROR %d -> (%d):%s", num_mappings, pos, error, len, seq);
+	    printf("NUM MAPPINGS %lu -> POS %d -> ERROR %d -> (%lu):%s", num_mappings, pos, error, len, seq);
 	    continue;
 	      //exit(-1);
 	      //error_debug = 1;
@@ -1849,7 +1865,8 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
       quality_len = batch->data_indices[i + 1] - batch->data_indices[i];
       
       memcpy(&(unmapped_batch->header[unmapped_batch->header_indices[read_pos - 1]]), &(batch->header[batch->header_indices[i]]), header_len);
-      memcpy(&(unmapped_batch->seq[unmapped_batch->data_indices[read_pos - 1]]),      &(batch->seq[batch->data_indices[i]]),      quality_len);
+      //memcpy(&(unmapped_batch->seq[unmapped_batch->data_indices[read_pos - 1]]),      &(batch->seq[batch->data_indices[i]]),      quality_len);
+      strcpy_capitalize(&(unmapped_batch->seq[unmapped_batch->data_indices[read_pos - 1]]),      &(batch->seq[batch->data_indices[i]]),      quality_len);
       memcpy(&(unmapped_batch->quality[unmapped_batch->data_indices[read_pos - 1]]),  &(batch->quality[batch->data_indices[i]]),  quality_len);
       
       unmapped_batch->data_indices[read_pos]   = unmapped_batch->data_indices[read_pos - 1]   + quality_len;
@@ -2265,7 +2282,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq, size_t num_seeds,
 
 int print_item(void *item, void *dummy){
         short_cal_t *coordenate_p = (short_cal_t *)item;
-	printf("[%d-%d]-> ",  coordenate_p->start, coordenate_p->end);
+	printf("[%lu-%lu]-> ",  coordenate_p->start, coordenate_p->end);
 
         return 0;
 }
@@ -2670,20 +2687,20 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
 	    extend = 1;
 	    
 	    if (print) 
-	      printf("mapping: start = %d end = %d\n", start, end);
+	      printf("mapping: start = %lu end = %lu\n", start, end);
 
 	    if (start < cal->start) {
 	      if (print) 
-		printf("\tChange start: chrm %d CAL %d [%d-%d] -> new start = %d\n", cal->chromosome_id, c, cal->start, cal->end, start);
+		printf("\tChange start: chrm %lu CAL %d [%lu-%lu] -> new start = %lu\n", cal->chromosome_id, c, cal->start, cal->end, start);
 	      cal->start = start; 
 	    }
 	    if (end > cal->end) {
 	      if (print) 
-		printf("\tChange end: chrm %d CAL %d [%d-%d] -> new end = %d\n", cal->chromosome_id, c, cal->start, cal->end, end);
+		printf("\tChange end: chrm %lu CAL %d [%lu-%lu] -> new end = %lu\n", cal->chromosome_id, c, cal->start, cal->end, end);
 	      cal->end = end; 
 	    }
 	    if (print) 
-	      printf("\t\tExtend CAL %d Result :: %d-%d\n", c, cal->start, cal->end);
+	      printf("\t\tExtend CAL %d Result :: %lu-%lu\n", c, cal->start, cal->end);
 	    break;
 	  }
 	}
@@ -2712,7 +2729,7 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
 	      }
 	      else{
 		if (print) 
-		  printf("\tFound CAL in range. Start End Actualization cal:[%d-%d] extend cal1:[%d-%d]\n", cal->start, cal->end, cal1->start, cal1->end);
+		  printf("\tFound CAL in range. Start End Actualization cal:[%lu-%lu] extend cal1:[%lu-%lu]\n", cal->start, cal->end, cal1->start, cal1->end);
 		if(start > cal1->start){
 		  cal->start = cal1->start;
 		  extend = 1;
@@ -2722,7 +2739,7 @@ size_t bwt_generate_cal_list(array_list_t *mapping_list,
 		  extend = 1;
 		}
 		if (print) 
-		  printf("\t\tResult cal [%d-%d] and Delete %d\n", cal->start, cal->end, extend);
+		  printf("\t\tResult cal [%lu-%lu] and Delete %d\n", cal->start, cal->end, extend);
 	      }
 	    }
 	    if (extend) {

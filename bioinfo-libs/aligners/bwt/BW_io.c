@@ -683,7 +683,7 @@ void load_exome_file(exome *ex, const char *directory) {
   fp  = fopen(path,  "r");
   checkFileOpen(fp, path);
 
-  char c=NULL;
+  char c;
   char line[MAXLINE];
 
   ex->offset[0]=0;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <omp.h>
 
 #include "containers/list.h"
 #include "fastq_batch.h"

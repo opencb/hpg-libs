@@ -3,7 +3,7 @@
 
 #include "bwt.h"
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
   if (argc != 4) {
     printf("Error.\n");
@@ -31,9 +31,9 @@ void main(int argc, char *argv[]) {
     num_mappings = bwt_map_seq(seq, bwt_optarg, 
 			       bwt_index, mapping_list);
     printf("seq: %s\n", seq);
-    printf("num_mappings = %d\n", num_mappings);
+    printf("num_mappings = %lu\n", num_mappings);
     for (size_t i = 0; i < num_mappings; i++) {
-      printf("%i\t---------------------\n", i);
+      printf("%lu\t---------------------\n", i);
       alignment_print(array_list_get(i, mapping_list));
     }
   }
@@ -50,13 +50,13 @@ void main(int argc, char *argv[]) {
     char *code_seq = (char *) calloc(len + 10, sizeof(char));
     replaceBases(seq, code_seq, len);
     
-    num_mappings = bwt_map_exact_seed(code_seq, 0, len,
-				      bwt_optarg, bwt_index, mapping_list);
+    num_mappings = bwt_map_exact_seeds_seq(code_seq, 18, 16,
+					   bwt_optarg, bwt_index, mapping_list);
     
     region_t *region;
     for (size_t i = 0; i < num_mappings; i++) {
       region = array_list_get(i, mapping_list);
-      printf("Region: chr = %d, strand = %d, start = %d, end = %d\n", 
+      printf("Region: chr = %lu, strand = %d, start = %lu, end = %lu\n", 
 	     region->chromosome_id, region->strand, region->start, region->end);
     }
   }

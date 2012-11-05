@@ -7,9 +7,75 @@
 extern double *sse_matrix_t, *sse_tracking_t;
 #endif // TIMING
 
-void reallocate_memory(int max_q_len, int max_r_len, int simd_depth, 
-		       int *H_size, float **H, int **C, int *F_size, float **F, 
-		       int *aux_size, char **q_aux, char **r_aux);
+//------------------------------------------------------------------------------------
+
+void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
+  FILE *file = fopen(filename, "r");
+
+  if (file == NULL) {
+    printf("Error: substitution score matrix file (%s) not found\n", filename);
+    exit(-1);
+  }
+
+  char *header[256],  *token[256];
+
+  char *header_line = (char*) calloc(1, 4096);
+  char *token_line = (char*) calloc(1, 4096);
+
+  fgets(header_line, 4096, file);
+  str_trim(header_line);
+
+
+  char *res = NULL;
+
+  // init matrix to -1000.0f
+  for (int i = 0; i<128; i++) {
+    for (int j = 0; j<128; j++) {
+      matrix[i][j] = -1000.0f;
+    }
+  }
+  /*
+  matrix['A']['A'] = 5.0f; matrix['C']['A'] = -4.0f; matrix['T']['A'] = -4.0f; matrix['G']['A'] = -4.0f;
+  matrix['A']['C'] = -4.0f; matrix['C']['C'] = 5.0f; matrix['T']['C'] = -4.0f; matrix['G']['C'] = -4.0f;
+  matrix['A']['G'] = -4.0f; matrix['C']['T'] = -4.0f; matrix['T']['T'] = 5.0f; matrix['G']['T'] = -4.0f;
+  matrix['A']['T'] = -4.0f; matrix['C']['G'] = -4.0f; matrix['T']['G'] = -4.0f; matrix['G']['G'] = 5.0f;
+  */
+
+  // read header row
+  unsigned int num_columns = 0;
+
+  header[num_columns] = strtok(header_line, "\t");
+  //  res = strtok(header_line, "\t");
+  while (header[num_columns]!= NULL) {
+    num_columns++;
+    header[num_columns] = strtok(NULL, "\t");
+  }
+  
+  // read the remain rows and update matrix
+  unsigned int col = 0;
+  while (fgets(token_line, 4096, file) != NULL) {
+    str_trim(token_line);
+    col = 0;
+    token[col] = strtok(token_line, "\t");
+    while (token[col]!= NULL) {
+      col++;
+      token[col] = strtok(NULL, "\t");
+    }
+    if (col != num_columns) {
+      printf("Error: substitution score matrix invalid format\n");
+      exit(-1);
+    }
+
+    for(col = 1; col < num_columns; col++) {
+      matrix[header[col][0]][token[0][0]] = atof(token[col]);
+    }
+  }
+
+  free(header_line);
+  free(token_line);
+
+  fclose(file);
+}
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -104,7 +170,8 @@ void sw_multi_output_save(int num_alignments, sw_multi_output_t* output_p, FILE 
 	}
 	fprintf(file_p, "\n");
 	fprintf(file_p, "Ref. : %s\tStart at %i\n", output_p->ref_map_p[i], output_p->ref_start_p[i]);
-	fprintf(file_p, "Score: %.2f\tLength: %i\tIdentity: %.2f%\tGaps: %.2f%\n", 
+
+	fprintf(file_p, "Score: %.2f\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n", 
 		output_p->score_p[i], len, identity * 100.0f / len, gaps * 100.0f / len);
 	       
 	fprintf(file_p, "\n");
@@ -240,7 +307,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	score_p[index +  i] = max_score[i];
       }
     }
-
+    printf("Free 1\n");
     // free memory
     if (H != NULL) _mm_free(H);
     if (C != NULL) _mm_free(C);
@@ -376,7 +443,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	    score_p[index +  i] = max_score[i];
 	  }
 	}
-
+	
 	// free memory
 	if (H != NULL) _mm_free(H);
 	if (C != NULL) _mm_free(C);
@@ -660,76 +727,6 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 }
 
 //------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------
-
-void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
-  FILE *file = fopen(filename, "r");
-
-  if (file == NULL) {
-    printf("Error: substitution score matrix file (%s) not found\n", filename);
-    exit(-1);
-  }
-
-  char *header[256],  *token[256];
-
-  char *header_line = (char*) calloc(1, 4096);
-  char *token_line = (char*) calloc(1, 4096);
-
-  fgets(header_line, 4096, file);
-  str_trim(header_line);
-
-
-  char *res = NULL;
-
-  // init matrix to -1000.0f
-  for (int i = 0; i<128; i++) {
-    for (int j = 0; j<128; j++) {
-      matrix[i][j] = -1000.0f;
-    }
-  }
-  /*
-  matrix['A']['A'] = 5.0f; matrix['C']['A'] = -4.0f; matrix['T']['A'] = -4.0f; matrix['G']['A'] = -4.0f;
-  matrix['A']['C'] = -4.0f; matrix['C']['C'] = 5.0f; matrix['T']['C'] = -4.0f; matrix['G']['C'] = -4.0f;
-  matrix['A']['G'] = -4.0f; matrix['C']['T'] = -4.0f; matrix['T']['T'] = 5.0f; matrix['G']['T'] = -4.0f;
-  matrix['A']['T'] = -4.0f; matrix['C']['G'] = -4.0f; matrix['T']['G'] = -4.0f; matrix['G']['G'] = 5.0f;
-  */
-
-  // read header row
-  unsigned int num_columns = 0;
-
-  header[num_columns] = strtok(header_line, "\t");
-  //  res = strtok(header_line, "\t");
-  while (header[num_columns]!= NULL) {
-    num_columns++;
-    header[num_columns] = strtok(NULL, "\t");
-  }
-  
-  // read the remain rows and update matrix
-  unsigned int col = 0;
-  while (fgets(token_line, 4096, file) != NULL) {
-    str_trim(token_line);
-    col = 0;
-    token[col] = strtok(token_line, "\t");
-    while (token[col]!= NULL) {
-      col++;
-      token[col] = strtok(NULL, "\t");
-    }
-    if (col != num_columns) {
-      printf("Error: substitution score matrix invalid format\n");
-      exit(-1);
-    }
-
-    for(col = 1; col < num_columns; col++) {
-      matrix[header[col][0]][token[0][0]] = atof(token[col]);
-    }
-  }
-
-  free(header_line);
-  free(token_line);
-
-  fclose(file);
-}
-
 //------------------------------------------------------------------------------------
 
 void reallocate_memory(int max_q_len, int max_r_len, int simd_depth, 

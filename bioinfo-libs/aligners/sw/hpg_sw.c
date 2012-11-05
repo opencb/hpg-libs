@@ -8,7 +8,7 @@ void test();
 
 // hpg-sw -q query_filename -r ref_filename -o output_filename -p gap_open_penalty -e gap_extend_penalty -s substitution_score_matrix -n number_of_threads -b number_of_reads_per_batch
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
   int c;
   char *q_filename = NULL, *r_filename = NULL;

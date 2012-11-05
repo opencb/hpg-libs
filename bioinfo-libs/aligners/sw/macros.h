@@ -5,12 +5,18 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
+#include <string.h>
+#include <math.h>
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
+#ifndef MAX
+  #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define MIN(a,b) ((a) > (b) ? (b) : (a))
+#ifndef MIN
+  #define MIN(a,b) ((a) > (b) ? (b) : (a))
+#endif
 
 #define ZERO 0
 #define LEFT 1
@@ -19,7 +25,10 @@
 
 #define U_FEPS 1.192e-6F         // 1.0F + E_FEPS != 1.0F
 #define E_FPEQ(a,b,e) (((b - e) < a) && (a < (b + e)))
-#define FLT_MAX 1000000.0f
+
+#ifndef FLT_MAX
+   #define FLT_MAX 1000000.0f
+#endif
 
 //------------------------------------------------------------------------
 // utility functions

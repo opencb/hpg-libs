@@ -201,15 +201,17 @@
 
 #define timevars() struct timeval t1, t2;
 
-#define tic(msg)				   \
+
+#define tic_bwt(msg)				   \
   printf(">> " msg "\n");			   \
   fflush(stdout);				   \
   gettimeofday(&t1, NULL);
 
-#define toc()					\
+#define toc_bwt()					\
   gettimeofday(&t2, NULL);						                 \
   printf("<< Finished %.0f usecs\n", (t2.tv_sec-t1.tv_sec)*1e6+(t2.tv_usec-t1.tv_usec)); \
   fflush(stdout);
+
 
 typedef struct {
 

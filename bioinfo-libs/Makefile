@@ -6,7 +6,7 @@ then\
 fi
 
 CC = gcc
-CC = /opt/intel/bin/icc -xSSE4.2 -msse4.2
+CC = /opt/intel/bin/icc
 
 CFLAGS = -std=c99 -O3 -fopenmp $(SIMD)
 
