@@ -142,7 +142,7 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int 
 void search_splice_junctions_sw_output(sw_simd_input_t* sw_input_p, 
 				       sw_simd_output_t* sw_output_p, unsigned int depth, 
 				       allocate_fusion_data_t *depth_cal_fusion_p, allocate_splice_elements_t *chromosome_avls_p, 
-				       unsigned char *mapping_reads_p, sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
+				       sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
 				       unsigned int sw_id, size_t *sw_no_valids, float min_score, genome_t *genome_p, 
 				       unsigned int min_intron_length, array_list_t **allocate_mappings);
 

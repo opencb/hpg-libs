@@ -94,9 +94,8 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len,
 void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_t* output_p, 
 				       unsigned int depth, allocate_fusion_data_t *depth_cal_fusion_p, 
 				       allocate_splice_elements_t *chromosome_avls_p,  
-				       unsigned char * mapping_reads_p, sw_channel_t *sw_channels_p, 
-				       sw_batch_t *sw_batch_p,  unsigned int sw_id,  size_t *sw_no_valids, 
-				       float min_score, genome_t *genome_p, unsigned int min_intron_length,
+				       sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p,  unsigned int sw_id,  
+				       size_t *sw_no_valids, float min_score, genome_t *genome_p, unsigned int min_intron_length,
 				       array_list_t **allocate_mappings){
   
   const unsigned char EXTRA_SEARCH = 8;
@@ -711,13 +710,19 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
     
     //printf("Cigar(%d):%s\n", cigar_pos, cigar_str);
     //end cigar string
-    
+    if (array_list_size(allocate_mappings[sw_channels_p[i].read_index])) {
+      primary_alignment = 1;
+    } else {
+      primary_alignment = 0;
+    }
+
+    /*    
     if (mapping_reads_p[sw_channels_p[i].read_index] == 1) {
 	primary_alignment = 1;
     } else {
         primary_alignment = 0;
     }
-    
+    */
     alignment_p = alignment_new();
     header_len = sw_channels_p[i].header_len;
     //printf("Reallocate %d\n", header_len); 
@@ -765,7 +770,7 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
       free(output_p->mapped_ref_p[i]);
     */
 
-    mapping_reads_p[sw_channels_p[i].read_index] = 1;
+    //mapping_reads_p[sw_channels_p[i].read_index] = 1;
     
     //Report Splice Junctions
     for (unsigned int s = 0; s < splice_number; s++) {
@@ -842,8 +847,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   // for tracking what reads are being mapped successfully
   size_t allocated_mapping_reads = 10000;
   size_t maximum_allocate = 100;
-  unsigned char* mapping_reads_p = (unsigned char*) calloc (allocated_mapping_reads, sizeof(unsigned char));
-  if (mapping_reads_p == NULL) { exit(-1); }
+  unsigned char* mapping_reads_p; //= (unsigned char*) calloc (allocated_mapping_reads, sizeof(unsigned char));
+  //if (mapping_reads_p == NULL) { exit(-1); }
 
   // for tracking the current read, cal being processed using sw_channel_t
   sw_channel_t *channel_p, *sw_channels_p = (sw_channel_t*) calloc(depth, sizeof(sw_channel_t));
@@ -923,11 +928,11 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     
     if (num_reads > allocated_mapping_reads) {
       allocated_mapping_reads = num_reads;
-      mapping_reads_p = (unsigned char *) realloc(mapping_reads_p, allocated_mapping_reads * sizeof(unsigned char));
+      //mapping_reads_p = (unsigned char *) realloc(mapping_reads_p, allocated_mapping_reads * sizeof(unsigned char));
       allocate_mappings = (array_list_t **)realloc(allocate_mappings, allocated_mapping_reads *sizeof(array_list_t *));
     }
 
-    memset(mapping_reads_p, 0, allocated_mapping_reads * sizeof(unsigned char));
+    //memset(mapping_reads_p, 0, allocated_mapping_reads * sizeof(unsigned char));
 
     /** for each read **/
     total_reads_process += num_reads;
@@ -1140,7 +1145,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	    smith_waterman_simd(sw_input_p, sw_output_p, context_p);
 	  
 	    search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
-					      allocate_cals_fusion_p, chromosome_avls_p,  mapping_reads_p, sw_channels_p, 
+					      allocate_cals_fusion_p, chromosome_avls_p, sw_channels_p, 
 					      sw_batch_p, sw_id, &sw_no_valids,
 					      min_score, genome_p, min_intron_length, allocate_mappings);
 	    num_sw_process += curr_depth;
@@ -1177,7 +1182,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 
       search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
 					allocate_cals_fusion_p, chromosome_avls_p,  
-					mapping_reads_p, sw_channels_p, sw_batch_p,
+					sw_channels_p, sw_batch_p,
 					sw_id, &sw_no_valids, min_score, genome_p, 
 					min_intron_length, allocate_mappings);
       
@@ -1217,7 +1222,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	write_batch_p->size++;
       }
 
-      if (!mapping_reads_p[i]) {
+      if (!num_mappings) {
 	//printf("****************** read %i NO MAPPED %i!!!\n", i, mapping_reads_p[i]);
 	total_reads_unmapped++;
 	read_len = strlen(sw_batch_p->allocate_reads_p[i]->sequence);
@@ -1260,7 +1265,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 	((alignment_t **)write_batch_p->buffer_p)[write_batch_p->size] = alignment_p;
 	write_batch_p->size++;
 	
-	mapping_reads_p[i] = 2;
+	//mapping_reads_p[i] = 2;
       }
       //allocate_mappings[i]->size = 0;
       array_list_free(allocate_mappings[i], NULL);     
@@ -1303,7 +1308,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 
   free(allocate_cals_fusion_p);
   free(cals_per_chromosome);
-  free(mapping_reads_p);
+  //free(mapping_reads_p);
   
   free(reference_fusion_p);
   free(reference);
