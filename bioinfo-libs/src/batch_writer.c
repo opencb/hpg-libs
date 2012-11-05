@@ -32,8 +32,9 @@ void batch_writer(batch_writer_input_t* input_p) {
   FILE* fd;
   FILE* splice_exact_fd  = fopen(splice_exact_filename, "w");
   FILE* splice_extend_fd = fopen(splice_extend_filename, "w");
-
-  bam_header_p = bam_header_new(HUMAN, NCBI37);
+  
+  //printf("HEADER FROM WRITE: %s\n", input_p->header_filename);
+  bam_header_p = bam_header_new(HUMAN, NCBI37, input_p->header_filename);
   //bam_file_p = bam_fopen(match_filename);
   bam_file_p = bam_fopen_mode(match_filename, bam_header_p, "w");
   bam_fwrite_header(bam_header_p, bam_file_p);
@@ -202,7 +203,7 @@ void batch_writer2(batch_writer_input_t* input) {
   
   size_t read_len;
 
-  bam_header = bam_header_new(HUMAN, NCBI37);
+  bam_header = bam_header_new(HUMAN, NCBI37, input->header_filename);
   bam_file = bam_fopen_mode(match_filename, bam_header, "w");
 
   bam_fwrite_header(bam_header, bam_file);
@@ -235,7 +236,7 @@ void batch_writer2(batch_writer_input_t* input) {
 	//printf("\tWRITE : read %i (%d items): unmapped...\n", i, num_items);
 
 	// calculating cigar
-	sprintf(aux, "%dX", read_len);
+	sprintf(aux, "%luX", read_len);
 	
 	alig = alignment_new();
 	alignment_init_single_end(&(fq_batch->header[fq_batch->header_indices[i]])+1,
@@ -284,17 +285,23 @@ void batch_writer2(batch_writer_input_t* input) {
     if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
   } // end of batch loop                                                                                           
   bam_fclose(bam_file);
-  printf("END: batch_writer (total mappings %d)\n", total_mappings);
+  printf("END: batch_writer (total mappings %lu)\n", total_mappings);
 }
 
 //------------------------------------------------------------------------------------
 
 void batch_writer_input_init(char* match_filename, char* splice_exact_filename, 
-			     char* splice_extend_filename, list_t* list_p, batch_writer_input_t* input_p) {
+			     char* splice_extend_filename, 
+			     list_t* list_p, char* header_filename, 
+			     batch_writer_input_t* input_p) {
+
   input_p->match_filename = match_filename;
   input_p->splice_exact_filename = splice_exact_filename;
   input_p->splice_extend_filename = splice_extend_filename;
   input_p->list_p = list_p;
+
+  input_p->header_filename = header_filename;
+
 }
 
 //------------------------------------------------------------------------------------

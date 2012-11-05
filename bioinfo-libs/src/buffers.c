@@ -6,7 +6,8 @@
 
 #include "buffers.h"
 
-#define MAXLINE 2048
+
+//#define MAXLINE 2048
 
 //====================================================================================
 
@@ -17,7 +18,7 @@ void region_batch_init(array_list_t **allocate_mapping_p, fastq_batch_t *unmappe
 
 void region_batch_free(region_batch_t *region_batch_p){
   for(int i = 0; i < region_batch_p->unmapped_batch_p->num_reads; i++){
-    array_list_free(region_batch_p->allocate_mapping_p[i], region_free);
+    array_list_free(region_batch_p->allocate_mapping_p[i], (void *)region_free);
   }
   free(region_batch_p->allocate_mapping_p);
   fastq_batch_free(region_batch_p->unmapped_batch_p);
@@ -41,7 +42,7 @@ sw_batch_t* sw_batch_new(unsigned int num_reads, array_list_t **allocate_cals_p,
 void sw_batch_free(sw_batch_t *sw_batch_p) {
   
   for(int i = 0; i < sw_batch_p->num_reads; i++){
-    array_list_free(sw_batch_p->allocate_cals_p[i], cal_free);
+    array_list_free(sw_batch_p->allocate_cals_p[i], (void *)cal_free);
     fastq_read_free(sw_batch_p->allocate_reads_p[i]);
   }
 
@@ -118,7 +119,7 @@ cal_batch_t* cal_batch_new(array_list_t **allocate_mapping, fastq_batch_t *unmap
 
 void cal_batch_free(cal_batch_t *cal_batch){
   for(int i = 0; i < cal_batch->unmapped_batch->num_reads; i++){
-    array_list_free(cal_batch->allocate_mapping[i], region_free);
+    array_list_free(cal_batch->allocate_mapping[i], (void *)region_free);
   }
   free(cal_batch->allocate_mapping);
   fastq_batch_free(cal_batch->unmapped_batch);
@@ -128,7 +129,7 @@ void cal_batch_free(cal_batch_t *cal_batch){
 
 //====================================================================================
 
-unsigned int pack_junction(unsigned int chromosome, unsigned int strand, unsigned int start, unsigned int end, unsigned int junction_id, unsigned int num_reads, char* buffer_p){
+unsigned int pack_junction(unsigned int chromosome, unsigned int strand, size_t start, size_t end, size_t junction_id, size_t num_reads, char* buffer_p){
   int len;
   char str[1024];
   char *chr_p, *p = buffer_p;
@@ -145,28 +146,28 @@ unsigned int pack_junction(unsigned int chromosome, unsigned int strand, unsigne
   *p = '\t';
   p++;
   
-  sprintf(str, "%i", start);
+  sprintf(str, "%lu", start);
   len = strlen(str);
   memcpy(p, str, len); 
   p += len;
   *p = '\t'; 
   p++;
   
-  sprintf(str, "%i", end);
+  sprintf(str, "%lu", end);
   len = strlen(str);
   memcpy(p, str, len); 
   p += len;
   *p = '\t'; 
   p++;
   
-  sprintf(str, "JUNCTION_%i", junction_id);
+  sprintf(str, "JUNCTION_%lu", junction_id);
   len = strlen(str);
   memcpy(p, str, len); 
   p += len;
   *p = '\t'; 
   p++;
   
-  sprintf(str, "%i", num_reads);
+  sprintf(str, "%lu", num_reads);
   len = strlen(str);
   memcpy(p, str, len); 
   p += len;

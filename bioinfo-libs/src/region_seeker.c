@@ -138,7 +138,7 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
   //  printf("START: apply_seeding\n"); 
 
   char *seq;
-  list_t *list = NULL;
+  array_list_t *list = NULL;
   size_t index, num_mappings;
   fastq_batch_t *fq_batch = batch->fq_batch;
   size_t num_seeds = input->cal_optarg_p->num_seeds;

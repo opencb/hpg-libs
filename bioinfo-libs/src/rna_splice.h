@@ -23,10 +23,10 @@ typedef struct allocate_buffers {
  * Structure for store the strand, end and extend end genome coordinate.  
  */
 typedef struct splice_end{
-  unsigned int end;  /**< exact end genome coordinate */
+  size_t end;  /**< exact end genome coordinate */
   unsigned char strand;  /**< genome strand */
-  unsigned int reads_number;  /**< number of reads with the same start and end coordiante */
-  unsigned int splice_end_extend;  /**< extend end genome coordinate */
+  size_t reads_number;  /**< number of reads with the same start and end coordiante */
+  size_t splice_end_extend;  /**< extend end genome coordinate */
 }splice_end_t;
 
 /**
@@ -39,8 +39,8 @@ typedef struct splice_end{
  * 
  * Reserve memory for a new @a splice_end_t structure and initialize their fields. 
  */
-splice_end_t* new_splice_end(unsigned char strand, unsigned int end, 
-			     unsigned int splice_end, splice_end_t *splice_end_p);
+splice_end_t* new_splice_end(unsigned char strand, size_t end, 
+			     size_t splice_end);
 
 
 void free_splice_end(splice_end_t *splice_end_p);
@@ -52,10 +52,10 @@ void free_splice_end(splice_end_t *splice_end_p);
  * one node of the avl tree.   
  */
 typedef struct node_element_splice{
-  unsigned int splice_start;  /**< exact start genome coordinate */
-  unsigned int splice_start_extend;  /**< splice_start_extend extend end genome coordinate */
-  unsigned short int maximum_allocate_ends; /**< maximum_allocate_ends maximum number for allocate splice junction */
-  unsigned int number_allocate_ends;  /**< number of ends are allocate in the array */
+  size_t splice_start;  /**< exact start genome coordinate */
+  size_t splice_start_extend;  /**< splice_start_extend extend end genome coordinate */
+  size_t maximum_allocate_ends; /**< maximum_allocate_ends maximum number for allocate splice junction */
+  size_t number_allocate_ends;  /**< number of ends are allocate in the array */
   splice_end_t **allocate_ends;  /**< array for allocate ends */
 }node_element_splice_t;
 
@@ -78,7 +78,7 @@ typedef struct allocate_splice_elements{
  *
  * Compare the splice start field of @a node_element_splice_t with the second parameter. 
  */
-int node_compare(node_element_splice_t* a, unsigned int b);
+int node_compare(node_element_splice_t* a, size_t b);
 
 /**
  * @brief  Reserve memory for new node and initialize it.
@@ -87,7 +87,7 @@ int node_compare(node_element_splice_t* a, unsigned int b);
  * 
  * Compare the splice start field of @a node_element_splice_t with the second parameter. 
  */
-node_element_splice_t* node_copy(unsigned int b);
+node_element_splice_t* node_copy(size_t b);
 
 /**
  * @brief  Insert a new end splice junction.
@@ -115,8 +115,8 @@ node_element_splice_t* insert_end_splice(splice_end_t *splice_end_p,
  * of splice junctions that cover this coordinates and insert the splice junction end coordinate. 
  */
 node_element_splice_t* search_and_insert_end_splice(unsigned int chromosome, unsigned char strand, 
-						    unsigned int end , unsigned int splice_start, 
-						    unsigned int splice_end, 
+						    size_t end , size_t splice_start, 
+						    size_t splice_end, 
 						    node_element_splice_t *element_p);
 
 /**
@@ -145,8 +145,8 @@ allocate_splice_elements_t* init_allocate_splice_elements(allocate_splice_elemen
  * search_and_insert_end_splice. 
  */
 allocate_splice_elements_t* allocate_new_splice(unsigned int chromosome, unsigned char strand, 
-						unsigned int end, unsigned int start, 
-						unsigned int splice_start, unsigned int splice_end, 
+						size_t end, size_t start, 
+						size_t splice_start, size_t splice_end, 
 						allocate_splice_elements_t* chromosomes_splice_avls_p);
 
 /**

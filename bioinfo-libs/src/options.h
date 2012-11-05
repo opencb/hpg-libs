@@ -56,13 +56,14 @@ typedef struct options {
   double mismatch;
   double gap_open;
   double gap_extend;
-  char *splice_exact_filename;
-  char *splice_extend_filename;
+  char* splice_exact_filename;
+  char* splice_extend_filename;
   char* in_filename;
   char* in_filename2;
   char* bwt_dirname;
   char* genome_filename;
   char* output_filename;
+  char* header_filename;
 } options_t;
 
 

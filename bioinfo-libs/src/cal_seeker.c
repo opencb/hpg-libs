@@ -106,7 +106,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
 	((alignment_t **)write_batch->buffer_p)[write_batch->size] = alignment;
 	write_batch->size++;
 	
-	array_list_free(allocate_cals[reads_with_cals], cal_free);
+	array_list_free(allocate_cals[reads_with_cals], (void *)cal_free);
       }else{
 	//array_list_free(allocate_cals_p[reads_with_cals], cal_free);
 	read = fastq_read_new(&(cal_batch->unmapped_batch->header[cal_batch->unmapped_batch->header_indices[i]]), 
@@ -154,7 +154,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
    statistics_add(TOTAL_ST, 2, num_reads_unmapped, statistics_p); 
   }
  
-  printf("cal_seeker_server (%d reads unmapped by No CALs | %d reads unmapped by MAX CALs): END\n", num_without_cals, num_reads_unmapped - num_without_cals); 
+  printf("cal_seeker_server (%lu reads unmapped by No CALs | %lu reads unmapped by MAX CALs): END\n", num_without_cals, num_reads_unmapped - num_without_cals); 
   // free memory for mapping list
   
 }
@@ -246,7 +246,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	  array_list_set(j, NULL, list);
 	}
       }
-      array_list_clear(list, cal_free);
+      array_list_clear(list, (void *)cal_free);
       num_cals = array_list_size(cal_list);
     }
     
@@ -267,7 +267,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
       outputs[num_outputs++] = index;
       
       // we have to free the region list
-      array_list_free(batch->mapping_lists[index], region_free);
+      array_list_free(batch->mapping_lists[index], (void *)region_free);
       batch->mapping_lists[index] = cal_list;
     } else {
       array_list_set_flag(0, batch->mapping_lists[index]);
@@ -282,9 +282,9 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	}
       }
       // we have to free the region list
-      array_list_clear(batch->mapping_lists[index], region_free);
-      if (cal_list) array_list_free(cal_list, cal_free);
-      if (list) array_list_clear(list, cal_free);
+      array_list_clear(batch->mapping_lists[index], (void *)region_free);
+      if (cal_list) array_list_free(cal_list, (void *)cal_free);
+      if (list) array_list_clear(list, (void *)cal_free);
     }
   } // end for 0 ... num_seqs
 
