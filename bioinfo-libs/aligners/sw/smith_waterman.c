@@ -307,7 +307,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	score_p[index +  i] = max_score[i];
       }
     }
-    printf("Free 1\n");
+    //    printf("Free 1\n");
     // free memory
     if (H != NULL) _mm_free(H);
     if (C != NULL) _mm_free(C);

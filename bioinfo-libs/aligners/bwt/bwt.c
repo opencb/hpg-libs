@@ -2128,7 +2128,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 			    bwt_optarg, index, mapping_list);
     //printf("\tthird, num_mappings = %d\n", num_mappings);
   } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
-    array_list_clear(mapping_list, region_free);
+    array_list_clear(mapping_list, (void *) region_free);
     num_mappings = seedingOK(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
 			   bwt_optarg, index, mapping_list);
   }
