@@ -1,8 +1,16 @@
 #CC = icc
 #CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -xavx -vec-report1
 
-CC = gcc
-CFLAGS = -std=c99 -O3 -fopenmp
+#CC = gcc
+ifeq ($(compiler), intel)
+	CC = /opt/intel/bin/icc 
+else
+	CC = gcc
+endif
+
+#CC = /opt/intel/bin/icc
+
+CFLAGS = -std=c99 -O3 -fopenmp -g
 
 INCLUDES = -I .
 LIBS = -lxml2 -lm

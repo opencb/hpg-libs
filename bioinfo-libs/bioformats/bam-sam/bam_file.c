@@ -98,7 +98,9 @@ int bam_fread_max_size_no_duplicates(bam_batch_t* batch_p, size_t batch_size, in
     bam1_t* alignment_p = bam_init1();
     while ((current_size < batch_size) && ((read_bytes = bam_read1(bam_file_p->bam_fd, alignment_p)) > 0)) {
         if (prev_seq != NULL) {
-            if (bam_batch_compare_seq(prev_seq, *prev_seq_length, *prev_seq_start_coordinate, alignment_p->data, alignment_p->core.l_qseq, alignment_p->core.pos) != 0) continue;
+            if (bam_batch_compare_seq(prev_seq, *prev_seq_length, 
+				      *prev_seq_start_coordinate, alignment_p->data, 
+				      alignment_p->core.l_qseq, alignment_p->core.pos) != 0) { continue; }
             //if (alignment_p->core.flag & BAM_FDUP) continue;
         }
 
@@ -196,7 +198,7 @@ int bam_fwrite_sorted_array(bam1_t** alignment_p, int* indices, int length, bam_
     return current_size;
 }
 
-#ifdef THRUST-GPU
+#if defined THRUST-GPU
 int bam_fwrite_sorted_array(bam1_t** alignment_p, thrust::host_vector<int> indices, int length, bam_file_t* bam_file_p) {
     int current_size = 0;
 
@@ -336,7 +338,7 @@ int bam_batch_compare_seq(uint8_t* data1, int length_seq1, int start_seq1, uint8
  * *********************************************/
 
 void print_bam1(bam1_t* alignment_p, FILE* fd) {
-    fprintf(fd, "bam1_t:%x\ttid=%i\tpos=%i\n", alignment_p, alignment_p->core.tid, alignment_p->core.pos);
+    fprintf(fd, "bam1_t:%p\ttid=%d\tpos=%d\n", alignment_p, alignment_p->core.tid, alignment_p->core.pos);
 }
 
 void free_bam1(bam1_t** alignments_p, int num_alignments) {

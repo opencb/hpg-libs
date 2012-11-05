@@ -2,7 +2,7 @@
 
 
 #define MAX_HEADER_LENGTH 128
-#define MIN_READ_SIZE (2*35)   // 70 = 2 * 35
+#define MIN_READ_SIZE (2*50)   // 70 = 2 * 35
                                // size is splitted in sequence and quality, so divided 2
                                // minimum expected sequence length is 35
 
@@ -14,7 +14,7 @@ fastq_batch_t* fastq_batch_new(unsigned long size) {
     fastq_batch_t* fastq_batch_p = (fastq_batch_t*) calloc(1, sizeof(fastq_batch_t));
     fastq_batch_p->num_reads = 0;
     fastq_batch_p->data_size = size;
-    fastq_batch_p->data_indices_size = sizeof(int) * fastq_batch_p->data_size / MIN_READ_SIZE;
+    fastq_batch_p->data_indices_size = (sizeof(int) * fastq_batch_p->data_size) / MIN_READ_SIZE;
 
     fastq_batch_p->header_indices = (int*) calloc(fastq_batch_p->data_indices_size, 1);
     fastq_batch_p->header = (char*) calloc(MAX_HEADER_LENGTH * fastq_batch_p->data_size / MIN_READ_SIZE, sizeof(char));

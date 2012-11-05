@@ -1,5 +1,13 @@
-CC = gcc
-CFLAGS = -std=c99 -O3 -D_GNU_SOURCE
+#CC = /opt/intel/bin/icc
+#CC = gcc
+ifeq ($(compiler), intel)
+        CC = /opt/intel/bin/icc
+else
+        CC = gcc
+        compiler=gcc
+endif
+
+CFLAGS = -std=c99 -O3 -D_GNU_SOURCE -g
 CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE
 
 # Directories' paths
@@ -27,8 +35,8 @@ compile: compile-dependencies
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)
 
 compile-dependencies:
-	cd $(CONTAINERS_DIR) && make && \
-	cd $(COMMONS_DIR) && make
+	cd $(CONTAINERS_DIR) && make compiler=$(compiler) && \
+	cd $(COMMONS_DIR) && make compiler=$(compiler)
 
 main: compile-dependencies $(MAIN_TEST)
 	$(CC) $(CFLAGS_DEBUG)  -c main.c $(MAIN_OBJECTS) $(INCLUDES) $(LIBS)

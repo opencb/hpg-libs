@@ -5,12 +5,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef THRUST-GPU
-    #include <thrust/host_vector.h>
-    #include <thrust/device_vector.h>
-    #include <thrust/sort.h>
-    #include <thrust/copy.h>
-#endif
+#if defined THRUST-GPU
+  #include <thrust/host_vector.h>
+  #include <thrust/device_vector.h>
+  #include <thrust/sort.h>
+  #include <thrust/copy.h>
+#endif 
+
 
 #include "bam/bam.h"
 
@@ -211,7 +212,7 @@ int bam_fwrite_batch(bam_batch_t* batch_p, bam_file_t* bam_file_p);
 *  
 *  Writes a sorted array of bam1_t alignments to a BAM file
 */
-#ifdef THRUST-GPU
+#if defined THRUST-GPU
 
 int bam_fwrite_sorted_array(bam1_t** alignment_p, thrust::host_vector<int> indices, int length, bam_file_t* bam_file_p);
 

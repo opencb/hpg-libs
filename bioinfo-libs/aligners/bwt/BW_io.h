@@ -53,14 +53,16 @@
 #define MISMATCH  2
 #define INSERTION 3
 
-#define DD  -1
-#define AA  0
-#define CC  1
-#define GG  2
-#define TT  3
-#define XX  4
 
-extern const char alph_rep[];
+#define DDD  -1
+#define AAA  0
+#define CCC  1
+#define GGG  2
+#define TTT  3
+#define XXX  4
+
+
+//extern const char alph_rep[];
 //const char alph_rep[] ={'A','C','G','T'};
 
 #ifdef VERBOSE_DBG
@@ -199,15 +201,17 @@ extern const char alph_rep[];
 
 #define timevars() struct timeval t1, t2;
 
-#define tic(msg)				   \
+
+#define tic_bwt(msg)				   \
   printf(">> " msg "\n");			   \
   fflush(stdout);				   \
   gettimeofday(&t1, NULL);
 
-#define toc()					\
+#define toc_bwt()					\
   gettimeofday(&t2, NULL);						                 \
   printf("<< Finished %.0f usecs\n", (t2.tv_sec-t1.tv_sec)*1e6+(t2.tv_usec-t1.tv_usec)); \
   fflush(stdout);
+
 
 typedef struct {
 
@@ -284,7 +288,7 @@ typedef struct {
 
 inline void new_results_list(results_list *r_list, unsigned int max_results) {
 
-  printf("Size of result %lu\n", sizeof(result)*CHAR_BIT);
+  //  printf("Size of result %lu\n", sizeof(result)*CHAR_BIT);
 
   r_list->list = (result *) malloc(max_results * sizeof(result));
   checkMalloc(r_list->list, "new_result_list");
@@ -322,13 +326,11 @@ inline void add_mismatch(result *r, char err_kind, char base, int position) {
 
     r->num_mismatches++;
 
-  } else {
-
-    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
-    exit(1);
+    //} else {
+    //    exit(1);
+    //    fprintf(stderr, "ERROR: Number of allowed mismatches exceeded: %d\n", r->num_mismatches);
 
   }
-
 }
 
 inline void modify_last_mismatch_3(result *r, char err_kind, char base, int position) {
@@ -378,14 +380,7 @@ inline void add_result(result *orig, results_list *r_list) {
     r_list->num_results++;
 
     copy_result(dest, orig);
-
-  } else {
-
-    fprintf(stderr, "ERROR: Number of allowed results exceeded: %u\n", r_list->max_results);
-    exit(1);
-
   }
-
 }
 
 #if defined VECTOR_O_32BIT_COMPRESSION

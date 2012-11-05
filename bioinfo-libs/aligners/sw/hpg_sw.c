@@ -8,7 +8,7 @@ void test();
 
 // hpg-sw -q query_filename -r ref_filename -o output_filename -p gap_open_penalty -e gap_extend_penalty -s substitution_score_matrix -n number_of_threads -b number_of_reads_per_batch
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
   int c;
   char *q_filename = NULL, *r_filename = NULL;
@@ -223,9 +223,9 @@ void run_sse(char *q_filename, char *r_filename,
     output_p = sw_multi_output_new(num_queries);
 
     // call smith-waterman
-    partial_t = tic();
+    partial_t = sw_tic();
     smith_waterman_mqmr(q, r, num_queries, optarg_p, num_threads, output_p);
-    sse_t += toc(partial_t);
+    sse_t += sw_toc(partial_t);
 
     // save results
     sw_multi_output_save(num_queries, output_p, out_file);

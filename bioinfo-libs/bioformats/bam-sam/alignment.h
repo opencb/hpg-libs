@@ -104,7 +104,7 @@ alignment_t* alignment_new();
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, short int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -194,7 +194,8 @@ void bam_print(bam1_t* bam_p, int base_quality);
 *  Creates a bam_header_t for the specified specie and assembly
 *  Headers are stored in /bam_headers 
 */
-bam_header_t* bam_header_new(int specie, int assembly);
+bam_header_t* bam_header_new(int specie, int assembly, char* file_path);
+
 void bam_header_free(bam_header_t *header);
 
 /* **********************************************************************
@@ -220,7 +221,7 @@ char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length);
 *  
 *  Converts a uint8_t quality to string
 */
-char* convert_to_quality_string_length(uint8_t* quality_p, int quality_length, int base_quality);
+char* convert_to_quality_string_length(char* quality_desp, uint8_t* quality_src, int quality_length, int base_quality);
 
 //char* convert_from_uint8_to_string(uint8_t* sequence_p, int sequence_length);
 
@@ -286,7 +287,7 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
  */
 char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, 
 			 unsigned int seq_orig_len, unsigned int length, 
-			 short int *number_op_tot);
+			 size_t *number_op_tot);
 
 
 #endif /* ALIGNMENTS_H */
