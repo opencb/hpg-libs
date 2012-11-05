@@ -15,10 +15,11 @@
 #define DEFAULT_NUM_SW_THREADS		1
 #define DEFAULT_MIN_SEED_SIZE		16
 #define DEFAULT_SEED_SIZE		18
-#define DEFAULT_NUM_SEEDS		8
+#define DEFAULT_MIN_NUM_SEEDS		10
+#define DEFAULT_MAX_NUM_SEEDS		20
 #define DEFAULT_MAX_INTRON_LENGTH	1000000
 #define DEFAULT_MIN_INTRON_LENGTH	40
-#define DEFAULT_FLANK_LENGTH		20
+#define DEFAULT_FLANK_LENGTH		5
 #define DEFAULT_SW_MIN_SCORE		300
 #define DEFAULT_SW_MATCH		5
 #define DEFAULT_SW_MISMATCH		-4
@@ -65,7 +66,8 @@ options_t *options_new(void) {
 	options->num_sw_servers = DEFAULT_NUM_SW_THREADS;
 	options->min_seed_size = DEFAULT_MIN_SEED_SIZE;
 	options->seed_size = DEFAULT_SEED_SIZE;
-	options->num_seeds = DEFAULT_NUM_SEEDS;
+	options->min_num_seeds = DEFAULT_MIN_NUM_SEEDS;
+	options->max_num_seeds = DEFAULT_MAX_NUM_SEEDS;
 	options->max_intron_length = DEFAULT_MAX_INTRON_LENGTH;
 	options->flank_length = DEFAULT_FLANK_LENGTH;
 	options->min_score = DEFAULT_SW_MIN_SCORE;
@@ -141,7 +143,8 @@ void options_display(options_t *options) {
   unsigned int num_sw_servers =  (unsigned int)options->num_sw_servers;
   unsigned int min_seed_size =  (unsigned int)options->min_seed_size;
   unsigned int seed_size =  (unsigned int)options->seed_size;
-  unsigned int num_seeds =  (unsigned int)options->num_seeds;
+  unsigned int min_num_seeds =  (unsigned int)options->min_num_seeds;
+  unsigned int max_num_seeds =  (unsigned int)options->max_num_seeds;
   unsigned int max_intron_length =  (unsigned int)options->max_intron_length;
   unsigned int flank_length =  (unsigned int)options->flank_length;
   unsigned int pair_mode =  (unsigned int)options->pair_mode;
@@ -174,13 +177,14 @@ void options_display(options_t *options) {
   printf("Num CAL seekers: %d\n", num_cal_seekers);
   printf("Num SW servers: %d\n",  num_sw_servers);
   printf("SEEDING and CAL PARAMETERS\n");
-  printf("\tNum seeds: %d\n",  num_seeds);
+  printf("\tMin. number of seeds: %d\n",  min_num_seeds);
+  printf("\tMax. number of seeds: %d\n",  max_num_seeds);
   printf("\tSeed size: %d\n",  seed_size);
   printf("\tMin seed size: %d\n",  min_seed_size);
   printf("\tMin CAL size: %d\n",  min_cal_size);
   printf("\tSeeds max distance: %d\n",  seeds_max_distance);
   printf("\tFlank length: %d\n", flank_length);
-  printf("\tRNA PARAMETERS\n");
+  printf("RNA PARAMETERS\n");
   printf("\tMax intron length: %d\n", max_intron_length);
   printf("\tMin intron length: %d\n", min_intron_length);
   printf("PAIR-MODE PARAMETERS\n");
@@ -252,11 +256,12 @@ void** argtable_options_new(void) {
 	argtable[36] = arg_int0(NULL, "report-best", NULL, "Report the <n> best alignments");
 	argtable[37] = arg_int0(NULL, "report-n-hits", NULL, "Report <n> hits");
 
-	argtable[38] = arg_int0(NULL, "num-seeds", NULL, "Number of seeds per read");
+	argtable[38] = arg_int0(NULL, "min-num-seeds", NULL, "Minimum number of seeds per read");
+	argtable[39] = arg_int0(NULL, "max-num-seeds", NULL, "Maximum number of seeds per read");
 
-	argtable[39] = arg_lit0(NULL, "gpu-enable", "Enable GPU Process");
+	argtable[40] = arg_lit0(NULL, "gpu-enable", "Enable GPU Process");
 
-	argtable[40] = arg_end(20);
+	argtable[41] = arg_end(20);
 
 	return argtable;
 }
@@ -465,11 +470,12 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
     }
   }
 
-  if (((struct arg_int*)argtable[38])->count) { options->num_seeds = *(((struct arg_int*)argtable[38])->ival); }
+  if (((struct arg_int*)argtable[38])->count) { options->min_num_seeds = *(((struct arg_int*)argtable[38])->ival); }
+  if (((struct arg_int*)argtable[39])->count) { options->max_num_seeds = *(((struct arg_int*)argtable[39])->ival); }
 
-  if (((struct arg_int*)argtable[39])->count) { 
+  if (((struct arg_int*)argtable[40])->count) { 
     #ifdef HPG_GPU
-       options->gpu_process = (((struct arg_int *)argtable[39])->count); 
+       options->gpu_process = (((struct arg_int *)argtable[40])->count); 
     #else
        options->gpu_process = 0; 
     #endif
@@ -520,9 +526,10 @@ options_t *parse_options(int argc, char **argv) {
   //	free(end);
   //	free(argtable_options);
 
-  if (options->flank_length < 20) {
-    options->flank_length = 20;
-  }
+  // in previous versions, min. flank length was 20
+  //  if (options->flank_length < 5) {
+  //    options->flank_length = 5;
+  //  }
 
   return options;
 }

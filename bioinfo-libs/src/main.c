@@ -221,7 +221,8 @@ int main(int argc, char* argv[]) {
   // CAL parameters
   //GOOD LUCK(20, 60, 18, 16, 0)
   cal_optarg_t *cal_optarg = cal_optarg_new(options->min_cal_size, options->seeds_max_distance, 
-					    options->num_seeds, options->seed_size, options->min_seed_size, 
+					    options->min_num_seeds, options->max_num_seeds,
+					    options->seed_size, options->min_seed_size, 
 					    options->cal_seeker_errors);
   #ifdef HPG_GPU
   gpu_context_t *context;
@@ -336,7 +337,6 @@ int main(int argc, char* argv[]) {
 }
 
 //--------------------------------------------------------------------
-extern int num_revcomp;
 extern int mapped_by_bwt[100];
 
 extern int unmapped_by_max_cals_counter[100];
@@ -504,9 +504,7 @@ extern int unmapped_by_score_counter[100];
 
   printf("unmapped by MAX_CALS = %d\n", by_max_cals);
   printf("unmapped by ZERO_CALS = %d\n", by_zero_cals);
-  printf("unmapped by SW score = %d\n", by_score);
-
-  printf("num revcomp = %d\n", num_revcomp);
+  //  printf("unmapped by SW score = %d\n", by_score);
 }
 
 //--------------------------------------------------------------------
