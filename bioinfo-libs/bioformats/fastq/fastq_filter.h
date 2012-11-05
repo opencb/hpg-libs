@@ -5,7 +5,6 @@
  *      Author: imedina
  */
 
-
 #ifndef FASTQ_FILTER_H
 #define FASTQ_FILTER_H
 

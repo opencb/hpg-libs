@@ -1,8 +1,8 @@
 #include <stdlib.h>
 
-#include "fastq_filter.h"
 #include "fastq_read.h"
-
+#include "fastq_filter.h"
+#include "fastq_stats.h"
 
 fastq_filter_options_t *fastq_filter_options_new(int min_length, int max_lentgh, float min_quality, float max_quality, int max_Ns, int max_N_out_quality) {
 	fastq_filter_options_t *options = (fastq_filter_options_t *)malloc(sizeof(fastq_filter_options_t));
@@ -25,22 +25,29 @@ void fastq_filter_options_free(fastq_filter_options_t *options) {
 
 array_list_t *fastq_filter(array_list_t *reads, array_list_t *passed, array_list_t *failed, fastq_filter_options_t *options) {
 	fastq_read_t *read;
-	float qual_avg;
-//	#pragma omp parallel for schedule(dynamic, 1000000) private(qual_avg)
+
+	fastq_read_stats_t *fq_read_stats = fastq_read_stats_new();
+	fastq_read_stats_options_t *fq_read_stats_options = fastq_read_stats_options_new(options->min_length, options->max_length, 4);
+
+//	#pragma omp parallel for schedule(dynamic, 500000)
 	for(size_t i=0; i<reads->size; i++) {
-//		printf("%i\n", omp_get_thread_num( ));
+//		fastq_read_stats_init(fq_read_stats);
 		read = array_list_get(i, reads);
 		if(read->length >= options->min_length && read->length <= options->max_length) {
-			qual_avg = fastq_quality_average(read);
-			if(qual_avg >= options->min_quality && qual_avg <= options->max_quality) {
-//				printf("qual avg: %f\n", qual_avg);
+			fastq_read_stats_se(read, fq_read_stats_options, fq_read_stats);
+//			fastq_read_stats_print(fq_read_stats);
+			if(fq_read_stats->quality_average >= options->min_quality && fq_read_stats->quality_average <= options->max_quality && fq_read_stats->Ns < options->max_Ns) {
 				array_list_insert(read, passed);
+			}else {
+				array_list_insert(read, failed);
 			}
-
 		}else {
 			// get read stats
 			array_list_insert(read, failed);
 		}
 	}
+	fastq_read_stats_free(fq_read_stats);
+	fastq_read_stats_options_free(fq_read_stats_options);
+
 	return passed;
 }

@@ -23,23 +23,44 @@ typedef struct fastq_read_stats {
     int num_T;
     int num_C;
     int num_G;
-    int num_N;
 
     float quality_average;	/**< Mean quality average. */
 } fastq_read_stats_t;
 
+typedef struct fastq_read_stats_options {
+	int min_qual;
+	int max_qual;
 
-fastq_read_stats_t *fastq_stats_new();
+	int num_threads;
 
-//void fastq_stats_init(int length, float qual_average, int Ns, int N_out_qual, fastq_read_stats_t *read_stats);
+} fastq_read_stats_options_t;
 
-void fastq_stats_free(fastq_read_stats_t *read_stats);
 
-void fastq_read_stats_se(fastq_read_t *fq_reads, fastq_read_stats_t *reads_stats);
+fastq_read_stats_t *fastq_read_stats_new();
 
-size_t fastq_stats_se(array_list_t *fq_reads, array_list_t *reads_stats);
+void fastq_read_stats_init(fastq_read_stats_t *fq_read_stats);
 
-size_t fastq_stats_pe(array_list_t *fq_reads, array_list_t *reads_stats);
+void fastq_read_stats_free(fastq_read_stats_t *read_stats);
+
+void fastq_reads_stats_free(array_list_t *read_stats);
+
+
+fastq_read_stats_options_t *fastq_read_stats_options_new(int min_qual, int max_qual, int num_threads);
+
+void fastq_read_stats_options_free(fastq_read_stats_options_t *read_stats);
+
+
+int fastq_read_stats_se(fastq_read_t *fq_read, fastq_read_stats_options_t *fq_read_stats_options, fastq_read_stats_t *read_stats);
+
+int fastq_reads_stats_se(array_list_t *fq_reads, fastq_read_stats_options_t *fq_read_stats_options, array_list_t *reads_stats);
+
+void fastq_read_stats_print(fastq_read_stats_t *fq_read_stats);
+
+
+
+//size_t fastq_stats_se(array_list_t *fq_reads, array_list_t *reads_stats);
+
+//size_t fastq_stats_pe(array_list_t *fq_reads, array_list_t *reads_stats);
 
 //int fastq_stats(fastq_read_t *fq_read, fastq_read_stats_t *read_stats);
 

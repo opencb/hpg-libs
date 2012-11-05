@@ -50,7 +50,7 @@ void fastq_read_free(fastq_read_t *fq_read);
 
 void fastq_read_print(fastq_read_t *read);
 
-float fastq_quality_average(fastq_read_t *fq_read_t);
+//float fastq_quality_average(fastq_read_t *fq_read_t);
 
 
 

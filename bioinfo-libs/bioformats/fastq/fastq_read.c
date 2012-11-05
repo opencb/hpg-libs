@@ -50,11 +50,11 @@ void fastq_read_print(fastq_read_t *read) {
 	printf("%s\n", read->quality);
 }
 
-float fastq_quality_average(fastq_read_t *fq_read_t) {
-	int qual = 0;
-	for(size_t i=0; i<fq_read_t->length; i++) {
-		qual += fq_read_t->quality[i];
-	}
-	return (float)qual/fq_read_t->length;
-}
+//float fastq_quality_average(fastq_read_t *fq_read_t) {
+//	int qual = 0;
+//	for(size_t i=0; i<fq_read_t->length; i++) {
+//		qual += fq_read_t->quality[i];
+//	}
+//	return (float)qual/fq_read_t->length;
+//}
 
