@@ -308,7 +308,11 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 
 unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
   FILE *binary_fd = fopen (dna_binary_filename, "rb");
-  
+  if (!binary_fd) {
+    printf("Error to opening '%s' file\n", dna_binary_filename);
+    exit(-1);
+  }
+
   struct stat st;                                                                                                                                                     
   stat(dna_binary_filename, &st);     
   *size = st.st_size;                                                                                                                                           
