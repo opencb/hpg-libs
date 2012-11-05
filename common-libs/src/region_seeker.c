@@ -141,7 +141,8 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
   list_t *list = NULL;
   size_t index, num_mappings;
   fastq_batch_t *fq_batch = batch->fq_batch;
-  size_t num_seeds = input->cal_optarg_p->num_seeds;
+  size_t min_num_seeds = input->cal_optarg_p->min_num_seeds;
+  size_t max_num_seeds = input->cal_optarg_p->max_num_seeds;
   size_t seed_size = input->cal_optarg_p->seed_size;
   size_t min_seed_size = input->cal_optarg_p->min_seed_size;
   size_t num_seqs = batch->num_targets;
@@ -166,7 +167,8 @@ void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch) {
 					   input->bwt_optarg_p, input->bwt_index_p, 
     					   list);
     */
-    num_mappings = bwt_map_exact_seeds_seq_by_num(seq, num_seeds, seed_size, min_seed_size,
+    num_mappings = bwt_map_exact_seeds_seq_by_num(seq, min_num_seeds, max_num_seeds, 
+						  seed_size, min_seed_size,
     						  input->bwt_optarg_p, input->bwt_index_p, 
     						  list);
     if (num_mappings > 0) {

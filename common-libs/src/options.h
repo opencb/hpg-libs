@@ -16,7 +16,7 @@
 
 #include "commons/log.h"
 
-#define NUM_OPTIONS			40
+#define NUM_OPTIONS			41
 
 typedef struct options {
   unsigned char bwt_set;
@@ -27,7 +27,8 @@ typedef struct options {
   int num_gpu_threads;
   int num_cpu_threads;
   int min_cal_size; 
-  int num_seeds; 
+  int min_num_seeds; 
+  int max_num_seeds; 
   int seeds_max_distance;
   int bwt_threads;
   int batch_size;
