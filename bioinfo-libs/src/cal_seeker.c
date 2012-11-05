@@ -245,7 +245,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	  array_list_set(j, NULL, list);
 	}
       }
-      array_list_clear(list, cal_free);
+      array_list_clear(list, (void *) cal_free);
       num_cals = array_list_size(cal_list);
     }
 
