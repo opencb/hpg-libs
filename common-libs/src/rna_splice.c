@@ -1,20 +1,21 @@
 #include "rna_splice.h"
 
-unsigned int junction_id = 0;
+size_t junction_id = 0;
 size_t total_splice = 0;
 
 
-int node_compare(node_element_splice_t* a, unsigned int b) {
- if(a->splice_start == b){ 
-   return 0;
- }else if(a->splice_start < b){
+int node_compare(node_element_splice_t* a, size_t b) {
+ 
+  if(a->splice_start == b){ 
+    return 0;
+  }else if(a->splice_start < b){
    return -1;
- }else{
-   return 1;
- }
+  }else{
+    return 1;
+  }
 }
 
-node_element_splice_t* node_copy(unsigned int b) {
+node_element_splice_t* node_copy(size_t b) {
  node_element_splice_t *node = (node_element_splice_t *)malloc(sizeof(node_element_splice_t));
 
  //assert(node != NULL);
@@ -53,8 +54,8 @@ node_element_splice_t* insert_end_splice(splice_end_t *splice_end_p, node_elemen
 }
 
 node_element_splice_t* search_and_insert_end_splice(unsigned int chromosome, unsigned char strand, 
-						    unsigned int end, unsigned int splice_start, 
-						    unsigned int splice_end, 
+						    size_t end, size_t splice_start, 
+						    size_t splice_end, 
 						    node_element_splice_t *element_p){
   unsigned int i;
 
@@ -75,7 +76,7 @@ node_element_splice_t* search_and_insert_end_splice(unsigned int chromosome, uns
     }
   }
   
-  splice_end_t *splice_end_p = new_splice_end(strand, end, splice_end, splice_end_p);
+  splice_end_t *splice_end_p = new_splice_end(strand, end, splice_end);
   
   return insert_end_splice(splice_end_p, element_p);
 }
@@ -93,7 +94,7 @@ allocate_splice_elements_t* init_allocate_splice_elements(allocate_splice_elemen
 								    (cp_copy_fn) node_copy, 
 								    (cp_destructor_fn)node_free);
      
-     if(chromosomes_avls_p[i].avl_splice == NULL){exit(-1);}
+     if(chromosomes_avls_p[i].avl_splice == NULL) {exit(-1);}
      pthread_mutex_init(&(chromosomes_avls_p[i].mutex), NULL);
    }
    
@@ -101,15 +102,15 @@ allocate_splice_elements_t* init_allocate_splice_elements(allocate_splice_elemen
 }
 
 allocate_splice_elements_t* allocate_new_splice(unsigned int chromosome, unsigned char strand, 
-						unsigned int end, unsigned int start, 
-						unsigned int splice_start, unsigned int splice_end, 
+						size_t end, size_t start, 
+						size_t splice_start, size_t splice_end, 
 						allocate_splice_elements_t* chromosome_avls_p){
   node_element_splice_t *node;
 
-  node = (node_element_splice_t *)cp_avltree_get(chromosome_avls_p[chromosome].avl_splice, start);
+  node = (node_element_splice_t *)cp_avltree_get(chromosome_avls_p[chromosome].avl_splice, (void *)start);
 
   if(node == NULL) {
-    node = cp_avltree_insert(chromosome_avls_p[chromosome].avl_splice, start, start);
+    node = cp_avltree_insert(chromosome_avls_p[chromosome].avl_splice, (void *)start, (void *)start);
     node->splice_start_extend = splice_start;
   }
   
@@ -118,10 +119,10 @@ allocate_splice_elements_t* allocate_new_splice(unsigned int chromosome, unsigne
   return chromosome_avls_p;
 }
 
-splice_end_t* new_splice_end(unsigned char strand, unsigned int end, 
-			     unsigned int splice_end, splice_end_t *splice_end_p){
+splice_end_t* new_splice_end(unsigned char strand, size_t end, 
+			     size_t splice_end) {
 
-  splice_end_p = (splice_end_t *)malloc(sizeof(splice_end_t));
+  splice_end_t* splice_end_p = (splice_end_t *)malloc(sizeof(splice_end_t));
 
   if(splice_end_p == NULL){exit(-1);}
 
@@ -180,9 +181,14 @@ allocate_buffers_t* process_avlnode_ends_in_order(node_element_splice_t *node, u
       allocate_batches->write_extend_sp = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
     } 
 
-    bytes_exact = pack_junction(chromosome, node->allocate_ends[i]->strand, node->splice_start, node->allocate_ends[i]->end, junction_id, node->allocate_ends[i]->reads_number, &(allocate_batches->write_exact_sp->buffer_p[allocate_batches->write_exact_sp->size])); 
+    bytes_exact = pack_junction(chromosome, node->allocate_ends[i]->strand, 
+				node->splice_start, node->allocate_ends[i]->end, 
+				junction_id, node->allocate_ends[i]->reads_number, 
+				&(((char *)allocate_batches->write_exact_sp->buffer_p)[allocate_batches->write_exact_sp->size]));
     
-    bytes_extend = pack_junction(chromosome, node->allocate_ends[i]->strand, node->splice_start_extend, node->allocate_ends[i]->splice_end_extend, junction_id, node->allocate_ends[i]->reads_number, &(allocate_batches->write_extend_sp->buffer_p[allocate_batches->write_extend_sp->size])); 
+    bytes_extend = pack_junction(chromosome, node->allocate_ends[i]->strand, node->splice_start_extend, 
+				 node->allocate_ends[i]->splice_end_extend, junction_id, node->allocate_ends[i]->reads_number, 
+				 &(((char *)allocate_batches->write_extend_sp->buffer_p)[allocate_batches->write_extend_sp->size])); 
     
     allocate_batches->write_exact_sp->size += bytes_exact;
     allocate_batches->write_extend_sp->size += bytes_extend;
@@ -344,7 +350,7 @@ void cp_avlnode_print_new(cp_avlnode *node, int level){
   int i;
   if (node->right) cp_avlnode_print_new(node->right, level + 1);
   for (i = 0; i < level; i++) printf("  . ");
-  printf("(%d) [%i => %i]", node->balance, ((node_element_splice_t *)node->key)->splice_start, ((node_element_splice_t *)node->value)->splice_start);
+  printf("(%d) [%lu => %lu]", node->balance, ((node_element_splice_t *)node->key)->splice_start, ((node_element_splice_t *)node->value)->splice_start);
   node_list_print((node_element_splice_t *)node->value);
   if (node->left) cp_avlnode_print_new(node->left, level + 1);
 }
@@ -352,15 +358,15 @@ void cp_avlnode_print_new(cp_avlnode *node, int level){
 void cp_avlnode_print_in_order(cp_avlnode *node){
     
   if (node->left) cp_avlnode_print_in_order(node->left);
-  printf("(%d) [%i => %i]", node->balance, ((node_element_splice_t *)node->key)->splice_start, ((node_element_splice_t *)node->value)->splice_start);
+  printf("(%d) [%lu => %lu]", node->balance, ((node_element_splice_t *)node->key)->splice_start, ((node_element_splice_t *)node->value)->splice_start);
   node_list_print((node_element_splice_t *)node->value);
   if (node->right) cp_avlnode_print_in_order(node->right);
 }
 
 void node_list_print(node_element_splice_t *node){
   int i;
-  printf("::(%i)Ends{", node->number_allocate_ends);
+  printf("::(%lu)Ends{", node->number_allocate_ends);
   for(i = 0; i < node->number_allocate_ends; i++)
-    printf("|%i-%i|#", node->allocate_ends[i]->end, node->allocate_ends[i]->reads_number);
+    printf("|%lu-%lu|#", node->allocate_ends[i]->end, node->allocate_ends[i]->reads_number);
     printf("}\n");
 }

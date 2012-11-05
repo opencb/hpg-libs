@@ -186,9 +186,9 @@ typedef struct sw_simd_context {
      int *C; /**< Path direction pointer array, to traceback. */
      char *q_aux;
      char *r_aux;
-     size_t aux_size;
-     size_t H_size;
-     size_t F_size; 
+     int aux_size;
+     int H_size;
+     int F_size; 
 
      int *compass_p; /**< Path direction pointer array, to traceback. */
 

@@ -1,3 +1,6 @@
+#include <math.h>
+#include <sys/stat.h>
+
 #include "genome.h"
 
 #define NUCLEOTIDES_NUM 5
@@ -9,44 +12,6 @@ const char NUCLEOTIDES[] = {'A', 'C', 'G', 'N', 'T'};
 const unsigned char TOTAL_CODES = NUCLEOTIDES_NUM*NUCLEOTIDES_NUM*NUCLEOTIDES_NUM + NUCLEOTIDES_NUM*NUCLEOTIDES_NUM + NUCLEOTIDES_NUM; 
 
 //------------------------------------------------------------------------------------
-/*
-genome_t* genome_new(char* sequence_filename, char* chromosome_filename) {
-  const int MAXLINE = 1024;
-  genome_t* genome_p = (genome_t*) calloc(1, sizeof(genome_t));
-  // genome file
-  //
-  size_t dna_size;
-
-  printf("Loading Binary File\n");
-  genome_p->X = load_binary_dna(sequence_filename, &dna_size);
-  printf("Load done!\n");
-  genome_p->code_table = load_array_codes();
-  
-  // read index file
-  unsigned int num_chromosomes = 0;
-  unsigned int offset = 0;
-
-  char* p;
-  char line[MAXLINE];
-  FILE *fd = fopen("/home/hmartinez/genome/human64/chromosome_index.txt", "r");
-  while (fgets(line, MAXLINE, fd) ) {
-    p = strrchr(line, '\n'); *p = '\0';
-    p = strrchr(line, '\t'); *p = '\0';
-    //printf("%s\n", line);
-    strcpy((char*) genome_p->chr_name[num_chromosomes], line);
-    genome_p->chr_name_length[num_chromosomes] = strlen(genome_p->chr_name[num_chromosomes]);
-    sscanf(p+1, "%i", &genome_p->chr_size[num_chromosomes]);
-    genome_p->chr_offset[num_chromosomes] = offset;
-
-    offset += (genome_p->chr_size[num_chromosomes] + 1);
-    num_chromosomes++;
-  }
-  fclose(fd);
-  //printf("In genome %d chromosome and %d\n", num_chromosomes, offset);
-  genome_p->num_chromosomes = num_chromosomes;
-
-  return genome_p;
-}*/
 
 genome_t* genome_new(char* sequence_filename, char* directory) {
   const int MAXLINE = 1024;
@@ -93,7 +58,7 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
     while(line[j] != '\n'){value[i++] = line[j++];}
     value[i] = '\0';
     
-    sscanf(value, "%i", &genome_p->chr_size[num_chromosomes]);
+    sscanf(value, "%lu", &genome_p->chr_size[num_chromosomes]);
     genome_p->chr_offset[num_chromosomes] = offset;
     offset += (genome_p->chr_size[num_chromosomes] + 1);
     //printf("%i\n", genome_p->chr_size[num_chromosomes]);
@@ -157,13 +122,13 @@ char* genome_get_chr_name(unsigned int chr, unsigned int* len, genome_t* genome_
 cp_hashtable *load_hasthable_codes() {
   cp_hashtable *t = cp_hashtable_create(400,
 					cp_hash_istring,
-					strcasecmp); 
+					(cp_compare_fn)strcasecmp); 
   
   /*const unsigned char COMBINATORIAL = (NUCLEOTIDES_NUM * NUCLEOTIDES_NUM * NUCLEOTIDES_NUM) +  (NUCLEOTIDES_NUM * NUCLEOTIDES_NUM) +  NUCLEOTIDES_NUM;
   
   unsigned char *id_array = (unsigned char *)malloc(sizeof(unsigned char)*COMBINATORIAL); 
   */
-  unsigned char id = 0;
+  size_t id = 0;
   char combination[4];
   
   combination[3] = '\0';
@@ -174,7 +139,7 @@ cp_hashtable *load_hasthable_codes() {
       combination[1] = NUCLEOTIDES[nt_2];
       for(unsigned int nt_3 = 0; nt_3 < NUCLEOTIDES_NUM; nt_3++){
 	combination[2] = NUCLEOTIDES[nt_3];
-	cp_hashtable_put(t, strdup(combination), id);
+	cp_hashtable_put(t, strdup(combination), (void *)id);
 	id++;
       }
     }
@@ -187,7 +152,7 @@ cp_hashtable *load_hasthable_codes() {
     combination[0] = NUCLEOTIDES[nt_1];
     for(unsigned int nt_2 = 0; nt_2 < NUCLEOTIDES_NUM; nt_2++){
       combination[1] = NUCLEOTIDES[nt_2];
-      cp_hashtable_put(t, strdup(combination), id);
+      cp_hashtable_put(t, strdup(combination), (void *)id);
       id++;	
     }
   }
@@ -197,7 +162,7 @@ cp_hashtable *load_hasthable_codes() {
   combination[1] = '\0';
   for(unsigned int nt = 0; nt < NUCLEOTIDES_NUM; nt++){
     combination[0] = NUCLEOTIDES[nt];
-    cp_hashtable_put(t, strdup(combination), id);
+    cp_hashtable_put(t, strdup(combination), (void *)id);
     id++;	
   }
 
@@ -279,56 +244,56 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   unsigned char actual_nt = 0;
   
   unsigned char value;
+  unsigned char *value_ptr;
   size_t nt = 0;
-  
-  /*
-  while (!feof(fd)) {
-    fgets(dna_chunk, chunk_size, fd);
-    dna_len = strlen(dna_chunk);
-    while(nt < dna_len) {
-      while((actual_nt < key_chunk) && (dna_chunk[nt] != '\n') && (dna_chunk[nt] != '\0') && (nt < dna_len)){
-	key[actual_nt] = dna_chunk[nt];
-	nt++;
-	actual_nt++;
-      }
-
-      key[actual_nt] = '\0';
-      actual_nt = 0;
-      value = (unsigned char)cp_hashtable_get(t, key);
-      code_values[code_pos] = value; 
-      code_pos++;
-   
-      if (code_pos >= codes_allocate) {
-	fwrite(code_values, sizeof(unsigned char), code_pos, binary_fd);
-	code_pos = 0;
-      }
-      //printf("Key:%s - Value:%i\n", key, value);
-    }
-    }*/
+  unsigned char key_chunk = 3;
+  printf("Process DNA File\n");
 
   while (!feof(fd)) {
     fgets(dna_chunk, chunk_size, fd);
-    dna_len = strlen(dna_chunk);
-    for (unsigned int c = 0; c < dna_len; c++) {
-      key[actual_nt++] = dna_chunk[c];
-      if (actual_nt ==  max_chunk){
-	key[actual_nt] = '\0';
-	value = (unsigned char)cp_hashtable_get(t, key);
-	code_values[code_pos++] = value;
-	//printf("Stored code %d == %s : %d\n", value, key, code_pos - 1);
-	if (code_pos >= codes_allocate) {
-	  printf("Write Ids...\n");
-	  fwrite(code_values, sizeof(unsigned char), code_pos, binary_fd);
-	  code_pos = 0;
+    if (dna_chunk[0] != '>') {
+      dna_len = strlen(dna_chunk);
+      //printf("Process (%i): %s", dna_len, dna_chunk);
+      for (unsigned int c = 0; c < dna_len; c++) {
+	if (dna_chunk[c] != '\n') {
+	  //printf("Char(%i)[%i]: %c\n", c, actual_nt, dna_chunk[c]);
+	  if (dna_chunk[c] == 'a' || 
+	      dna_chunk[c] == 'c' || 
+	      dna_chunk[c] == 'g' || 
+	      dna_chunk[c] == 't' || 
+	      dna_chunk[c] == 'n') {
+	    //printf("Convert %c in %c\n", dna_chunk[c], dna_chunk[c] - 32);
+	    dna_chunk[c] = dna_chunk[c] - 32;
+	  }
+
+	  key[actual_nt++] = dna_chunk[c];
+	  if (actual_nt ==  max_chunk){
+	    key[actual_nt] = '\0';
+	    //printf("Store: %s\n", key);
+	    value_ptr = (unsigned char *)cp_hashtable_get(t, key);
+	    value = *value_ptr;
+
+	    code_values[code_pos++] = value;
+	    //printf("Stored code %d == %s : %d\n", value, key, code_pos - 1);
+	    if (code_pos >= codes_allocate) {
+	    //printf("Write Ids in file...\n");
+	      fwrite(code_values, sizeof(unsigned char), code_pos, binary_fd);
+	      code_pos = 0;
+	    }
+	    actual_nt = 0;
+	  }
 	}
-   	actual_nt = 0;
-      }
-    }
+      } //End for
+    } else {
+      printf("Process: %s", &dna_chunk[1]);      
+    }//End if strcmp
   }
-
+    
   if(actual_nt > 0){
     key[actual_nt] = '\0';
-    value = (unsigned char)cp_hashtable_get(t, key);
+    //printf("Store: %s\n", key);
+    value_ptr = (unsigned char *)cp_hashtable_get(t, key);
+    value = *value_ptr;
     code_values[code_pos++] = value;	
   }
 
@@ -343,11 +308,15 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 
 unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
   FILE *binary_fd = fopen (dna_binary_filename, "rb");
-  
+  if (!binary_fd) {
+    printf("Error to opening '%s' file\n", dna_binary_filename);
+    exit(-1);
+  }
+
   struct stat st;                                                                                                                                                     
   stat(dna_binary_filename, &st);     
   *size = st.st_size;                                                                                                                                           
-  printf("size file=%i\n", *size);
+  printf("size file=%lu\n", *size);
 
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
   fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
@@ -404,7 +373,7 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
 				       size_t *end_p, genome_t* genome_p) {
 
   size_t s, e;
-
+  
   if (*start_p < 1) (*start_p) = 1;
   if (*start_p > genome_p->chr_size[chr]) (*start_p) = genome_p->chr_size[chr];
   if (*end_p < 1) (*end_p) = 1;

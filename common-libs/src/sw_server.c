@@ -511,7 +511,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     }
 
     // free cal_list
-    array_list_free(cal_list, cal_free);
+    array_list_free(cal_list, (void *)cal_free);
     batch->mapping_lists[index] = NULL;
   }
 

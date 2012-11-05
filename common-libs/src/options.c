@@ -40,6 +40,7 @@ const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
 const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
 const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
 const char INDEX_NAME[30]  = "index";
+const char HEADER_FILE[1024] = "Human_NCBI37.hbam\0";
 
 //========================================================================
 
@@ -88,6 +89,7 @@ options_t *options_new(void) {
 	options->reg_set = 0;
 	options->cal_set = 0;
 	options->sw_set = 0;
+	
 	//	options->help = DEFAULT_HELP;
 	
 	return options;
@@ -106,7 +108,8 @@ void options_free(options_t *options) {
 	if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
 	if (options->genome_filename  != NULL)		{ free(options->genome_filename); }
 	if (options->output_filename  != NULL)		{ free(options->output_filename); }
-	
+	if (options->header_filename != NULL)           { free(options->header_filename); }
+
 	free(options);
 }
 
@@ -311,9 +314,29 @@ int read_config_file(const char *filename, options_t *options) {
  */
 options_t *read_CLI_options(void **argtable, options_t *options) {
   //	options_t *options = (options_t*) calloc (1, sizeof(options_t));
+  FILE *fd;
 	
-  if (((struct arg_file*)argtable[0])->count) { options->in_filename = strdup(*(((struct arg_file*)argtable[0])->filename)); }
-  if (((struct arg_file*)argtable[1])->count) { options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); }
+  if (((struct arg_file*)argtable[0])->count) { 
+    options->in_filename = strdup(*(((struct arg_file*)argtable[0])->filename)); 
+    fd = fopen( options->in_filename, "r" );
+    if (fd == NULL) {
+      printf("Error opening file %s \n",  options->in_filename);
+      exit(-1);
+    }
+    fclose(fd);
+  }
+ 
+ if (((struct arg_file*)argtable[1])->count) { 
+    options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); 
+    options->header_filename = (char *)calloc((strlen(options->bwt_dirname) + strlen(HEADER_FILE) + 32), sizeof(char));
+    //printf("BWT: %s\n", options->bwt_dirname);
+    //printf("HEADER: %s\n", options->header_filename); 
+    strcat(options->header_filename, options->bwt_dirname);
+    //printf("HEADER 1: %s\n", options->header_filename); 
+    strcat(options->header_filename, HEADER_FILE);
+    //printf("HEADER 2: %s\n", options->header_filename); 
+ }
+
   if (((struct arg_file*)argtable[2])->count) { options->genome_filename = strdup(*(((struct arg_file*)argtable[2])->filename)); }
   if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); } 
   if (((struct arg_file*)argtable[4])->count) { free(options->output_filename); options->output_filename = strdup(*(((struct arg_file*)argtable[4])->filename)); }
@@ -450,8 +473,17 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_file*)argtable[30])->count) { free(options->splice_exact_filename); options->splice_exact_filename = strdup(*(((struct arg_file*)argtable[30])->filename)); }
   if (((struct arg_file*)argtable[31])->count) { free(options->splice_extend_filename); options->splice_extend_filename = strdup(*(((struct arg_file*)argtable[31])->filename)); }
 
-  if (((struct arg_file*)argtable[32])->count) { free(options->in_filename2); options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); }
-  
+  if (((struct arg_file*)argtable[32])->count) { 
+    free(options->in_filename2); 
+    options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); 
+    fd = fopen( options->in_filename2, "r" );
+    if (fd == NULL) {
+      printf("Error opening file %s \n",  options->in_filename2);
+      exit(-1);
+    }
+    fclose(fd);  
+  }
+
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
   if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
   if (((struct arg_int*)argtable[35])->count) { options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); }
