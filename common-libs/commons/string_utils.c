@@ -438,7 +438,7 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
   
   if (str_p == NULL) {
     printf("Input string is NULL\n");
-    return NULL;
+    return 0;
   }
   //printf("-->%c\n", str_p[0]);
   if (str_p[0] == '@') {

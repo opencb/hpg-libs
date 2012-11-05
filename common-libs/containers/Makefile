@@ -1,5 +1,11 @@
-CC = gcc
+#CC = gcc
 #CC = /opt/intel/bin/icc
+ifeq ($(compiler), intel)
+        CC = /opt/intel/bin/icc
+else
+        CC = gcc
+        compiler=gcc
+endif
 
 CFLAGS = -std=c99 -O3
 
@@ -25,7 +31,7 @@ array_list.o: array_list.h array_list.c
 	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(INCLUDES) $(LIBS)
 
 test-utils:
-	cd test && make
+	cd test && make compiler=$(compiler)
 
 clean:
 	rm list.o
