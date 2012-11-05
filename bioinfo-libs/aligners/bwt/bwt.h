@@ -35,7 +35,8 @@ double time_bwt, time_search, time_bwt_seed, time_search_seed;
 typedef struct cal_optarg {
   size_t min_cal_size;
   size_t max_cal_distance;
-  size_t num_seeds;
+  size_t min_num_seeds;
+  size_t max_num_seeds;
   size_t seed_size;
   size_t min_seed_size;
   size_t num_errors;
@@ -43,7 +44,8 @@ typedef struct cal_optarg {
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
-			     const size_t num_seeds,
+			     const size_t min_num_seeds,
+			     const size_t max_num_seeds,
 			     const size_t seed_size,
 			     const size_t min_seed_size,
 			     const size_t num_errors);
@@ -241,7 +243,8 @@ size_t bwt_map_exact_seeds_seq(char *seq,
 			       bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
 			       array_list_t *mapping_list);
 
-size_t bwt_map_exact_seeds_seq_by_num(char *seq, size_t num_seeds, 
+size_t bwt_map_exact_seeds_seq_by_num(char *seq, 
+				      size_t min_num_seeds, size_t max_num_seeds, 
 				      size_t seed_size, size_t min_seed_size,
 				      bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
 				      array_list_t *mapping_list);
