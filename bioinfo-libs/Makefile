@@ -1,7 +1,14 @@
-#CC = /opt/intel/bin/icc 
+
+ifeq ($(compiler), intel)
+	CC = /opt/intel/bin/icc 
+else
+	CC = gcc
+	compiler=gcc
+endif
+
 # -xSSE4.2 -msse4.2 -march=native 
 
-CC = gcc
+#CC = gcc
 
 CFLAGS = -std=c99 -O3 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION -g
 CFLAGS_DEBUG = -std=c99 -g -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION
@@ -24,7 +31,8 @@ ALIGNERS_DIR = $(BIOINFO_LIBS_DIR)/aligners
 INCLUDES = -I . -I ./include -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include
 LIBS = -L$(LIB_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprops -fopenmp -largtable2 -lconfig -lbam -lcurl -lm -lz -lxml2
 
-CUDA_HOME = /usr/local/cuda
+#CUDA_HOME = /usr/local/cuda
+CUDA_HOME = /opt/cuda/4.1/cuda
 CUDA_LIBS = -L $(CUDA_HOME)/lib64 -lcudart
 #CUDA_LIBS = -L /usr/local/cuda/lib64 -lcudart
 
@@ -60,11 +68,11 @@ preprocess-dna:
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@  preprocess_dna.o genome.o $(INCLUDES) $(LIBS)
 
 compile-dependencies: bam-dependencies
-	cd $(COMMONS_DIR) && make &&           \
-	cd $(CONTAINERS_DIR) && make &&        \
-	cd $(ALIGNERS_DIR)/bwt && make &&      \
-	cd $(ALIGNERS_DIR)/sw && make &&       \
-	cd $(BIOFORMATS_DIR)/fastq && make
+	cd $(COMMONS_DIR) && make compiler=$(compiler) &&           \
+	cd $(CONTAINERS_DIR) && make compiler=$(compiler) &&        \
+	cd $(ALIGNERS_DIR)/bwt && make compiler=$(compiler) &&      \
+	cd $(ALIGNERS_DIR)/sw && make compiler=$(compiler) &&       \
+	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler)
 
 compile-dependencies-gpu:
 	cd $(ALIGNERS_DIR)/bwt && make test-search-gpu

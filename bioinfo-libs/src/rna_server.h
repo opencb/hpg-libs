@@ -13,7 +13,7 @@
 #include "commons/commons.h"
 #include "commons/system_utils.h"
 #include "bioformats/bam-sam/alignment.h"
-
+#include "aligners/bwt/bwt.h"
 
 //#include "list.h"
 //#include "genome.h"
@@ -26,11 +26,11 @@
  * Structure for store the strand, extend and exact coordiantes for each splice junction found.  
  */
 typedef struct sp_data{
-  unsigned int start_sp; /**< exact start genome coordinate */
-  unsigned int end_sp;  /**< exact end genome coordinate */
+  size_t start_sp; /**< exact start genome coordinate */
+  size_t end_sp;  /**< exact end genome coordinate */
   short int strand_sp;  /**< genome strand */
-  unsigned int start_extend_sp; /**< extend start genome coordinate */ 
-  unsigned int end_extend_sp;  /**< extend end genome coordinate */
+  size_t start_extend_sp; /**< extend start genome coordinate */ 
+  size_t end_extend_sp;  /**< extend end genome coordinate */
 }sp_data_t;
 
 /**
@@ -40,8 +40,8 @@ typedef struct sp_data{
  */
 typedef struct cal_fusion_data{
   unsigned int  id;   /**< id of CAL */
-  unsigned int  genome_start; /**< genome start position */
-  unsigned int  genome_end;   /**< genome end position */
+  size_t  genome_start; /**< genome start position */
+  size_t  genome_end;   /**< genome end position */
   unsigned char genome_strand;   /**< genome strand position */
   unsigned int  genome_chromosome;  /**< genome chromosome */
   unsigned int  fusion_start;  /**< fusion string start position */
@@ -61,7 +61,7 @@ typedef struct cal_fusion_data{
 
  *  Initialize all @a cal_fusion_data_t fields with the information CALs.
  */
-void cal_fusion_data_init(unsigned int id, unsigned int start, unsigned int end, unsigned int strand, unsigned int chromosome, unsigned int fusion_start, unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p);
+void cal_fusion_data_init(unsigned int id, size_t start, size_t end, unsigned int strand, unsigned int chromosome, unsigned int fusion_start, unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p);
 
 
 /**
@@ -142,7 +142,7 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int 
 void search_splice_junctions_sw_output(sw_simd_input_t* sw_input_p, 
 				       sw_simd_output_t* sw_output_p, unsigned int depth, 
 				       allocate_fusion_data_t *depth_cal_fusion_p, allocate_splice_elements_t *chromosome_avls_p, 
-				       unsigned char *mapping_reads_p, sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
+				       sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
 				       unsigned int sw_id, size_t *sw_no_valids, float min_score, genome_t *genome_p, 
 				       unsigned int min_intron_length, array_list_t **allocate_mappings);
 

@@ -30,6 +30,8 @@ typedef struct batch_writer_input {
 
   char* splice_exact_filename;
   char* splice_extend_filename;
+  
+  char* header_filename;
 
   list_t* list_p;
 } batch_writer_input_t;
@@ -37,7 +39,9 @@ typedef struct batch_writer_input {
 //------------------------------------------------------------------------------------
 
 void batch_writer_input_init(char* match_filename, char* splice_exact_filename, 
-			     char* splice_extend_filename, list_t* list_p, batch_writer_input_t* input);
+			     char* splice_extend_filename, list_t* list_p, 
+			     char* header_filename, batch_writer_input_t* input);
+
 //====================================================================================
 
 void batch_writer(batch_writer_input_t* input_p);
