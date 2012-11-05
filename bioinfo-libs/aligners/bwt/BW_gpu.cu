@@ -334,7 +334,6 @@ __global__ void BWExactSearchBackwardSeedsGPU_ex(char *W, unsigned int *nW, size
   unsigned int offset  = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int offset_write;
   unsigned int offset_seed;
-  unsigned int write_offset = offset * (num_max_seeds*2);
 
   __shared__ unsigned int Cshared[4];
   __shared__ unsigned int C1shared[4];

@@ -17,7 +17,7 @@ double sse_t = 0.0f;
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
   int c;
   char *q_filename = NULL, *r_filename = NULL;

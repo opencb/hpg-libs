@@ -205,10 +205,14 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     alignment_p->optional_fields_length = bam_p->l_aux;
 
     //copy the data between structures
-
     strcpy(alignment_p->query_name, bam1_qname(bam_p));
     strcpy(alignment_p->sequence, convert_to_sequence_string(bam1_seq(bam_p), bam_p->core.l_qseq));
-    strcpy(alignment_p->quality, convert_to_quality_string_length(bam1_qual(bam_p), bam_p->core.l_qseq, base_quality));
+
+    //char* quality_string = (char *)malloc(sizeof(char)*(quality_length + 1));
+    convert_to_quality_string_length(alignment_p->quality, bam1_qual(bam_p), bam_p->core.l_qseq, base_quality);
+    //strcpy(alignment_p->quality, quality_string);
+    //free(quality_string);
+
     strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
     memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);
 
@@ -426,12 +430,12 @@ void bam_print(bam1_t* bam_p, int base_quality) {
     printf("flag (pc_optical_duplicate): %i\n", (bam_p->core.flag & BAM_FDUP) ? 1 : 0);
 }
 
-bam_header_t* bam_header_new(int specie, int assembly) {
+bam_header_t* bam_header_new(int specie, int assembly, char* file_path) {
     bamFile bam_header_file;
     bam_header_t* bam_header_p;
 
     if ((specie == HUMAN) && (assembly == NCBI37)) {
-        bam_header_file = bam_open("Human_NCBI37.hbam", "r");
+        bam_header_file = bam_open(file_path, "r");
         bam_header_p = bam_header_read(bam_header_file);
 	bam_close(bam_header_file);
     }
@@ -476,17 +480,16 @@ char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length) {
     return sequence_string;
 }
 
-char* convert_to_quality_string_length(uint8_t* quality_p, int quality_length, int base_quality) {
-    char quality_string[quality_length + 1]; //each byte codes two nts ( 1 nt = 4 bits)
-
-    for (int i = 0; i < quality_length; i++) {
-        quality_string[i] = quality_p[i] + base_quality;
-    }
-    quality_string[quality_length] = '\0';
-
-    return quality_string;
+char* convert_to_quality_string_length(char* quality_dest, uint8_t* quality_src, int quality_length, int base_quality) {
+  //char quality_string[quality_length + 1]; //each byte codes two nts ( 1 nt = 4 bits)
+  for (int i = 0; i < quality_length; i++) {
+    quality_dest[i] = quality_src[i] + base_quality;
+  }
+  quality_dest[quality_length] = '\0';
+  
+  return quality_dest;
 }
-
+/*
 char* convert_to_quality_string(uint8_t* quality_p) {
     int num_of_nts = sizeof(quality_p);
     char quality_string[num_of_nts];
@@ -497,7 +500,7 @@ char* convert_to_quality_string(uint8_t* quality_p) {
 
     return quality_string;
 }
-
+*/
 char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
     //asumming not more than 3 digits per operation
     char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 4 * num_cigar_operations), sizeof(char));
@@ -594,42 +597,47 @@ void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operati
 }
 
 void convert_to_sequence_uint8_t(uint8_t* data, char* sequence_p, int sequence_length) {
-    uint8_t nts_uint8 = 0;
-
-    int nt_int;
-    for (int i = 0; i < sequence_length; i++) {
-        nt_int = (int) sequence_p[i];
-
-        switch (nt_int) {
-            case 65:   // 'A'
-                nts_uint8 = nts_uint8 + 1;
-                break;
-            case 84:   // 'T'
-                nts_uint8 = nts_uint8 + 8;
-                break;
-            case 67:   // 'C'
-                nts_uint8 = nts_uint8 + 2;
-                break;
-            case 71:   // 'G'
-                nts_uint8 = nts_uint8 + 4;
-                break;
-            case 78:   // 'N'
-                nts_uint8 = nts_uint8 + 15;
-                break;
-        }
-
-        if (i & 1) { //even number
-            *data++ = nts_uint8;
-            nts_uint8 = 0;
-        } else {
-            nts_uint8 = nts_uint8 << 4;
-        }
+  uint8_t nts_uint8 = 0;
+  
+  int nt_int;
+  for (int i = 0; i < sequence_length; i++) {
+    nt_int = (int) sequence_p[i];
+      
+    switch (nt_int) {
+      case 97:   // 'a'
+      case 65:   // 'A'
+	nts_uint8 = nts_uint8 + 1;
+	break;
+      case 116:  // 't'
+      case 84:   // 'T'
+        nts_uint8 = nts_uint8 + 8;
+        break;
+      case 99:    // 'c'
+      case 67:   // 'C'
+        nts_uint8 = nts_uint8 + 2;
+        break;
+      case 103:   // 'g'
+      case 71:   // 'G'
+	nts_uint8 = nts_uint8 + 4;
+	break;
+      case 110:   //'n'
+      case 78:   // 'N'
+	nts_uint8 = nts_uint8 + 15;
+	break;
     }
 
-    //if the last position is odd
-    if (sequence_length & 1) {
-        *data++ = nts_uint8;
+    if (i & 1) { //even number
+      *data++ = nts_uint8;
+      nts_uint8 = 0;
+    } else {
+      nts_uint8 = nts_uint8 << 4;
     }
+  }
+  
+  //if the last position is odd
+  if (sequence_length & 1) {
+    *data++ = nts_uint8;
+  }
 }
 
 void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_length, int base_quality) {
@@ -667,7 +675,7 @@ char select_op(unsigned char status){
 //--------------------------------------------------------------
 //Return a cigar string for dna. For Rna it's invalid
 //--------------------------------------------------------------
-char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, short int *number_op_tot){
+char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, size_t *number_op_tot){
   char *cigar_p;
 
   unsigned int cigar_max_len = length * 2;

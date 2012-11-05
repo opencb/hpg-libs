@@ -17,12 +17,15 @@
 
 #include "BW_io.h"
 #include "BW_search.h"
+#include "BW_preprocess.h"
 
 #define NONE_HARD_CLIPPING 0
 #define START_HARD_CLIPPING 1
 #define END_HARD_CLIPPING 2
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#ifndef MAX
+  #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
 double global_parallel, global_sequential;
 
@@ -120,7 +123,7 @@ typedef struct read_cals {
   array_list_t *cal_list; // array list of cal_t structures
 } read_cals_t;
 
-read_cals_t *read_cals_new(const fastq_read_t *read);
+read_cals_t *read_cals_new(fastq_read_t *read);
 void read_cals_free(read_cals_t *read_cals);
 
 
@@ -180,7 +183,7 @@ typedef struct read_mappings {
   array_list_t *mapping_list; // array list of mapping_t structures
 } read_mappings_t;
 
-read_cals_t *read_cals_new(const fastq_read_t *read);
+read_cals_t *read_cals_new(fastq_read_t *read);
 void read_cals_free(read_cals_t *read_cals);
 
 //-----------------------------------------------------------------------------
@@ -231,6 +234,18 @@ size_t bwt_map_batch(fastq_batch_t *batch,
 		     bwt_index_t *index, 
 		     fastq_batch_t *unmapped_batch,
 		     array_list_t *mapping_list);
+
+size_t alignments_filter(char report_all, 
+			 size_t report_best, 
+			 size_t report_n_hits,
+			 array_list_t *mapping_list);
+
+size_t bwt_map_inexact_batch(fastq_batch_t *batch,
+			     bwt_optarg_t *bwt_optarg, 
+			     bwt_index_t *index, 
+			     fastq_batch_t *unmapped_batch,
+			     array_list_t *mapping_list);
+
 
 //-----------------------------------------------------------------------------
 // seed functions
@@ -289,6 +304,16 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
 				fastq_batch_t *unmapped_batch,
 				cal_optarg_t *cal_optarg, 
 				array_list_t *cal_list);
+
+size_t bwt_generate_cal_list_rna_linkedlist(array_list_t *mapping_list,
+					    cal_optarg_t *cal_optarg,
+					    array_list_t *cal_list);
+
+
+size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
+					cal_optarg_t *cal_optarg,
+					size_t *min_seeds, size_t *max_seeds,
+					array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

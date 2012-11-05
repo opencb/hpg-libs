@@ -181,7 +181,7 @@ size_t bwt_map_exact_seed_batch_gpu(fastq_batch_t *batch,
 		
 		// save all into one alignment structure and insert to the list
 		num_mappings++;
-		region = region_new(idx, s, start, start + cal_optarg->seed_size - 1);
+		region = region_new(idx, s, start, start + cal_optarg->seed_size - 1, 0, 0, 0);
 		//printf("Insert region\n");
 		if (!array_list_insert((void*) region, mapping_list[r])) {
 		  printf("Error to insert item into array list\n");

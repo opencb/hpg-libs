@@ -15,7 +15,8 @@ fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
     if (fd == NULL) {
         sprintf(log_message, "Error opening file: %s, mode (%s) !!!!!\n", filename, mode);
         LOG_FATAL(log_message);
-        return NULL;
+	printf("Error opening file: %s \n", filename);
+	exit(-1);
     }
 
     fastq_file_t* fq_file = (fastq_file_t*) malloc(sizeof(fastq_file_t));
@@ -118,7 +119,7 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
     buffer_fq_read_batch->header_indices[count] = 0;
     buffer_fq_read_batch->data_indices[count] = 0;
 
-    while (accumulated_size <= (max_size - 1024) && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
+    while (accumulated_size <= (max_size - MAX_READ_SEQUENCE_LENGTH) && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
         fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
         fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
         fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
@@ -129,18 +130,7 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
 
         if (sequence_length == quality_length) {
             // remove '\n' character, now length includes '\0' character
-            chomp(header1);
-            chomp(sequence);
-            chomp(qualities);
-
-            count++;
-
-            strcpy(&(buffer_fq_read_batch->header[buffer_fq_read_batch->header_indices[count-1]]), header1);
-            strcpy(&(buffer_fq_read_batch->seq[buffer_fq_read_batch->data_indices[count-1]]), sequence);
-            strcpy(&(buffer_fq_read_batch->quality[buffer_fq_read_batch->data_indices[count-1]]), qualities);
-
-            if (count*sizeof(int) >= buffer_fq_read_batch->data_indices_size) {
-
+	    if (count*sizeof(int) >= buffer_fq_read_batch->data_indices_size) {
                 // maybe realloc function can be used here
                 int size = (count + 100) * sizeof(int);
 
@@ -162,12 +152,22 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
 
                 buffer_fq_read_batch->header_indices = p;
                 buffer_fq_read_batch->data_indices_size = size;
-            }
-
-            buffer_fq_read_batch->data_indices[count] = buffer_fq_read_batch->data_indices[count-1] + sequence_length;
-            buffer_fq_read_batch->header_indices[count] = buffer_fq_read_batch->header_indices[count-1] + header_length;
-
-            accumulated_size += sequence_length + quality_length;
+            }else {	      
+	      chomp(header1);
+	      chomp(sequence);
+	      chomp(qualities);
+	      
+	      count++;
+	      //printf("%d\n", count);
+	      strcpy(&(buffer_fq_read_batch->header[buffer_fq_read_batch->header_indices[count-1]]), header1);
+	      strcpy(&(buffer_fq_read_batch->seq[buffer_fq_read_batch->data_indices[count-1]]), sequence);
+	      strcpy(&(buffer_fq_read_batch->quality[buffer_fq_read_batch->data_indices[count-1]]), qualities);
+	      
+	      buffer_fq_read_batch->data_indices[count] = buffer_fq_read_batch->data_indices[count-1] + sequence_length;
+	      buffer_fq_read_batch->header_indices[count] = buffer_fq_read_batch->header_indices[count-1] + header_length;
+	      
+	      accumulated_size += sequence_length + quality_length + header_length;
+	    }
         } else {
             LOG_DEBUG("Read has different length in sequence and quality");
         }
@@ -183,6 +183,8 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
 
 int fastq_fread_paired_batch_max_size(fastq_batch_t *fq_batch, unsigned long max_size, 
 				      fastq_file_t *fq_file) {
+  //This functions is not implemented
+  return 0;
 }
 
 //------------------------------------------------------------------------------------

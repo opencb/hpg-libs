@@ -1,5 +1,12 @@
-CC = gcc
+#CC = gcc
 #CC = /opt/intel/bin/icc
+
+ifeq ($(compiler), intel)
+	CC = /opt/intel/bin/icc 
+else
+	CC = gcc
+endif
+
 
 CFLAGS =  -O3 -fopenmp -std=c99 -D_GNU_SOURCE -DVECTOR_O_64BIT_COMPRESSION -DVERBOSE -g
 #CFLAGS = -DVERBOSE_DBG -Wall
@@ -33,7 +40,8 @@ LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
 LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -L $(LIBS_ROOT)/bam -lcprops -fopenmp -lm -lbam -lz
 
-CUDA_HOME = /usr/local/cuda
+#CUDA_HOME = /usr/local/cuda
+CUDA_HOME = /opt/cuda/4.1/cuda
 CUDA_LIBS = -L $(CUDA_HOME)/lib64 -lcudart
 
 # Source and object files
@@ -100,16 +108,16 @@ compile-static: compile-dependencies-static
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES_STATIC)
 
 compile-dependencies:
-	cd $(CONTAINERS_DIR) && make compile && \
-	cd $(COMMONS_DIR) && make compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compile
+	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
+	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
 
 compile-dependencies-static:
-	cd $(CONTAINERS_DIR) && make compile && \
-	cd $(COMMONS_DIR) && make compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compile
+	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
+	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
 clean:
 	-rm -f *~ \#*\# *.o $(ALL) 
 
