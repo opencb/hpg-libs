@@ -6,7 +6,9 @@
 #define MINIMUM_INTRON_LENGTH 10
 #define ERRORS_ZONE 8
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#ifndef MAX
+   #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
 //======== SPLICE JUNCTION TYPE ============
 #define NOT_SPLICE	0
@@ -22,7 +24,7 @@
 
 int ii = -1;
 
-void cal_fusion_data_init(unsigned int id, unsigned int start, unsigned int end, 
+void cal_fusion_data_init(unsigned int id, size_t start, size_t end, 
 			  unsigned int strand, unsigned int chromosome, unsigned int fusion_start, 
 			  unsigned int fusion_end, cal_fusion_data_t *cal_fusion_data_p) {
   cal_fusion_data_p->genome_strand = strand;
@@ -182,8 +184,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
   canonical_CT_AC[3] = 'C';
   //================================================//
 
-  /*  
-  printf("======================== Process Output SW %d=========================\n", depth);
+    
+  /*  printf("======================== Process Output SW %d=========================\n", depth);
   sw_simd_input_display(depth, input_p);
   sw_simd_output_display(depth, output_p);
   printf("======================================================================\n");
@@ -492,8 +494,6 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 	     }//End while extra search
 	     //printf("Extra search end\n");
 	   }//End if not found
-	  
-	   //TODO: If not found make new search <-----(-) and consider that in middle of two CALs with splice junction not found other CAL.
 	   
 	   if (found) {
 	    
@@ -858,7 +858,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   unsigned int chromosome_tot = 0, cal_chromosome_start = 0, cal_chromosome_end = 0;
   char read_seq[2000];
   char *seq_p;  
-  unsigned long int start, end, start_before, end_before;
+  size_t start, end, start_before, end_before;
   unsigned int len;
   char *reference, header_id[1024];
   unsigned int maximum_reference_len = 1024;
@@ -1156,7 +1156,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       if (found_negative) { free(read_reverse); } 
 
     } // end of for 0..num_reads
-    
+
     //printf("%d.Seq(%d): %s\n",cal_p->strand, read_len, sw_batch_p->allocate_reads_p[i]->sequence);
     if (curr_depth > 0) {
       //printf("Current depth %d/%d\n", curr_depth, depth);
@@ -1174,6 +1174,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       }
       //printf("Run smith waterman... %i\n", i);
       smith_waterman_simd(sw_input_p, sw_output_p, context_p);
+
       search_splice_junctions_sw_output(sw_input_p, sw_output_p, curr_depth, 
 					allocate_cals_fusion_p, chromosome_avls_p,  
 					mapping_reads_p, sw_channels_p, sw_batch_p,
@@ -1183,7 +1184,6 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       //found_write_p = process_sw_output(sw_output_p, sw_input_p, min_score, curr_depth, sw_channels_p, sw_batch_p, write_list_p, found_write_p, write_size, sw_id, &total_valids, mapping_reads_p, genome_p);
       curr_depth = 0;
     }
-    
     
     //**************************************************
     //PROCESS OUTPUT ALIGNMENTS
@@ -1268,7 +1268,6 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
 
 
     //**************************************************
-
     
     /*    printf("Reads mapped with global variable at this moment %d\n", reads_mapped_global);
     printf("Reads mapped with local  variable at this moment %d\n", total_reads_unmapped);
@@ -1280,6 +1279,8 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     //printf("RNA Server process batch finish!\n");
   } // end of while
   
+  
+
   // insert or free memory
   if (write_batch_p != NULL) {
     if (write_batch_p->size > 0) {
@@ -1289,28 +1290,34 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       write_batch_free(write_batch_p);
     }
   }
-  
+
   for(k=0 ; k<depth ; k++) {
     free(sw_channels_p[k].ref_p);
   }
+
   
   free(sw_channels_p);
   sw_simd_input_free(sw_input_p);
   sw_simd_output_free(sw_output_p);
   sw_simd_context_free(context_p);
-  
+
   free(allocate_cals_fusion_p);
   free(cals_per_chromosome);
   free(mapping_reads_p);
-  list_decr_writers(write_list_p);
+  
   free(reference_fusion_p);
   free(reference);
+
+
+
   /*
   for (i = 0; i < allocated_mapping_reads; i++){
     array_list_free(allocate_mappings[i], NULL);
   }
   */
   free(allocate_mappings);
+
+  list_decr_writers(write_list_p);
 
   if (statistics_on) { 
     statistics_add(SW_SERVER_ST, 0, num_batches, statistics_p); 
@@ -1320,13 +1327,12 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
     statistics_add(SW_SERVER_ST, 4, num_sw_process, statistics_p); 
     statistics_add(SW_SERVER_ST, 5, num_sw_process - sw_no_valids, statistics_p); 
     statistics_add(SW_SERVER_ST, 6, sw_no_valids, statistics_p); 
-    
     statistics_add(TOTAL_ST, 1, total_reads_process - total_reads_unmapped, statistics_p); 
     statistics_add(TOTAL_ST, 2, total_reads_unmapped, statistics_p); 
   }
 
   
-  printf("rna_server: END (%i reads -> unmapped %i (%i random), %i smith-waterman -> %i valids)\n", 
+  printf("rna_server: END (%lu reads -> unmapped %lu (%lu random), %lu smith-waterman -> %lu valids)\n", 
 	 total_reads_process,  total_reads_unmapped, total_reads_unmapped - reads_no_random, num_sw_process, total_reads_process - total_reads_unmapped);
   
   return;

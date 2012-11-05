@@ -273,8 +273,9 @@ void sw_batch_free(sw_batch_t *sw_batch_p);
  * Store all data information for each splice junction found. It allocates all data 
  * in one buffer.
  */
-unsigned int pack_junction(unsigned int chromosome, unsigned int strand, unsigned int start, 
-			   unsigned int end, unsigned int junction_id, unsigned int num_reads, 
+unsigned int pack_junction(unsigned int chromosome, unsigned int strand, 
+			   size_t start, size_t end, 
+			   size_t junction_id, size_t num_reads, 
 			   char* buffer_p);
 
 //======================================================================================
