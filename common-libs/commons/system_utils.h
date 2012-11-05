@@ -61,11 +61,11 @@ int get_max_estimated_alignments_by_chromosome(char* input_filename);
 
 /**
 *  @brief Estimates an optimal CPU threads number
-*  @return unsigned long int - quantity of free memory
+*  @return size_t - number of threads
 *  
-*  Gets free memory from the machine (CPU memory)
+*  Gets the optimal number of cpu threads
 */
-int get_optimal_cpu_num_threads();
+size_t get_optimal_cpu_num_threads();
 
 /**
 *  @brief Estimates optimal GPU threads by block

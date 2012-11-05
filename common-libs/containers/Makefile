@@ -1,5 +1,14 @@
-CC = gcc
+#CC = gcc
+#CC = /opt/intel/bin/icc
+ifeq ($(compiler), intel)
+        CC = /opt/intel/bin/icc
+else
+        CC = gcc
+        compiler=gcc
+endif
+
 CFLAGS = -std=c99 -O3
+
 CFLAGS_DEBUG = -std=c99 -g
 
 LIBS_ROOT = $(PWD)/..
@@ -7,24 +16,23 @@ LIBS_ROOT = $(PWD)/..
 INCLUDES = -I . -I $(LIBS_ROOT)
 LIBS = -lcprops
 
-#MISC_FILES = $(LIBS_ROOT)/commons/log.c
-MISC_FILES = 
 
 all: list.o array_list.o
 test: list.o array_list.o test-utils
 
-compile:
+compile: 
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
 	$(CC) $(CFLAGS) -c array_list.c $(INCLUDES) $(LIBS)
+	cd $(LIBS_ROOT)/commons && make
 
 list.o:
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
 
 array_list.o: array_list.h array_list.c
-	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(MISC_FILES) $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -c array_list.c $(INCLUDES) $(LIBS)
 
 test-utils:
-	cd test && make
+	cd test && make compiler=$(compiler)
 
 clean:
 	rm -f list.o

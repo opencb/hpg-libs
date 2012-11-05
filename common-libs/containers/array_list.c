@@ -258,8 +258,9 @@ void* array_list_remove(void *item_p, array_list_t *array_list_p) {
 		if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 			pthread_mutex_lock(&array_list_p->lock);
 		}
-
+		
 		size_t index = array_list_index_of(item_p, array_list_p);
+		
 		if(index != ULONG_MAX) {
 			return array_list_remove_at(index, array_list_p);
 		}
