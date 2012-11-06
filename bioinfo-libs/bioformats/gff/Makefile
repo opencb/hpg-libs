@@ -60,5 +60,5 @@ compile-dependencies-static:
 
 clean:
 	rm -f *.o
-	rm -f main_batch.o
+	rm -f main_batch
 
