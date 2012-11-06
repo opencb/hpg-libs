@@ -31,6 +31,8 @@ typedef struct bam_data_core {
     int map_quality;		/**< Map quality. */
     short int strand;		/**< Strand (1: forward, 0: reverse). */
     short int chromosome;	/**< Chromosome. */
+    short int mate_chromosome;  /**< Mate chromosome. */
+    int isize;			/**< Insert size */
     int start_coordinate;	/**< Start coordinate of the alignment. */
     int alignment_length;	/**< Length of the alignment. */    
     int id_seq_index;		/**< Index of the associated sequence in the batch. */
