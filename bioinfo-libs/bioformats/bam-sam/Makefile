@@ -13,10 +13,11 @@ CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 COMMONS_CUDA_DIR = $(LIBS_ROOT)/commons-cuda
 HPG_BAM_DIR = $(LIBS_ROOT)/../hpg-bam-tools
+HPG_BAM_FROM_SUBMODULE_DIR = $(LIBS_ROOT)/../../hpg-bam-tools
 SAMTOOLS_DIR = $(LIBS_ROOT)/bam
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(COMMONS_DIR) -I $(COMMONS_CUDA_DIR) -I $(HPG_BAM_DIR) -I $(SAMTOOLS_DIR)
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(COMMONS_DIR) -I $(COMMONS_CUDA_DIR) -I $(HPG_BAM_DIR) -I $(HPG_BAM_FROM_SUBMODULE_DIR) -I $(SAMTOOLS_DIR)
 LIBS = -fopenmp -Wl,-Bsymbolic-functions
 
 # Source and object files
