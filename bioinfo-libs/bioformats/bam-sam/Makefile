@@ -17,11 +17,15 @@ else
 	LIBS_ROOT = $(PWD)/../../..
 endif
 
+## This param must point to samtools project, 'make' is assumed
+SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
+
+
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I ./include
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I ./include -I $(SAMTOOLS_DIR)
 LIBS = -fopenmp -Wl,-Bsymbolic-functions
 
 # Source and object files

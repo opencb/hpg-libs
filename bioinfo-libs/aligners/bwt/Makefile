@@ -24,6 +24,9 @@ else
 	LIBS_ROOT = $(PWD)/../../..
 endif
 
+## This param must point to samtools project, 'make' is assumed
+SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
+
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 FASTQ_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats/fastq
@@ -34,11 +37,11 @@ COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
-LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(SAMTOOLS_DIR)
+LIBS = -L $(SAMTOOLS_DIR) -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 
-INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
-LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -lcprops -fopenmp -lm -lbam -lz
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(SAMTOOLS_DIR)
+LIBS_STATIC = -L $(SAMTOOLS_DIR)  -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -lcprops -fopenmp -lm -lbam -lz
 
 #CUDA_HOME = /usr/local/cuda
 CUDA_HOME = /opt/cuda/4.1/cuda

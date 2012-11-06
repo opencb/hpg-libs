@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "bam/bam.h"
+#include "bam.h"
 
 #include "commons/commons.h"
 
