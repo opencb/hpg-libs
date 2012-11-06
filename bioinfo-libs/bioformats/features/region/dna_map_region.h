@@ -1,4 +1,4 @@
-#ifndef DNA_MAP_REGION_REGION_H
+#ifndef DNA_MAP_REGION_H
 #define DNA_MAP_REGION_H
 
 #include <stdio.h>
@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "string_utils.h"
+#include <commons/string_utils.h>
 
 typedef struct dna_map_region {
 	uint32_t start_position;
@@ -22,8 +22,13 @@ typedef struct dna_map_region {
 
 
 void dna_map_region_free(void * region);
+
 int dna_map_region_equal_soft(dna_map_region_t *region1,dna_map_region_t* region2);
+
 int dna_map_region_equal_hard(dna_map_region_t *region1,dna_map_region_t* region2);
+
 void dna_print_region(dna_map_region_t* region);
+
 void dna_fprint_region(FILE *f,dna_map_region_t* region);
-#endif		
+
+#endif	/*  DNA_MAP_REGION_H	*/

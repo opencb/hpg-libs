@@ -1,4 +1,4 @@
-#ifndef RNA_MAP_REGION_REGION_H
+#ifndef RNA_MAP_REGION_H
 #define RNA_MAP_REGION_H
 
 #include <stdio.h>
@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "string_utils.h"
+#include <commons/string_utils.h>
 
 typedef struct rna_map_region {
 	uint32_t start_position;
@@ -26,4 +26,5 @@ typedef struct rna_map_region {
 void rna_map_region_free(void * region);
 
 void rna_print_region(rna_map_region_t* reg);
-#endif
+
+#endif	/*  RNA_MAP_REGION_H	*/
