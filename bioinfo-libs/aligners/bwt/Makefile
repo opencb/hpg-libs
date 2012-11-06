@@ -1,8 +1,8 @@
 #CC = gcc
 #CC = /opt/intel/bin/icc
 
-ifeq ($(compiler), intel)
-	CC = /opt/intel/bin/icc 
+ifeq ($(COMPILER), intel)
+	CC = icc 
 else
 	CC = gcc
 endif
@@ -111,16 +111,16 @@ compile-static: compile-dependencies-static
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES_STATIC)
 
 compile-dependencies:
-	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
-	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
+	cd $(CONTAINERS_DIR) && make COMPILER=$(COMPILER) compile && \
+	cd $(COMMONS_DIR) && make COMPILIER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make COMPILER=$(COMPILER) compile
 
 compile-dependencies-static:
-	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
-	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
+	cd $(CONTAINERS_DIR) && make COMPILER=$(compiler) compile && \
+	cd $(COMMONS_DIR) && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make COMPILER=$(COMPILER) compile
 clean:
 	-rm -f *~ \#*\# *.o $(ALL) 
 

@@ -151,7 +151,7 @@ void short_cal_free(short_cal_t *short_cal){
 
 //------------------------------------------------------------------------------
 
-region_t *region_new(const size_t chromosome_id, 
+region_t *region_bwt_new(const size_t chromosome_id, 
 		     const short int strand,
 		     const size_t start, 
 		     const size_t end,
@@ -174,7 +174,7 @@ region_t *region_new(const size_t chromosome_id,
 }
 
 
-void region_free(region_t *region){
+void region_bwt_free(region_t *region){
   free(region);
 }
 
@@ -1154,7 +1154,7 @@ size_t bwt_map_exact_seed(char *seq, size_t seq_len,
 	*/
 	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	// save all into one alignment structure and insert to the list
-	region = region_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len);
+	region = region_bwt_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len);
 	
 	if (!array_list_insert((void*) region, mapping_list)){
 	  printf("Error to insert item into array list\n");
@@ -1285,7 +1285,7 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
 	    */	  
 	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	  // save all into one alignment structure and insert to the list
-	  region = region_new(idx, !type, start_mapping, start_mapping + end, seq_start, seq_end, seq_len);
+	  region = region_bwt_new(idx, !type, start_mapping, start_mapping + end, seq_start, seq_end, seq_len);
 
 	    
 	  if(!array_list_insert((void*) region, mapping_list)){
@@ -2128,7 +2128,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 			    bwt_optarg, index, mapping_list);
     //printf("\tthird, num_mappings = %d\n", num_mappings);
   } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
-    array_list_clear(mapping_list, (void *) region_free);
+    array_list_clear(mapping_list, (void *) region_bwt_free);
     num_mappings = seedingOK(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
 			   bwt_optarg, index, mapping_list);
   }

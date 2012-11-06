@@ -20,7 +20,6 @@ endif
 ## This param must point to samtools project, 'make' is assumed
 SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
 
-
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 
