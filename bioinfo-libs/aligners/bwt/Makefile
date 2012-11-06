@@ -34,11 +34,11 @@ COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
 LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 
-INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
-LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -L $(LIBS_ROOT)/bam -lcprops -fopenmp -lm -lbam -lz
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
+LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -lcprops -fopenmp -lm -lbam -lz
 
 #CUDA_HOME = /usr/local/cuda
 CUDA_HOME = /opt/cuda/4.1/cuda

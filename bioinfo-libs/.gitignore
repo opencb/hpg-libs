@@ -2,6 +2,7 @@
 *.o
 *.test
 bin/*
+*/*/bin
 *~
 *anjuta*
 *sonar*

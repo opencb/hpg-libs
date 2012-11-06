@@ -6,11 +6,11 @@ then\
 fi
 
 CC = gcc
-CC = /opt/intel/bin/icc
+#CC = /opt/intel/bin/icc
 
 CFLAGS = -std=c99 -O3 -fopenmp $(SIMD)
 
-SW_DIR = ./sw
+SW_DIR = aligners/sw
 
 # global targets
 all: build_sw

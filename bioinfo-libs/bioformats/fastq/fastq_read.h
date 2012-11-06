@@ -35,7 +35,8 @@ typedef struct fastq_read_pe {
     char *quality1;		/**< Qualities. */
     char *quality2;
 
-    int length;
+    int length1;
+    int length2;
     int mode;
 } fastq_read_pe_t;
 
@@ -46,13 +47,20 @@ typedef struct fastq_read_pe {
 
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
 
+fastq_read_pe_t *fastq_read_pe_new(char *id, char *sequence1, char *quality1, char *sequence2, char *quality2, int mode);
+
+
 void fastq_read_free(fastq_read_t *fq_read);
+
+void fastq_read_pe_free(fastq_read_pe_t *fq_read);
+
 
 void fastq_read_print(fastq_read_t *read);
 
+void fastq_read_pe_print(fastq_read_pe_t *read);
+
+
 //float fastq_quality_average(fastq_read_t *fq_read_t);
-
-
 
 void fastq_nt_quality_average(fastq_read_t fq_read_t);
 void fastq_nt_count(fastq_read_t fq_read_t);
