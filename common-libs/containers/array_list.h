@@ -1,3 +1,4 @@
+
 #ifndef ARRAY_LIST_H
 #define ARRAY_LIST_H
 
@@ -11,21 +12,16 @@
 #include <commons/string_utils.h>
 #include <commons/log.h>
 
-#define COLLECTION_MODE_SYNCHRONIZED        1
-#define COLLECTION_MODE_ASYNCHRONIZED       2
+#include "containers.h"
+
+//#define COLLECTION_MODE_SYNCHRONIZED        1
+//#define COLLECTION_MODE_ASYNCHRONIZED       2
 
 //=====================================================
 // structures
 //=====================================================
 
 //typedef int (*array_list_compare_fn)(const void *, const void *);
-
-//typedef struct array_list_item {
-//  void *type;
-//  void *data;
-//} void;
-
-//-----------------------------------------------------
 
 typedef struct array_list {
   size_t capacity;
@@ -36,15 +32,11 @@ typedef struct array_list {
 
 //  array_list_compare_fn compare_fn;
   int (*compare_fn)(const void *, const void *);
-//  int writers;
-//  int inserting;
-//  int removing;
 
   pthread_mutex_t lock;
   pthread_cond_t condition;
 
   void **items;
-
 } array_list_t;
 
 
@@ -84,7 +76,6 @@ int array_list_insert(void* item_p, array_list_t *array_list_p);
 
 int array_list_insert_at(size_t index, void* item_p, array_list_t *array_list_p);
 
-
 int array_list_insert_all(void** item_p, size_t num_items, array_list_t *array_list_p);
 
 int array_list_insert_all_at(size_t index, void** item_p, size_t num_items, array_list_t* array_list_p);
@@ -109,7 +100,7 @@ void* array_list_set(size_t index, void* new_item, array_list_t *array_list_p);
 
 void array_list_print(array_list_t *array_list_p);
 
-// void **list_to_array(array_list_t *array_list_p);
+// void **array_list_to_array(array_list_t *array_list_p);
 
 static array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size);
 
