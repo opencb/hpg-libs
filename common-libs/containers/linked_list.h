@@ -65,7 +65,7 @@ void linked_list_free(linked_list_t* linked_list_p, void (*data_callback) (void*
 
 linked_list_item_t* linked_list_item_new(void *item);
 
-void linked_list_item_free(linked_list_t *linked_list_item, void (*data_callback) (void* data));
+void linked_list_item_free(linked_list_item_t *linked_list_item, void (*data_callback) (void* data));
 
 
 size_t linked_list_size(linked_list_t *linked_list_p);
@@ -115,7 +115,7 @@ void* linked_list_set(size_t index, void* new_item, linked_list_t *linked_list_p
 
 
 
-void linked_list_print(linked_list_t *linked_list_p);
+void linked_list_print(linked_list_t *linked_list_p, void (*data_callback) (void* data));
 
 // void **linked_list_to_array(linked_list_t *linked_list_p);
 

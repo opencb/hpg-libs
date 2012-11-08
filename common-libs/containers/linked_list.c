@@ -38,7 +38,7 @@ linked_list_item_t* linked_list_item_new(void *item) {
 	return linked_list_item_p;
 }
 
-void linked_list_item_free(linked_list_t *linked_list_item, void (*data_callback) (void* data)) {
+void linked_list_item_free(linked_list_item_t *linked_list_item, void (*data_callback) (void* data)) {
 
   if(data_callback) {
     data_callback(linked_list_item->item);
@@ -140,8 +140,7 @@ int linked_list_insert(void* item_p, linked_list_t *linked_list_p) {
       pthread_mutex_lock(&linked_list_p->lock);
     }
 
-    linked_list_item_t* list_item = list_item_new(item_p);    
-
+    linked_list_item_t* list_item = linked_list_item_new(item_p);    
     if(!linked_list_p->first) {
       list_item->next = NULL;
       list_item->prev = NULL;
@@ -174,13 +173,13 @@ int linked_list_insert_last(void* item_p, linked_list_t *linked_list_p) {
       pthread_mutex_lock(&linked_list_p->lock);
     }
     
-    linked_list_item_t* list_item = list_item_new(item_p);
+    linked_list_item_t* list_item = linked_list_item_new(item_p);
 
     if(!linked_list_p->last) {
       list_item->next = NULL;
       list_item->prev = NULL;
-      list_p->first = list_item;
-      list_p->last = list_item;
+      linked_list_p->first = list_item;
+      linked_list_p->last = list_item;
     } else {
       list_item->prev = linked_list_p->last;
       list_item->next = NULL;
@@ -204,7 +203,7 @@ int linked_list_insert_at(size_t index, void* item_p, linked_list_t *linked_list
       pthread_mutex_lock(&linked_list_p->lock);
     }
 
-    linked_list_item_t* list_item = list_item_new(item_p);
+    linked_list_item_t* list_item = linked_list_item_new(item_p);
     linked_list_item_t* list_item_aux = linked_list_p->first;
 
     for(size_t i = 0; i < index && list_item_aux; i++) {
@@ -240,8 +239,8 @@ int linked_list_insert_all(void** item_p, size_t num_items, linked_list_t *linke
       pthread_mutex_lock(&linked_list_p->lock);
     }
 
-    for (size_t i = num_items - 1; i > 0; i--) {
-      if(!linked_list_insert_first(item_p, linked_list_p)) { return 0; }
+    for (size_t i = 0; i < num_items; i++) {
+      if(!linked_list_insert_first(item_p[i], linked_list_p)) { return 0; }
     }
 
     if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
@@ -269,7 +268,7 @@ void* linked_list_remove_first(linked_list_t *linked_list_p) {
     }
     
     if (linked_list_p->first) {
-      linked_list_t *list_item = linked_list_p->first;
+      linked_list_item_t *list_item = linked_list_p->first;
       linked_list_p->first = list_item->next;
       linked_list_p->first->prev = NULL;
       linked_list_p->size--;
@@ -289,7 +288,7 @@ void* linked_list_remove_first(linked_list_t *linked_list_p) {
 
 }
 
-void* linked_list_remove_last(void *item, linked_list_t *linked_list_p) {
+void* linked_list_remove_last(linked_list_t *linked_list_p) {
 
   if(linked_list_p != NULL) {
     if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
@@ -297,7 +296,7 @@ void* linked_list_remove_last(void *item, linked_list_t *linked_list_p) {
     }
     
     if (linked_list_p->last) {
-      linked_list_t *list_item = linked_list_p->last;
+      linked_list_item_t *list_item = linked_list_p->last;
       linked_list_p->last = list_item->prev;
       linked_list_p->first->next = NULL;
       linked_list_p->size--;
@@ -335,7 +334,7 @@ void* linked_list_remove_at(size_t index, linked_list_t *linked_list_p) {
       linked_list_p->size--;
       
       void *item = list_item->item;
-      linked_list_item_free(linked_list_item, NULL);
+      linked_list_item_free(list_item, NULL);
       
       return item;
     }
@@ -422,18 +421,26 @@ void* linked_list_set(size_t index, void* new_item, linked_list_t *linked_list_p
 
 
 
-void linked_list_print(linked_list_t *linked_list_p) {
-	printf("[");
-	if(linked_list_p != NULL) {
-		size_t i = 0;
-		linked_list_item_t *curr_item = linked_list_p->first;
-		while(curr_item != NULL && i < linked_list_p->size) {
-			printf("%s,", (char*)curr_item);
-			curr_item = curr_item->next;
-			i++;
-		}
-	}
-	printf("]");
+void linked_list_print(linked_list_t *linked_list_p, void (*data_callback) (void* data)) {
+  
+  if(linked_list_p != NULL) {
+    printf("(%lu)[", linked_list_p->size);
+    size_t i = 0;
+    linked_list_item_t *curr_item = linked_list_p->first;
+    while(curr_item != NULL && i < linked_list_p->size) {
+      if (data_callback) {
+	data_callback(curr_item->item);
+      }else {
+	printf("%s,", (char*)curr_item->item);
+      }
+      curr_item = curr_item->next;
+      i++;
+    }
+    printf("]\n");
+  }else {
+    printf("The actual linked list is NULL\n");
+  }
+  
 }
 
 // void **linked_list_to_array(linked_list_t *linked_list_p) {
@@ -463,9 +470,9 @@ int linked_list_get_flag(linked_list_t *linked_list_p) {
 
 linked_list_iterator_t* linked_list_iterator_new(linked_list_t *linked_list_p) {
   if(linked_list_p) {
-    linked_list_iterator_t iterator_p = (linked_list_iterator_t *)malloc(sizeof(linked_list_iterator_t));
+    linked_list_iterator_t *iterator_p = (linked_list_iterator_t *)malloc(sizeof(linked_list_iterator_t));
     iterator_p->linked_list_p = linked_list_p;
-    iterator_p->pos = linked_list_p->first;
+    iterator_p->curr_pos = linked_list_p->first;
     return iterator_p;
   }
   return NULL;  
@@ -501,5 +508,7 @@ void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
   
   return item;
 }
+
+
 
 /******************************************************************/
