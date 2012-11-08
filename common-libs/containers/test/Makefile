@@ -7,7 +7,7 @@ SRC_DIR = ..
 COMMONS_DIR = $(ROOT)/commons
 
 INCLUDES = -I $(SRC_DIR) -I $(ROOT)
-LIBS = -lm -lcheck
+LIBS = -lm -lcheck -lcprops
 
 TEST_ARRAY_LIST_OBJS = test_array_list.c $(SRC_DIR)/array_list.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/log.o
 

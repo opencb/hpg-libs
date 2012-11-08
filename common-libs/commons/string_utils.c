@@ -433,12 +433,12 @@ char* decodeBases(char* dest, char* src, unsigned int length) {
 // Return the substring from start to first blank
 // If first position contains '@' this not 
 //-----------------------------------------------------------------
-unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_p){
+unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_p) {
   unsigned int str_pos, res_pos = 0;
   
   if (str_p == NULL) {
     printf("Input string is NULL\n");
-    return NULL;
+    return 0;
   }
   //printf("-->%c\n", str_p[0]);
   if (str_p[0] == '@') {
@@ -460,3 +460,4 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
   res_pos++;
   return res_pos;
 }
+

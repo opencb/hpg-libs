@@ -40,6 +40,6 @@ int http_post(char *url, char **params, char **params_values, int num_params, si
  * 
  * @return Message related to the provided error code
  */
-char *get_last_http_error(int err_code);
+const char *get_last_http_error(int err_code);
 
 #endif

@@ -97,6 +97,6 @@ int http_post(char *url, char **params, char **params_values, int num_params, si
     return ret_code;
 }
 
-char *get_last_http_error(int err_code) {
+const char *get_last_http_error(int err_code) {
     return curl_easy_strerror(err_code);
 }

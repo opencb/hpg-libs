@@ -46,7 +46,7 @@ unsigned long int get_estimated_memory_needed(int process, int batch_size, int m
         LOG_DEBUG(log_message);
 
         return PREPRO_MEMORY_USAGE_FACTOR * list_memory / 1000;
-    }
+    } else { return 0; }
 }
 
 int get_max_estimated_alignments_by_chromosome(char* input_filename) {
@@ -58,7 +58,7 @@ int get_max_estimated_alignments_by_chromosome(char* input_filename) {
 
     return max_estimated_alignments;
 }
-
+/*
 int get_optimal_cpu_num_threads() {
     FILE* fd_cpu_num_cores = NULL;
 
@@ -80,8 +80,42 @@ int get_optimal_cpu_num_threads() {
     LOG_DEBUG(log_message);
 
     pclose(fd_cpu_num_cores);
+
     return optimal_cpu_num_threads;
+
 }
+*/
+
+size_t get_optimal_cpu_num_threads() {
+  FILE* fd_cpu_num_cores = NULL;
+  const unsigned int MAX_LINE = 1024;
+  size_t optimal_cpu_num_threads = 0;
+
+  char log_message[50];
+  char line[MAX_LINE];
+  
+  fd_cpu_num_cores = fopen("/proc/cpuinfo", "r");
+
+  if (fd_cpu_num_cores == NULL) {
+    printf("Num of CPU cores cannot be obtained.\n");
+    return 0;
+  }
+  
+  while (fgets(line, MAX_LINE, fd_cpu_num_cores)) {
+    if (!strncmp("processor", line, 9)) {
+      optimal_cpu_num_threads++;
+    }
+  }
+  
+  sprintf(log_message, "optimal_cpu_num_threads: %zu\n", optimal_cpu_num_threads);
+  LOG_DEBUG(log_message);
+
+  fclose(fd_cpu_num_cores);
+  
+  return optimal_cpu_num_threads;
+
+}
+
 
 int get_optimal_gpu_num_threads() {
     int optimal_gpu_num_threads = 0;
@@ -94,7 +128,7 @@ int get_optimal_gpu_num_threads() {
 }
 
 int get_optimal_batch_size(int process, int max_list_length) {
-    unsigned long int optimal_batch_size;
+    unsigned long int optimal_batch_size = 0;
     unsigned long int gpu_global_memory = ULLONG_MAX;
 
     #ifdef CUDA_VERSION
