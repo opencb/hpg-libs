@@ -28,7 +28,7 @@ test: list.o array_list.o linked_list.o test-utils
 compile: compile-dependencies linked_list_test
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
 	$(CC) $(CFLAGS) -c array_list.c $(INCLUDES) $(LIBS)
-	$(CC) $(CFLAGS) -c linked_list.c $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -c linked_list.c $(INCLUDES) $(LIBS)
 
 compile-dependencies:
 	cd $(COMMONS_DIR) && make COMPILER=$(compiler)
