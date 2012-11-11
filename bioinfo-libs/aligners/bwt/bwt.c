@@ -270,11 +270,12 @@ char *strcpy_capitalize(char *dest, const char *src, size_t n) {
 
 //-----------------------------------------------------------------------------
 
-void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
+void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, char *quality) {
   
   unsigned int quality_type;
   size_t quality_len;
-  quality_len = batch->data_indices[read_i + 1] - batch->data_indices[read_i] - 1;
+
+  quality_len = strlen(quality);
   quality_type = atoi(mapping->quality);
   //printf("Quality len from batch: %i\n", quality_len);
   free(mapping->quality);
@@ -283,11 +284,11 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
 
   if (quality_type == START_HARD_CLIPPING){
     if (mapping->seq_strand == 0) {
-      memcpy(mapping->quality , 
-	     &(batch->quality[batch->data_indices[read_i]]) + 1, 
+      memcpy(mapping->quality, 
+	     quality + 1, 
 	     quality_len - 1);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]) + 1,
+      reverse_str(quality + 1,
 		  mapping->quality, quality_len - 1);
     }
     mapping->quality[quality_len - 1] = '\0';	    
@@ -295,10 +296,10 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
   }else if(quality_type == END_HARD_CLIPPING){
     if (mapping->seq_strand == 0) {
       memcpy(mapping->quality, 
-	     &(batch->quality[batch->data_indices[read_i]]),
+	     quality,
 	     quality_len - 1);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+      reverse_str(quality,
 		  mapping->quality, quality_len - 1);
     }
     mapping->quality[quality_len - 1] = '\0';
@@ -306,9 +307,9 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
   }else{
     //printf("ELSE....\n");
     if (mapping->seq_strand == 0) {
-      memcpy(mapping->quality, &(batch->quality[batch->data_indices[read_i]]), quality_len);
+      memcpy(mapping->quality, quality, quality_len);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+      reverse_str(quality,
 		  mapping->quality, quality_len);
     }
     //mapping->quality[quality_len] = '\0';
@@ -1888,6 +1889,67 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
   return array_list_size(mapping_list);
 
 }
+
+//-----------------------------------------------------------------------------
+
+/*
+size_t bwt_map_inexact_reads_rna(array_list_t *reads,
+				 bwt_optarg_t *bwt_optarg, 
+				 bwt_index_t *index,
+				 array_list_t *targets,
+				 array_list_t **data,
+				 size_t *num_targets,
+				 size_t *num_mapped,
+				 size_t *num_unmapped) {  
+  *num_targets = 0;
+  *num_mapped = 0; 
+  *num_unmapped = 0; 
+
+  size_t read_pos;
+  size_t num_threads = bwt_optarg->num_threads;
+  //unsigned int th_id;
+  size_t num_reads = array_list_size(reads);
+  //size_t batch_individual_size = batch->data_size / num_threads;
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
+  
+  alignment_t *mapping;
+  size_t quality_len;
+  //struct timeval start_time, end_time;
+  //double timer, parallel_t, sequential_t;
+  unsigned int j, header_len;
+  size_t read_id = 0;
+    
+  omp_set_num_threads(num_threads);
+  
+  #pragma omp parallel for schedule(dynamic, chunk)
+  for (size_t i = 0; i < num_reads; i++) {
+    bwt_map_inexact_seq(reads[i], 
+			bwt_optarg, index, 
+			data[i]);
+  
+    if (!array_list_size(data[i])) {
+      targets[*num_targets] = i;
+      *num_targets++;
+    } else {
+      for (size_t j = 0; j < num_mappings; j++) {
+	alignment = (alignment_t *) array_list_get(j, data[i]);
+	
+	header_len = strlen(reads[i]->id);
+	alignment->query_name = (char *) malloc(sizeof(char) * header_len);
+	get_to_first_blank(data[i]->id, header_len, alignment->query_name);
+	bwt_cigar_cpy(alignment, i, quality);
+	alignment->quality = strdup(quality);
+      }
+    }
+  }
+
+  *num_unmapped = *num_targets;
+  *num_mapped = num_reads - *num_unmapped;
+
+  return *num_mapped;
+
+}
+*/
 
 //-----------------------------------------------------------------------------
 
