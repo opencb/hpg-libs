@@ -37,6 +37,7 @@ vcf_record_t *vcf_record_copy(vcf_record_t *orig) {
     record->reference_len = orig->reference_len;
     record->alternate = strndup(orig->alternate, orig->alternate_len);
     record->alternate_len = orig->alternate_len;
+    record->quality = orig->quality;
     record->filter = strndup(orig->filter, orig->filter_len);
     record->filter_len = orig->filter_len;
     record->info = strndup(orig->info, orig->info_len);

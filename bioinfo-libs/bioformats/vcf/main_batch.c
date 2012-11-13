@@ -32,7 +32,7 @@ int main (int argc, char *argv[])
         out_file = fopen(argv[2], "w");
     }
 
-    init_log_custom(2, 1, NULL);
+    init_log_custom(LOG_DEBUG_LEVEL, 2, 1, NULL);
     
 //     if (argc > 2 && strcmp(argv[2], "mmap-vcf") == 0) {
 //         mmap_vcf = 1;
@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
         // Reading
         start = omp_get_wtime();
         
-        ret_code = vcf_parse_batches(batch_size, file, 1);
+        ret_code = vcf_parse_batches(batch_size, file);
         notify_end_reading(file);
         
         stop = omp_get_wtime();
