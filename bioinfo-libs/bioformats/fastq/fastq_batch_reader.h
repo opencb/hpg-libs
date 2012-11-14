@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <omp.h>
 
 #include "containers/list.h"
 #include "fastq_batch.h"
@@ -17,6 +18,12 @@
 //====================================================================================
 
 #define READ_ITEM       1
+
+//====================================================================================
+
+#define SINGLE_END_MODE 0
+#define PAIRED_END_MODE 1
+#define MATE_PAIR_MODE  2
 
 //====================================================================================
 

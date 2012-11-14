@@ -1,0 +1,35 @@
+import os
+
+Import('env')
+
+formats_env = env.Clone()
+
+# Check dependency libraries: cprops
+conf = Configure(formats_env)
+
+if conf.CheckLib('cprops'):
+    # Get include and libs arguments
+    formats_env['LIBPATH'] = ['/usr/lib', '/usr/local/lib']
+    formats_env['LIBS'] = '-lcprops'
+else:
+    print 'cprops library not found!'
+    # TODO: Download cprops and set its -I, -L, -l flags
+    Exit(1)
+    
+formats_env = conf.Finish()
+
+formats_env['objects'] = []
+
+# Targets
+subdirs = ['family', 'fastq', 'gff', 'ped', 'features', 'vcf']
+
+for dir in subdirs:
+    SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env'])
+
+formats_env.Library('bioformats', formats_env['objects'])
+
+env['objects'] = formats_env['objects']
+
+# Should traverse the tree and get the *.c files
+#formats_env.SharedLibrary('bioformats', formats_env['objects'])
+

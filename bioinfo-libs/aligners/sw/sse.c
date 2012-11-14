@@ -94,7 +94,7 @@ void sse_matrix(int num_seqs,
     // update matrices
     _mm_store_ps(&H[j_depth], h_simd);
     _mm_store_ps(&F[j_depth], f_simd);
-    _mm_store_si128(&C[j_depth], c);
+    _mm_store_si128((__m128i *)&C[j_depth], c);
 
  
     //_mm_store_ps(&D[j_depth], diagonal_simd);
@@ -172,7 +172,7 @@ void sse_matrix(int num_seqs,
       // update matrices
       _mm_store_ps(&H[offset], h_simd);
       _mm_store_ps(&F[j_depth], f_simd); 
-      _mm_store_si128(&C[offset], c);
+      _mm_store_si128((__m128i *)&C[offset], c);
 
       /*
       if (j==0) {
