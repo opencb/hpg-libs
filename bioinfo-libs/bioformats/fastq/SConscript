@@ -1,0 +1,6 @@
+Import('formats_env')
+
+#penv = env.Clone()
+
+# TODO: Remove fastq_batch_reader_omp so Glob can be used
+formats_env['objects'] += formats_env.Object(Split('fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_read.c'))
