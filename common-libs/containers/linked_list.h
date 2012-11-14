@@ -1,0 +1,123 @@
+/*
+ * linked_list.h
+ *
+ *  Created on: Nov 7, 2012
+ *      Author: imedina
+ */
+
+#ifndef LINKED_LIST_H_
+#define LINKED_LIST_H_
+
+#include <stdio.h>
+#include <pthread.h>
+
+#include "containers.h"
+#include <commons/string_utils.h>
+#include <commons/log.h>
+
+typedef struct linked_list_item {
+	void *item;
+
+	struct linked_list_item *prev;
+	struct linked_list_item *next;
+} linked_list_item_t;
+
+typedef struct linked_list {
+	size_t size;
+	int mode;
+	int flag;
+
+	// linked_list_compare_fn compare_fn;
+	int (*compare_fn)(const void *, const void *);
+
+	pthread_mutex_t lock;
+	pthread_cond_t condition;
+
+	linked_list_item_t *first;
+	linked_list_item_t *last;
+} linked_list_t;
+
+
+linked_list_t* linked_list_new(int SYNC_MODE);
+
+void linked_list_free(linked_list_t* linked_list_p, void (*data_callback) (void* data));
+
+linked_list_item_t* list_item_new(void *item);
+
+
+
+size_t linked_list_size(linked_list_t *linked_list_p);
+
+size_t linked_list_index_of(void *item, linked_list_t *linked_list_p);
+
+int linked_list_contains(void* item, linked_list_t *linked_list_p);
+
+int linked_list_clear(linked_list_t *linked_list_p, void (*data_callback) (void* data));
+
+
+
+int linked_list_insert(void* item_p, linked_list_t *linked_list_p);
+
+int linked_list_insert_first(void* item_p, linked_list_t *linked_list_p);
+
+int linked_list_insert_last(void* item_p, linked_list_t *linked_list_p);
+
+int linked_list_insert_at(size_t index, void* item_p, linked_list_t *linked_list_p);
+
+int linked_list_insert_all(void** item_p, size_t num_items, linked_list_t *linked_list_p);
+
+int linked_list_insert_all_at(size_t index, void** item_p, size_t num_items, linked_list_t* linked_list_p);
+
+
+
+void* linked_list_remove(void *item, linked_list_t *linked_list_p);
+
+void* linked_list_remove_first(void *item, linked_list_t *linked_list_p);
+
+void* linked_list_remove_last(void *item, linked_list_t *linked_list_p);
+
+void* linked_list_remove_at(size_t index, linked_list_t *linked_list_p);
+
+void** linked_list_remove_range(size_t start, size_t end, linked_list_t* linked_list_p);
+
+
+
+void* linked_list_get(size_t index, linked_list_t *linked_list_p);
+
+void* linked_list_get_first(linked_list_t *linked_list_p);
+
+void* linked_list_get_last(linked_list_t *linked_list_p);
+
+linked_list_t* linked_list_sublist(size_t start, size_t end, linked_list_t *linked_list_p, linked_list_t *sublist);
+
+void* linked_list_set(size_t index, void* new_item, linked_list_t *linked_list_p);
+
+
+
+void linked_list_print(linked_list_t *linked_list_p);
+
+// void **linked_list_to_array(linked_list_t *linked_list_p);
+
+static int compare_items(const void *item1, const void *item2);
+
+
+int linked_list_swap(const int pos1, const int pos2, linked_list_t *linked_list_p);
+
+
+void linked_list_set_flag(int flag, linked_list_t *linked_list_p);
+
+int linked_list_get_flag(linked_list_t *linked_list_p);
+
+
+/**
+ *  @brief Compare function for strings
+ *  @param a pointer to string
+ *  @param b pointer to string
+ *  @return 0: if equal, <>0: if not equal
+ *
+ *  Compare function for strings
+ */
+int compare(const void *a, const void *b);
+
+
+#endif /* LINKED_LIST_H_ */

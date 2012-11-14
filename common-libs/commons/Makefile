@@ -3,8 +3,18 @@ LIB = .
 
 ALL = io
 
-CC = gcc
+ifeq ($(compiler), intel)
+        CC = /opt/intel/bin/icc
+else
+        CC = gcc
+        compiler=gcc
+endif
+
+#CC = gcc
+#CC = /opt/intel/bin/icc
+
 CFLAGS = -Wall -O3 -std=c99
+
 CFLAGS_DEBUG = -Wall -g
 
 LIBS = -lcurl -Wl,-Bsymbolic-functions
@@ -44,7 +54,7 @@ result.o: result.h result.c
 	$(CC) $(CFLAGS) -c result.c -I/usr/include/libxml2 -lxml2
 
 test-utils:
-	cd test && make
+	cd test && make compiler=$(compiler)
 
 clean:
 	rm -f *.o
