@@ -1405,8 +1405,8 @@ size_t bwt_map_inexact_seq(char *seq,
   //return bwt_map_inexact_seq_by_pos(seq, start, end,
   //					bwt_optarg, index, mapping_list);
   
-  alignment_t *alignment;
-  size_t len = strlen(seq);
+  //alignment_t *alignment;
+  //size_t len = strlen(seq);
 
   if (len < 5) {
     char aux[len + 2];
@@ -2337,7 +2337,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 			    bwt_optarg, index, mapping_list);
     //printf("\tthird, num_mappings = %d\n", num_mappings);
   } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
-    array_list_clear(mapping_list, (void *) region_free);
+    array_list_clear(mapping_list, (void *) region_bwt_free);
     num_mappings = seeding(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
 			   bwt_optarg, index, mapping_list);
   }

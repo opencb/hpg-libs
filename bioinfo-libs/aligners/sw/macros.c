@@ -173,10 +173,10 @@ void simd_traceback(int depth, int num_seqs,
     }
 
 
-    //q_start[i] = kk + 1;
-    //r_start[i] = jj + 1;
-    q_start[i] = (kk < 0 ? 1 : kk + 1);
-    r_start[i] = (jj < 0 ? 1 : jj + 1);
+    q_start[i] = kk + 1;
+    r_start[i] = jj + 1;
+    //q_start[i] = (kk < 0 ? 1 : kk + 1);
+    //r_start[i] = (jj < 0 ? 1 : jj + 1);
     
     q_aux[len] = 0;
     r_aux[len] = 0;
