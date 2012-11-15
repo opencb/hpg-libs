@@ -507,36 +507,107 @@ void* linked_list_iterator_next(linked_list_iterator_t *iterator_p) {
 void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
 	void* item = NULL;
 
-	if (iterator_p && iterator_p->curr_pos) {
-		item = iterator_p->curr_pos->item;
-		if (iterator_p->curr_pos->prev) { iterator_p->curr_pos = iterator_p->curr_pos->prev; }
-	}
+  if (iterator_p && iterator_p->curr_pos) {
+    item = iterator_p->curr_pos->item;
+    if (iterator_p->curr_pos->prev) { 
+      iterator_p->curr_pos = iterator_p->curr_pos->prev; 
+    }
+  }
 
 	return item;
 }
 
+void* linked_list_iterator_last(linked_list_iterator_t *iterator_p) {
+  void* item = NULL; 
+
+  if (iterator_p && iterator_p->curr_pos) {
+    item = iterator_p->curr_pos->item;
+    if (iterator_p->linked_list_p) { 
+      iterator_p->curr_pos = iterator_p->linked_list_p->last; 
+    }
+  }
+  
+  return item;
+}
+
+
+void* linked_list_iterator_first(linked_list_iterator_t *iterator_p) {
+  void* item = NULL; 
+
+  if (iterator_p && iterator_p->curr_pos) {
+    item = iterator_p->curr_pos->item;
+    if (iterator_p->linked_list_p) { 
+      iterator_p->curr_pos = iterator_p->linked_list_p->first; 
+    }
+  }
+  
+  return item;
+}
+
+
 int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p) {
-	linked_list_item_t* list_item = linked_list_item_new(item);
-	list_item->next = iterator_p->curr_pos;
+    linked_list_item_t* list_item = linked_list_item_new(item);
+    list_item->next = iterator_p->curr_pos;
+    
+    if (iterator_p->curr_pos) {
+      list_item->prev = iterator_p->curr_pos->prev;
+      
+      //iterator_p->curr_pos->prev = list_item;
+      //list_item->next = iterator_p->curr_pos;
+      if (iterator_p->curr_pos->prev) {
+	iterator_p->curr_pos->prev->next = list_item;
+      }
+      iterator_p->curr_pos->prev = list_item;
 
-	if (iterator_p->curr_pos) {
-		list_item->prev = iterator_p->curr_pos->prev;
-		iterator_p->curr_pos->prev = list_item;
+      if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
+	iterator_p->linked_list_p->first = list_item;
+      }
+    }else if (iterator_p->linked_list_p->first == NULL) {
+      iterator_p->linked_list_p->first = list_item;
+      iterator_p->linked_list_p->last = list_item;
+    }else {
+      return 0;
+    }
+    iterator_p->linked_list_p->size++;
+    return 1;
+}
 
-		list_item->next = iterator_p->curr_pos;
-		if (iterator_p->curr_pos->prev) {
-			iterator_p->curr_pos->prev->next = list_item;
-		}
-		if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
-			iterator_p->linked_list_p->first = list_item;
-		}
-	}else if (iterator_p->linked_list_p->first == NULL) {
-		iterator_p->linked_list_p->first = list_item;
-		iterator_p->linked_list_p->last = list_item;
-	}else {
-		return 0;
-	}
-	return 1;
+void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p) {
+  if (iterator_p->curr_pos) {    
+    linked_list_item_t *list_item = iterator_p->curr_pos;
+    void *item = list_item->item;
+
+    if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
+      /*************** ITERATOR ARE IN FIRST POSITION *************/
+      iterator_p->linked_list_p->first = iterator_p->curr_pos->next;
+      if (iterator_p->linked_list_p->first) {
+	//THE LIST HAS MORE THAN ONE ELEMENT
+	iterator_p->linked_list_p->first->prev = NULL;
+      }else {
+	//THE LIST HAS ONE ELEMENT
+	iterator_p->linked_list_p->last = NULL;
+      }
+      iterator_p->curr_pos = iterator_p->linked_list_p->first;
+    } else if (iterator_p->curr_pos == iterator_p->linked_list_p->last) {
+      /*************** ITERATOR ARE IN LAST POSITION *************/
+      iterator_p->linked_list_p->last = iterator_p->curr_pos->prev;
+      iterator_p->linked_list_p->last->next = NULL;
+      iterator_p->curr_pos = iterator_p->linked_list_p->last;
+    }else { 
+      /*************** ITERATOR ARE IN MIDDLE *************/
+      iterator_p->curr_pos->prev->next = iterator_p->curr_pos->next;
+      iterator_p->curr_pos->next->prev = iterator_p->curr_pos->prev;
+      iterator_p->curr_pos = iterator_p->curr_pos->next;
+    }
+    iterator_p->linked_list_p->size--;
+    
+    linked_list_item_free(list_item, NULL);
+
+    return item;
+  }
+
+  return NULL;
+ 
 }
 
 /******************************************************************/

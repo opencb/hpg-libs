@@ -57,6 +57,14 @@ void* linked_list_iterator_next(linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p);
 
+void* linked_list_iterator_last(linked_list_iterator_t *iterator_p);
+
+void* linked_list_iterator_first(linked_list_iterator_t *iterator_p);
+
+int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p);
+
+void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p);
+
 /*****************************************************************/
 
 linked_list_t* linked_list_new(int SYNC_MODE);

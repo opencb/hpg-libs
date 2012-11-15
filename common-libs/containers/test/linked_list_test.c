@@ -29,14 +29,14 @@ int main(int argc, char **argv) {
   item = linked_list_remove_last(list);
   printf("Remove Last Item. It is %d\n", item);
 
-  item = linked_list_remove_at(2, list);
+  item = linked_list_remove_at((void *)2, list);
   printf("Remove item at 2 position. It is %d\n", item);
   
   printf("List status is:\n");
   linked_list_print(list, (void *)print_item);  
   
   printf("And Now insert %i at 2 position.\n", item);
-  linked_list_insert_at(2, item, list);
+  linked_list_insert_at((void *)2, item, list);
 
   printf("List status is:\n");
   linked_list_print(list, (void *)print_item);  
@@ -50,9 +50,6 @@ int main(int argc, char **argv) {
   printf("----------------------INSERT AND REMOVE TEST END --------------------------\n");
 
   printf("-------------------------- ITERATORS TEST ---------------------------\n");
-
-  printf("Linked list initial status:\n");
-  linked_list_print(list, (void *)print_item);
 
   linked_list_iterator_t* iterator = linked_list_iterator_new(list);
   printf("The iterator are in %d. And move it to next position\n", 
@@ -70,10 +67,47 @@ int main(int argc, char **argv) {
   linked_list_iterator_prev(iterator);
   printf("The iterator are in %d\n", 
 	 linked_list_iterator_curr(iterator));
+
+  printf("Linked list initial status:\n");
+  linked_list_print(list, (void *)print_item);
   
   linked_list_iterator_insert(8, iterator);
-  printf("Linked list actual status:\n");
+  printf("Linked list actual status after insert 8:\n");
   linked_list_print(list, (void *)print_item);
+
+  printf("Move iterator 2 positions and insert 8 value\n");
+  linked_list_iterator_next(iterator);
+  linked_list_iterator_next(iterator);
+  linked_list_iterator_insert((void *)8, iterator);
+
+  printf("Linked list status:\n");
+  linked_list_print(list, (void *)print_item);
+
+  printf("Move iterator to last position and insert 8 value\n");
+  linked_list_iterator_last(iterator);
+  linked_list_iterator_insert(8, iterator);  
+  printf("Linked list status:\n");
+  linked_list_print(list, (void *)print_item);
+
+  printf("Delete the element in the iterator current position\n");
+  item = linked_list_iterator_remove(iterator);
+  printf("The element remove is %d and the list status is (iterator is in %d):\n", item, (int)linked_list_iterator_curr(iterator));
+  linked_list_print(list, (void *)print_item);
+
+  printf("Move iterator to the first position and delete this element\n");
+  linked_list_iterator_first(iterator);
+  item = linked_list_iterator_remove(iterator);
+  printf("The element remove is %d and the list status is (iterator is in %d):\n", item, (int)linked_list_iterator_curr(iterator));
+  linked_list_print(list, (void *)print_item);
+  
+  printf("Move iterator two positions and delete this element\n");
+  linked_list_iterator_next(iterator);
+  linked_list_iterator_next(iterator);
+  item = linked_list_iterator_remove(iterator);
+  printf("The element remove is %d and the list status is (iterator is in %d):\n", item, (int)linked_list_iterator_curr(iterator));
+  linked_list_print(list, (void *)print_item);
+  
+  
 
   printf("-------------------------- ITERATORS TEST END ---------------------------\n");
 
