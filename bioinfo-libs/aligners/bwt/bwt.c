@@ -151,7 +151,7 @@ void short_cal_free(short_cal_t *short_cal){
 
 //------------------------------------------------------------------------------
 
-region_t *region_new(const size_t chromosome_id, 
+region_t *region_bwt_new(const size_t chromosome_id, 
 		     const short int strand,
 		     const size_t start, 
 		     const size_t end,
@@ -174,7 +174,7 @@ region_t *region_new(const size_t chromosome_id,
 }
 
 
-void region_free(region_t *region){
+void region_bwt_free(region_t *region){
   free(region);
 }
 
@@ -270,11 +270,12 @@ char *strcpy_capitalize(char *dest, const char *src, size_t n) {
 
 //-----------------------------------------------------------------------------
 
-void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
+void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, char *quality) {
   
   unsigned int quality_type;
   size_t quality_len;
-  quality_len = batch->data_indices[read_i + 1] - batch->data_indices[read_i] - 1;
+
+  quality_len = strlen(quality);
   quality_type = atoi(mapping->quality);
   //printf("Quality len from batch: %i\n", quality_len);
   free(mapping->quality);
@@ -283,11 +284,11 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
 
   if (quality_type == START_HARD_CLIPPING){
     if (mapping->seq_strand == 0) {
-      memcpy(mapping->quality , 
-	     &(batch->quality[batch->data_indices[read_i]]) + 1, 
+      memcpy(mapping->quality, 
+	     quality + 1, 
 	     quality_len - 1);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]) + 1,
+      reverse_str(quality + 1,
 		  mapping->quality, quality_len - 1);
     }
     mapping->quality[quality_len - 1] = '\0';	    
@@ -295,10 +296,10 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
   }else if(quality_type == END_HARD_CLIPPING){
     if (mapping->seq_strand == 0) {
       memcpy(mapping->quality, 
-	     &(batch->quality[batch->data_indices[read_i]]),
+	     quality,
 	     quality_len - 1);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+      reverse_str(quality,
 		  mapping->quality, quality_len - 1);
     }
     mapping->quality[quality_len - 1] = '\0';
@@ -306,15 +307,63 @@ void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
   }else{
     //printf("ELSE....\n");
     if (mapping->seq_strand == 0) {
-      memcpy(mapping->quality, &(batch->quality[batch->data_indices[read_i]]), quality_len);
+      memcpy(mapping->quality, quality, quality_len);
     } else {
-      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+      reverse_str(quality,
 		  mapping->quality, quality_len);
     }
     //mapping->quality[quality_len] = '\0';
     //printf("(%i)NORMAL : %s\n", mapping->seq_strand, mapping->quality);
   }
   //array_list_insert( mapping, mapping_list);
+}
+//-----------------------------------------------------------------------------
+
+void bwt_cigar_cpy_batch(alignment_t *mapping, size_t read_i, fastq_batch_t *batch) {
+
+  unsigned int quality_type;
+  size_t quality_len;
+  quality_len = batch->data_indices[read_i + 1] - batch->data_indices[read_i] - 1;
+  quality_type = atoi(mapping->quality);
+  //printf("Quality len from batch: %i\n", quality_len);                                                                                                                                                                                                                                                                                    
+  free(mapping->quality);
+  mapping->quality = (char *)malloc(sizeof(char)*(quality_len + 1));
+  //printf("Read:%s\n", mapping->sequence);                                                                                                                                                                                                                                                                                                 
+
+  if (quality_type == START_HARD_CLIPPING){
+    if (mapping->seq_strand == 0) {
+      memcpy(mapping->quality ,
+             &(batch->quality[batch->data_indices[read_i]]) + 1,
+             quality_len - 1);
+    } else {
+      reverse_str(&(batch->quality[batch->data_indices[read_i]]) + 1,
+                  mapping->quality, quality_len - 1);
+    }
+    mapping->quality[quality_len - 1] = '\0';
+    //printf("HARD START : %s\n", mapping->quality);                                                                                                                                                                                                                                                                                        
+  }else if(quality_type == END_HARD_CLIPPING){
+    if (mapping->seq_strand == 0) {
+      memcpy(mapping->quality,
+             &(batch->quality[batch->data_indices[read_i]]),
+             quality_len - 1);
+    } else {
+      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+                  mapping->quality, quality_len - 1);
+    }
+    mapping->quality[quality_len - 1] = '\0';
+    //printf("HARD END : %s\n", mapping->quality);                                                                                                                                                                                                                                                                                          
+  }else{
+    //printf("ELSE....\n");                                                                                                                                                                                                                                                                                                                 
+    if (mapping->seq_strand == 0) {
+      memcpy(mapping->quality, &(batch->quality[batch->data_indices[read_i]]), quality_len);
+    } else {
+      reverse_str(&(batch->quality[batch->data_indices[read_i]]),
+                  mapping->quality, quality_len);
+    }
+    //mapping->quality[quality_len] = '\0';                                                                                                                                                                                                                                                                                                 
+    //printf("(%i)NORMAL : %s\n", mapping->seq_strand, mapping->quality);                                                                                                                                                                                                                                                                   
+  }
+  //array_list_insert( mapping, mapping_list);                                                                                                                                                                                                                                                                                              
 }
 
 //-----------------------------------------------------------------------------
@@ -1154,7 +1203,7 @@ size_t bwt_map_exact_seed(char *seq, size_t seq_len,
 	*/
 	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	// save all into one alignment structure and insert to the list
-	region = region_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len);
+	region = region_bwt_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len);
 	
 	if (!array_list_insert((void*) region, mapping_list)){
 	  printf("Error to insert item into array list\n");
@@ -1285,7 +1334,7 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
 	    */	  
 	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 	  // save all into one alignment structure and insert to the list
-	  region = region_new(idx, !type, start_mapping, start_mapping + end, seq_start, seq_end, seq_len);
+	  region = region_bwt_new(idx, !type, start_mapping, start_mapping + end, seq_start, seq_end, seq_len);
 
 	    
 	  if(!array_list_insert((void*) region, mapping_list)){
@@ -1321,6 +1370,29 @@ size_t bwt_map_inexact_seq(char *seq,
 			   bwt_index_t *index, 
 			   array_list_t *mapping_list) {
   
+
+  alignment_t *alignment;
+  size_t len = strlen(seq);
+
+  if (len < 5) {
+    char aux[len + 2];
+    sprintf(aux, "%luX", len);
+
+    char *quality_clipping = (char *)malloc(sizeof(char)*50);
+    sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
+
+    alignment = alignment_new();
+    alignment_init_single_end(NULL,
+			      strdup(seq),
+			      quality_clipping,
+			      0,
+			      -1,
+			      -1,
+			      strdup(aux), 1, 0, 0, 0, alignment);
+    array_list_insert((void*) alignment, mapping_list);
+    return 1;
+  }
+ 
 
   //printf("------------>IN FUNCTION INEXACT SEQ...\n");
   /*unsigned int len = strlen(seq);
@@ -1872,7 +1944,7 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 	  mapping->query_name = (char *)malloc(sizeof(char)*header_len + 1);
 	  get_to_first_blank(&(batch->header[batch->header_indices[i]]), header_len, mapping->query_name);
 	  //printf("--->header id %s to %s\n",read->id, header_id);	  
-	  bwt_cigar_cpy(mapping, i, batch);
+	  bwt_cigar_cpy_batch(mapping, i, batch);
 	  array_list_insert( mapping, mapping_list);
 	}else{
 	  printf("Error to extract item\n");
@@ -1908,6 +1980,67 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
   return array_list_size(mapping_list);
 
 }
+
+//-----------------------------------------------------------------------------
+
+/*
+size_t bwt_map_inexact_reads_rna(array_list_t *reads,
+				 bwt_optarg_t *bwt_optarg, 
+				 bwt_index_t *index,
+				 array_list_t *targets,
+				 array_list_t **data,
+				 size_t *num_targets,
+				 size_t *num_mapped,
+				 size_t *num_unmapped) {  
+  *num_targets = 0;
+  *num_mapped = 0; 
+  *num_unmapped = 0; 
+
+  size_t read_pos;
+  size_t num_threads = bwt_optarg->num_threads;
+  //unsigned int th_id;
+  size_t num_reads = array_list_size(reads);
+  //size_t batch_individual_size = batch->data_size / num_threads;
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
+  
+  alignment_t *mapping;
+  size_t quality_len;
+  //struct timeval start_time, end_time;
+  //double timer, parallel_t, sequential_t;
+  unsigned int j, header_len;
+  size_t read_id = 0;
+    
+  omp_set_num_threads(num_threads);
+  
+  #pragma omp parallel for schedule(dynamic, chunk)
+  for (size_t i = 0; i < num_reads; i++) {
+    bwt_map_inexact_seq(reads[i], 
+			bwt_optarg, index, 
+			data[i]);
+  
+    if (!array_list_size(data[i])) {
+      targets[*num_targets] = i;
+      *num_targets++;
+    } else {
+      for (size_t j = 0; j < num_mappings; j++) {
+	alignment = (alignment_t *) array_list_get(j, data[i]);
+	
+	header_len = strlen(reads[i]->id);
+	alignment->query_name = (char *) malloc(sizeof(char) * header_len);
+	get_to_first_blank(data[i]->id, header_len, alignment->query_name);
+	bwt_cigar_cpy(alignment, i, quality);
+	alignment->quality = strdup(quality);
+      }
+    }
+  }
+
+  *num_unmapped = *num_targets;
+  *num_mapped = num_reads - *num_unmapped;
+
+  return *num_mapped;
+
+}
+*/
 
 //-----------------------------------------------------------------------------
 
@@ -2250,7 +2383,146 @@ short_cal_t* cal_location_dup(short_cal_t *a) {
 
 	return exon_location_p;
 }
+//-----------------------------------------------------------------------------
+//void my_cp_list_append(cp_list* list_p, size_t start, size_t end, size_t max_cal_distance){
+void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size_t max_cal_distance) {
+  
+  unsigned char actualization = 0;
+  short_cal_t *item, *item_aux, *new_item_p;
+  //cp_list_iterator itr;
+  
+  int strand = region->strand;
 
+  size_t start = region->start;
+  size_t end = region->end;
+  size_t seq_start = region->seq_start;
+  size_t seq_end = region->seq_end;
+  size_t seq_len = region->seq_len;
+
+  linked_list_iterator_t* itr = linked_list_iterator_new(list_p);
+  //cp_list_iterator_init(&itr, list_p, COLLECTION_LOCK_NONE);
+	
+  if (cp_list_item_count(list_p) <= 0) {
+    new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, 1);
+    //cp_list_insert(list_p, new_item_p);
+    linked_list_insert(new_item_p, list_p);
+  } else {
+    //item = cp_list_iterator_curr(&itr);
+    item = (short_cal_t *)linked_list_iterator_curr(itr);
+    while (item != NULL) {
+      if (start < item->start) {
+	if (end + max_cal_distance < item->start) {
+	  /*********************************************
+	   *    Case 1: New item insert before item.   *
+           *                                           *
+           *        new item     item                  *
+           *       |-------| |--------|                *
+           ********************************************/
+	  new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, 1);
+	  //cp_list_iterator_insert(&itr, new_item_p);
+	  //cp_list_iterator_prev(&itr);
+	  linked_list_iterator_insert(new_item_p, itr);
+	  linked_list_iterator_prev(itr);
+	} else {
+	  /********************************************
+           *  Case 2: Actualization item start        *
+           *           new item                       *
+           *          |-------|   item                *
+           *                   |--------|             *                            
+           ********************************************/
+	  item->start = start;
+	  item->seq_start = seq_start;
+	  item->num_seeds++;
+	  if (end > item->end) {
+	    /**************************************************
+             *  Case 3: Actualization item start and item end *
+             *          new item                              *
+             *         |------------|                         *
+             *              item                              *    
+             *           |--------|                           *                                    
+             **************************************************/
+	    item->end = end;
+	    item->seq_end = seq_end;
+	    actualization = 1;
+	  }
+	}
+	break;
+      } else {
+	if (end <= item->end) {
+	  /**************************************************                                       
+           *  Case 4: The new item don't insert in the list *                             
+           *              item                              * 
+           *         |-------------|                        * 
+           *             new item                           * 
+           *            |--------|                          * 
+           **************************************************/
+	  item->num_seeds++;
+	  break;
+	} else if (item->end + max_cal_distance >= start) {
+	  /********************************************                                              
+           *  Case 5: Actualization item end          *
+           *            item                          *                                              
+           *          |-------| new item              *                                            
+           *                 |--------|               *                                              
+           ********************************************/
+	  item->end = end;
+	  item->seq_end = seq_end;
+	  actualization = 1;
+	  item->num_seeds++;
+	  break;
+	}
+      } // end else
+
+      //continue loop...
+      //cp_list_iterator_next(&itr);
+      //item = cp_list_iterator_curr(&itr);
+      linked_list_iterator_next(itr);
+      item = linked_list_iterator_curr(itr);
+      
+    } // end while
+
+    if (item == NULL) {
+      /******************************************************* 
+       * Case 5: Insert new item at the end of the list      * 
+       *                 item    new item                    * 
+       *              |-------| |--------|                   *    
+       *******************************************************/
+      new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, 1);
+      //cp_list_append(list_p, new_item_p);
+      linked_list_insert_last(new_item_p, list_p);
+    }
+    
+    if (actualization == 1) {
+      //printf("\tActualization RIGHT items (Next). Current item [%d-%d]\n", item->start, item->end);
+      //cp_list_iterator_next(&itr);
+      linked_list_iterator_next(itr);
+      //item_aux = cp_list_iterator_curr(&itr);
+      item_aux = linked_list_iterator_curr(itr);
+      while (item_aux != NULL) {
+	//printf("\t\tFusion right items. item->end=%d < item_aux->start=%d?\n", item->end, item_aux->start);
+	if (item->end + max_cal_distance < item_aux->start) {
+	  //printf("\t\tSTOP Actualization\n");
+	  break;
+	} else {
+	  //printf("\t\tCONTINUE Actualization. item->end=%d < item_aux->end=%d?\n", item->end, item_aux->end);
+	  if (item->end < item_aux->end) {
+	    //printf("\t\tActualization end value %d\n", item_aux->end);
+	    item->end = item_aux->end;
+	    item->seq_end = item_aux->seq_end;
+	  }
+          //printf("\t\tDelete item %d-%d\n", item_aux->start, item_aux->end);
+	  //cp_list_iterator_remove(&itr);
+	  //printf("\t\tDelete OK!\n");
+	  //item_aux = cp_list_iterator_curr(&itr);
+	  linked_list_iterator_remove(itr);
+	  item_aux = linked_list_iterator_curr(itr);
+	}                                                                                             
+      }
+    }
+  }//end first else
+}
+
+//-----------------------------------------------------------------------------
 //void my_cp_list_append(cp_list* list_p, size_t start, size_t end, size_t max_cal_distance){
 void my_cp_list_append(cp_list* list_p, region_t *region, size_t max_cal_distance) {
   
@@ -2377,6 +2649,101 @@ void my_cp_list_append(cp_list* list_p, region_t *region, size_t max_cal_distanc
   }//end first else
 }
 
+
+
+//-----------------------------------------------------------------------------
+size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
+					     cal_optarg_t *cal_optarg,
+					     size_t *min_seeds, size_t *max_seeds,
+					     array_list_t *cal_list){
+
+  short_cal_t *short_cal_p;
+  region_t *region;
+  size_t min_cal_size = cal_optarg->min_cal_size;
+  size_t max_cal_distance  = cal_optarg->max_cal_distance;
+  size_t num_mappings = array_list_size(mapping_list);
+  size_t chromosome_id;
+  short int strand;
+  size_t start, end;  
+  cp_list_iterator itr;
+
+  *max_seeds = 0;
+  *min_seeds = 1000;
+
+  const unsigned char nstrands = 2;
+  const unsigned char nchromosomes = 30;
+  cp_list ***cals_list = (cp_list ***)malloc(sizeof(cp_list **)*nstrands);
+
+  for (unsigned int i = 0; i < nstrands; i++) {
+    cals_list[i] = (cp_list **)malloc(sizeof(cp_list *)*nchromosomes);
+    for (unsigned int j = 0; j < nchromosomes; j++) {
+      cals_list[i][j] = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED); 
+    }
+  }
+    
+  // from the results mappings, generates CALs
+  for (unsigned int m = 0; m < num_mappings; m++) {
+    region = array_list_get(m, mapping_list);
+
+    chromosome_id = region->chromosome_id;
+    strand = region->strand;
+
+    //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
+    my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
+  }
+ 
+  //Store CALs in Array List for return results
+  cal_t *cal;
+  for (unsigned int j = 0; j < nchromosomes; j++) {
+    for (unsigned int i = 0; i < nstrands; i++) {
+      //cp_list_iterator_init(&itr, cals_list[i][j], COLLECTION_LOCK_NONE);
+      linked_list_iterator_t *itr2 = linked_list_iterator_new(cals_list[i][j]);
+      //short_cal_p = cp_list_iterator_curr(&itr);
+      short_cal_p = linked_list_iterator_curr(itr2);
+      while (short_cal_p != NULL) {
+	if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
+	  //	  printf("\tshort_cal: strand %d chromosome %d [%d-%d], seq [%d-%d, len = %i]\n", 
+	  //		 i, j, short_cal_p->start, short_cal_p->end, short_cal_p->seq_start, short_cal_p->seq_end, short_cal_p->seq_len);
+
+	  if (*min_seeds > short_cal_p->num_seeds) *min_seeds = short_cal_p->num_seeds;
+	  if (*max_seeds< short_cal_p->num_seeds) *max_seeds = short_cal_p->num_seeds;
+
+	  if (i) {
+	    // strand -
+	    cal = cal_new(j, i, 
+			  short_cal_p->start - (short_cal_p->seq_len - short_cal_p->seq_start) + 1, 
+			  short_cal_p->end + short_cal_p->seq_end, short_cal_p->num_seeds);
+	  } else {
+	    // strand +
+	    cal = cal_new(j, i, 
+			  short_cal_p->start - short_cal_p->seq_start, 
+			  short_cal_p->end + (short_cal_p->seq_len - short_cal_p->seq_end) + 1,
+			  short_cal_p->num_seeds);
+	  }
+	  //	  printf("\t\tCAL: strand %d chromosome %d [%d-%d] : num seeds = %d\n", 
+	  //		 i, j, cal->start, cal->end, cal->num_seeds);
+	  array_list_insert(cal, cal_list);
+	}
+	//short_cal_free(short_cal_p);
+	//cp_list_iterator_next(&itr);
+	linked_list_iterator_next(itr2);
+	short_cal_p = linked_list_iterator_curr(itr2);
+	//	short_cal_p = cp_list_iterator_curr(&itr);
+      }
+      //cp_list_destroy(cals_list[i][j]);
+      linked_list_free(cals_list[i][j], NULL);
+    }
+  }
+  
+  for (unsigned int i = 0; i < nstrands; i++) {
+    free(cals_list[i]);
+  }
+
+  free(cals_list);
+
+  return array_list_size(cal_list);  
+}
+
 //-----------------------------------------------------------------------------
 
 size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
@@ -2420,14 +2787,6 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 
     chromosome_id = region->chromosome_id;
     strand = region->strand;
-    //start = region->start;
-    //end = region->end;
-
-    
-    /*    if (chromosome_id == 23) {
-      printf("num_mapping %d\tchromosome = %i\tstrand = %d, start = %d, end = %d\n", m, chromosome_id, strand, start, end);
-    }
-    */
 
     //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
     my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);

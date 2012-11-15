@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#include "bam/bam.h"
+#include "bam.h"
 
 #include "commons/commons.h"
 #include "commons/system_utils.h"

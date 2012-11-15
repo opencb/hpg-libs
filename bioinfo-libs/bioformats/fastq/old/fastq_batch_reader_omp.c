@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "commons.h"
-#include "log.h"
-#include "system_utils.h"
+#include "commons/commons.h"
+#include "commons/log.h"
+#include "commons/system_utils.h"
+#include "containers/list.h"
 
-#include "fastq_batch.h"
-#include "list.h"
 #include "fastq_batch_reader_omp.h"
+#include "fastq_batch.h"
 #include "fastq_file.h"
 
 /* ******************************************************
@@ -41,7 +41,7 @@ fastq_batch_reader_t* fastq_batch_reader_new(char* filename, int source_id, list
 
 void fastq_batch_reader_free(fastq_batch_reader_t* fastq_batch_reader_p) {
     // close the input file and exit
-    fastq_close(fastq_batch_reader_p->fastq_file_p);
+    fastq_fclose(fastq_batch_reader_p->fastq_file_p);
 }
 
 void* fastq_batch_reader_thread_function(void* param_p) {

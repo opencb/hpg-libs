@@ -37,6 +37,7 @@ vcf_record_t *vcf_record_copy(vcf_record_t *orig) {
     record->reference_len = orig->reference_len;
     record->alternate = strndup(orig->alternate, orig->alternate_len);
     record->alternate_len = orig->alternate_len;
+    record->quality = orig->quality;
     record->filter = strndup(orig->filter, orig->filter_len);
     record->filter_len = orig->filter_len;
     record->info = strndup(orig->info, orig->info_len);
@@ -107,6 +108,17 @@ int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file) {
 }
 
 vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {
+    assert(file);
+    list_item_t *item = list_remove_item(file->record_batches);
+    if (item) {
+        vcf_batch_t *batch = item->data_p;
+        list_item_free(item);
+        return batch;
+    }
+    return NULL;
+}
+
+vcf_batch_t *fetch_vcf_batch_non_blocking(vcf_file_t *file) {
     assert(file);
     list_item_t *item = list_remove_item_async(file->record_batches);
     if (item) {
@@ -212,7 +224,7 @@ int vcf_batch_print(FILE *fd, vcf_batch_t *batch) {
  *                    Header management                   *
  * ********************************************************/
 
-void set_file_format(char *fileformat, int length, vcf_file_t *file) {
+void set_vcf_file_format(char *fileformat, int length, vcf_file_t *file) {
     assert(fileformat);
     assert(file);
     file->format = strndup(fileformat, length);
@@ -220,7 +232,7 @@ void set_file_format(char *fileformat, int length, vcf_file_t *file) {
 //     LOG_DEBUG_F("set format = %.*s\n", file->format_len, file->format);
 }
 
-void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
+void set_vcf_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
     assert(name);
     assert(entry);
     entry->name = strndup(name, length);
@@ -228,7 +240,7 @@ void set_header_entry_name(char *name, int length, vcf_header_entry_t *entry) {
 //     LOG_DEBUG_F("set entry name: %.*s\n", entry->name_len, entry->name);
 }
 
-void add_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
+void add_vcf_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
     assert(value);
     assert(entry);
     int result = array_list_insert(strndup(value, length), entry->values);

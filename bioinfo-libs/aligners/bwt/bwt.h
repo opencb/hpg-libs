@@ -11,6 +11,7 @@
 
 #include "commons/string_utils.h"
 #include "containers/array_list.h"
+#include "containers/linked_list.h"
 #include "bioformats/fastq/fastq_read.h"
 #include "bioformats/fastq/fastq_batch.h"
 #include "bioformats/bam-sam/alignment.h"
@@ -86,7 +87,7 @@ typedef struct region {
   size_t seq_len;
 } region_t;
 
-region_t *region_new(const size_t chromosome_id, 
+region_t *region_bwt_new(const size_t chromosome_id, 
 	             const short int strand,
 	             const size_t start, 
 	             const size_t end,
@@ -94,7 +95,7 @@ region_t *region_new(const size_t chromosome_id,
 		     const size_t seq_end,
 		     const size_t seq_len);
 
-void region_free(region_t *region);
+void region_bwt_free(region_t *region);
 
 //-----------------------------------------------------------------------------
 
@@ -317,6 +318,12 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
 					array_list_t *cal_list);
+
+
+size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
+					     cal_optarg_t *cal_optarg,
+					     size_t *min_seeds, size_t *max_seeds,
+					     array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

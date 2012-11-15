@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "fastq_ex_batch.h"
-#include "string_utils.h"
+#include "commons/string_utils.h"
 
 /* ******************************************************
  *      	Function implementations    		*

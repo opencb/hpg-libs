@@ -88,10 +88,9 @@ void vcf_close(vcf_file_t *file);
  *
  * @param batch_lines The number of lines to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_parse_batches(size_t batch_lines, vcf_file_t *file, int read_samples);
+int vcf_parse_batches(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read and parse the given number of bytes from a VCF file
@@ -104,10 +103,9 @@ int vcf_parse_batches(size_t batch_lines, vcf_file_t *file, int read_samples);
  * 
  * @param batch_bytes The number of bytes to read and parse
  * @param file The file the data will be read from
- * @param read_samples Whether to parse the values of the sequenced samples
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
-int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *file, int read_samples);
+int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) the given number of lines from a VCF file

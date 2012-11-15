@@ -8,7 +8,7 @@
 
 #include "fastq_file.h"
 #include "fastq_read.h"
-#include "list.h"
+#include "containers/list.h"
 
 /* **************************************
  *  		Structures		*

@@ -14,7 +14,7 @@
 #include <cprops/linked_list.h>
 #include <omp.h>
 
-#include <bioformats/family.h>
+#include <bioformats/family/family.h>
 #include <commons/file_utils.h>
 #include <commons/log.h>
 
