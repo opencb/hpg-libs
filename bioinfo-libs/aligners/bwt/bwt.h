@@ -11,6 +11,7 @@
 
 #include "commons/string_utils.h"
 #include "containers/array_list.h"
+#include "containers/linked_list.h"
 #include "bioformats/fastq/fastq_read.h"
 #include "bioformats/fastq/fastq_batch.h"
 #include "bioformats/bam-sam/alignment.h"
@@ -317,6 +318,12 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
 					array_list_t *cal_list);
+
+
+size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
+					     cal_optarg_t *cal_optarg,
+					     size_t *min_seeds, size_t *max_seeds,
+					     array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

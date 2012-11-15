@@ -759,6 +759,13 @@ void reallocate_memory(int max_q_len, int max_r_len, int simd_depth,
       free(*q_aux);
       free(*r_aux);
     }
+    /*
+    if (max_r_len > max_q_len) {
+      max_q_len = max_r_len;
+    } else {
+      max_r_len = max_q_len;
+    }
+    */
     *q_aux = (char *) calloc(max_r_len * 2, sizeof(char));
     *r_aux = (char *) calloc(max_r_len * 2, sizeof(char));
     //printf("new q_aux %x, r_aux %x\n", *q_aux, *r_aux);
