@@ -20,8 +20,8 @@
 #include "fastq_batch.h"
 
 #define MAX_FASTQ_FILENAME_LENGTH		64		// Maximum filenname length
-#define MAX_READ_ID_LENGTH				256		// Maximum read ID length
-#define MAX_READ_SEQUENCE_LENGTH		2048	// Maximum read sequence length
+#define MAX_READ_ID_LENGTH			2048		// Maximum read ID length
+#define MAX_READ_SEQUENCE_LENGTH		40096	// Maximum read sequence length
 
 #define MAX_NUM_PRODUCERS			10
 
