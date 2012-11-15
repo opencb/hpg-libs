@@ -29,14 +29,14 @@ int main(int argc, char **argv) {
   item = linked_list_remove_last(list);
   printf("Remove Last Item. It is %d\n", item);
 
-  item = linked_list_remove_at(2, list);
+  item = linked_list_remove_at((void *)2, list);
   printf("Remove item at 2 position. It is %d\n", item);
   
   printf("List status is:\n");
   linked_list_print(list, (void *)print_item);  
   
   printf("And Now insert %i at 2 position.\n", item);
-  linked_list_insert_at(2, item, list);
+  linked_list_insert_at((void *)2, item, list);
 
   printf("List status is:\n");
   linked_list_print(list, (void *)print_item);  
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   printf("Move iterator 2 positions and insert 8 value\n");
   linked_list_iterator_next(iterator);
   linked_list_iterator_next(iterator);
-  linked_list_iterator_insert(8, iterator);
+  linked_list_iterator_insert((void *)8, iterator);
 
   printf("Linked list status:\n");
   linked_list_print(list, (void *)print_item);
