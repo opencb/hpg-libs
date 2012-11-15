@@ -185,6 +185,10 @@ void sse_matrix(int num_seqs,
     //    printf("\n");
   }
   _mm_store_ps(max_score, score_simd);
+  //  max_score[0] = 100.0f;
+  //  max_score[1] = 100.0f;
+  //  max_score[2] = 100.0f;
+  //  max_score[3] = 100.0f;
   
   /*
 

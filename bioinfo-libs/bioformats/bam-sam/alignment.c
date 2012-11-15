@@ -17,8 +17,8 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 
     alignment_p->chromosome = chromosome;
     alignment_p->position = position;
-    alignment_p->mate_position = 0;
-    alignment_p->mate_chromosome = 0;
+    alignment_p->mate_position = -1; //0;
+    alignment_p->mate_chromosome = -1; //;
     alignment_p->template_length = 0; //single end, no template
     alignment_p->map_quality = map_quality;
     alignment_p->num_cigar_operations = num_cigar_operations;
@@ -694,8 +694,8 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   cigar_p = (char *)malloc(sizeof(char)*cigar_max_len);
   cigar_p[0] = '\0';
   
-  //printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
-  //printf("ref(%d): %s\n", length, str_ref_p);
+  //  printf("seq(%d) start::%d : %s\n", length, start_seq, str_seq_p );
+  //  printf("ref(%d): %s\n", length, str_ref_p);
   
   //hard clipping start
   if(start_seq > 0){
