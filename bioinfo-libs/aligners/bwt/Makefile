@@ -57,7 +57,7 @@ GPU_OBJECTS = bwt_gpu.o
 CUDA_SOURCES = gpu.cu BW_gpu.cu
 CUDA_OBJECTS = gpu.o BW_gpu.o
 
-MISC_OBJECTS = $(FASTQ_DIR)/fastq_file.o $(FASTQ_DIR)/fastq_read.o $(FASTQ_DIR)/fastq_batch.o $(FASTQ_DIR)/fastq_batch_reader.o $(BAM_DIR)/alignment.o $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/system_utils.o $(COMMONS_DIR)/string_utils.o
+MISC_OBJECTS = $(FASTQ_DIR)/fastq_file.o $(FASTQ_DIR)/fastq_read.o $(FASTQ_DIR)/fastq_batch.o $(FASTQ_DIR)/fastq_batch_reader.o $(BAM_DIR)/alignment.o $(CONTAINERS_DIR)/linked_list.o $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/system_utils.o $(COMMONS_DIR)/string_utils.o
 
 TEST = test
 
