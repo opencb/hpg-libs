@@ -1,8 +1,8 @@
 #CC = gcc
 #CC = /opt/intel/bin/icc
 
-ifeq ($(compiler), intel)
-	CC = /opt/intel/bin/icc 
+ifeq ($(COMPILER), intel)
+	CC = icc 
 else
 	CC = gcc
 endif
@@ -24,6 +24,9 @@ else
 	LIBS_ROOT = $(PWD)/../../..
 endif
 
+## This param must point to samtools project, 'make' is assumed
+SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
+
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 FASTQ_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats/fastq
@@ -34,11 +37,11 @@ COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
 BIOFORMATS_DIR = $(LIBS_ROOT)/bioinfo-libs/bioformats
 
 # Include path and libraries
-INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
-LIBS = -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
+INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(SAMTOOLS_DIR)
+LIBS = -L $(SAMTOOLS_DIR) -lcprops -fopenmp -lcurl -Wl,-Bsymbolic-functions -lm -lbam -lz
 
-INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(BAM_DIR)/include
-LIBS_STATIC = -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -lcprops -fopenmp -lm -lbam -lz
+INCLUDES_STATIC = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/../include -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs -I $(SAMTOOLS_DIR)
+LIBS_STATIC = -L $(SAMTOOLS_DIR)  -L $(LIBS_ROOT) -L $(LIBS_ROOT)/cprops -lcprops -fopenmp -lm -lbam -lz
 
 #CUDA_HOME = /usr/local/cuda
 CUDA_HOME = /opt/cuda/4.1/cuda
@@ -56,6 +59,7 @@ CUDA_OBJECTS = gpu.o BW_gpu.o
 
 MISC_OBJECTS = $(FASTQ_DIR)/fastq_file.o $(FASTQ_DIR)/fastq_read.o $(FASTQ_DIR)/fastq_batch.o $(FASTQ_DIR)/fastq_batch_reader.o $(BAM_DIR)/alignment.o $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/log.o $(COMMONS_DIR)/system_utils.o $(COMMONS_DIR)/string_utils.o
 
+TEST = test
 
 
 #LIBS_DIR = ../../../libs
@@ -78,21 +82,21 @@ MISC_OBJECTS = $(FASTQ_DIR)/fastq_file.o $(FASTQ_DIR)/fastq_read.o $(FASTQ_DIR)/
 # Targets
 all: test-preprocess test-search-cpu
 
-test-preprocess: compile-static test-preprocess.c
-	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-preprocess.c -o bin/test-preprocess $(INCLUDES) $(LIBS_STATIC)
+test-preprocess: compile-static $(TEST)/test-preprocess.c
+	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) $(TEST)/test-preprocess.c -o bin/test-preprocess $(INCLUDES) $(LIBS_STATIC)
 
-test-search-cpu: compile-static test-search-cpu.c
-	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-cpu.c -o bin/test-search-cpu $(INCLUDES) $(LIBS_STATIC)
+test-search-cpu: compile-static $(TEST)/test-search-cpu.c
+	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) $(TEST)/test-search-cpu.c -o bin/test-search-cpu $(INCLUDES) $(LIBS_STATIC)
 
 
-test-search-batch-cpu: compile-static test-search-batch-cpu.c
-	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-batch-cpu.c -o bin/test-search-batch-cpu $(INCLUDES) $(LIBS_STATIC)
+test-search-batch-cpu: compile-static $(TEST)/test-search-batch-cpu.c
+	$(CC) $(CFLAGS) $(MAIN_OBJECTS) $(MISC_OBJECTS) $(TEST)/test-search-batch-cpu.c -o bin/test-search-batch-cpu $(INCLUDES) $(LIBS_STATIC)
 
-test-search-gpu: compile-static compile-gpu test-search-gpu.c
-	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-gpu.c -o bin/test-search-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
+test-search-gpu: compile-static compile-gpu $(TEST)/test-search-gpu.c
+	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) $(TEST)/test-search-gpu.c -o bin/test-search-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
 
-test-search-seeds-gpu: compile-static compile-gpu test-search-gpu.c
-	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) test-search-seeds-gpu.c -o bin/test-search-seeds-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
+test-search-seeds-gpu: compile-static compile-gpu $(TEST)/test-search-gpu.c
+	$(CC) $(CFLAGS) $(CUDA_OBJECTS) $(GPU_OBJECTS) $(MAIN_OBJECTS) $(MISC_OBJECTS) $(TEST)/test-search-seeds-gpu.c -o bin/test-search-seeds-gpu $(INCLUDES) $(LIBS_STATIC) $(CUDA_LIBS)
 
 compile-gpu: compile-cuda
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(GPU_SOURCES) $(INCLUDES_STATIC)
@@ -108,16 +112,16 @@ compile-static: compile-dependencies-static
 	$(CC) $(CFLAGS) -D_XOPEN_SOURCE=600 -c $(MAIN_SOURCES) $(INCLUDES_STATIC)
 
 compile-dependencies:
-	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
-	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
+	cd $(CONTAINERS_DIR) && make COMPILER=$(COMPILER) compile && \
+	cd $(COMMONS_DIR) && make COMPILIER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make COMPILER=$(COMPILER) compile
 
 compile-dependencies-static:
-	cd $(CONTAINERS_DIR) && make compiler=$(compiler) compile && \
-	cd $(COMMONS_DIR) && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/fastq && make compiler=$(compiler) compile && \
-	cd $(BIOFORMATS_DIR)/bam-sam && make compiler=$(compiler) compile
+	cd $(CONTAINERS_DIR) && make COMPILER=$(compiler) compile && \
+	cd $(COMMONS_DIR) && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/fastq && make COMPILER=$(COMPILER) compile && \
+	cd $(BIOFORMATS_DIR)/bam-sam && make COMPILER=$(COMPILER) compile
 clean:
 	-rm -f *~ \#*\# *.o $(ALL) 
 

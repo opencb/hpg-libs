@@ -13,7 +13,7 @@
 #endif 
 
 
-#include "bam/bam.h"
+#include "bam.h"
 
 #include "commons/commons.h"
 #include "commons/file_utils.h"

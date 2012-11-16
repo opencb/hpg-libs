@@ -533,7 +533,7 @@ void fastq_fclose(fastq_file_t* fq_file) {
 	fclose(fq_file->fd);
 	free(fq_file);
 }
-
+/*
 size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
 	assert(data);
 
@@ -550,3 +550,4 @@ size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
 	}
 	return max_len;
 }
+*/

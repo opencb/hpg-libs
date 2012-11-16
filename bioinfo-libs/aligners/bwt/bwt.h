@@ -86,7 +86,7 @@ typedef struct region {
   size_t seq_len;
 } region_t;
 
-region_t *region_new(const size_t chromosome_id, 
+region_t *region_bwt_new(const size_t chromosome_id, 
 	             const short int strand,
 	             const size_t start, 
 	             const size_t end,
@@ -94,7 +94,7 @@ region_t *region_new(const size_t chromosome_id,
 		     const size_t seq_end,
 		     const size_t seq_len);
 
-void region_free(region_t *region);
+void region_bwt_free(region_t *region);
 
 //-----------------------------------------------------------------------------
 
