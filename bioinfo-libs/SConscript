@@ -3,7 +3,7 @@ import os
 Import('debug')
 
 # Initialize environment
-vars = Variables('#buildvars.py')
+vars = Variables('buildvars.py')
 vars.Add(PathVariable('CPROPS_INCLUDE_PATH', 'Path to the headers of cprops library', '', PathVariable.PathAccept))
 vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops library', '', PathVariable.PathAccept))
 
