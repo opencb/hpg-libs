@@ -1,6 +1,7 @@
 Import('formats_env')
 
-#penv = env.Clone()
+penv = formats_env.Clone()
+penv['CFLAGS'] += ' -D_XOPEN_SOURCE=600'
 
 # TODO: Remove fastq_batch_reader_omp so Glob can be used
-formats_env['objects'] += formats_env.Object(Split('fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_read.c'))
+formats_env['objects'] += penv.Object(Split('fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_read.c'))

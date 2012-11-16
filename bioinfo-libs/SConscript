@@ -2,19 +2,25 @@ import os
 
 Import('debug')
 
-env = Environment(CFLAGS = '-std=c99 ')
+# Initialize environment
+vars = Variables('#buildvars.py')
+vars.Add(PathVariable('CPROPS_INCLUDE_PATH', 'Path to the headers of cprops library', '', PathVariable.PathAccept))
+vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops library', '', PathVariable.PathAccept))
+
+env = Environment(variables = vars,
+                  CFLAGS = '-std=c99 ',
+                  CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '$CPROPS_INCLUDE_PATH' ],
+                  LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH' ])
 env.Decider('MD5-timestamp')
 
-# Debug/release mode
 if debug == 1:
     env['CFLAGS'] += '-O0 -g'
 else:
     env['CFLAGS'] += '-O3'
 
-
-env['CPPPATH'] = [os.getcwd(), 
-                  ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/')]
 env['objects'] = []
+
+
 
 # Targets
 SConscript(['bioformats/SConscript',
