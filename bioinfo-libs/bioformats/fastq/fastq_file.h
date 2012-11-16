@@ -21,7 +21,7 @@
 
 #define MAX_FASTQ_FILENAME_LENGTH		64		// Maximum filenname length
 #define MAX_READ_ID_LENGTH				256		// Maximum read ID length
-#define MAX_READ_SEQUENCE_LENGTH		2048	// Maximum read sequence length
+#define MAX_READ_SEQUENCE_LENGTH		4096	// Maximum read sequence length
 
 #define MAX_NUM_PRODUCERS			10
 
@@ -29,6 +29,8 @@
 #define FQ_SEEK_CURR  	1
 #define FQ_SEEK_RND   	2
 
+#define FASTQ_FILE_PAIRED_END_MODE	1
+#define FASTQ_FILE_MATE_END_MODE	2
 
 /* **************************************
  *  		Structures		*
@@ -96,9 +98,9 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 /*
  * PAIRED-END READ FUNCTIONS
  */
-size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
+size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2, int mode);
 
-size_t fastq_fread_bytes_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
+size_t fastq_fread_bytes_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_file1, fastq_file_t *fq_file2, int mode);
 
 //size_t fastq_gzread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
 

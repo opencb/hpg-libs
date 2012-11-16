@@ -22,7 +22,7 @@ CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 
 # Include path and libraries
 INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I $(LIBS_ROOT)/bioinfo-libs
-LIBS = -L/usr/lib/x86_64-linux-gnu -lconfig -fopenmp -Wl,-Bsymbolic-functions -lxml2 -lcurl
+LIBS = -L/usr/lib/x86_64-linux-gnu -lconfig -fopenmp -Wl,-Bsymbolic-functions -lxml2 -lcurl -lcprops
 
 # Source and object files
 MAIN_OBJECTS = fastq_batch.c fastq_batch_reader.c fastq_file.c fastq_gzfile.c fastq_filter.c fastq_read.c fastq_stats.c
