@@ -2,6 +2,10 @@
 *.o
 *.test
 bin/*
+.sconf_temp
+.sconsign.dblite
+config.log
+*.a
 *~
 *anjuta*
 *sonar*
