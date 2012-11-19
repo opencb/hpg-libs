@@ -40,11 +40,11 @@ linked_list_item_t* linked_list_item_new(void *item) {
 
 void linked_list_item_free(linked_list_item_t *linked_list_item, void (*data_callback) (void* data)) {
 
-  if(data_callback) {
-    data_callback(linked_list_item->item);
-  }
+	if(data_callback) {
+		data_callback(linked_list_item->item);
+	}
 
-  free(linked_list_item);
+	free(linked_list_item);
 
 }
 
@@ -135,123 +135,123 @@ int linked_list_clear(linked_list_t *linked_list_p, void (*data_callback) (void*
 
 
 int linked_list_insert(void* item_p, linked_list_t *linked_list_p) {
-  if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-    linked_list_item_t* list_item = linked_list_item_new(item_p);    
-    if(!linked_list_p->first) {
-      linked_list_p->first = list_item;
-      linked_list_p->last = list_item;
-    } else {
-      list_item->next = linked_list_p->first;
-      linked_list_p->first->prev = list_item;
-      linked_list_p->first = list_item;  
-    }
+		linked_list_item_t* list_item = linked_list_item_new(item_p);
+		if(!linked_list_p->first) {
+			linked_list_p->first = list_item;
+			linked_list_p->last = list_item;
+		} else {
+			list_item->next = linked_list_p->first;
+			linked_list_p->first->prev = list_item;
+			linked_list_p->first = list_item;
+		}
 
-    linked_list_p->size++;
+		linked_list_p->size++;
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
-    return 1;
-  }
-  return 0;
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 int linked_list_insert_first(void* item_p, linked_list_t *linked_list_p) {
-  return linked_list_insert(item_p, linked_list_p);
+	return linked_list_insert(item_p, linked_list_p);
 }
 
 int linked_list_insert_last(void* item_p, linked_list_t *linked_list_p) {
- if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
-    
-    linked_list_item_t* list_item = linked_list_item_new(item_p);
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-    if(!linked_list_p->last) {
-      list_item->next = NULL;
-      list_item->prev = NULL;
-      linked_list_p->first = list_item;
-      linked_list_p->last = list_item;
-    } else {
-      list_item->prev = linked_list_p->last;
-      list_item->next = NULL;
-      linked_list_p->last->next = list_item;
-      linked_list_p->last = list_item;
-    }
+		linked_list_item_t* list_item = linked_list_item_new(item_p);
 
-    linked_list_p->size++;
+		if(!linked_list_p->last) {
+			list_item->next = NULL;
+			list_item->prev = NULL;
+			linked_list_p->first = list_item;
+			linked_list_p->last = list_item;
+		} else {
+			list_item->prev = linked_list_p->last;
+			list_item->next = NULL;
+			linked_list_p->last->next = list_item;
+			linked_list_p->last = list_item;
+		}
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
-    return 1;
-  }
-  return 0;	
+		linked_list_p->size++;
+
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 int linked_list_insert_at(size_t index, void* item_p, linked_list_t *linked_list_p) {
-  if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-    linked_list_item_t* list_item = linked_list_item_new(item_p);
-    linked_list_item_t* list_item_aux = linked_list_p->first;
+		linked_list_item_t* list_item = linked_list_item_new(item_p);
+		linked_list_item_t* list_item_aux = linked_list_p->first;
 
-    for(size_t i = 0; i < index && list_item_aux; i++) {
-      list_item_aux = list_item_aux->next;
-    }    
+		for(size_t i = 0; i < index && list_item_aux; i++) {
+			list_item_aux = list_item_aux->next;
+		}
 
-    
-    list_item->prev = list_item_aux->prev;
-    list_item->next = list_item_aux;
-    
-    if (list_item_aux->prev) {
-      list_item_aux->prev->next = list_item;
-    }
 
-    list_item_aux->prev = list_item;
-    
-    if(linked_list_p->first == list_item_aux) {
-      linked_list_p->first = list_item;
-    }
+		list_item->prev = list_item_aux->prev;
+		list_item->next = list_item_aux;
 
-    if(linked_list_p->last == list_item_aux) {
-      linked_list_p->last = list_item;
-    }
-   
-    linked_list_p->size++;
+		if (list_item_aux->prev) {
+			list_item_aux->prev->next = list_item;
+		}
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
-    return 1;
-  }
-  return 0;
+		list_item_aux->prev = list_item;
+
+		if(linked_list_p->first == list_item_aux) {
+			linked_list_p->first = list_item;
+		}
+
+		if(linked_list_p->last == list_item_aux) {
+			linked_list_p->last = list_item;
+		}
+
+		linked_list_p->size++;
+
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+		return 1;
+	}
+	return 0;
 
 }
 
 int linked_list_insert_all(void** item_p, size_t num_items, linked_list_t *linked_list_p) {
-  if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-    for (size_t i = 0; i < num_items; i++) {
-      if(!linked_list_insert_first(item_p[i], linked_list_p)) { return 0; }
-    }
+		for (size_t i = 0; i < num_items; i++) {
+			if(!linked_list_insert_first(item_p[i], linked_list_p)) { return 0; }
+		}
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
-    return 1;
-  }
-  return 0;
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 int linked_list_insert_all_at(size_t index, void** item_p, size_t num_items, linked_list_t* linked_list_p) {
@@ -265,93 +265,93 @@ void* linked_list_remove(void *item, linked_list_t *linked_list_p) {
 
 void* linked_list_remove_first(linked_list_t *linked_list_p) {
 
-  if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
-    
-    if (linked_list_p->first) {
-      linked_list_item_t *list_item = linked_list_p->first;
-      linked_list_p->first = linked_list_p->first->next;
-      /*printf("%i->%i\n", (int)linked_list_p->first->item, 
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
+
+		if (linked_list_p->first) {
+			linked_list_item_t *list_item = linked_list_p->first;
+			linked_list_p->first = linked_list_p->first->next;
+			/*printf("%i->%i\n", (int)linked_list_p->first->item,
 	     (int)linked_list_p->first->next->item);
-      */
-      linked_list_p->first->prev = NULL;
-      linked_list_p->size--;
-      
-      void *item = list_item->item;
-      linked_list_item_free(list_item, NULL);
-      
-      return item;
-    }
+			 */
+			 linked_list_p->first->prev = NULL;
+			 linked_list_p->size--;
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
+			 void *item = list_item->item;
+			 linked_list_item_free(list_item, NULL);
 
-  }
+			 return item;
+		}
 
-  return NULL;
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+
+	}
+
+	return NULL;
 
 }
 
 void* linked_list_remove_last(linked_list_t *linked_list_p) {
 
-  if(linked_list_p != NULL) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
-    
-    if (linked_list_p->last) {
-      linked_list_item_t *list_item = linked_list_p->last;
-      linked_list_p->last = linked_list_p->last->prev;
-      linked_list_p->last->next = NULL;
-      linked_list_p->size--;
+	if(linked_list_p != NULL) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-      void *item = list_item->item;
-      linked_list_item_free(list_item, NULL);
-      
-      return item;
-    }
+		if (linked_list_p->last) {
+			linked_list_item_t *list_item = linked_list_p->last;
+			linked_list_p->last = linked_list_p->last->prev;
+			linked_list_p->last->next = NULL;
+			linked_list_p->size--;
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
-  }
+			void *item = list_item->item;
+			linked_list_item_free(list_item, NULL);
 
-  return NULL;
+			return item;
+		}
+
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+	}
+
+	return NULL;
 
 }
 
 void* linked_list_remove_at(size_t index, linked_list_t *linked_list_p) {
-  if((linked_list_p != NULL) && index >= 0 && index < linked_list_p->size) {
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_lock(&linked_list_p->lock);
-    }
-   
-    linked_list_item_t* list_item = linked_list_p->first;
+	if((linked_list_p != NULL) && index >= 0 && index < linked_list_p->size) {
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&linked_list_p->lock);
+		}
 
-    for(size_t i = 0; i < index && list_item; i++) {
-      list_item = list_item->next;
-    }    
+		linked_list_item_t* list_item = linked_list_p->first;
 
-    if (list_item) {
-      list_item->prev->next = list_item->next;
-      list_item->next->prev = list_item->prev;
-      linked_list_p->size--;
-      
-      void *item = list_item->item;
-      linked_list_item_free(list_item, NULL);
-      
-      return item;
-    }
+		for(size_t i = 0; i < index && list_item; i++) {
+			list_item = list_item->next;
+		}
 
-    if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
-      pthread_mutex_unlock(&linked_list_p->lock);
-    }
+		if (list_item) {
+			list_item->prev->next = list_item->next;
+			list_item->next->prev = list_item->prev;
+			linked_list_p->size--;
 
-  }
-  return NULL;
+			void *item = list_item->item;
+			linked_list_item_free(list_item, NULL);
+
+			return item;
+		}
+
+		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&linked_list_p->lock);
+		}
+
+	}
+	return NULL;
 }
 
 void** linked_list_remove_range(size_t start, size_t end, linked_list_t* linked_list_p) {
@@ -429,24 +429,24 @@ void* linked_list_set(size_t index, void* new_item, linked_list_t *linked_list_p
 
 
 void linked_list_print(linked_list_t *linked_list_p, void (*data_callback) (void* data)) {  
-  if(linked_list_p != NULL) {
-    printf("(%lu)[", linked_list_p->size);
-    size_t i = 0;
-    linked_list_item_t *curr_item = linked_list_p->first;
-    while(curr_item != NULL && i < linked_list_p->size) {
-      if (data_callback) {
-	data_callback(curr_item->item);
-      }else {
-	printf("%s,", (char*)curr_item->item);
-      }
-      curr_item = curr_item->next;
-      i++;
-    }
-    printf("]\n");
-  }else {
-    printf("The actual linked list is NULL\n");
-  }
-  
+	if(linked_list_p != NULL) {
+		printf("(%lu)[", linked_list_p->size);
+		size_t i = 0;
+		linked_list_item_t *curr_item = linked_list_p->first;
+		while(curr_item != NULL && i < linked_list_p->size) {
+			if (data_callback) {
+				data_callback(curr_item->item);
+			}else {
+				printf("%s,", (char*)curr_item->item);
+			}
+			curr_item = curr_item->next;
+			i++;
+		}
+		printf("]\n");
+	}else {
+		printf("The actual linked list is NULL\n");
+	}
+
 }
 
 // void **linked_list_to_array(linked_list_t *linked_list_p) {
@@ -475,37 +475,37 @@ int linked_list_get_flag(linked_list_t *linked_list_p) {
 /*******************************************************************/
 
 linked_list_iterator_t* linked_list_iterator_new(linked_list_t *linked_list_p) {
-  if(linked_list_p) {
-    linked_list_iterator_t *iterator_p = (linked_list_iterator_t *)malloc(sizeof(linked_list_iterator_t));
-    iterator_p->linked_list_p = linked_list_p;
-    iterator_p->curr_pos = linked_list_p->first;
-    return iterator_p;
-  }
-  return NULL;  
+	if(linked_list_p) {
+		linked_list_iterator_t *iterator_p = (linked_list_iterator_t *)malloc(sizeof(linked_list_iterator_t));
+		iterator_p->linked_list_p = linked_list_p;
+		iterator_p->curr_pos = linked_list_p->first;
+		return iterator_p;
+	}
+	return NULL;
 }
 
 void linked_list_iterator_free(linked_list_iterator_t *iterator_p) {
-  free(iterator_p);
+	free(iterator_p);
 }
 
 void* linked_list_iterator_curr(linked_list_iterator_t *iterator_p) {
-  if (iterator_p && iterator_p->curr_pos) { return iterator_p->curr_pos->item; }
-  else { return NULL; }
+	if (iterator_p && iterator_p->curr_pos) { return iterator_p->curr_pos->item; }
+	else { return NULL; }
 }
 
 void* linked_list_iterator_next(linked_list_iterator_t *iterator_p) {
-  void* item = NULL;
- 
-  if (iterator_p && iterator_p->curr_pos) {
-    item = iterator_p->curr_pos->item;
-    if (iterator_p->curr_pos->next) { iterator_p->curr_pos = iterator_p->curr_pos->next; }
-  }
-  
-  return item;
+	void* item = NULL;
+
+	if (iterator_p && iterator_p->curr_pos) {
+		item = iterator_p->curr_pos->item;
+		if (iterator_p->curr_pos->next) { iterator_p->curr_pos = iterator_p->curr_pos->next; }
+	}
+
+	return item;
 }
 
 void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
-  void* item = NULL; 
+  void* item = NULL;
 
   if (iterator_p && iterator_p->curr_pos) {
     item = iterator_p->curr_pos->item;
@@ -513,7 +513,7 @@ void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
       iterator_p->curr_pos = iterator_p->curr_pos->prev; 
     }
   }
-
+  
   return item;
 }
 
@@ -562,10 +562,10 @@ int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p) 
       if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
 	iterator_p->linked_list_p->first = list_item;
       }
-    }else if (iterator_p->linked_list_p->first == NULL) {
+    } else if (iterator_p->linked_list_p->first == NULL) {
       iterator_p->linked_list_p->first = list_item;
       iterator_p->linked_list_p->last = list_item;
-    }else {
+    } else {
       return 0;
     }
     iterator_p->linked_list_p->size++;
