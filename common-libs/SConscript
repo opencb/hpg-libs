@@ -1,4 +1,4 @@
-Import('debug')
+Import('debug', 'compiler')
 
 # Initialize environment
 # Current folder is needed in CPPPATH order to compile containers using commons
@@ -7,7 +7,8 @@ vars.Add(PathVariable('CPROPS_INCLUDE_PATH', 'Path to the headers of cprops libr
 vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops library', '', PathVariable.PathAccept))
 
 env = Environment(variables = vars,
-                  CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
+                  CC = compiler,
+		  CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
                   CPPPATH = ['#', '/usr/include/libxml2', '.', '$CPROPS_INCLUDE_PATH' ],
                   LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH' ])
 

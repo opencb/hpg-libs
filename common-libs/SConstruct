@@ -4,5 +4,6 @@
 # by executing scons in the parent directory
 
 debug = int(ARGUMENTS.get('debug', '0'))
+compiler = ARGUMENTS.get('compiler', 'gcc')
 
-SConscript('SConscript', exports = ['debug'])
+SConscript('SConscript', exports = ['debug', 'compiler'])
