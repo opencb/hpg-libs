@@ -2060,7 +2060,7 @@ void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
 	  alignment->query_name = (char *) malloc(sizeof(char) * header_len);
 	  get_to_first_blank(&(batch->header[batch->header_indices[i]]), header_len, alignment->query_name);
 
-	  bwt_cigar_cpy(alignment, i, batch);
+	  bwt_cigar_cpy_batch(alignment, i, batch);
 	  //	  free(alignment->quality);
 	  //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));
 	}
