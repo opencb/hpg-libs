@@ -280,7 +280,7 @@ size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 
   int found = 0;
   size_t num_mapped_reads = 0, num_unmapped_reads = 0;
-
+  char *optional_fields = (char *)malloc(sizeof(char)*256);
   start_timer(start_time);
 
   for (int r = 0; r < num_reads; r++) {
@@ -328,7 +328,7 @@ size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 	    alignment_init_single_end(header, seq_dup, quality, (r > num_reads), 
 				      idx - 1,				      
 				      start, 
-				      cigar, 1, 255, 1, (num_mappings > 0), alignment);	    
+				      cigar, 1, 255, 1, (num_mappings > 0), optional_fields, alignment);	    
 	    
 	    if (!array_list_insert((void*) alignment, mapping_list)) {
 	      printf("Error to insert item into array list\n");

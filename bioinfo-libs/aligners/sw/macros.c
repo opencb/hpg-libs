@@ -73,6 +73,9 @@ void simd_traceback(int depth, int num_seqs,
     qq_len = q_len[i];
     rr_len = r_len[i];
 
+    //    printf("%i of %i\n", i, num_seqs);
+    //    printf("\tmax_score[%i] = %0.2f\n", i, max_score[i]);
+
     simd_find_position(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
     //printf("index %i: kk = %i, jj = %i\n", i, kk, jj);
 
@@ -80,12 +83,12 @@ void simd_traceback(int depth, int num_seqs,
     //    while ((c = C[(jj * max_q_len * 4) + (kk * 4) + i])) {
     while (1) {
       index = (jj * max_q_len * depth) + (kk * depth) + i;
-      score  = H[index];
+      score = H[index];
       if (score == 0.0f) {
 	break;
       }
       
-      c  = C[index];
+      c = C[index];
       
       if (c == 5 || c == 7) { // diagonal
 	q_aux[len] = qq[kk];
@@ -177,6 +180,8 @@ void simd_traceback(int depth, int num_seqs,
 
     q_start[i] = kk + 1;
     r_start[i] = jj + 1;
+    //q_start[i] = (kk < 0 ? 1 : kk + 1);
+    //r_start[i] = (jj < 0 ? 1 : jj + 1);
     
     q_aux[len] = 0;
     r_aux[len] = 0;
@@ -219,12 +224,15 @@ void simd_find_position(int depth, int index, char *q, int q_len, char *r, int r
 			int *q_pos, int *r_pos) {  
   *r_pos = 0;
   *q_pos = 0;
-  //  printf("max. score = %0.2f\tcols = %i, rows = %i, depth = %i, index = %i, r_len = %i, q_len = %i\n", score, cols, rows, depth, index, r_len, q_len);
+  //  printf("max. score = %0.2f\n", score);
+  //  printf("\tcols = %i, rows = %i, depth = %i, index = %i, r_len = %i, q_len = %i\n", 
+  //  	 score, cols, rows, depth, index, r_len, q_len);
   int i, ii = 0;
   for (int j = 0; j < r_len; j++) {
     i = j * cols * depth;
     for (int k = 0; k < q_len; k++) {
       ii = i + (k * depth) + index; 
+      //      printf("\tii (%i)= i (%i) + [k  (%i) * depth (%i)] + index (%i)\n", ii, i, k, depth, index);
       if (H[ii] == score) {
 	*r_pos = j;
 	*q_pos = k;

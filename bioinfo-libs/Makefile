@@ -34,8 +34,6 @@ BIOFORMATS_FILES = $(BIOFORMATS_LIBS_DIR)/bam-sam/alignment.c $(BIOFORMATS_LIBS_
 
 MAIN_OBJECTS = *.o
 
-#$(BWT_DIR)/*.c $(BWT_DIR)/*.o
-
 all: build_aligners
 
 build_aligners: compile-dependencies
