@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
     strncat(filename, argv[1], strlen(argv[1]));
     ped_file_t* file = ped_open(filename);
     
-    init_log_custom(2, 1, NULL);
+    init_log_custom(LOG_DEBUG_LEVEL, 1, NULL, "w");
     
 #pragma omp parallel sections private(start, stop, total)
 {

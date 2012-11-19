@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
     strncat(filename, argv[1], strlen(argv[1]));
     gff_file_t* file;
     
-    init_log_custom(1, 1, NULL);
+    init_log_custom(LOG_LEVEL_DEBUG, 1, NULL, "w");
     
 #pragma omp parallel sections private(start, stop, total) lastprivate(file)
 {
