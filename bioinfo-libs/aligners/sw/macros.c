@@ -14,7 +14,7 @@ void str_trim(char *line) {
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
-double tic() {
+double sw_tic() {
   struct timeval t1;
   gettimeofday(&t1, NULL);
   return ((double) t1.tv_sec*1000000 + (double) t1.tv_usec) / 1000000.0f;
@@ -22,7 +22,7 @@ double tic() {
 
 //------------------------------------------------------------------------
 
-double toc(double t1) {
+double sw_toc(double t1) {
   struct timeval t2;
 
   gettimeofday(&t2, NULL);
@@ -194,6 +194,7 @@ void simd_traceback(int depth, int num_seqs,
     q_alig[i] = qq_alig;
     r_alig[i] = rr_alig;
 
+    len_alig[i] = len;
     //    printf("rev. index %i\tq = %s\n", i, qq_alig);
     //    printf("rev. index %i\tr = %s\n", i, rr_alig);
   }

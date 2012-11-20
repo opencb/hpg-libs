@@ -217,7 +217,7 @@ void BWBranchPartialResultsBackward(char *W, vector *C, vector *C1, comp_matrix 
 
     //Deletion
     change_result(r_iterator, k, l, pos-1);
-    add_mismatch(r_iterator, DELETION, XX, pos);
+    add_mismatch(r_iterator, DELETION, XXX, pos);
     add_result(r_iterator, rl_next);
 
     for (unsigned int b=0;b<nA;b++) {
@@ -271,7 +271,7 @@ void BWBranchPartialResultsForward(char *W, vector *C, vector *C1, comp_matrix *
 
     //Deletion
     change_result(r_iterator, k, l, pos+1);
-    add_mismatch(r_iterator, DELETION, XX, pos);
+    add_mismatch(r_iterator, DELETION, XXX, pos);
     add_result(r_iterator, rl_next);
 
     for (unsigned int b=0;b<nA;b++) {
@@ -417,7 +417,7 @@ void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t
     add_result(&r, r_list);
   }
 
-  add_mismatch(&r, MATCH, XX, start);
+  add_mismatch(&r, MATCH, XXX, start);
 
   results = vec_l[0] - vec_k[0];
 
@@ -436,7 +436,7 @@ void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t
 
     //Deletion
     change_result(&r, _k, _l, -1);
-    modify_last_mismatch_3(&r, DELETION, XX, start);
+    modify_last_mismatch_3(&r, DELETION, XXX, start);
     add_result(&r, r_list);
 
     for (size_t b=0;b<nA;b++) {
@@ -484,7 +484,7 @@ void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t
 
     //Deletion
     change_result(&r, _k, _l, i-2);
-    modify_last_mismatch_3(&r, DELETION, XX, i-1);
+    modify_last_mismatch_3(&r, DELETION, XXX, i-1);
     BWExactSearchBackward(W, C, C1, O, &r);
     if (r.k<=r.l) add_result(&r, r_list);
 
@@ -533,7 +533,7 @@ void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t
 
     //Deletion
     change_result(&r, _ki, _li, -1);
-    modify_last_mismatch_3(&r, DELETION, XX, end);
+    modify_last_mismatch_3(&r, DELETION, XXX, end);
     add_result(&r, r_list);
 
     for (size_t b=0;b<nA;b++) {
@@ -583,7 +583,7 @@ void BWSearch1(char *W, int start, int end, size_t *vec_k, size_t *vec_l, size_t
 
     //Deletion
     change_result(&r, _ki, _li, i+2);
-    modify_last_mismatch_3(&r, DELETION, XX, i+1);
+    modify_last_mismatch_3(&r, DELETION, XXX, i+1);
     BWExactSearchForward(W, C, C1, Oi, &r);
     if (r.k<=r.l) add_result(&r, r_list);
 
@@ -681,7 +681,7 @@ void BWSimpleSearch1Backward(char *W, vector *C, vector *C1, comp_matrix *O, res
 
   init_result(&r, 0);
   bound_result(&r, start, end);
-  add_mismatch(&r, MATCH, XX, start);
+  add_mismatch(&r, MATCH, XXX, start);
 
   for(i=end; i>=start; i--) {
 
@@ -704,7 +704,7 @@ void BWSimpleSearch1Backward(char *W, vector *C, vector *C1, comp_matrix *O, res
 
     //Deletion
     change_result(&r, _k, _l, i-1);
-    modify_last_mismatch_3(&r, DELETION, XX, i);
+    modify_last_mismatch_3(&r, DELETION, XXX, i);
     BWExactSearchBackward(W, C, C1, O, &r);
     if (r.k<=r.l) add_result(&r, r_list);
 
@@ -757,7 +757,7 @@ void BWSimpleSearch1Forward(char *W, vector *C, vector *C1, comp_matrix *O, resu
 
   init_result(&r, 1);
   bound_result(&r, start, end);
-  add_mismatch(&r, MATCH, XX, start);
+  add_mismatch(&r, MATCH, XXX, start);
 
   for(i=start; i<=end; i++) {
 
@@ -778,7 +778,7 @@ void BWSimpleSearch1Forward(char *W, vector *C, vector *C1, comp_matrix *O, resu
 
     //Deletion
     change_result(&r, _k, _l, i+1);
-    modify_last_mismatch_3(&r, DELETION, XX, i);
+    modify_last_mismatch_3(&r, DELETION, XXX, i);
     BWExactSearchForward(W, C, C1, O, &r);
     if (r.k<=r.l) add_result(&r, r_list);
 
