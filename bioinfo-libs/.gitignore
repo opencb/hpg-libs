@@ -1,5 +1,6 @@
 
 *.o
+*.a
 *.so
 *.test
 bin/*
@@ -7,4 +8,4 @@ bin/*
 *anjuta*
 *sonar*
 *kdev*
-
+.sconsign.dblite
