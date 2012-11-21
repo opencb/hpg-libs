@@ -142,11 +142,14 @@ void fastq_batch_reader_array_list_single(fastq_batch_reader_input_t* input) {
       
     // read reads from file
     //
-    reads = array_list_new(1000, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
-    fastq_fread_bytes_se(reads,
+    reads = array_list_new(10000, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+    /*fastq_fread_bytes_se(reads,
 			 bytes, file);
-    
-    num_reads = fastq_fread_bytes_se(reads, bytes, file);
+    */
+    //fastq_read_t *read_p = (fastq_read_t *)array_list_get(0, reads);
+    //printf("seq: %d\n", strlen(read_p->sequence));
+    fastq_fread_bytes_se(reads, bytes, file);
+    num_reads = array_list_size(reads);
     total_reads	+= num_reads;
     
     // if no reads, free memory and go out....
@@ -180,8 +183,6 @@ void fastq_batch_reader_array_list_single(fastq_batch_reader_input_t* input) {
   //  }
   printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
 	 total_reads, num_batches, filename);
-  
-  
 }
 
 //------------------------------------------------------------------------------------

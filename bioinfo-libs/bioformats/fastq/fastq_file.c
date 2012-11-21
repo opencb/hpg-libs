@@ -86,10 +86,10 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 		chomp_at(header1, header_length - 1);
 		chomp_at(sequence, sequence_length - 1);
 		chomp_at(qualities, quality_length - 1);
-
+		
 		read = fastq_read_new(header1, sequence, qualities);
 		array_list_insert(read, reads);
-
+		
 		accumulated_size += header_length + sequence_length + quality_length;
 	}
 

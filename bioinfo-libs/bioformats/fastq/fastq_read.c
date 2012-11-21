@@ -7,12 +7,15 @@
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
 	fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
 
-	size_t id_length = strlen(id); // + 1;
+	//size_t id_length = strlen(id); // + 1;
 	size_t seq_length = strlen(sequence); // + 1;
-
-	fq_read->id = strndup(id, id_length);
-	fq_read->sequence = strndup(sequence, seq_length);
-	fq_read->quality = strndup(quality, seq_length);
+	
+	fq_read->id = strdup(id);
+	//printf("%s\n", sequence);
+	fq_read->sequence = strdup(sequence);
+	//fq_read->sequence = strndup(sequence, seq_length + 1);
+	//printf("%s\n", fq_read->sequence);
+	fq_read->quality = strdup(quality);
 	fq_read->length = seq_length;
 
 	return fq_read;

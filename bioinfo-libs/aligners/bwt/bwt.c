@@ -270,7 +270,7 @@ char *strcpy_capitalize(char *dest, const char *src, size_t n) {
 
 //-----------------------------------------------------------------------------
 
-void bwt_cigar_cpy(alignment_t *mapping, size_t read_i, char *quality) {
+void bwt_cigar_cpy(alignment_t *mapping, char *quality) {
   
   unsigned int quality_type;
   size_t quality_len;
@@ -809,7 +809,7 @@ size_t bwt_map_exact_seq(char *seq,
   seq_strand = strdup(seq);
   replaceBases(seq, code_seq, len);
   struct timeval t_start, t_end;
-  char *optional_fields = (char *)malloc(sizeof(char)*256);
+  char *optional_fields /*= (char *)malloc(sizeof(char)*256)*/;
   //printf("---> EXACT Search Read (%d): %s\n", len, seq);
 
   
@@ -1523,7 +1523,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	}
 	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
 	if(key + len <= index->karyotype.offset[idx]) {
-	  optional_fields = (char *)malloc(sizeof(char)*256);
+	  //optional_fields = (char *)malloc(sizeof(char)*256);
 	  quality_clipping = (char *)malloc(sizeof(char)*50);
 	  sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
 	  seq_dup = (char *) malloc(sizeof(char)*(len + 1));
@@ -1621,7 +1621,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	  cigar_len = strlen(cigar) + 1;
 	  cigar_dup = (char *)calloc(cigar_len, sizeof(char));
 	  memcpy(cigar_dup, cigar, cigar_len);
-	  sprintf(optional_fields, "%s%i", "AS:", 255);
+	  //sprintf(optional_fields, "%s%i", "AS:", 255);
 	  //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
 	  //memcpy(seq_dup ,seq, len + 1);
 	  //seq_dup[len] = '\0';
@@ -1960,66 +1960,73 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 
 }
 
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------				  
 
-/*
-size_t bwt_map_inexact_reads_rna(array_list_t *reads,
-				 bwt_optarg_t *bwt_optarg, 
-				 bwt_index_t *index,
-				 array_list_t *targets,
-				 array_list_t **data,
-				 size_t *num_targets,
-				 size_t *num_mapped,
-				 size_t *num_unmapped) {  
-  *num_targets = 0;
-  *num_mapped = 0; 
-  *num_unmapped = 0; 
+size_t bwt_map_inexact_array_list(array_list_t *reads,
+				  bwt_optarg_t *bwt_optarg, 
+				  bwt_index_t *index,
+				  size_t num_selected, size_t *selected,
+				  size_t num_lists, array_list_t **lists,
+				  size_t *num_mapped, size_t *mapped,
+				  size_t *num_unmapped, size_t *unmapped) {
 
-  size_t read_pos;
+  size_t num_mappings = 0, total = 0, header_len, total_mappings;
   size_t num_threads = bwt_optarg->num_threads;
-  //unsigned int th_id;
   size_t num_reads = array_list_size(reads);
-  //size_t batch_individual_size = batch->data_size / num_threads;
   size_t chunk = MAX(1, num_reads/(num_threads*10));
-  
-  alignment_t *mapping;
-  size_t quality_len;
-  //struct timeval start_time, end_time;
-  //double timer, parallel_t, sequential_t;
-  unsigned int j, header_len;
-  size_t read_id = 0;
-    
-  omp_set_num_threads(num_threads);
-  
-  #pragma omp parallel for schedule(dynamic, chunk)
-  for (size_t i = 0; i < num_reads; i++) {
-    bwt_map_inexact_seq(reads[i], 
-			bwt_optarg, index, 
-			data[i]);
-  
-    if (!array_list_size(data[i])) {
-      targets[*num_targets] = i;
-      *num_targets++;
-    } else {
-      for (size_t j = 0; j < num_mappings; j++) {
-	alignment = (alignment_t *) array_list_get(j, data[i]);
-	
-	header_len = strlen(reads[i]->id);
-	alignment->query_name = (char *) malloc(sizeof(char) * header_len);
-	get_to_first_blank(data[i]->id, header_len, alignment->query_name);
-	bwt_cigar_cpy(alignment, i, quality);
-	alignment->quality = strdup(quality);
+  alignment_t *alignment;
+  fastq_read_t* read_p;
+
+  *num_mapped = 0;
+  *num_unmapped = 0;
+  //printf("%i reads\n", num_reads);
+  if (selected == NULL || num_selected == num_reads) {
+    #pragma omp parallel for private(read_p) schedule(dynamic, chunk)
+    for (size_t i = 0; i < num_reads; i++) {
+      //      printf("bwt, read #%i of %i (len = %i) : %s\n", i, num_reads, strlen(&(batch->seq[batch->data_indices[i]])), &(batch->seq[batch->data_indices[i]]));
+      read_p = (fastq_read_t *)array_list_get(i, reads);
+      //printf("Extract...\n");
+      //printf("%s\n", read_p->sequence);
+      bwt_map_inexact_seq(read_p->sequence, 
+			  bwt_optarg, index, 
+			  lists[i]);
+    }
+
+    for (size_t i = 0; i < num_reads; i++) {
+      num_mappings = array_list_size(lists[i]);
+      total_mappings += num_mappings;
+      read_p = array_list_get(i, reads);
+      if (num_mappings > 0) {
+	mapped[(*num_mapped)++] = i;
+	array_list_set_flag(1, lists[i]);
+
+	//	printf("\tbwt.c: bwt_map_inexact_batch_by_filter, setting flag to 1 for list %i (num_mappings  %d)\n", i, num_mappings);
+	for (size_t j = 0; j < num_mappings; j++) {
+	  alignment = (alignment_t *) array_list_get(j, lists[i]);
+
+	  header_len = strlen(read_p->id);
+	  alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	  //printf("Process %s\n", read_p->id);
+	  get_to_first_blank(read_p->id, header_len, alignment->query_name);
+
+	  bwt_cigar_cpy(alignment, read_p->quality);
+	  //	  free(alignment->quality);
+	  //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));
+	}
+      } else {
+	unmapped[(*num_unmapped)++] = i;
+	array_list_set_flag(0, lists[i]);
+	//	printf("\tbwt.c: bwt_map_inexact_batch_by_filter, setting flag to 0 for list %i\n", i);
       }
     }
+  } else {
+    printf("not yet implemented, true filter\n");
+    exit(-1);
   }
-
-  *num_unmapped = *num_targets;
-  *num_mapped = num_reads - *num_unmapped;
-
-  return *num_mapped;
+  return total_mappings;
 
 }
-*/
+
 
 //-----------------------------------------------------------------------------
 
