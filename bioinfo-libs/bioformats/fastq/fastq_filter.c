@@ -29,7 +29,7 @@ array_list_t *fastq_filter(array_list_t *reads, array_list_t *passed, array_list
 	fastq_read_stats_t *fq_read_stats = fastq_read_stats_new();
 	fastq_read_stats_options_t *fq_read_stats_options = fastq_read_stats_options_new(options->min_length, options->max_length, 4);
 
-//	#pragma omp parallel for schedule(dynamic, 500000)
+	#pragma omp parallel for schedule(dynamic, 100000)
 	for(size_t i=0; i<reads->size; i++) {
 //		fastq_read_stats_init(fq_read_stats);
 		read = array_list_get(i, reads);

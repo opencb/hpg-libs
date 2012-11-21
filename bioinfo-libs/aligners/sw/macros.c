@@ -68,7 +68,6 @@ void simd_traceback(int depth, int num_seqs,
   */
 
   for (int i = 0; i < num_seqs ; i++) {
-
     qq = q[i];
     rr = r[i];
     qq_len = q_len[i];
@@ -124,6 +123,12 @@ void simd_traceback(int depth, int num_seqs,
 	  break;
 	
 	for(int ic = 0; ic <= gapcnt; ++ic) {
+	  /*if (len > (max_r_len * 2)) {
+	    printf("SEQ(%i):%s\n", qq_len, qq);
+	    printf("REF(%i):%s\n", rr_len, rr);
+	    printf("%i > %i\n", len, max_r_len*2 );
+	    exit(-1);
+	    }*/
 	  q_aux[len] = qq[kk--]; 
 	  r_aux[len] = '-';
 	  len++;

@@ -325,6 +325,15 @@ size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
 					     size_t *min_seeds, size_t *max_seeds,
 					     array_list_t *cal_list);
 
+
+size_t bwt_map_inexact_array_list(array_list_t *reads,
+				  bwt_optarg_t *bwt_optarg, 
+				  bwt_index_t *index,
+				  size_t num_selected, size_t *selected,
+				  size_t num_lists, array_list_t **lists,
+				  size_t *num_mapped, size_t *mapped,
+				  size_t *num_unmapped, size_t *unmapped);
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 

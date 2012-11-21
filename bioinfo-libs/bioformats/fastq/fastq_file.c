@@ -17,7 +17,7 @@ fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
 
 	if (fd == NULL) {
 		LOG_FATAL_F("Error opening file: %s, mode (%s)\n", filename, mode);
-//		printf("Error opening file: %s \n", filename);
+		//		printf("Error opening file: %s \n", filename);
 		exit(-1);
 	}
 
@@ -86,10 +86,10 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 		chomp_at(header1, header_length - 1);
 		chomp_at(sequence, sequence_length - 1);
 		chomp_at(qualities, quality_length - 1);
-
+		
 		read = fastq_read_new(header1, sequence, qualities);
 		array_list_insert(read, reads);
-
+		
 		accumulated_size += header_length + sequence_length + quality_length;
 	}
 
@@ -97,6 +97,107 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 }
 
 
+size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2, int mode) {
+	size_t count = 0;
+	char header1[MAX_READ_ID_LENGTH];
+	char header2[MAX_READ_ID_LENGTH];
+	char read_separator[MAX_READ_ID_LENGTH];
+	char sequence1[MAX_READ_SEQUENCE_LENGTH];
+	char sequence2[MAX_READ_SEQUENCE_LENGTH];
+	char qualities1[MAX_READ_SEQUENCE_LENGTH];
+	char qualities2[MAX_READ_SEQUENCE_LENGTH];
+	int header_length1, sequence_length1, quality_length1;
+	int header_length2, sequence_length2, quality_length2;
+	fastq_read_pe_t *read_pe;
+
+	while (count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file1->fd) != NULL) {
+		fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
+		fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+
+		header_length1 = strlen(header1);
+		sequence_length1 = strlen(sequence1);
+		quality_length1 = strlen(qualities1);
+
+		// '\n' char is removed, but '\0' is left
+		chomp_at(header1, header_length1 - 1);
+		chomp_at(sequence1, sequence_length1 - 1);
+		chomp_at(qualities1, quality_length1 - 1);
+
+		// second file
+		fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
+		fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
+		fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+
+		header_length2 = strlen(header2);
+		sequence_length2 = strlen(sequence2);
+		quality_length2 = strlen(qualities2);
+
+		// '\n' char is removed, but '\0' is left
+		chomp_at(header2, header_length2 - 1);
+		chomp_at(sequence2, sequence_length2 - 1);
+		chomp_at(qualities2, quality_length2 - 1);
+
+		read_pe = fastq_read_pe_new(header1, header2, sequence1, qualities1, sequence2, qualities2, mode);
+		array_list_insert(read_pe, reads);
+
+		count++;
+	}
+
+	return count;
+}
+
+size_t fastq_fread_bytes_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_file1, fastq_file_t *fq_file2, int mode) {
+	size_t accumulated_size = 0;
+	char header1[MAX_READ_ID_LENGTH];
+	char header2[MAX_READ_ID_LENGTH];
+	char read_separator[MAX_READ_ID_LENGTH];
+	char sequence1[MAX_READ_SEQUENCE_LENGTH];
+	char sequence2[MAX_READ_SEQUENCE_LENGTH];
+	char qualities1[MAX_READ_SEQUENCE_LENGTH];
+	char qualities2[MAX_READ_SEQUENCE_LENGTH];
+	int header_length1, sequence_length1, quality_length1;
+	int header_length2, sequence_length2, quality_length2;
+	fastq_read_pe_t *read_pe;
+
+	while (accumulated_size < bytes && fgets(header1, MAX_READ_ID_LENGTH, fq_file1->fd) != NULL) {
+		fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
+		fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+
+		header_length1 = strlen(header1);
+		sequence_length1 = strlen(sequence1);
+		quality_length1 = strlen(qualities1);
+
+		// '\n' char is removed, but '\0' is left
+		chomp_at(header1, header_length1 - 1);
+		chomp_at(sequence1, sequence_length1 - 1);
+		chomp_at(qualities1, quality_length1 - 1);
+
+		// second file
+		fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
+		fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
+		fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+
+		header_length2 = strlen(header2);
+		sequence_length2 = strlen(sequence2);
+		quality_length2 = strlen(qualities2);
+
+		// '\n' char is removed, but '\0' is left
+		chomp_at(header2, header_length2 - 1);
+		chomp_at(sequence2, sequence_length2 - 1);
+		chomp_at(qualities2, quality_length2 - 1);
+
+		read_pe = fastq_read_pe_new(header1, header2, sequence1, qualities1, sequence2, qualities2, mode);
+		array_list_insert(read_pe, reads);
+
+		accumulated_size += header_length1 + sequence_length1 + quality_length1 + header_length2 + sequence_length2 + quality_length2;
+	}
+
+	return accumulated_size;
+}
 
 /*
  * OLD, BUT IN USE!!
