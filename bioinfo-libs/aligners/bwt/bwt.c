@@ -2063,8 +2063,8 @@ void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
 	for (size_t j = 0; j < num_mappings; j++) {
 	  alignment = (alignment_t *) array_list_get(j, lists[i]);
 
-	  header_len = batch->header_indices[i+1] - batch->header_indices[i] + 1;
-	  alignment->query_name = (char *) malloc(sizeof(char) * header_len);
+	  header_len = batch->header_indices[i+1] - batch->header_indices[i];
+	  alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
 	  get_to_first_blank(&(batch->header[batch->header_indices[i]]), header_len, alignment->query_name);
 
 	  bwt_cigar_cpy_batch(alignment, i, batch);
