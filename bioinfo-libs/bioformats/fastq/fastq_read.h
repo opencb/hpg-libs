@@ -29,7 +29,8 @@ typedef struct fastq_read {
 } fastq_read_t;
 
 typedef struct fastq_read_pe {
-    char *id;			/**< Id of the read. */
+    char *id1;			/**< Id of the read. */
+    char *id2;
     char *sequence1;		/**< Sequence of nts. */
     char *sequence2;
     char *quality1;		/**< Qualities. */
@@ -47,7 +48,7 @@ typedef struct fastq_read_pe {
 
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
 
-fastq_read_pe_t *fastq_read_pe_new(char *id, char *sequence1, char *quality1, char *sequence2, char *quality2, int mode);
+fastq_read_pe_t *fastq_read_pe_new(char *id1, char *id2, char *sequence1, char *quality1, char *sequence2, char *quality2, int mode);
 
 
 void fastq_read_free(fastq_read_t *fq_read);
