@@ -675,8 +675,9 @@ char select_op(unsigned char status){
 //--------------------------------------------------------------
 //Return a cigar string for dna. For Rna it's invalid
 //--------------------------------------------------------------
-char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, size_t *number_op_tot){
+char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, unsigned int seq_orig_len, unsigned int length, int *distance, int *number_op_tot) {
   char *cigar_p;
+  
 
   unsigned int cigar_max_len = length * 2;
   char operation_number[cigar_max_len];
@@ -690,6 +691,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   unsigned int perfect = 0;  
   unsigned int deletions_tot = 0;
   
+  int dist = 0;
   *number_op_tot = 0;
   cigar_p = (char *)malloc(sizeof(char)*cigar_max_len);
   cigar_p[0] = '\0';
@@ -735,6 +737,8 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
       transition = CIGAR_MATCH_MISMATCH;
       if(str_seq_p[i] == str_ref_p[i] ){
         perfect++;
+      } else {
+	dist++;
       }
     }else if(str_seq_p[i] == '-'){
       if(str_ref_p[i] == '-'){
@@ -742,9 +746,11 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
       }else{
         transition = CIGAR_DELETION;
         deletions_tot++;
+	dist++;
       }
     }else if(str_ref_p[i] == '-'){
       transition = CIGAR_INSERTION;
+      dist++;
     }
     
     if(transition != status){
@@ -800,6 +806,7 @@ char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_se
   }
     
   //printf("%d-%d\n", length, *number_op_tot);
- 
+  *distance = dist;
+
   return cigar_p;
 }

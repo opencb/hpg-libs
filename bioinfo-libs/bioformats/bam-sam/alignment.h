@@ -287,8 +287,7 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
  */
 char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, 
 			 unsigned int seq_orig_len, unsigned int length, 
-			 size_t *number_op_tot);
-
+			 int *distance, int *number_op_tot);
 
 #endif /* ALIGNMENTS_H */
 
