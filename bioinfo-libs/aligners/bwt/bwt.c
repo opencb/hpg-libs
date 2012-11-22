@@ -1963,13 +1963,11 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 //-----------------------------------------------------------------------------				  
 
 size_t bwt_map_inexact_array_list(array_list_t *reads,
-				  int single_end,
 				  bwt_optarg_t *bwt_optarg, 
 				  bwt_index_t *index,
 				  array_list_t **lists,
 				  size_t *num_unmapped, 
-				  size_t *unmapped_indices,
-				  int *unmapped_pairs) {
+				  size_t *unmapped_indices) {
 
   size_t header_len, total_mappings;
   size_t num_threads = bwt_optarg->num_threads;
@@ -1977,7 +1975,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
   size_t chunk = MAX(1, num_reads/(num_threads*10));
   fastq_read_t* read;
   fastq_read_pe_t* read_pe;
-
+  /*
   *num_mapped = 0;
   *num_unmapped = 0;
   //printf("%i reads\n", num_reads);
@@ -2081,7 +2079,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
       }
     }
   }
-
+  */
   return total_mappings;
 }
 
