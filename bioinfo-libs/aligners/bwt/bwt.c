@@ -1961,7 +1961,7 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 }
 
 //-----------------------------------------------------------------------------				  
-
+/*
 size_t bwt_map_inexact_array_list(array_list_t *reads,
 				  bwt_optarg_t *bwt_optarg, 
 				  bwt_index_t *index,
@@ -2037,19 +2037,43 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
       int type, read_index, num_lists = array_list_size(lists);
       for (size_t i = 0; i < num_lists; i+=2) {
       //for (size_t i = 0; i < num_reads; i++) {
-	num_mappings[0] = array_list_size(lists[i]);
-	num_mappings[1] = array_list_size(lists[i+1]);
+	//num_mappings[0] = array_list_size(lists[i]);
+	//num_mappings[1] = array_list_size(lists[i+1]);
 	
 	read_index = i / 2;
 	read_pe = array_list_get(read_index, reads);
 
 	type = 0;
 	for (int j = 0; j < 2; j++) {
+	  num_mappings[j] = array_list_size(lists[i+j]);
 	  array_list_set_flag(0, lists[i+j]);
+	  	  
 	  if (num_mappings[j] > 0) {
-	    total_mappings += num_mappings[j];
-	    array_list_set_flag(1, lists[i+j]);
 	    if (j == 0) {
+	      id = read_pe->id1;
+	      quality = read_pe->quality1;
+	    } else {
+	      id = read_pe->id2;
+	      quality = read_pe->quality2;
+	    }
+	    total_mappings += num_mappings[j];
+	    array_list_set_flag(1, lists[i+j]);	    
+	    for (size_t k = 0; k < num_mappings[j]; k++) {
+	      alignment = (alignment_t *) array_list_get(k, lists[i+j]);	    
+	      header_len = strlen(id);
+	      alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	      //printf("Process %s\n", read_p->id);
+	      //TODO: Extract the next function out 
+	      get_to_first_blank(id, header_len, alignment->query_name);
+	      bwt_cigar_cpy(alignment, quality);
+	    }
+	    } else {*/
+	    /**********************************/
+	    /* TYPE 1: PAIR 1, NOT MAPPED     */
+	    /* TYPE 2: PAIR 2, NOT MAPPED     */
+	    /* TYPE 3: PAIR 1 & 2, NOT MAPPED */
+	    /**********************************/
+	    /*if (j == 0) {
 	      id = read_pe->id1;
 	      quality = read_pe->quality1;
 	      type += 1;
@@ -2057,18 +2081,6 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 	      id = read_pe->id2;
 	      quality = read_pe->quality2;
 	      type += 2;
-	    }
-	    
-	    for (size_t k = 0; k < num_mappings[j]; k++) {
-	      alignment = (alignment_t *) array_list_get(k, lists[i+j]);	    
-	      header_len = strlen(id);
-	      alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
-	      //printf("Process %s\n", read_p->id);
-	      get_to_first_blank(id, header_len, alignment->query_name);
-	      bwt_cigar_cpy(alignment, quality);
-	      
-	    //	  free(alignment->quality);
-	    //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));
 	    }
 	  }
 	}
@@ -2082,7 +2094,55 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
   */
   return total_mappings;
 }
+*/
+//-----------------------------------------------------------------------------
+size_t bwt_map_inexact_array_list(array_list_t *reads,
+				  bwt_optarg_t *bwt_optarg, 
+				  bwt_index_t *index,
+				  array_list_t **lists,
+				  size_t *num_unmapped, 
+				  size_t *unmapped_indices) {
+  size_t header_len, total_mappings;
+  size_t num_threads = bwt_optarg->num_threads;
+  size_t num_reads = array_list_size(reads);
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
+  fastq_read_t* read;
 
+  *num_mapped = 0;
+  *num_unmapped = 0;
+  //printf("%i reads\n", num_reads);
+  #pragma omp parallel for private(read) schedule(dynamic, chunk)
+  for (size_t i = 0; i < num_reads; i++) {
+    read_p = (fastq_read_t *)array_list_get(i, reads);
+    //printf("Extract...\n");
+    //printf("%s\n", read_p->sequence);
+    bwt_map_inexact_seq(read_p->sequence, 
+			bwt_optarg, index, 
+			lists[i]);
+  }
+
+  for (size_t i = 0; i < num_reads; i++) {
+    num_mappings = array_list_size(lists[i]);
+    total_mappings += num_mappings;
+    read_p = array_list_get(i, reads);
+    if (num_mappings > 0) {
+      array_list_set_flag(1, lists[i]);
+      for (size_t j = 0; j < num_mappings; j++) {
+	alignment = (alignment_t *) array_list_get(j, lists[i]);
+	header_len = strlen(read_p->id);
+	alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	//printf("Process %s\n", read_p->id);                                                                                                                         
+	get_to_first_blank(read_p->id, header_len, alignment->query_name);
+	bwt_cigar_cpy(alignment, read_p->quality);
+	//alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
+      }
+    } else {
+      unmapped_indices[(*num_unmapped)++] = i;
+      array_list_set_flag(0, lists[i]);
+      //      printf("\tbwt.c: bwt_map_inexact_batch_by_filter, setting flag to 0 for list %i\n", i);                                                                 
+    }
+  }
+}
 
 //-----------------------------------------------------------------------------
 

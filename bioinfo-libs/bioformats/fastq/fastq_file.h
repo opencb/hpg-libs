@@ -103,6 +103,7 @@ size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_fi
 
 size_t fastq_fread_bytes_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_file1, fastq_file_t *fq_file2, int mode);
 
+size_t fastq_fread_bytes_aligner_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
 //size_t fastq_gzread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_file1, fastq_file_t *fq_file2);
 
 

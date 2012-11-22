@@ -57,6 +57,7 @@ void fastq_batch_reader_input_init(char *filename1, char *filename2, int flags,
 //-----------------------------------------------------
 
 void fastq_batch_reader(fastq_batch_reader_input_t *input);
+void fastq_batch_reader_aligner(fastq_batch_reader_input_t* input);
 
 //-----------------------------------------------------
 //-----------------------------------------------------
