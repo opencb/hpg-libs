@@ -2091,7 +2091,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
       }
     }
   }
-  */
+
   return total_mappings;
 }
 */
@@ -2102,21 +2102,22 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 				  array_list_t **lists,
 				  size_t *num_unmapped, 
 				  size_t *unmapped_indices) {
-  size_t header_len, total_mappings;
+
+  alignment_t *alignment;
+  size_t header_len, num_mappings, total_mappings;
   size_t num_threads = bwt_optarg->num_threads;
   size_t num_reads = array_list_size(reads);
   size_t chunk = MAX(1, num_reads/(num_threads*10));
-  fastq_read_t* read;
+  fastq_read_t* fq_read;
 
-  *num_mapped = 0;
   *num_unmapped = 0;
   //printf("%i reads\n", num_reads);
-  #pragma omp parallel for private(read) schedule(dynamic, chunk)
+  #pragma omp parallel for private(fq_read) schedule(dynamic, chunk)
   for (size_t i = 0; i < num_reads; i++) {
-    read_p = (fastq_read_t *)array_list_get(i, reads);
+    fq_read = (fastq_read_t *) array_list_get(i, reads);
     //printf("Extract...\n");
     //printf("%s\n", read_p->sequence);
-    bwt_map_inexact_seq(read_p->sequence, 
+    bwt_map_inexact_seq(fq_read->sequence, 
 			bwt_optarg, index, 
 			lists[i]);
   }
@@ -2124,16 +2125,16 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
   for (size_t i = 0; i < num_reads; i++) {
     num_mappings = array_list_size(lists[i]);
     total_mappings += num_mappings;
-    read_p = array_list_get(i, reads);
+    fq_read = (fastq_read_t *) array_list_get(i, reads);
     if (num_mappings > 0) {
       array_list_set_flag(1, lists[i]);
       for (size_t j = 0; j < num_mappings; j++) {
 	alignment = (alignment_t *) array_list_get(j, lists[i]);
-	header_len = strlen(read_p->id);
+	header_len = strlen(fq_read->id);
 	alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
-	//printf("Process %s\n", read_p->id);                                                                                                                         
-	get_to_first_blank(read_p->id, header_len, alignment->query_name);
-	bwt_cigar_cpy(alignment, read_p->quality);
+	//printf("Process %s\n", fq_read->id);                                                                                                                         
+	get_to_first_blank(fq_read->id, header_len, alignment->query_name);
+	bwt_cigar_cpy(alignment, fq_read->quality);
 	//alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
       }
     } else {

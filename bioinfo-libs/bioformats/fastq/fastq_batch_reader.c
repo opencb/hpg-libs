@@ -108,14 +108,14 @@ void fastq_batch_reader_pair(fastq_batch_reader_input_t* input) {
   ts.tv_sec = 1;
   ts.tv_nsec = 0;*/
 
-  char *filename = input->filename1;
+  char *filename1 = input->filename1;
   char *filename2 = input->filename2;
   int flags = input->flags;
   size_t bytes = input->batch_size;
   list_t *list = input->list;
 
   printf("fastq_batch_reader SINGLE mode (%i): START, for file %s\n", 
-	 omp_get_thread_num(), filename);
+	 omp_get_thread_num(), filename1);
 		
   size_t num_reads = 0, num_batches = 0;
   
@@ -151,9 +151,9 @@ void fastq_batch_reader_pair(fastq_batch_reader_input_t* input) {
   } // end of batch loop
   
   list_decr_writers(list);
-  fastq_fclose(file);
+  fastq_fclose(file1);
   printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
-	 total_reads, num_batches, filename);
+	 total_reads, num_batches, filename1);
 
 }
 //------------------------------------------------------------------------------------
@@ -165,14 +165,14 @@ void fastq_batch_reader_aligner_pair(fastq_batch_reader_input_t* input) {
   ts.tv_sec = 1;
   ts.tv_nsec = 0;*/
 
-  char *filename = input->filename1;
+  char *filename1 = input->filename1;
   char *filename2 = input->filename2;
   int flags = input->flags;
   size_t bytes = input->batch_size;
   list_t *list = input->list;
 
   printf("fastq_batch_reader SINGLE mode (%i): START, for file %s\n", 
-	 omp_get_thread_num(), filename);
+	 omp_get_thread_num(), filename1);
 		
   size_t num_reads = 0, num_batches = 0;
   
@@ -208,9 +208,9 @@ void fastq_batch_reader_aligner_pair(fastq_batch_reader_input_t* input) {
   } // end of batch loop
   
   list_decr_writers(list);
-  fastq_fclose(file);
+  fastq_fclose(file1);
   printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
-	 total_reads, num_batches, filename);
+	 total_reads, num_batches, filename1);
 
 }
 
