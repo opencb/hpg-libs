@@ -2091,7 +2091,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
       }
     }
   }
-  */
+  
   return total_mappings;
 }
 */
