@@ -2120,8 +2120,30 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 			bwt_optarg, index, 
 			lists[i]);
   }
+  /*
+=======
 
+  alignment_t *alignment;
+  size_t header_len, num_mappings, total_mappings;
+  size_t num_threads = bwt_optarg->num_threads;
+  size_t num_reads = array_list_size(reads);
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
+  fastq_read_t* fq_read;
+
+  *num_unmapped = 0;
+  //printf("%i reads\n", num_reads);
+  #pragma omp parallel for private(fq_read) schedule(dynamic, chunk)
   for (size_t i = 0; i < num_reads; i++) {
+    fq_read = (fastq_read_t *) array_list_get(i, reads);
+    //printf("Extract...\n");
+    //printf("%s\n", read_p->sequence);
+    bwt_map_inexact_seq(fq_read->sequence, 
+			bwt_optarg, index, 
+			lists[i]);
+  }
+
+>>>>>>> a73fca259618cb91bb5ed5bb4f4e7c6f891a200d
+  */ for (size_t i = 0; i < num_reads; i++) {
     num_mappings = array_list_size(lists[i]);
     total_mappings += num_mappings;
     fq_read = (fastq_read_t *) array_list_get(i, reads);
@@ -2773,7 +2795,7 @@ size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
   *min_seeds = 1000;
 
   const unsigned char nstrands = 2;
-  const unsigned char nchromosomes = 30;
+  const unsigned char nchromosomes = 1000;
   cp_list ***cals_list = (cp_list ***)malloc(sizeof(cp_list **)*nstrands);
 
   for (unsigned int i = 0; i < nstrands; i++) {
@@ -2867,7 +2889,7 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   *min_seeds = 1000;
 
   const unsigned char nstrands = 2;
-  const unsigned char nchromosomes = 30;
+  const unsigned char nchromosomes = 100;
   cp_list ***cals_list = (cp_list ***)malloc(sizeof(cp_list **)*nstrands);
 
   for (unsigned int i = 0; i < nstrands; i++) {
@@ -2959,7 +2981,7 @@ size_t bwt_generate_cal_list_rna_linkedlist(array_list_t *mapping_list,
   cp_list_iterator itr;
 
   const unsigned char nstrands = 2;
-  const unsigned char nchromosomes = 30;
+  const unsigned char nchromosomes = 100;
   cp_list ***cals_list = (cp_list ***)malloc(sizeof(cp_list **)*nstrands);
 
   for (unsigned int i = 0; i < nstrands; i++) {
@@ -2988,7 +3010,6 @@ size_t bwt_generate_cal_list_rna_linkedlist(array_list_t *mapping_list,
       printf("num_mapping %d\tchromosome = %i\tstrand = %d, start = %d, end = %d\n", m, chromosome_id, strand, start, end);                                                         
     }                                                                                                                                                                               
     */
-
     my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
   }
   //Store CALs in Array List for return results                                                                                                                                     
