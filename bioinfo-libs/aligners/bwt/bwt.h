@@ -333,6 +333,10 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 				  size_t *num_unmapped, 
 				  size_t *unmapped_indices);
 
+size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
+					    cal_optarg_t *cal_optarg,
+					     array_list_t *cal_list);
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
