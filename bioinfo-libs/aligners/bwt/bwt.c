@@ -3071,7 +3071,7 @@ size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
         if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
           array_list_insert(cal_new(j, i, short_cal_p->start, short_cal_p->end, 0), cal_list);
         }
-        //short_cal_free(short_cal_p);                                                                                                                                              
+        //short_cal_free(short_cal_p);                                                                                                                                             
         linked_list_iterator_next(&itr);
         short_cal_p = linked_list_iterator_curr(&itr);
       }
