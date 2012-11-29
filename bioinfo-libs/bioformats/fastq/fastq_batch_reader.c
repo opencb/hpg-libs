@@ -87,10 +87,10 @@ void fastq_batch_reader_single(fastq_batch_reader_input_t* input) {
     // otherwise, create a new batch object..
     // and insert this batch to the corresponding list
     item = list_item_new(num_batches, flags, reads);
-
-    list_insert_item(item, list);
-  
     //printf("fastq_ex_batch_reader: reading batch %i done !!\n", num_batches);
+    list_insert_item(item, list);
+    
+    
     num_batches++;
   } // end of batch loop
   
