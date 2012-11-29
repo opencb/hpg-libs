@@ -561,8 +561,7 @@ int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p) 
     list_item->next = iterator_p->curr_pos;
     
     if (iterator_p->curr_pos) {
-      list_item->prev = iterator_p->curr_pos->prev;
-      
+      list_item->prev = iterator_p->curr_pos->prev;      
       //iterator_p->curr_pos->prev = list_item;
       //list_item->next = iterator_p->curr_pos;
       if (iterator_p->curr_pos->prev) {
