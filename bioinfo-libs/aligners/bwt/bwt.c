@@ -427,7 +427,6 @@ void seq_reverse_complementary(char *seq, unsigned int len){
   
   char *seq_tmp = (char *)malloc(len*sizeof(char));
   memcpy(seq_tmp, seq, len);
-  
   for (int i = len - 1; i >= 0; i--){
     if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a'){
       seq[j] = 'T';
@@ -440,6 +439,8 @@ void seq_reverse_complementary(char *seq, unsigned int len){
     }
     else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
        seq[j] = 'A';
+    }else {
+      seq[j] = 'N';
     }
     j++;  
   }
@@ -3047,18 +3048,19 @@ size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
     }
   }
 
-  // from the results mappings, generates CALs                                                                                                                                      
+  // from the results mappings, generates CALs
+  //printf("Num Mappings %i\n", num_mappings);             
   for (unsigned int m = 0; m < num_mappings; m++) {
     region = array_list_get(m, mapping_list);
     chromosome_id = region->chromosome_id;
     strand = region->strand;
-    //printf("Insert new region [%lu-%lu]\n", region->start, region->end);
+    //if (chromosome_id == 6)printf("Insert new region %i[%lu-%lu]\n", chromosome_id, region->start, region->end);
     //printf("List before insert:\n");
     //linked_list_print(cals_list[strand][chromosome_id], print_se_region);
-    //printf("-----------------------------------------------------------------\n");
+    //if (chromosome_id == 6)printf("-----------------------------------------------------------------\n");
     my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
-    //linked_list_print(cals_list[strand][chromosome_id], print_se_region);
-    //printf("\n\n");
+    //if (chromosome_id == 6)linked_list_print(cals_list[strand][chromosome_id], print_se_region);
+    //if (chromosome_id == 6)printf("\n\n");
   }
 
   //Store CALs in Array List for return results                                                                                                                                     
@@ -3068,7 +3070,9 @@ size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
       short_cal_p = linked_list_iterator_curr(&itr);
 
       while ((short_cal_p != NULL )) {
+	//printf("Process short CAL %d - [%d - %d](%i)\n", j, short_cal_p->start, short_cal_p->end, short_cal_p->end - short_cal_p->start);
         if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
+	  //printf("\tInsert\n");
           array_list_insert(cal_new(j, i, short_cal_p->start, short_cal_p->end, 0), cal_list);
         }
         //short_cal_free(short_cal_p);                                                                                                                                             

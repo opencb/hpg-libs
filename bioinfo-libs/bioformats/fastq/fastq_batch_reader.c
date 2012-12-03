@@ -171,8 +171,8 @@ void fastq_batch_reader_aligner_pair(fastq_batch_reader_input_t* input) {
   size_t bytes = input->batch_size;
   list_t *list = input->list;
 
-  printf("fastq_batch_reader SINGLE mode (%i): START, for file %s\n", 
-	 omp_get_thread_num(), filename1);
+  printf("fastq_batch_reader PAIR mode (%i): START, for files %s, \n", 
+	 omp_get_thread_num(), filename1, filename2);
 		
   size_t num_reads = 0, num_batches = 0;
   
@@ -209,6 +209,7 @@ void fastq_batch_reader_aligner_pair(fastq_batch_reader_input_t* input) {
   
   list_decr_writers(list);
   fastq_fclose(file1);
+  fastq_fclose(file2);
   printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
 	 total_reads, num_batches, filename1);
 

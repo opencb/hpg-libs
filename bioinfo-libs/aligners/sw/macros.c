@@ -231,7 +231,7 @@ void simd_find_position(int depth, int index, char *q, int q_len, char *r, int r
   for (int j = 0; j < r_len; j++) {
     i = j * cols * depth;
     for (int k = 0; k < q_len; k++) {
-      ii = i + (k * depth) + index; 
+      ii = i + (k * depth) + index;
       //      printf("\tii (%i)= i (%i) + [k  (%i) * depth (%i)] + index (%i)\n", ii, i, k, depth, index);
       if (H[ii] == score) {
 	*r_pos = j;
