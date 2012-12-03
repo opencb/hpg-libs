@@ -74,8 +74,6 @@ void simd_traceback(int depth, int num_seqs,
     rr_len = r_len[i];
 
     //    printf("%i of %i\n", i, num_seqs);
-    //    printf("\tmax_score[%i] = %0.2f\n", i, max_score[i]);
-
     simd_find_position(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
     //printf("index %i: kk = %i, jj = %i\n", i, kk, jj);
 
@@ -224,6 +222,9 @@ void simd_find_position(int depth, int index, char *q, int q_len, char *r, int r
 			int *q_pos, int *r_pos) {  
   *r_pos = 0;
   *q_pos = 0;
+
+  //  score = 473;
+  //  score = H[100];
   //  printf("max. score = %0.2f\n", score);
   //  printf("\tcols = %i, rows = %i, depth = %i, index = %i, r_len = %i, q_len = %i\n", 
   //  	 score, cols, rows, depth, index, r_len, q_len);

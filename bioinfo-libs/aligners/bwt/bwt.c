@@ -429,7 +429,7 @@ void seq_reverse_complementary(char *seq, unsigned int len){
   memcpy(seq_tmp, seq, len);
   
   for (int i = len - 1; i >= 0; i--){
-    if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a'){
+    if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a') {
       seq[j] = 'T';
     }
     else if (seq_tmp[i] == 'C' || seq_tmp[i] == 'c'){
@@ -440,6 +440,9 @@ void seq_reverse_complementary(char *seq, unsigned int len){
     }
     else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
        seq[j] = 'A';
+    }
+    else if (seq_tmp[i] == 'N' || seq_tmp[i] == 'n'){
+       seq[j] = 'N';
     }
     j++;  
   }
@@ -2845,14 +2848,14 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   for (unsigned int i = 0; i < nstrands; i++) {
     cals_list[i] = (cp_list **)malloc(sizeof(cp_list *)*nchromosomes);
     for (unsigned int j = 0; j < nchromosomes; j++) {
-      cals_list[i][j] = cp_list_create_nosync();
-      //cp_list_create_list(COLLECTION_MODE_NOSYNC |
-					    /*COLLECTION_MODE_COPY |*/
-					    //COLLECTION_MODE_DEEP |
-					    //COLLECTION_MODE_MULTIPLE_VALUES,
-					    //(cp_compare_fn) cal_location_compare,
-					    //NULL/*(cp_copy_fn) cal_location_dup*/,
-					    //(cp_destructor_fn) short_cal_free);
+      cals_list[i][j] = //cp_list_create_nosync();
+      cp_list_create_list(COLLECTION_MODE_NOSYNC |
+			  /*COLLECTION_MODE_COPY |*/
+			  COLLECTION_MODE_DEEP |
+			  COLLECTION_MODE_MULTIPLE_VALUES,
+			  (cp_compare_fn) cal_location_compare,
+			  NULL/*(cp_copy_fn) cal_location_dup*/,
+			  (cp_destructor_fn) short_cal_free);
     }
   }
     
@@ -2863,7 +2866,9 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     chromosome_id = region->chromosome_id;
     strand = region->strand;
     //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
+    //printf("Region strand:%i - chromosome:%i\n", strand, chromosome_id);
     my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
+    //printf("Insert ok!\n");
   }
  
   //Store CALs in Array List for return results
