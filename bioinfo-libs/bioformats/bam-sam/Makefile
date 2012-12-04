@@ -22,14 +22,17 @@ SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
 
 CONTAINERS_DIR = $(LIBS_ROOT)/common-libs/containers
 COMMONS_DIR = $(LIBS_ROOT)/common-libs/commons
+COMMONS_CUDA_DIR = $(LIBS_ROOT)/commons-cuda
+HPG_BAM_DIR = $(LIBS_ROOT)/../hpg-bam-tools
+HPG_BAM_FROM_SUBMODULE_DIR = $(LIBS_ROOT)/../../hpg-bam-tools
+SAMTOOLS_DIR = $(LIBS_ROOT)/bam
 
 # Include path and libraries
 INCLUDES = -I . -I $(LIBS_ROOT) -I $(LIBS_ROOT)/common-libs -I ./include -I $(SAMTOOLS_DIR)
 LIBS = -fopenmp -Wl,-Bsymbolic-functions
 
 # Source and object files
-MAIN_OBJECTS = alignment.c
-#MISC_OBJECTS = $(CONTAINERS_DIR)/array_list.o $(CONTAINERS_DIR)/list.o $(COMMONS_DIR)/http_utils.o $(COMMONS_DIR)/string_utils.o $(COMMONS_DIR)/file_utils.o $(COMMONS_DIR)/log.o
+MAIN_OBJECTS = alignment.c bam_data_batch.c bam_data_batch_list.c bam_file.c bam_reader.c bam_writer.c
 
 # Targets
 all: compile-dependencies compile

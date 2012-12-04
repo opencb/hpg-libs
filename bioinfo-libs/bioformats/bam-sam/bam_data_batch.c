@@ -37,6 +37,8 @@ bam_data_batch_t* bam_data_batch_init(bam_data_batch_t* bam_data_batch_p, bam_ba
         core_data_p->strand = bam1_strand(bam_batch_p->alignments_p[i]);
         core_data_p->map_quality = bam_batch_p->alignments_p[i]->core.qual;
         core_data_p->chromosome = bam_batch_p->alignments_p[i]->core.tid;
+        core_data_p->mate_chromosome = bam_batch_p->alignments_p[i]->core.mtid;
+        core_data_p->isize = abs(bam_batch_p->alignments_p[i]->core.isize);
         core_data_p->start_coordinate = bam_batch_p->alignments_p[i]->core.pos;
         core_data_p->alignment_length = bam_cigar2qlen(&(bam_batch_p->alignments_p[i]->core), bam1_cigar(bam_batch_p->alignments_p[i]));
 

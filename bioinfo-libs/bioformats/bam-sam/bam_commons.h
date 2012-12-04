@@ -16,6 +16,8 @@
 
 #define MAX_ALIGNMENT_LENGTH 1000
 
+#define MAX_MAPPING_COUNT_IN_HISTOGRAM 10
+
 /* **************************************************************
  *    		Global structures and variables   		*
  * *************************************************************/
@@ -31,6 +33,9 @@ extern struct timeval t1_convert, t2_convert;
 
 extern double filter_time;
 extern struct timeval t1_filter, t2_filter;
+
+extern double db_time;
+extern struct timeval t1_db, t2_db;
 
 extern double reader_server_time;
 extern struct timeval t1_reader_server, t2_reader_server;
