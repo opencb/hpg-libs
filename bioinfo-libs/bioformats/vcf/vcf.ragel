@@ -262,7 +262,7 @@
                    "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">" ;
     record_qual	= number | "." ;
 
-    filter_value	= (alnum | "_")+ ;
+    filter_value	= (alnum | "_" | ".")+ ;
     filter_entry	= filter_value ("," filter_value)* ;
     record_filter	= "." | filter_entry (";" filter_entry)* ;
 
