@@ -1,15 +1,17 @@
 #include "vcf_filters.h"
 
+static void annotate_failed_record(char *filter_name, size_t filter_name_len, vcf_record_t *record);
 
 //====================================================================================
 //  Filtering functions
 //====================================================================================
 
-array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* f_args) {
     assert(input_records);
     assert(failed);
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     int min_coverage = ((coverage_filter_args*)f_args)->min_coverage;
 
@@ -31,9 +33,11 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
             if (atoi(record_coverage) >= min_coverage) {
                 array_list_insert(record, passed);
             } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
             }
         } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
         
@@ -43,7 +47,7 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
     return passed;
 }
 
-array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, void* args) {
+array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
     
@@ -52,6 +56,7 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, void
     file_stats_t *file_stats = file_stats_new();
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     float max_maf = ((maf_filter_args*) args)->max_maf;
     float record_maf = 1.0;
@@ -78,6 +83,7 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, void
         if (record_maf <= max_maf) {
             array_list_insert(record, passed);
         } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
         
@@ -92,7 +98,7 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, void
 }
 
 
-array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, void* args) {
+array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
     
@@ -101,6 +107,7 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
     file_stats_t *file_stats = file_stats_new();
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     int num_alleles = ((num_alleles_filter_args*)args)->num_alleles;
 
@@ -121,6 +128,7 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
         if (variant_stats->num_alleles == num_alleles) {
             array_list_insert(record, passed);
         } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
         
@@ -135,11 +143,12 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
 }
 
 
-array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, void* f_args) {
+array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* f_args) {
     assert(input_records);
     assert(failed);
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     int min_quality = ((quality_filter_args*)f_args)->min_quality;
 
@@ -150,6 +159,7 @@ array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, 
         if (record->quality >= min_quality) {
             array_list_insert(record, passed);
         } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
     }
@@ -157,12 +167,13 @@ array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, 
     return passed;
 }
 
-array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
+array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
     
     char *field;
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     region_filter_args *args = (region_filter_args*) f_args;
     region_table_t *regions = args->regions;
@@ -187,6 +198,7 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
 //             LOG_DEBUG_F("%.*s, %ld passed\n", record->chromosome_len, record->chromosome, record->position);
         } else {
             // Add to the list of records that fail all checks for all regions
+            annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
         
@@ -198,11 +210,12 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
     return passed;
 }
 
-array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *f_args) {
+array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
 
     int include_snps = ((snp_filter_args*)f_args)->include_snps;
 
@@ -212,6 +225,7 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void
         record = input_records->items[i];
         if (record->id_len == 1 && strncmp(".", record->id, 1) == 0) {
             if (include_snps) {
+                annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
             } else {
                 array_list_insert(record, passed);
@@ -220,6 +234,7 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void
             if (include_snps) {
                 array_list_insert(record, passed);
             } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
             }
         }
@@ -235,6 +250,9 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void
 
 filter_t *coverage_filter_new(int min_coverage) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "cov%d", min_coverage);
+    sprintf(filter->description, "Coverage >= %d", min_coverage);
+    
     filter->type = COVERAGE;
     filter->filter_func = coverage_filter;
     filter->free_func = coverage_filter_free;
@@ -255,6 +273,9 @@ void coverage_filter_free(filter_t *filter) {
 
 filter_t *maf_filter_new(float max_maf) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "maf%.2f", max_maf);
+    sprintf(filter->description, "MAF <= %.2f", max_maf);
+    
     filter->type = MAF;
     filter->filter_func = maf_filter;
     filter->free_func = maf_filter_free;
@@ -275,6 +296,9 @@ void maf_filter_free(filter_t *filter) {
 
 filter_t* num_alleles_filter_new(int num_alleles) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "%dalleles", num_alleles);
+    sprintf(filter->description, "Number of alleles = %d", num_alleles);
+    
     filter->type = NUM_ALLELES;
     filter->filter_func = num_alleles_filter;
     filter->free_func = num_alleles_filter_free;
@@ -296,6 +320,9 @@ void num_alleles_filter_free(filter_t* filter) {
 
 filter_t *quality_filter_new(int min_quality) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "q%d", min_quality);
+    sprintf(filter->description, "Quality >= %d", min_quality);
+    
     filter->type = QUALITY;
     filter->filter_func = quality_filter;
     filter->free_func = quality_filter_free;
@@ -328,8 +355,12 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
 
     region_filter_args *filter_args = (region_filter_args*) malloc (sizeof(region_filter_args));
     if (use_region_file) {
+        snprintf(filter->name, 11, "RegionFile");
+        snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
         filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
     } else {
+        snprintf(filter->name, 11, "RegionList");
+        snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
         filter_args->regions = parse_regions(region_descriptor, 0, url, species, version);
     }
     filter->args = filter_args;
@@ -351,8 +382,12 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
 
     region_filter_args *filter_args = (region_filter_args*) malloc (sizeof(region_filter_args));
     if (use_region_file) {
+        snprintf(filter->name, 11, "RegionFile");
+        snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
         filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
     } else {
+        snprintf(filter->name, 11, "RegionList");
+        snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
         filter_args->regions = parse_regions(region_descriptor, 1, url, species, version);
     }
     filter->args = filter_args;
@@ -382,21 +417,19 @@ void region_filter_free(filter_t *filter) {
 
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
+    if (include_snps) {
+        snprintf(filter->name, 7, "SNPyes");
+        snprintf(filter->description, 12, "To be a SNP");
+    } else {
+        snprintf(filter->name, 6, "SNPno");
+        snprintf(filter->description, 16, "Not to be a SNP");
+    }
     filter->type = SNP;
     filter->filter_func = snp_filter;
     filter->free_func = snp_filter_free;
     filter->priority = 5;
 
     snp_filter_args *filter_args = (snp_filter_args*) malloc (sizeof(snp_filter_args));
-//     filter_args->include_snps = 1;	// Default: Include SNPs
-// 
-//     if (include_snps != NULL) {
-//         if (strcmp("include", include_snps) == 0) {
-//             filter_args->include_snps = 1;
-//         } else if (strcmp("exclude", include_snps) == 0) {
-//             filter_args->include_snps = 0;
-//         }
-//     }
     filter_args->include_snps = include_snps;
     filter->args = filter_args;
 
@@ -464,11 +497,21 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
     // Apply each filter with the arguments provided
     for (int i = 0; i < num_filters; i++) {
         filter_t *filter = filters[i];
-        aux_passed = filter->filter_func(passed, failed, filter->args);
+        aux_passed = filter->filter_func(passed, failed, filter->name, filter->args);
     // 		free(passed);
         passed = aux_passed;
     }
 
+    // Mark records that passed all filters
+    vcf_record_t *record;
+    for (int i = 0; i < passed->size; i++) {
+        record = passed->items[i];
+        // If the filter didn't fail filters from another run
+        if (!strncmp(record->filter, ".", 1)) {
+            set_vcf_record_filter("PASS", 4, record);
+        }
+    }
+    
     return passed;
 }
 
@@ -489,4 +532,62 @@ void free_filters(filter_t **filters, int num_filters) {
         filter->free_func(filter);
     }
     free(filters);
+}
+
+
+
+//====================================================================================
+//  Other functions
+//====================================================================================
+
+vcf_header_entry_t **get_filters_as_vcf_headers(filter_t **filters, int num_filters) {
+    vcf_header_entry_t **headers = malloc (num_filters * sizeof(vcf_header_entry_t*));
+    vcf_header_entry_t *entry;
+    char *value;
+    size_t value_len;
+    
+    for (int i = 0; i < num_filters; i++) {
+        entry = vcf_header_entry_new();
+        entry->name = strndup("FILTER", 6);
+        entry->name_len = 6;
+        
+        value_len = strlen(filters[i]->name) + 4;
+        value = malloc(value_len * sizeof(char));
+        sprintf(value, "ID=%s", filters[i]->name);
+        value[value_len-1] = '\0';
+        LOG_DEBUG_F("ID of the defined filter = %s\n", value);
+        add_vcf_header_entry_value(value, value_len-1, entry);
+        free(value);
+        
+        value_len = strlen(filters[i]->description) + 15;
+        value = malloc(value_len * sizeof(char));
+        sprintf(value, "Description=\"%s\"", filters[i]->description);
+        value[value_len-1] = '\0';
+        LOG_DEBUG_F("Description of the defined filter = %s\n", value);
+        add_vcf_header_entry_value(value, value_len-1, entry);
+        free(value);
+        
+        headers[i] = entry;
+    }
+    
+    return headers;
+}
+
+static void annotate_failed_record(char *filter_name, size_t filter_name_len, vcf_record_t *record) {
+    if (!strncmp(record->filter, ".", record->filter_len) || !strncmp(record->filter, "PASS", record->filter_len)) {
+        record->filter = filter_name;
+        record->filter_len = filter_name_len;
+    } else {
+        char *aux = calloc(record->filter_len + filter_name_len + 2, sizeof(char));
+        if (aux) {
+            strncat(aux, record->filter, record->filter_len);
+            strncat(aux, ",", 1);
+            strncat(aux, filter_name, filter_name_len);
+            record->filter = aux;
+            record->filter_len = record->filter_len + filter_name_len + 2;
+        } else {
+            LOG_FATAL_F("Memory allocation error while annotating record %.*%s:%ld\n", 
+                        record->chromosome_len, record->chromosome, record->position);
+        }
+    }
 }

@@ -98,7 +98,9 @@ typedef struct {
 typedef struct filter {
     unsigned int priority;  /**< Sorting criteria when several filters are applied */
     enum filter_type type;  /**< Filtering criteria */
-    array_list_t* (*filter_func) (array_list_t *input_records, array_list_t *failed, void *args);  /**< Filtering function itself */
+    char name[16];          /**< Name (header metadata and FILTER value) */
+    char description[64];   /**< Description (header metadata) */
+    array_list_t* (*filter_func) (array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);  /**< Filtering function itself */
     void (*free_func) (struct filter *f);   /**< Filter deallocation function */
     void *args;             /**< Filter-dependant arguments */
 } filter_t;
@@ -123,7 +125,7 @@ typedef cp_heap filter_chain;
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones have a MAF less or equals to the one specified.
@@ -134,7 +136,7 @@ array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed,
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones have a num_alleles equals to the one specified.
@@ -145,7 +147,7 @@ array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, void
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones have a quality greater or equals to the one specified.
@@ -156,7 +158,7 @@ array_list_t *num_alleles_filter(array_list_t *input_records, array_list_t *fail
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *quality_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *quality_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones are positioned in certain genome region.
@@ -169,7 +171,7 @@ array_list_t *quality_filter(array_list_t *input_records, array_list_t *failed, 
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones represent a SNP.
@@ -180,7 +182,7 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, void *args);
+array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 
 //====================================================================================
@@ -374,6 +376,22 @@ void free_filter_chain(filter_chain *chain);
  * @param num_filters The number of filters
  **/
 void free_filters(filter_t **filters, int num_filters);
+
+
+//====================================================================================
+//  Other functions
+//====================================================================================
+
+
+/**
+ * @brief Retrieves the headers associated with a list of filters
+ * @details Given a list of filters, retrieves a list of VCF headers containing their names and descriptions.
+ *
+ * @param filters Filters to convert into headers
+ * @param num_filters Number of filters
+ * @return The list of headers
+ **/
+vcf_header_entry_t **get_filters_as_vcf_headers(filter_t **filters, int num_filters);
 
 #endif
 
