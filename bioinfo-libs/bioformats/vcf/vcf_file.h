@@ -1,6 +1,7 @@
 #ifndef VCF_FILE_H
 #define VCF_FILE_H
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,6 +80,19 @@ void vcf_close(vcf_file_t *file);
 
 
 /**
+ * @brief Reads a VCF file and optionally parses its contents
+ * @details Reads a VCF file and optionally parses its contents. Because VCF files can be huge, they are read 
+ * in blocks called 'batches', which are consumed one by one.
+ *
+ * @param file The file to read
+ * @param also_parse Not only read the contents of the file, but also parse them
+ * @param batch_size The size of a batch (can be specified in lines or bytes)
+ * @param size_in_lines If the size of the batch is specified in lines
+ * @return 0 if the file was successfully read and parsed, 1 otherwise
+ **/
+int vcf_read(vcf_file_t *file, bool also_parse, size_t batch_size, bool size_in_lines);
+
+/**
  * @brief Reads and parses the contents of a VCF file, storing them in batches
  * @details Read and parse the given number of lines from a VCF file. The file can be stored as plain text 
  * or compressed using GZIP format. The data read will be stored in members of the vcf_file_t structure.
@@ -117,7 +131,7 @@ int vcf_parse_batches_in_bytes(size_t batch_bytes, vcf_file_t *file);
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *file);
+int vcf_read_batches(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) the given number of bytes from a VCF file
@@ -129,7 +143,7 @@ int vcf_read_batches(list_t *text_list, size_t batch_lines, vcf_file_t *file);
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_read_batches_in_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
+int vcf_read_batches_in_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of lines from multiple VCF files
@@ -151,6 +165,14 @@ int vcf_multiread_batches(list_t **text_lists, size_t batch_lines, vcf_file_t **
  * @param file The read file
  **/
 void notify_end_reading(vcf_file_t *file);
+
+/**
+ * @brief Notifies when the VCF file has been fully parsed.
+ * @details Notifies when the VCF file has been fully parsed, performing the corresonding clean-up tasks.
+ *
+ * @param file The parsed file
+ **/
+void notify_end_parsing(vcf_file_t *file);
 
 
 /* **************************************

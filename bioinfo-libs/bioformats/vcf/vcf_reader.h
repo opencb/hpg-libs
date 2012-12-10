@@ -135,51 +135,47 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of lines from a VCF file
- * @details Read blocks of the given number of lines from a VCF file. The data read will be stored in a list that 
- * must be consumed from the outside.
+ * @details Read blocks of the given number of lines from a VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
  *
- * @param text_list [out] List of blocks where the current text block will be queued
  * @param batch_lines The number of lines to read
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file);
+int vcf_light_read(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of bytes from a VCF file
- * @details Read blocks of the given number of bytes from a VCF file. The data read will be stored in a list that 
- * must be consumed from the outside.
+ * @details Read blocks of the given number of bytes from a VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
  *
- * @param text_list [out] List of blocks where the current text block will be queued
  * @param batch_bytes The number of bytes to read
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
+int vcf_light_read_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of lines from a gzipped VCF file
- * @details Read blocks of the given number of lines from a gzipped VCF file. The data read will be stored in a list that 
- * must be consumed from the outside.
+ * @details Read blocks of the given number of lines from a gzipped VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
  * 
- * @param text_list [out] List of blocks where the current text block will be queued
  * @param batch_lines The number of lines to read
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file);
+int vcf_gzip_light_read(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of bytes from a gzipped VCF file
- * @details Read blocks of the given number of bytes from a gzipped VCF file. The data read will be stored in a list that 
- * must be consumed from the outside.
+ * @details Read blocks of the given number of bytes from a gzipped VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
  * 
- * @param text_list [out] List of blocks where the current text block will be queued
  * @param batch_bytes The number of bytes to read
  * @param file The file the data will be read from
  * @return 0 if the file was successfully read, 1 otherwise
  **/
-int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file);
+int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of lines from multiple VCF files

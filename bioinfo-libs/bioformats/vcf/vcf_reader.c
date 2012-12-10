@@ -440,8 +440,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
  *                  Only reading                *
  * **********************************************/
 
-int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
-    assert(text_list);
+int vcf_light_read(size_t batch_lines, vcf_file_t *file) {
     assert(file);
     assert(batch_lines > 0);
     
@@ -471,15 +470,14 @@ int vcf_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
         }
 
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, text_list);
-//             printf("Text batch inserted = '%s'\n", data);
+        list_insert_item(item, file->text_batches);
+//         printf("Text batch inserted = '%.*s'\n", 200, data);
     }
 
     return 0;
 }
 
-int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
-    assert(text_list);
+int vcf_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
     assert(file);
     assert(batch_bytes > 0);
     
@@ -516,15 +514,14 @@ int vcf_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file
 
         // Enqueue current batch
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, text_list);
+        list_insert_item(item, file->text_batches);
 //             printf("Text batch inserted = '%s'\n", data);
     }
 
     return 0;
 }
 
-int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file) {
-    assert(text_list);
+int vcf_gzip_light_read(size_t batch_lines, vcf_file_t *file) {
     assert(file);
     assert(batch_lines > 0);
     
@@ -599,7 +596,7 @@ int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file)
                 // Process batch
                 if (lines == batch_lines) {
                     list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-                    list_insert_item(item, text_list);
+                    list_insert_item(item, file->text_batches);
 
                     // Setup for next batch
                     i = 0;
@@ -616,7 +613,7 @@ int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file)
     // Consume last batch
     if (lines > 0 && lines < batch_lines) {
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, text_list);
+        list_insert_item(item, file->text_batches);
     }
 
     /* clean up and return */
@@ -624,8 +621,7 @@ int vcf_gzip_light_read(list_t *text_list, size_t batch_lines, vcf_file_t *file)
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
-int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t *file) {
-    assert(text_list);
+int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
     assert(file);
     assert(batch_bytes > 0);
     
@@ -697,7 +693,7 @@ int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
                         if (i >= batch_bytes) {
                             data[i+1] = '\0';
                             list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-                            list_insert_item(item, text_list);
+                            list_insert_item(item, file->text_batches);
 
                             // Setup for next batch
                             i = 0;
@@ -721,7 +717,7 @@ int vcf_gzip_light_read_bytes(list_t *text_list, size_t batch_bytes, vcf_file_t 
     if (i > 0) {
         data[i+1] = '\0';
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-        list_insert_item(item, text_list);
+        list_insert_item(item, file->text_batches);
     }
 
     /* clean up and return */

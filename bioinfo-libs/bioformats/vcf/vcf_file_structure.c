@@ -78,33 +78,38 @@ void vcf_record_free_deep(vcf_record_t *record) {
 int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *file) {
     assert(header_entry);
     assert(file);
-    int result = array_list_insert(header_entry, file->header_entries);
-//     if (result) {
-//         printf("header entry %zu\n", file->header_entries->size);
-//     } else {
-//         printf("header entry %zu not inserted\n", get_num_vcf_header_entries(file));
-//     }
-    return result;
+    return array_list_insert(header_entry, file->header_entries);
 }
 
 int add_vcf_sample_name(char *name, int length, vcf_file_t *file) {
     assert(name);
     assert(file);
-    int result = array_list_insert(strndup(name, length), file->samples_names);
-//     if (result) {
-//         (vcf_file->num_samples)++;
-// //         LOG_DEBUG_F("sample %zu is %s\n", vcf_file->samples_names->size, name);
-//     } else {
-// //         LOG_DEBUG_F("sample %zu not inserted\n", vcf_file->num_samples);
-//     }
-    return result;
+    return array_list_insert(strndup(name, length), file->samples_names);
+}
+
+int add_text_batch(char *batch, vcf_file_t *file) {
+    assert(batch);
+    assert(file);
+    list_item_t *item = list_item_new(rand(), 1, batch); 
+    return list_insert_item(item, file->text_batches);
 }
 
 int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file) {
     assert(batch);
     assert(file);
-    list_item_t *item = list_item_new(rand() % 1000, 1, batch); 
-    list_insert_item(item, file->record_batches);
+    list_item_t *item = list_item_new(rand(), 1, batch); 
+    return list_insert_item(item, file->record_batches);
+}
+
+char *fetch_vcf_text_batch(vcf_file_t *file) {
+    assert(file);
+    list_item_t *item = list_remove_item(file->text_batches);
+    if (item) {
+        char *batch = item->data_p;
+        list_item_free(item);
+        return batch;
+    }
+    return NULL;
 }
 
 vcf_batch_t *fetch_vcf_batch(vcf_file_t *file) {

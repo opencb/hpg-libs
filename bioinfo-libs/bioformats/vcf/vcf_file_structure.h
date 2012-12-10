@@ -48,6 +48,8 @@ typedef struct vcf_file {
     
     array_list_t *header_entries;   /**< Entries in the header of the file (metadata) */
     array_list_t *samples_names;    /**< Names of the sequenced samples */
+    
+    list_t *text_batches;           /**< Blocks of text read from the file */
     list_t *record_batches;         /**< Blocks of records who constitute the body/data of the file */
 } vcf_file_t;
 
@@ -189,6 +191,8 @@ int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *file);
  **/
 int add_vcf_sample_name(char *name, int length, vcf_file_t *file);
 
+int add_text_batch(char *batch, vcf_file_t *file);
+
 /**
  * @brief Adds a batch of records to a VCF file.
  * @details Adds a batch of records to a VCF file.
@@ -200,6 +204,8 @@ int add_vcf_sample_name(char *name, int length, vcf_file_t *file);
 int add_vcf_batch(vcf_batch_t *batch, vcf_file_t *file);
 
 // int add_record(vcf_record_t* record, vcf_file_t *vcf_file);
+
+char *fetch_vcf_text_batch(vcf_file_t *file);
 
 /**
  * @brief Removes and returns the first batch in the queue of a VCF file.
