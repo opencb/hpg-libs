@@ -11,10 +11,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "argtable/argtable2.h"
-#include "config/libconfig.h"
+#include "argtable2.h"
+#include "libconfig.h"
 
 #include "commons/log.h"
+#include "commons/system_utils.h"
 
 #define NUM_OPTIONS			41
 

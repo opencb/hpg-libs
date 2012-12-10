@@ -101,6 +101,9 @@ void timing_display(timing_t* t_p) {
   printf("===========================================================\n");
   int i, j;
   for(i=0 ; i < t_p->num_sections ; i++) {
+    if(i == t_p->num_sections - 1) {
+      printf("-----------------------------------------------------------\n");
+    }
     t_p->section_times_p[i] = 0;
     for(j=0 ; j < t_p->num_threads_p[i] ; j++) {
       if (t_p->section_times_p[i] < t_p->thread_times_p[i][j]) {

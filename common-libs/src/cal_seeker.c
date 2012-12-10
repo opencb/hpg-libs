@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------------
 // cal_seeker_input functions: init
 //------------------------------------------------------------------------------------
-
 void cal_seeker_server(cal_seeker_input_t* input) {
   
   extern short int cal_type;
@@ -16,9 +15,9 @@ void cal_seeker_server(cal_seeker_input_t* input) {
   list_item_t *write_item = NULL;
   list_item_t *sw_item = NULL;
   size_t num_reads;
-  array_list_t **allocate_cals;
-  cal_batch_t *cal_batch;
-  size_t num_cals, total_cals = 0;
+  array_list_t *allocate_cals;
+  mapping_batch_t *mapping_batch;
+  size_t num_cals, select_cals, total_cals = 0;
   fastq_read_t *read;
 
   char *seq;
@@ -29,167 +28,125 @@ void cal_seeker_server(cal_seeker_input_t* input) {
   char *cigar;
   char *header_id;
   unsigned int write_size = input->batch_size;
-  write_batch_t* write_batch = write_batch_new(write_size, MATCH_FLAG);
+  //write_batch_t* write_batch = write_batch_new(write_size, MATCH_FLAG);
   
-  list_t *write_list = input->write_list;
+  //list_t *write_list = input->write_list;
   sw_batch_t *sw_batch;
-  fastq_read_t **allocate_reads; 
+  fastq_read_t *allocate_reads; 
   size_t reads_with_cals;
   alignment_t *alignment;
   size_t num_batches = 0, num_reads_unmapped = 0, num_without_cals = 0;
   size_t total_reads = 0;
-
-  size_t min_seeds, max_seeds;
+  size_t j;
+  size_t min_seeds, max_seeds, num_targets, target_pos, total_targets;
 
   while ( (item = list_remove_item(input->regions_list)) != NULL ) {
     //printf("Cal Seeker %d processing batch...\n", omp_get_thread_num());
     num_batches++;
     if (time_on) { timing_start(CAL_SEEKER, cal_id, timing_p); }
     
-    cal_batch = (cal_batch_t *)item->data_p;
-    num_reads = cal_batch->unmapped_batch->num_reads;
-    total_reads += num_reads;
-    allocate_cals = (array_list_t **)calloc(num_reads, sizeof(array_list_t *));
-    allocate_reads = (fastq_read_t **)calloc(num_reads, sizeof(fastq_read_t *));
-    reads_with_cals = 0;
-    for (size_t i = 0; i < num_reads; i++) {
-      allocate_cals[reads_with_cals] = array_list_new(100, 
-						      1.25f, 
-						      COLLECTION_MODE_ASYNCHRONIZED);
-      /*      if (cal_type == 0) {
-		num_cals = bwt_generate_cal_list(cal_batch_p->allocate_mapping_p[i], input_p->cal_optarg_p, allocate_cals_p[reads_with_cals]);
-		} else {*/
-      num_cals = bwt_generate_cal_list_rna_linkedlist(cal_batch->allocate_mapping[i], input->cal_optarg, 
-						      allocate_cals[reads_with_cals]);
-      // }
-      total_cals += num_cals;
-      //printf("CAL SEEKER: %d cals for read %d\n", num_cals, i);
-      if(num_cals <= 0 || num_cals > MAX_CALS){	
-	//printf("READ WITH cals <= 0 or cals %d > %d!!\n", array_list_size(allocate_cals_p[reads_with_cals]), MAX_CALS);
-	if (num_cals <= 0) { num_without_cals++; }
-	
-	num_reads_unmapped++;
-	
-	alignment = alignment_new();
-	
-	seq_len = cal_batch->unmapped_batch->data_indices[i + 1] - cal_batch->unmapped_batch->data_indices[i];
+    mapping_batch = (mapping_batch_t *)item->data_p;
+    num_targets = mapping_batch->num_targets;
+    target_pos = 0;
+    total_targets = 0;
+    //num_reads = cal_batch->unmapped_batch->num_reads;
+    total_reads += num_targets;
+    //allocate_cals = (array_list_t **)calloc(num_reads, sizeof(array_list_t *));
+    //allocate_reads = (fastq_read_t **)calloc(num_reads, sizeof(fastq_read_t *));
+    //reads_with_cals = 0;
+    for (size_t i = 0; i < num_targets; i++) {
+      allocate_cals = array_list_new(100, 
+				     1.25f, 
+				     COLLECTION_MODE_ASYNCHRONIZED);
 
-	header_len = cal_batch->unmapped_batch->header_indices[i + 1] - cal_batch->unmapped_batch->header_indices[i];
+      /*                    
+      num_cals = bwt_generate_cal_list_rna_linkedlist(mapping_batch->mapping_lists[mapping_batch->targets[i]], 
+						      input->cal_optarg, 
+						      allocate_cals);  
+      */
+      
+      num_cals = bwt_generate_cal_list_rna_linked_list(mapping_batch->mapping_lists[mapping_batch->targets[i]], 
+						      input->cal_optarg, 
+						      allocate_cals);  
+      
+      array_list_free(mapping_batch->mapping_lists[mapping_batch->targets[i]], region_bwt_free);
+      mapping_batch->mapping_lists[mapping_batch->targets[i]] = allocate_cals;
+      //printf("Num CALS %i\n", num_cals);
+      if (num_cals > MAX_RNA_CALS) {
+	//array_list_clear(allocate_cals, (void *)cal_free);
+	select_cals = num_cals - MAX_RNA_CALS;
 
-	header_id = (char *)malloc(sizeof(char)*header_len);
-	header_len = get_to_first_blank(&(cal_batch->unmapped_batch->header[cal_batch->unmapped_batch->header_indices[i]]), header_len, header_id);
-	
-	seq = (char *)calloc(sizeof(char), seq_len);
-	memcpy(seq, &(cal_batch->unmapped_batch->seq[cal_batch->unmapped_batch->data_indices[i]]), seq_len);
-	
-	quality = (char *)calloc(sizeof(char), seq_len);
-	memcpy(quality, &(cal_batch->unmapped_batch->quality[cal_batch->unmapped_batch->data_indices[i]]), seq_len);
-	
-	cigar = (char *) malloc(sizeof(char)*10);
-	sprintf(cigar, "%dX\0", seq_len - 1);
-	
-	alignment_init_single_end(header_id, seq, quality, 0, 
-				  0, //index->karyotype.chromosome + (idx-1) * IDMAX,
-				  0, 
-				  cigar, 1, 255, 0, 0, alignment);
-
-	//printf("List %d > %d?\n", write_batch_p->size, write_batch_p->allocated_size);		
-	if ( write_batch->size >= write_batch->allocated_size - 1) {
-	  write_item = list_item_new(0, WRITE_ITEM, write_batch);
-	  if (time_on) { timing_stop(CAL_SEEKER, cal_id, timing_p); }
-	  list_insert_item(write_item, write_list);
-	  if (time_on) { timing_start(CAL_SEEKER, cal_id, timing_p); }
-	  
-	  write_batch = write_batch_new(write_size, MATCH_FLAG);
+	for(j = num_cals - 1; j >= MAX_RNA_CALS; j--) {
+	  cal_free(array_list_remove_at(j, mapping_batch->mapping_lists[mapping_batch->targets[i]]));
 	}
-	
-	((alignment_t **)write_batch->buffer_p)[write_batch->size] = alignment;
-	write_batch->size++;
-	
-	array_list_free(allocate_cals[reads_with_cals], (void *)cal_free);
-      }else{
-	//array_list_free(allocate_cals_p[reads_with_cals], cal_free);
-	read = fastq_read_new(&(cal_batch->unmapped_batch->header[cal_batch->unmapped_batch->header_indices[i]]), 
-			      &(cal_batch->unmapped_batch->seq[cal_batch->unmapped_batch->data_indices[i]]),
-			      &(cal_batch->unmapped_batch->quality[cal_batch->unmapped_batch->data_indices[i]]));
-	
-	allocate_reads[reads_with_cals] = read;
-	reads_with_cals++;
+	mapping_batch->targets[target_pos++] = mapping_batch->targets[i];
+	num_reads_unmapped++;
+      }else if (num_cals > 0) {
+	mapping_batch->targets[target_pos++] = mapping_batch->targets[i];
+      }else if (!num_cals) {
+	num_reads_unmapped++;
       }
-       
-      //array_list_free(regions_batch_p->allocate_mapping_p[i], NULL);
-  }
     
-    sw_batch = sw_batch_new(reads_with_cals, allocate_cals, allocate_reads);
+    }
     
+    mapping_batch->num_targets = target_pos;
+
+    //sw_batch = sw_batch_new(reads_with_cals, allocate_cals, allocate_reads);
     //sw_batch_free(sw_batch_p);
-    cal_batch_free(cal_batch);
-    free(item);
-    sw_item = list_item_new(0, 0, sw_batch);
-  
-    if (time_on) { timing_stop(CAL_SEEKER, cal_id, timing_p); }
+    //sw_item = list_item_new(0, 0, sw_batch);
     
-    list_insert_item(sw_item, input->sw_list); 
+    if (time_on) { timing_stop(CAL_SEEKER, cal_id, timing_p); }      
+    list_insert_item(item, input->sw_list); 
     //printf("Cal Seeker process batch finish!\n");
   }
-  
-  if (write_batch != NULL) {
-    if (write_batch->size > 0) {
-      write_item = list_item_new(0, WRITE_ITEM, write_batch);
-      list_insert_item(write_item, write_list);
-    } else {
-      write_batch_free(write_batch);
-    }
-  }
 
-  
   list_decr_writers(input->sw_list);
-  list_decr_writers(input->write_list);
-  
+  //list_decr_writers(input->write_list);
+  /*  
   if (statistics_on) { 
-   statistics_add(CAL_SEEKER_ST, 0, num_batches, statistics_p); 
-   statistics_add(CAL_SEEKER_ST, 1, total_reads, statistics_p); 
-   statistics_add(CAL_SEEKER_ST, 2, num_reads_unmapped, statistics_p); 
-   
-   statistics_add(TOTAL_ST, 2, num_reads_unmapped, statistics_p); 
+    statistics_add(CAL_SEEKER_ST, 0, num_batches, statistics_p); 
+    statistics_add(CAL_SEEKER_ST, 1, total_reads, statistics_p); 
+    statistics_add(CAL_SEEKER_ST, 2, num_reads_unmapped, statistics_p); 
+    
+    statistics_add(TOTAL_ST, 2, num_reads_unmapped, statistics_p); 
   }
- 
-  printf("cal_seeker_server (%lu reads unmapped by No CALs | %lu reads unmapped by MAX CALs): END\n", num_without_cals, num_reads_unmapped - num_without_cals); 
+  */
+  printf("cal_seeker_server(%lu reads unmapped): END\n", num_reads_unmapped); 
   // free memory for mapping list
-  
+   
 }
 
 //====================================================================================
 // apply_caling
 //====================================================================================
-int unmapped_by_max_cals_counter[100];
-int unmapped_by_zero_cals_counter[100];
+//int unmapped_by_max_cals_counter[100];
+//int unmapped_by_zero_cals_counter[100];
 
-void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
+void apply_caling(cal_seeker_input_t* input, mapping_batch_t *batch) {
 
   //  printf("START: apply_caling\n"); 
   int tid = omp_get_thread_num();
 
   array_list_t *list = NULL;
-  size_t index, num_cals, min_seeds, max_seeds;
-  size_t num_seqs = batch->num_targets;
+  size_t read_index, num_cals, min_seeds, max_seeds;
   int min_limit;
 
-  size_t num_outputs = 0;
-  size_t *outputs = (size_t *) calloc(num_seqs, sizeof(size_t));
-  
   cal_t *cal;
   array_list_t *cal_list;
 
+  size_t num_targets = batch->num_targets;
+  size_t *targets = batch->targets;
+  size_t new_num_targets = 0;
+  //  size_t *new_targets = (size_t *) calloc(num_targets, sizeof(size_t));
+  
   // set to zero
-  batch->num_done = batch->num_to_do;
   batch->num_to_do = 0;
 
-  for (size_t i = 0; i < num_seqs; i++) {
+  for (size_t i = 0; i < num_targets; i++) {
 
-    index = batch->targets[i];
+    read_index = targets[i];
     
-    if (list == NULL) {
+    if (!list) {
       list = array_list_new(1000, 
 			    1.25f, 
 			    COLLECTION_MODE_ASYNCHRONIZED);
@@ -211,7 +168,7 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
     }
     */
     // optimized version
-    num_cals = bwt_generate_cal_list_linkedlist(batch->mapping_lists[index], 
+    num_cals = bwt_generate_cal_list_linkedlist(batch->mapping_lists[read_index], 
 						input->cal_optarg,
 						&min_seeds, &max_seeds,
 						list);
@@ -283,13 +240,14 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
       array_list_set_flag(2, cal_list);
       batch->num_to_do += num_cals;
 
-      outputs[num_outputs++] = index;
+      targets[new_num_targets++] = read_index;
       
       // we have to free the region list
-      array_list_free(batch->mapping_lists[index], (void *)region_free);
-      batch->mapping_lists[index] = cal_list;
+      array_list_free(batch->mapping_lists[read_index], (void *) region_bwt_free);
+      batch->mapping_lists[read_index] = cal_list;
     } else {
-      array_list_set_flag(0, batch->mapping_lists[index]);
+      array_list_set_flag(0, batch->mapping_lists[read_index]);
+      /*
       if (num_cals > 0) {
 	if (strncmp("@rand", &(batch->fq_batch->header[batch->fq_batch->header_indices[index]]), 5)) {
 	  unmapped_by_max_cals_counter[tid]++;
@@ -300,24 +258,25 @@ void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch) {
 	  unmapped_by_zero_cals_counter[tid]++;
 	}
       }
+      */
       // we have to free the region list
-      array_list_clear(batch->mapping_lists[index], (void *)region_free);
-      if (cal_list) array_list_free(cal_list, (void *)cal_free);
-      if (list) array_list_clear(list, (void *)cal_free);
+      array_list_clear(batch->mapping_lists[read_index], (void *) region_bwt_free);
+      if (cal_list) array_list_free(cal_list, (void *) cal_free);
+      if (list) array_list_clear(list, (void *) cal_free);
     }
   } // end for 0 ... num_seqs
 
   // update batch
-  batch->num_allocated_targets = num_seqs;
-  batch->num_targets = num_outputs;
-  if (batch->targets != NULL) free(batch->targets);
-  batch->targets = outputs;
+  batch->num_targets = new_num_targets;
+  //  batch->num_allocated_targets = num_targets;
+  //  if (batch->targets) free(batch->targets);
+  //  batch->targets = new_targets;
   
   // update counter
-  thr_cal_items[tid] += batch->num_done;
+  //  thr_cal_items[tid] += batch->num_done;
 
   // free memory
-  if (list != NULL) array_list_free(list, NULL);
+  if (list) array_list_free(list, NULL);
   /*
   {
     // displaying for debugging

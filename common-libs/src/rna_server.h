@@ -2,18 +2,19 @@
 #ifndef RNA_SERVER_H
 #define RNA_SERVER_H
 
-#include "genome.h"
 #include "sw_server.h"
 #include "rna_splice.h"
 #include "buffers.h"
 #include "timing.h"
 #include "sw.h"
+#include "cal_seeker.h"
 
 #include "containers/list.h"
 #include "commons/commons.h"
 #include "commons/system_utils.h"
 #include "bioformats/bam-sam/alignment.h"
 #include "aligners/bwt/bwt.h"
+#include "aligners/bwt/genome.h"
 
 //#include "list.h"
 //#include "genome.h"
@@ -114,7 +115,7 @@ char* cigar_automata_status(unsigned char status);
  * 
  * Insert one new cigar operation to the allocate array.
  */
-void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int *pos, unsigned int status, unsigned int *number);
+//void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int *pos, unsigned int status, unsigned int *number);
 
 /**
  * @brief  Process Smith-Waterman outputs for search splice junctions and generate cigar string.
@@ -140,10 +141,16 @@ void cigar_generator(cigar_data_t *cigar_p, unsigned int *max_len, unsigned int 
  * generate cigar string. 
  */
 void search_splice_junctions_sw_output(sw_simd_input_t* sw_input_p, 
-				       sw_simd_output_t* sw_output_p, unsigned int depth, 
-				       allocate_fusion_data_t *depth_cal_fusion_p, allocate_splice_elements_t *chromosome_avls_p, 
-				       sw_channel_t *sw_channels_p, sw_batch_t *sw_batch_p, 
-				       unsigned int sw_id, size_t *sw_no_valids, float min_score, genome_t *genome_p, 
-				       unsigned int min_intron_length, array_list_t **allocate_mappings);
+				       sw_simd_output_t* sw_output_p, 
+				       unsigned int depth, 
+				       allocate_fusion_data_t *depth_cal_fusion_p,
+				       allocate_splice_elements_t *chromosome_avls_p, 
+				       sw_channel_t *sw_channels_p, 
+				       mapping_batch_t *mapping_batch_p, 
+				       unsigned int sw_id, 
+				       size_t *sw_no_valids, 
+				       float min_score, 
+				       genome_t *genome_p, 
+				       int min_intron_length);
 
 #endif

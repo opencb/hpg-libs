@@ -161,7 +161,8 @@ allocate_buffers_t * process_avlnode_in_order(cp_avlnode *node, unsigned int chr
 }
 
 allocate_buffers_t* process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chromosome,
-					     list_t* write_list_p, unsigned int write_size, allocate_buffers_t *allocate_batches) {
+						  list_t* write_list_p, unsigned int write_size, 
+						  allocate_buffers_t *allocate_batches) {
   int i;
   char strand[2] = {'+', '-'};
   list_item_t* item_p = NULL;
@@ -171,15 +172,20 @@ allocate_buffers_t* process_avlnode_ends_in_order(node_element_splice_t *node, u
 
   for(i = 0; i < node->number_allocate_ends; i++){
     if(( allocate_batches->write_exact_sp->size + 100) > write_size) {
-      item_p = list_item_new(0, WRITE_ITEM,  allocate_batches->write_exact_sp);
-      list_insert_item(item_p, write_list_p);
-      allocate_batches->write_exact_sp = write_batch_new(write_size, SPLICE_EXACT_FLAG);
+      //item_p = list_item_new(0, WRITE_ITEM,  allocate_batches->write_exact_sp);
+      //list_insert_item(item_p, write_list_p);
+      //allocate_batches->write_exact_sp = write_batch_new(write_size, SPLICE_EXACT_FLAG);
+      fwrite((char *)allocate_batches->write_exact_sp->buffer_p, allocate_batches->write_exact_sp->size, 1, allocate_batches->fd_exact);
+      fwrite((char *)allocate_batches->write_extend_sp->buffer_p, allocate_batches->write_extend_sp->size, 1, allocate_batches->fd_extend);
+      allocate_batches->write_exact_sp->size = 0;
+      allocate_batches->write_extend_sp->size = 0;
     } 
+    /*
     if(( allocate_batches->write_extend_sp->size + 100) > write_size) {
-      item_p = list_item_new(0, WRITE_ITEM,  allocate_batches->write_extend_sp);
-      list_insert_item(item_p, write_list_p);
-      allocate_batches->write_extend_sp = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
-    } 
+      //item_p = list_item_new(0, WRITE_ITEM,  allocate_batches->write_extend_sp);
+      //list_insert_item(item_p, write_list_p);
+      //allocate_batches->write_extend_sp = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
+      } */
 
     bytes_exact = pack_junction(chromosome, node->allocate_ends[i]->strand, 
 				node->splice_start, node->allocate_ends[i]->end, 
@@ -245,13 +251,13 @@ void process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chr
     // More than one read
     if((exact_splice_write_p->size + 100) > write_size) {
       item_p = list_item_new(0, WRITE_ITEM, exact_splice_write_p);
-      list_insert_item(item_p, write_list_p);
+      //list_insert_item(item_p, write_list_p);
       exact_splice_write_p = write_batch_new(write_size, SPLICE_EXACT_FLAG);
     } 
     
     if((extend_splice_write_p->size + 100) > write_size) {
       item_p = list_item_new(0, WRITE_ITEM, extend_splice_write_p);
-      list_insert_item(item_p, write_list_p);
+      //list_insert_item(item_p, write_list_p);
       exact_splice_write_p = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
     } 
     
@@ -271,7 +277,7 @@ void process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chr
     list_item_t* item_p = NULL;
     if(exact_splice_write_p->size > 0) {
       item_p = list_item_new(0, WRITE_ITEM, exact_splice_write_p);
-      list_insert_item(item_p, write_list_p);
+      //list_insert_item(item_p, write_list_p);
       printf("Insert 1\n");
     } else {
       write_batch_free(exact_splice_write_p);
@@ -282,7 +288,7 @@ void process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chr
     list_item_t* item_p = NULL;
     if(extend_splice_write_p->size > 0) {
       item_p = list_item_new(0, WRITE_ITEM, extend_splice_write_p);
-      list_insert_item(item_p, write_list_p);
+      //list_insert_item(item_p, write_list_p);
       printf("Insert 2\n");
     } else {
       write_batch_free(extend_splice_write_p);
@@ -293,34 +299,47 @@ void process_avlnode_ends_in_order(node_element_splice_t *node, unsigned int chr
 */
 
 
-void process_and_free_chromosome_avls(allocate_splice_elements_t *chromosome_avls, 
-				      list_t* write_list_p, unsigned int write_size) {
+void write_chromosome_avls(allocate_splice_elements_t *chromosome_avls, 
+			   list_t* write_list_p, char *extend_sp, char *exact_sp, 
+			   unsigned int write_size) {
   int c;
   allocate_buffers_t *allocate_batches = (allocate_buffers_t *)malloc(sizeof(allocate_buffers_t));
-  write_batch_t *exact_splice_write_p;
-  write_batch_t *extend_splice_write_p;
+  //write_batch_t *exact_splice_write_p;
+  //write_batch_t *extend_splice_write_p;
+  //printf("Open splice\n");
+  FILE *fd_exact = fopen(exact_sp, "w");
+  FILE *fd_extend = fopen(extend_sp, "w");
+  //  printf("Open splice\n");
 
+  allocate_batches->fd_exact = fd_exact;
+  allocate_batches->fd_extend = fd_extend;
+
+  allocate_batches->write_exact_sp  = write_batch_new(write_size, SPLICE_EXACT_FLAG);
+  allocate_batches->write_extend_sp  = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
+      
   for(c = 0; c < CHROMOSOME_NUMBER; c++){
     if(chromosome_avls[c].avl_splice->root != NULL) {
-      allocate_batches->write_exact_sp  = write_batch_new(write_size, SPLICE_EXACT_FLAG);
-      allocate_batches->write_extend_sp  = write_batch_new(write_size, SPLICE_EXTEND_FLAG);
       //allocate_batches->write_extend_sp  = write_batch_new(1000, SPLICE_EXTEND_FLAG);
 
       allocate_batches = process_avlnode_in_order(chromosome_avls[c].avl_splice->root, c, write_list_p, write_size, allocate_batches);
       
-      exact_splice_write_p = allocate_batches->write_exact_sp;
-      extend_splice_write_p = allocate_batches->write_extend_sp;
+      //exact_splice_write_p = allocate_batches->write_exact_sp;
+      //extend_splice_write_p = allocate_batches->write_extend_sp;
       
-      if(exact_splice_write_p != NULL) {
-	list_item_t* item_p = NULL;
-	if(exact_splice_write_p->size > 0) {
-	  item_p = list_item_new(0, WRITE_ITEM, exact_splice_write_p);
-	  list_insert_item(item_p, write_list_p);
-	} else {
-	  write_batch_free(exact_splice_write_p);
+      if(allocate_batches->write_extend_sp != NULL) {
+	if(allocate_batches->write_extend_sp->size > 0) {
+	  //item_p = list_item_new(0, WRITE_ITEM, exact_splice_write_p);
+	  //list_insert_item(item_p, write_list_p);
+	  //} else {
+	  //write_batch_free(exact_splice_write_p);
+	  //}
+	  fwrite((char *)allocate_batches->write_exact_sp->buffer_p, allocate_batches->write_exact_sp->size, 1, allocate_batches->fd_exact);
+	  fwrite((char *)allocate_batches->write_extend_sp->buffer_p, allocate_batches->write_extend_sp->size, 1, allocate_batches->fd_extend);
+	  allocate_batches->write_exact_sp->size = 0;
+	  allocate_batches->write_extend_sp->size = 0;
 	}
       }
-
+	/*
       if(extend_splice_write_p != NULL) {
 	list_item_t* item_p = NULL;
 	if(extend_splice_write_p->size > 0) {
@@ -329,19 +348,25 @@ void process_and_free_chromosome_avls(allocate_splice_elements_t *chromosome_avl
 	  } else {
 	  write_batch_free(extend_splice_write_p);
 	}
-      }
+	}*/
       
     }//end IF chromosome splice not NULL
     cp_avltree_destroy(chromosome_avls[c].avl_splice);
   }
-  
-  free(allocate_batches);
 
+  write_batch_free(allocate_batches->write_exact_sp);
+  write_batch_free(allocate_batches->write_extend_sp);
+  fclose(allocate_batches->fd_extend);
+  fclose(allocate_batches->fd_exact);
+
+  free(allocate_batches);
+  basic_statistics_sp_init(total_splice, junction_id, &basic_st);
+  /*
   if (statistics_on) { 
     statistics_set(TOTAL_ST, 3, total_splice, statistics_p);
   }
+  */
   
-  list_decr_writers(write_list_p);
 }
 
 //====================================================================================================

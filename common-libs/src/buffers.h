@@ -6,7 +6,7 @@
 
 #include "bioformats/bam-sam/alignment.h"
 #include "aligners/bwt/bwt.h"
-#include "genome.h"
+#include "aligners/bwt/genome.h"
 #include "timing.h"
 #include "statistics.h"
 
@@ -34,6 +34,12 @@
 
 //------------------------------------------------------------------------------------
 
+#define PAIR_1 1
+#define PAIR_2 2
+#define PAIR_1_2 3
+
+//------------------------------------------------------------------------------------
+
 #define UNKNOWN_ITEM    0
 #define READ_ITEM       1
 #define KL_ITEM         2
@@ -57,15 +63,12 @@
 //------------------------------------------------------------------------------------
 
 #define INIT_BWT_INDEX         	0
-#define INIT_GENOME_INDEX       1
-#define FASTQ_READER	 	2
-#define BWT_SERVER	   	3
-#define REGION_SEEKER		4
-#define CAL_SEEKER	   	5
-#define SW_SERVER	    	6
-#define BATCH_WRITER	 	7
-#define FREE_MAIN         	8
-#define MAIN_INDEX         	9
+#define BWT_SERVER	   	1
+#define REGION_SEEKER		2
+#define CAL_SEEKER	   	3
+#define SW_SERVER	    	4
+#define FREE_MAIN         	5
+#define MAIN_INDEX         	6
 
 //------------------------------------------------------------------------------------
 
@@ -166,7 +169,25 @@ void pair_mng_free(pair_mng_t *p);
 
 //------------------------------------------------------------------------------------
 
-typedef struct aligner_batch {
+typedef struct mapping_batch {
+  int action;
+  size_t num_targets;
+  size_t num_allocated_targets;
+
+  size_t num_to_do;
+
+  array_list_t *fq_batch;
+  size_t *targets;
+  array_list_t **mapping_lists;
+  char *status; //TODO: ¿?
+  pair_mng_t *pair_mng;
+} mapping_batch_t;
+
+mapping_batch_t *mapping_batch_new(array_list_t *fq_batch, pair_mng_t *pair_mng);
+void mapping_batch_free(mapping_batch_t *p);
+
+/*
+typedef struct rna_batch {
   int action;
   int all_targets;
   size_t num_targets;
@@ -176,15 +197,15 @@ typedef struct aligner_batch {
   size_t num_done;
   size_t num_to_do;
 
-  fastq_batch_t *fq_batch;
+  array_list_t *fq_batch;
   size_t *targets;
   array_list_t **mapping_lists;
   char *status;
-} aligner_batch_t;
+} rna_batch_t;
 
-aligner_batch_t *aligner_batch_new(fastq_batch_t *fq_batch);
-void aligner_batch_free(aligner_batch_t *p);
-
+rna_batch_t *rna_batch_new(array_list_t *fq_batch);
+void rna_batch_free(rna_batch_t *p);
+*/
 //=====================================================================================
 //=====================================================================================
 

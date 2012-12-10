@@ -14,6 +14,8 @@
 typedef struct allocate_buffers {
   write_batch_t *write_exact_sp;
   write_batch_t *write_extend_sp;
+  FILE *fd_extend;
+  FILE *fd_exact;
 }allocate_buffers_t;
 
 
@@ -183,8 +185,9 @@ allocate_buffers_t* process_avlnode_ends_in_order(node_element_splice_t *node, u
  * 
  * Sequential function for process each chromosome avl tree and free.
  */
-void process_and_free_chromosome_avls(allocate_splice_elements_t *chromosome_avls, 
-				      list_t* write_list_p, unsigned int write_size);
+void write_chromosome_avls(allocate_splice_elements_t *chromosome_avls, 
+			   list_t* write_list_p, char *extend_sp, char *exact_sp, 
+			   unsigned int write_size);
 
 //====================================================================================================
 
