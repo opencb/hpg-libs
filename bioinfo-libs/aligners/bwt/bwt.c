@@ -2868,7 +2868,9 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   size_t chromosome_id;
   short int strand;
   size_t start, end;  
-  cp_list_iterator itr;
+  // removing cprops dependencies
+  // cp_list_iterator itr;
+  linked_list_iterator_t itr;
 
   *max_seeds = 0;
   *min_seeds = 1000;
@@ -2880,14 +2882,15 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   for (unsigned int i = 0; i < nstrands; i++) {
     cals_list[i] = (cp_list **)malloc(sizeof(cp_list *)*nchromosomes);
     for (unsigned int j = 0; j < nchromosomes; j++) {
-      cals_list[i][j] = //cp_list_create_nosync();
-      cp_list_create_list(COLLECTION_MODE_NOSYNC |
-			  /*COLLECTION_MODE_COPY |*/
-			  COLLECTION_MODE_DEEP |
-			  COLLECTION_MODE_MULTIPLE_VALUES,
-			  (cp_compare_fn) cal_location_compare,
-			  NULL/*(cp_copy_fn) cal_location_dup*/,
-			  (cp_destructor_fn) short_cal_free);
+      // removing cprops dependencies
+      //      cals_list[i][j] = cp_list_create_list(COLLECTION_MODE_NOSYNC |
+      //					    /*COLLECTION_MODE_COPY |*/
+      //					    COLLECTION_MODE_DEEP |
+      //					    COLLECTION_MODE_MULTIPLE_VALUES,
+      //					    (cp_compare_fn) cal_location_compare,
+      //					    NULL/*(cp_copy_fn) cal_location_dup*/,
+      //					    (cp_destructor_fn) short_cal_free);
+      cals_list[i][j] = linked_list_new(COLLECTION_MODE_SYNCHRONIZED);
     }
   }
     
@@ -2899,7 +2902,9 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     strand = region->strand;
     //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
     //printf("Region strand:%i - chromosome:%i\n", strand, chromosome_id);
-    my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
+    // removing cprops dependencies
+    // my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
+    my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
     //printf("Insert ok!\n");
   }
  
@@ -2907,8 +2912,11 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   cal_t *cal;
   for (unsigned int j = 0; j < nchromosomes; j++) {
     for (unsigned int i = 0; i < nstrands; i++) {
-      cp_list_iterator_init(&itr, cals_list[i][j], COLLECTION_LOCK_NONE);
-      short_cal_p = cp_list_iterator_curr(&itr);
+      // removing cprops dependencies
+      // cp_list_iterator_init(&itr, cals_list[i][j], COLLECTION_LOCK_NONE);
+      // short_cal_p = cp_list_iterator_curr(&itr);
+      linked_list_iterator_init(cals_list[i][j], &itr);
+      short_cal_p = linked_list_iterator_curr(&itr);
       
       while (short_cal_p != NULL) {
 	if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
@@ -2935,10 +2943,16 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 	  array_list_insert(cal, cal_list);
 	}
 	//short_cal_free(short_cal_p);
-	cp_list_iterator_next(&itr);
-	short_cal_p = cp_list_iterator_curr(&itr);
+
+	// removing cprops dependencies
+	// cp_list_iterator_next(&itr);
+	// short_cal_p = cp_list_iterator_curr(&itr);
+        linked_list_iterator_next(&itr);
+        short_cal_p = linked_list_iterator_curr(&itr);
       }
-      cp_list_destroy(cals_list[i][j]);
+      // removing cprops dependencies
+      // cp_list_destroy(cals_list[i][j]);
+      linked_list_free(cals_list[i][j], (void *)short_cal_free);
     }
   }
   
