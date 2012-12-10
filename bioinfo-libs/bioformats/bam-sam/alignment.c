@@ -506,7 +506,7 @@ char* convert_to_quality_string(uint8_t* quality_p) {
 */
 char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
     //asumming not more than 3 digits per operation
-    char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 4 * num_cigar_operations), sizeof(char));
+    char* cigar_string = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, 10 * num_cigar_operations), sizeof(char));
     uint32_t cigar_int;
 
     for (int i = 0; i < num_cigar_operations; i++) {

@@ -428,7 +428,7 @@ void seq_reverse_complementary(char *seq, unsigned int len){
   char *seq_tmp = (char *)malloc(len*sizeof(char));
   memcpy(seq_tmp, seq, len);
   for (int i = len - 1; i >= 0; i--){
-    if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a'){
+    if (seq_tmp[i] == 'A' || seq_tmp[i] == 'a') {
       seq[j] = 'T';
     }
     else if (seq_tmp[i] == 'C' || seq_tmp[i] == 'c'){
@@ -440,7 +440,7 @@ void seq_reverse_complementary(char *seq, unsigned int len){
     else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
        seq[j] = 'A';
     }else {
-      seq[j] = 'N';
+       seq[j] = 'N';
     }
     j++;  
   }
@@ -878,7 +878,7 @@ size_t bwt_map_exact_seq(char *seq,
 	alignment_init_single_end(NULL, strdup(seq_strand), NULL, !type, 
 				  idx - 1,				      
 				  start_mapping, 
-				  cigar_p, 1, 255, 1, (num_mappings > 0), 0, optional_fields, alignment);
+				  cigar_p, 1, 254, 1, (num_mappings > 0), 0, optional_fields, alignment);
 	  
 	if(!array_list_insert((void*) alignment, mapping_list)){
 	  printf("Error to insert item into array list\n");
@@ -1457,7 +1457,7 @@ size_t bwt_map_inexact_seq(char *seq,
   int i, j, z;
   size_t *allocate_pos_alignments;
   size_t k_start, l_start;
-  char *optional_fields;
+
   //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
   seq_strand = strdup(seq);
   error = MISMATCH;
@@ -1626,14 +1626,13 @@ size_t bwt_map_inexact_seq(char *seq,
 	  //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
 	  //memcpy(seq_dup ,seq, len + 1);
 	  //seq_dup[len] = '\0';
-	  
+	  //printf("Align chr :%i, start:%lu\n", idx-1, index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]));
 	  // save all into one alignment structure and insert to the list
 	  alignment = alignment_new();
 	  alignment_init_single_end(NULL, seq_dup, quality_clipping, !type, 
 				    idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
 				    index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
-				    cigar_dup, num_cigar_ops, 255, 1, (num_mappings > 0), 0, optional_fields, alignment);
-	  	
+				    cigar_dup, num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
 	  array_list_insert((void*) alignment, mapping_list);
   
 	  num_mappings++;
@@ -2109,27 +2108,11 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
   size_t num_reads = array_list_size(reads);
   size_t chunk = MAX(1, num_reads/(num_threads*10));
   fastq_read_t* fq_read;
-
-  *num_unmapped = 0;
-  //printf("%i reads\n", num_reads);
-  #pragma omp parallel for private(fq_read) schedule(dynamic, chunk)
-  for (size_t i = 0; i < num_reads; i++) {
-    fq_read = (fastq_read_t *) array_list_get(i, reads);
-    //printf("Extract...\n");
-    //printf("%s\n", read_p->sequence);
-    bwt_map_inexact_seq(fq_read->sequence, 
-			bwt_optarg, index, 
-			lists[i]);
-  }
-  /*
-=======
-
-  alignment_t *alignment;
-  size_t header_len, num_mappings, total_mappings;
-  size_t num_threads = bwt_optarg->num_threads;
-  size_t num_reads = array_list_size(reads);
-  size_t chunk = MAX(1, num_reads/(num_threads*10));
-  fastq_read_t* fq_read;
+  char *p, *optional_fields;
+  size_t optional_fields_length = 100;
+  int distance;
+  int AS = 254;
+  int cigar_len;
 
   *num_unmapped = 0;
   //printf("%i reads\n", num_reads);
@@ -2143,8 +2126,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 			lists[i]);
   }
 
->>>>>>> a73fca259618cb91bb5ed5bb4f4e7c6f891a200d
-  */ for (size_t i = 0; i < num_reads; i++) {
+  for (size_t i = 0; i < num_reads; i++) {
     num_mappings = array_list_size(lists[i]);
     total_mappings += num_mappings;
     fq_read = (fastq_read_t *) array_list_get(i, reads);
@@ -2158,6 +2140,36 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 	get_to_first_blank(fq_read->id, header_len, alignment->query_name);
 	bwt_cigar_cpy(alignment, fq_read->quality);
 	//alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
+
+	//************************* OPTIONAL FIELDS ***************************//
+	optional_fields = (char *)calloc(optional_fields_length, sizeof(char));
+	p = optional_fields;
+
+	sprintf(p, "ASi");
+	p += 3;
+	memcpy(p, &AS, sizeof(int));
+	p += sizeof(int);
+	
+	sprintf(p, "NHi");
+	p += 3;
+	memcpy(p, &num_mappings, sizeof(int));
+	p += sizeof(int);
+
+	sprintf(p, "NMi");
+	p += 3;
+	cigar_len = strlen(alignment->cigar);
+
+	if (alignment->cigar[cigar_len - 1] == '=') {
+	  distance = 0;
+	} else {
+	  distance = 1;
+	}
+
+	memcpy(p, &distance, sizeof(int));
+	p += sizeof(int);
+	alignment->optional_fields_length = p - optional_fields;
+	alignment->optional_fields = optional_fields;
+	//************************* OPTIONAL FIELDS END ************************//
       }
     } else {
       unmapped_indices[(*num_unmapped)++] = i;
@@ -2868,14 +2880,14 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   for (unsigned int i = 0; i < nstrands; i++) {
     cals_list[i] = (cp_list **)malloc(sizeof(cp_list *)*nchromosomes);
     for (unsigned int j = 0; j < nchromosomes; j++) {
-      cals_list[i][j] = cp_list_create_nosync();
-      //cp_list_create_list(COLLECTION_MODE_NOSYNC |
-					    /*COLLECTION_MODE_COPY |*/
-					    //COLLECTION_MODE_DEEP |
-					    //COLLECTION_MODE_MULTIPLE_VALUES,
-					    //(cp_compare_fn) cal_location_compare,
-					    //NULL/*(cp_copy_fn) cal_location_dup*/,
-					    //(cp_destructor_fn) short_cal_free);
+      cals_list[i][j] = //cp_list_create_nosync();
+      cp_list_create_list(COLLECTION_MODE_NOSYNC |
+			  /*COLLECTION_MODE_COPY |*/
+			  COLLECTION_MODE_DEEP |
+			  COLLECTION_MODE_MULTIPLE_VALUES,
+			  (cp_compare_fn) cal_location_compare,
+			  NULL/*(cp_copy_fn) cal_location_dup*/,
+			  (cp_destructor_fn) short_cal_free);
     }
   }
     
@@ -2886,7 +2898,9 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     chromosome_id = region->chromosome_id;
     strand = region->strand;
     //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
+    //printf("Region strand:%i - chromosome:%i\n", strand, chromosome_id);
     my_cp_list_append(cals_list[strand][chromosome_id], region, max_cal_distance);
+    //printf("Insert ok!\n");
   }
  
   //Store CALs in Array List for return results
@@ -3054,7 +3068,8 @@ size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
     region = array_list_get(m, mapping_list);
     chromosome_id = region->chromosome_id;
     strand = region->strand;
-    //if (chromosome_id == 6)printf("Insert new region %i[%lu-%lu]\n", chromosome_id, region->start, region->end);
+    //printf("Insert new region [%lu-%lu]\n", region->start, region->end);
+
     //printf("List before insert:\n");
     //linked_list_print(cals_list[strand][chromosome_id], print_se_region);
     //if (chromosome_id == 6)printf("-----------------------------------------------------------------\n");

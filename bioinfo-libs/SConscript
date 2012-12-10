@@ -11,7 +11,7 @@ vars.Add(PathVariable('SAMTOOLS_LIBRARY_PATH', 'Path to the compiled samtools li
 
 env = Environment(variables = vars,
       	          CC = compiler, 
-                  CFLAGS = '-std=c99 -fopenmp',
+                  CFLAGS = '-std=c99 -fopenmp -g',
                   CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '$CPROPS_INCLUDE_PATH', '$SAMTOOLS_INCLUDE_PATH' ],
                   LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH', '$SAMTOOLS_LIBRARY_PATH' ])
 env.Decider('MD5-timestamp')
