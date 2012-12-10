@@ -2,7 +2,7 @@
  * linked_list.h
  *
  *  Created on: Nov 7, 2012
- *      Author: imedina
+ *      Author: imedina, hmartinez
  */
 
 #ifndef LINKED_LIST_H_
@@ -48,6 +48,8 @@ typedef struct linked_list_iterator {
 /*******************************************************************/
 
 linked_list_iterator_t* linked_list_iterator_new(linked_list_t *linked_list_p);
+
+linked_list_iterator_t* linked_list_iterator_init(linked_list_t *linked_list_p, linked_list_iterator_t *iterator_p);
 
 void linked_list_iterator_free(linked_list_iterator_t *iterator_p);
 

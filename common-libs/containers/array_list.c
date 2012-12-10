@@ -321,7 +321,7 @@ void* array_list_get(size_t index, array_list_t *array_list_p) {
 
 //TODO
 array_list_t* array_list_sublist(size_t start, size_t end, array_list_t *array_list_p, array_list_t *sublist) {
-	return NULL;
+    return NULL;
 }
 
 void* array_list_set(size_t index, void *item_p, array_list_t *array_list_p) {

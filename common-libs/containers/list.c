@@ -303,6 +303,7 @@ int list_incr_writers(list_t* list_p) {
   pthread_mutex_lock(&list_p->lock);
   list_p->writers++;
   writers = list_p->writers;
+
   pthread_mutex_unlock(&list_p->lock);
 
   return list_p->writers;
@@ -323,6 +324,7 @@ int list_decr_writers(list_t* list_p) {
   pthread_mutex_lock(&list_p->lock);
   list_p->writers--;
   writers = list_p->writers;
+
   if(list_p->removing > 0);
      pthread_cond_broadcast(&list_p->condition);
   pthread_mutex_unlock(&list_p->lock);

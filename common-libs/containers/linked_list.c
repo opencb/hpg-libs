@@ -2,7 +2,7 @@
  * linked_list.c
  *
  *  Created on: Nov 7, 2012
- *      Author: imedina
+ *      Author: imedina, hmartinez
  */
 
 #include "linked_list.h"
@@ -45,7 +45,6 @@ void linked_list_item_free(linked_list_item_t *linked_list_item, void (*data_cal
 	}
 
 	free(linked_list_item);
-
 }
 
 
@@ -116,11 +115,12 @@ int linked_list_clear(linked_list_t *linked_list_p, void (*data_callback) (void*
 		linked_list_item_t *curr_item = linked_list_p->first;
 		linked_list_item_t *next_item;
 		while(curr_item != NULL) {
-			if(data_callback != NULL) {
+		  //if(data_callback != NULL) {
 				next_item = curr_item->next;
-				data_callback(curr_item);
+				//data_callback(curr_item);
+				linked_list_item_free(curr_item, data_callback);
 				curr_item = next_item;
-			}
+				//	}
 		}
 		// Set default parameters
 		linked_list_p->size = 0;
@@ -484,6 +484,15 @@ linked_list_iterator_t* linked_list_iterator_new(linked_list_t *linked_list_p) {
 	return NULL;
 }
 
+linked_list_iterator_t* linked_list_iterator_init(linked_list_t *linked_list_p, linked_list_iterator_t *iterator_p) {
+	if(linked_list_p && iterator_p) {
+		iterator_p->linked_list_p = linked_list_p;
+		iterator_p->curr_pos = linked_list_p->first;
+		return iterator_p;
+	}
+	return NULL;
+}
+
 void linked_list_iterator_free(linked_list_iterator_t *iterator_p) {
 	free(iterator_p);
 }
@@ -498,14 +507,16 @@ void* linked_list_iterator_next(linked_list_iterator_t *iterator_p) {
 
 	if (iterator_p && iterator_p->curr_pos) {
 		item = iterator_p->curr_pos->item;
-		if (iterator_p->curr_pos->next) { iterator_p->curr_pos = iterator_p->curr_pos->next; }
+		//if (iterator_p->curr_pos->next) {
+		iterator_p->curr_pos = iterator_p->curr_pos->next; 
+		  //}
 	}
 
 	return item;
 }
 
 void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
-	void* item = NULL;
+  void* item = NULL;
 
   if (iterator_p && iterator_p->curr_pos) {
     item = iterator_p->curr_pos->item;
@@ -513,8 +524,9 @@ void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p) {
       iterator_p->curr_pos = iterator_p->curr_pos->prev; 
     }
   }
+  
+  return item;
 
-	return item;
 }
 
 void* linked_list_iterator_last(linked_list_iterator_t *iterator_p) {
@@ -550,8 +562,7 @@ int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p) 
     list_item->next = iterator_p->curr_pos;
     
     if (iterator_p->curr_pos) {
-      list_item->prev = iterator_p->curr_pos->prev;
-      
+      list_item->prev = iterator_p->curr_pos->prev;      
       //iterator_p->curr_pos->prev = list_item;
       //list_item->next = iterator_p->curr_pos;
       if (iterator_p->curr_pos->prev) {
@@ -562,10 +573,10 @@ int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p) 
       if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
 	iterator_p->linked_list_p->first = list_item;
       }
-    }else if (iterator_p->linked_list_p->first == NULL) {
+    } else if (iterator_p->linked_list_p->first == NULL) {
       iterator_p->linked_list_p->first = list_item;
       iterator_p->linked_list_p->last = list_item;
-    }else {
+    } else {
       return 0;
     }
     iterator_p->linked_list_p->size++;
@@ -592,7 +603,7 @@ void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p) {
       /*************** ITERATOR ARE IN LAST POSITION *************/
       iterator_p->linked_list_p->last = iterator_p->curr_pos->prev;
       iterator_p->linked_list_p->last->next = NULL;
-      iterator_p->curr_pos = iterator_p->linked_list_p->last;
+      iterator_p->curr_pos = NULL;
     }else { 
       /*************** ITERATOR ARE IN MIDDLE *************/
       iterator_p->curr_pos->prev->next = iterator_p->curr_pos->next;
