@@ -18,6 +18,10 @@
   #define MIN(a,b) ((a) > (b) ? (b) : (a))
 #endif
 
+#ifndef NORM_SCORE
+  #define NORM_SCORE(s,l,m) ((s) / ((l) * (m)))
+#endif
+
 #define ZERO 0
 #define LEFT 1
 #define DOWN 2

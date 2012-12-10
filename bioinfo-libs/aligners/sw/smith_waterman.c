@@ -733,36 +733,44 @@ void reallocate_memory(int max_q_len, int max_r_len, int simd_depth,
 		       int *H_size, float **H, int **C, int *F_size, float **F, 
 		       int *aux_size, char **q_aux, char **r_aux) {
  
+  int size_h, size_c, size_f;
   unsigned int matrix_size = max_q_len * max_r_len;
   
+  size_h = simd_depth * matrix_size * sizeof(float);
+  size_c = simd_depth * matrix_size * sizeof(int);
   if (matrix_size > *H_size) {
     if (*H_size > 0) {
       _mm_free(*H);
       _mm_free(*C);
     }
-    
-    *H = (float *) _mm_malloc(simd_depth * matrix_size * sizeof(float), 16);
-    *C = (int *) _mm_malloc(simd_depth * matrix_size * sizeof(int), 16);
+
+    *H = (float *) _mm_malloc(size_h, 16);
+    *C = (int *) _mm_malloc(size_c, 16);
     //printf("new H %x, C %x\n", *H, *C);
     *H_size = matrix_size;
   }
+  //  memset(*H, 0, size_h);
+  //  memset(*C, 0, size_c);
 
+  size_f = simd_depth * max_q_len * sizeof(float);
   if (max_q_len > *F_size) {
     if (*F_size > 0) _mm_free(*F);
-    *F = (float *) _mm_malloc(simd_depth * max_q_len * sizeof(float), 16);
+    *F = (float *) _mm_malloc(size_f, 16);
     //printf("new F %x\n", *F);
     *F_size = max_q_len;
   }
+  //  memset(*F, 0, size_f);
 
-  if (max_r_len > *aux_size) {
+  int max_size = (max_r_len > max_q_len ? max_r_len : max_q_len);
+  if (max_size > *aux_size) {
     if (*aux_size > 0) {
       free(*q_aux);
       free(*r_aux);
     }
-    *q_aux = (char *) calloc(max_r_len * 2, sizeof(char));
-    *r_aux = (char *) calloc(max_r_len * 2, sizeof(char));
+    *q_aux = (char *) calloc(max_size * 2, sizeof(char));
+    *r_aux = (char *) calloc(max_size * 2, sizeof(char));
     //printf("new q_aux %x, r_aux %x\n", *q_aux, *r_aux);
-    *aux_size = max_r_len;
+    *aux_size = max_size;
   }
 }
 

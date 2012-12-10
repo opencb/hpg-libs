@@ -104,7 +104,7 @@ alignment_t* alignment_new();
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, int optional_fields_length, char *optional_fields, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -287,8 +287,7 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
  */
 char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, 
 			 unsigned int seq_orig_len, unsigned int length, 
-			 size_t *number_op_tot);
-
+			 int *distance, int *number_op_tot);
 
 #endif /* ALIGNMENTS_H */
 
