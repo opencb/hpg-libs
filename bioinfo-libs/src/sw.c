@@ -171,12 +171,17 @@ sw_simd_context_t* sw_simd_context_new(float match, float mismatch, float gap_op
     }
   }
   
-     context_p->matrix['A']['A'] = match; context_p->matrix['C']['A'] = mismatch; context_p->matrix['T']['A'] = mismatch; context_p->matrix['G']['A'] = mismatch;
+  context_p->matrix['A']['A'] = match;    context_p->matrix['C']['A'] = mismatch; context_p->matrix['T']['A'] = mismatch; context_p->matrix['G']['A'] = mismatch;
+  context_p->matrix['A']['C'] = mismatch; context_p->matrix['C']['C'] = match;    context_p->matrix['T']['C'] = mismatch; context_p->matrix['G']['C'] = mismatch;
+  context_p->matrix['A']['T'] = mismatch; context_p->matrix['C']['T'] = mismatch; context_p->matrix['T']['T'] = match;    context_p->matrix['G']['T'] = mismatch;
+  context_p->matrix['A']['G'] = mismatch; context_p->matrix['C']['G'] = mismatch; context_p->matrix['T']['G'] = mismatch; context_p->matrix['G']['G'] = match;
+  context_p->matrix['A']['N'] = mismatch; context_p->matrix['C']['N'] = mismatch; context_p->matrix['T']['N'] = mismatch; context_p->matrix['G']['N'] = mismatch;
 
-     context_p->matrix['A']['C'] = mismatch; context_p->matrix['C']['C'] = match; context_p->matrix['T']['C'] = mismatch; context_p->matrix['G']['C'] = mismatch;
-     context_p->matrix['A']['G'] = mismatch; context_p->matrix['C']['T'] = mismatch; context_p->matrix['T']['T'] = match; context_p->matrix['G']['T'] = mismatch;
-     context_p->matrix['A']['T'] = mismatch; context_p->matrix['C']['G'] = mismatch; context_p->matrix['T']['G'] = mismatch; context_p->matrix['G']['G'] = match;
 
+  context_p->matrix['N']['A'] = mismatch;
+  context_p->matrix['N']['C'] = mismatch;
+  context_p->matrix['N']['G'] = mismatch;
+  context_p->matrix['N']['N'] = match;
      //     sw_simd_context_update(200, 800, context_p);
 
 
@@ -270,9 +275,22 @@ void smith_waterman_simd(sw_simd_input_t* input, sw_simd_output_t* output,
 
   //printf("Process SW\n");
   for (size_t i = 0; i < num_queries; i++) {
-    if (input->seq_len_p[i] > max_q_len) max_q_len = input->seq_len_p[i];
-    if (input->ref_len_p[i] > max_r_len) max_r_len = input->ref_len_p[i];
+    //printf("REF(%d)(%d)\n", strlen(input->ref_p[i]), strlen(input->seq_p[i]));
+    //printf("REF(%d)/(%d) || (%d)/(%d)\n", input->ref_len_p[i], strlen(input->ref_p[i]), input->seq_len_p[i], strlen(input->seq_p[i]));
+    //printf("SEQ: %s\n", input->seq_p[i]);
+    if (input->seq_len_p[i] > max_q_len){
+      max_q_len = input->seq_len_p[i];
+      //max_r_len = input->seq_len_p[i];
+    }
+    if (input->ref_len_p[i] > max_r_len) {
+      //max_q_len = input->ref_len_p[i];
+      max_r_len = input->ref_len_p[i];
+    }
+    // if (input->ref_len_p[i] > max_r_len) max_r_len = input->ref_len_p[i];
+    //printf("(%i):%s\n", input->seq_len_p[i], input->seq_p[i]);
+    //printf("(%i):%s\n", input->ref_len_p[i], input->ref_p[i]);
   }
+  
 
   reallocate_memory(max_q_len, max_r_len, simd_depth, 
 		    &context->H_size, &context->H, &context->C, 
@@ -304,7 +322,8 @@ void smith_waterman_simd(sw_simd_input_t* input, sw_simd_output_t* output,
   */
   for(int i = 0; i < simd_depth; i++){
     //printf("Out: %s\n", output->mapped_seq_p[i]);
-    output->norm_score_p[i] = output->score_p[i] / (output->mapped_len_p[i] * context->substitution[1]);
+    //output->norm_score_p[i] = output->score_p[i] / (input->seq_len_p[i] * context->substitution[1]);
+    output->norm_score_p[i] = NORM_SCORE(output->score_p[i], input->seq_len_p[i], context->substitution[1]);
     //printf("Output Score %d, %d, %d\n", output->norm_score_p[i], output->mapped_len_p[i], output->score_p[i]);
   }
 }

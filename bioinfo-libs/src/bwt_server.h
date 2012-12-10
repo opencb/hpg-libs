@@ -57,14 +57,14 @@ void bwt_server_input_init(list_t* read_list_p, unsigned int batch_size, bwt_opt
  * in @a write_list_p to write these in bam file, the reads no mapped are stored in 
  * unmapped_read_list_p for continue process these in next phases of pipeline.  
  */
-void bwt_server_cpu(bwt_server_input_t* input_p);
+void bwt_server_cpu(bwt_server_input_t* input, pair_mng_t *pair_mng);
 
 
 //====================================================================================
 // apply_bwt
 //====================================================================================
 
-void apply_bwt(bwt_server_input_t* input, aligner_batch_t *batch);
+void apply_bwt(bwt_server_input_t* input, mapping_batch_t *batch);
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
