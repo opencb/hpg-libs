@@ -400,8 +400,12 @@ inline void sw_channel_update(size_t read_index, unsigned int cal_index, unsigne
 //====================================================================================
 //int unmapped_by_score_counter[100];
 
+//FILE *fd_ref = NULL, *fd_query = NULL;
+
 void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
 
+  //  if (fd_ref == NULL) { fd_ref = fopen("sw_ref2.txt", "w"); }
+  //  if (fd_query == NULL) { fd_query = fopen("sw_query2.txt", "w"); }
 
   //  printf("START: apply_sw\n"); 
   int tid = omp_get_thread_num();
@@ -469,7 +473,7 @@ void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
   uint8_t strands[sw_total], chromosomes[sw_total];
   size_t starts[sw_total];
   size_t sw_count = 0, read_indices[sw_total];
-  int read_len;
+  int read_len, ref_len, max_ref_len;
 
   // debugging: to kown how many reads are not mapped by SW score
   //  int unmapped_by_score[fq_batch->num_reads];
@@ -490,6 +494,7 @@ void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
     num_cals = array_list_size(cal_list);
 
     read_len = fq_read->length;
+    //    max_ref_len = read_len + (read_len / 2);
 
     //    printf("sw_server: num_cals = %i cals\n", num_cals);
 
@@ -500,35 +505,47 @@ void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
       cal = array_list_get(j, cal_list);
       read_indices[sw_count] = read_index;
 
-      // query sequence, revcomp if necessary
-      q[sw_count] = (char *) calloc((read_len + 1), sizeof(char));
-      memcpy(q[sw_count], fq_read->sequence, read_len);
-      if (cal->strand == 1) {
-	seq_reverse_complementary(q[sw_count], read_len);
-      }
-      //q[sw_count] = &(fq_batch->seq[fq_batch->data_indices[index]]);
-
-      // reference sequence
-      //printf("\tSW: %d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", j, cal->chromosome_id, cal->strand, cal->start, cal->end);
-  
       start = cal->start - flank_length;
       end = cal->end + flank_length;
-      r[sw_count] = calloc(1, end - start + 2);
-      genome_read_sequence_by_chr_index(r[sw_count], cal->strand,
-					cal->chromosome_id - 1, &start, &end, genome);
 
-      // save some stuff, we'll use them after...
-      strands[sw_count] = cal->strand;
-      chromosomes[sw_count] = cal->chromosome_id;
-      starts[sw_count] = start;
+      ref_len = end - start + 2;
+      //      if (ref_len < max_ref_len) {
 
-      /*
-      printf("\tread #%i (sw #%i of %i):\n", index, sw_count, sw_total);
-      printf("\t\tquery: %s (%i)\n\t\tref  : %s (%i)\n\n", 
-      	     q[sw_count], strlen(q[sw_count]), r[sw_count], strlen(r[sw_count]));
-      */
-      // increase counter
-      sw_count++;
+	// query sequence, revcomp if necessary
+	q[sw_count] = (char *) calloc((read_len + 1), sizeof(char));
+	memcpy(q[sw_count], fq_read->sequence, read_len);
+	if (cal->strand == 1) {
+	  seq_reverse_complementary(q[sw_count], read_len);
+	}
+	//q[sw_count] = &(fq_batch->seq[fq_batch->data_indices[index]]);
+	
+	// reference sequence
+	//printf("\tSW: %d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", j, cal->chromosome_id, cal->strand, cal->start, cal->end);
+	
+	r[sw_count] = calloc(1, end - start + 2);
+	genome_read_sequence_by_chr_index(r[sw_count], cal->strand,
+					  cal->chromosome_id - 1, &start, &end, genome);
+	
+	// save some stuff, we'll use them after...
+	strands[sw_count] = cal->strand;
+	chromosomes[sw_count] = cal->chromosome_id;
+	starts[sw_count] = start;
+	
+	//      if ( strchr(r[sw_count], 'N') == NULL && strlen(r[sw_count]) < (strlen(q[sw_count]) + (strlen(q[sw_count])/2)) ) {
+	//	fprintf(fd_ref, "%s\n", r[sw_count]);
+	//	fprintf(fd_query, "%s\n", q[sw_count]);
+	//      }
+	
+	/*
+	  printf("\tread #%i (sw #%i of %i):\n", index, sw_count, sw_total);
+	  printf("\t\tquery: %s (%i)\n\t\tref  : %s (%i)\n\n", 
+	  q[sw_count], strlen(q[sw_count]), r[sw_count], strlen(r[sw_count]));
+	*/
+	// increase counter
+	sw_count++;
+	//      } else {
+	//	printf("ref_len = %i (max. %i)\n", ref_len, max_ref_len);
+	//      }
     }
 
     // free cal_list

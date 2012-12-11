@@ -284,11 +284,13 @@ void batch_writer2(batch_writer_input_t* input) {
       }
       if (array_list) array_list_free(array_list, NULL);
     }
+    /*
     if (total_reads >= limit_print) {
       printf("TOTAL READS PROCESS: %lu\n", total_reads);
       printf("\tTotal Reads Mapped: %lu(%.2f%)\n", num_mapped_reads, (float)(num_mapped_reads*100)/(float)(total_reads));
       limit_print += 500000;
     }
+    */
     //printf("Batch Write OK!\n");
     
     if (batch != NULL) mapping_batch_free(batch);
