@@ -2095,6 +2095,45 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 }
 */
 //-----------------------------------------------------------------------------
+alignment_t* add_optional_fields(alignment_t *alignment, size_t n_mappings) {
+  char *p, *optional_fields;
+  size_t optional_fields_length = 100;
+  int distance;
+  int AS = 254;
+  int cigar_len;
+  
+  optional_fields = (char *)calloc(optional_fields_length, sizeof(char));
+  p = optional_fields;
+  
+  sprintf(p, "ASi");
+  p += 3;
+  memcpy(p, &AS, sizeof(int));
+  p += sizeof(int);
+  
+  sprintf(p, "NHi");
+  p += 3;
+  memcpy(p, &n_mappings, sizeof(int));
+  p += sizeof(int);
+  
+  sprintf(p, "NMi");
+  p += 3;
+  cigar_len = strlen(alignment->cigar);
+  
+  if (alignment->cigar[cigar_len - 1] == '=') {
+    distance = 0;
+  } else {
+    distance = 1;
+  }
+  
+  memcpy(p, &distance, sizeof(int));
+  p += sizeof(int);
+  alignment->optional_fields_length = p - optional_fields;
+  alignment->optional_fields = optional_fields;
+  
+  return alignment;
+}
+
+//-----------------------------------------------------------------------------
 size_t bwt_map_inexact_array_list(array_list_t *reads,
 				  bwt_optarg_t *bwt_optarg, 
 				  bwt_index_t *index,
@@ -2108,12 +2147,7 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
   size_t num_reads = array_list_size(reads);
   size_t chunk = MAX(1, num_reads/(num_threads*10));
   fastq_read_t* fq_read;
-  char *p, *optional_fields;
-  size_t optional_fields_length = 100;
-  int distance;
-  int AS = 254;
-  int cigar_len;
-
+ 
   *num_unmapped = 0;
   //printf("%i reads\n", num_reads);
   #pragma omp parallel for private(fq_read) schedule(dynamic, chunk)
@@ -2140,47 +2174,64 @@ size_t bwt_map_inexact_array_list(array_list_t *reads,
 	get_to_first_blank(fq_read->id, header_len, alignment->query_name);
 	bwt_cigar_cpy(alignment, fq_read->quality);
 	//alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
-
 	//************************* OPTIONAL FIELDS ***************************//
-	optional_fields = (char *)calloc(optional_fields_length, sizeof(char));
-	p = optional_fields;
-
-	sprintf(p, "ASi");
-	p += 3;
-	memcpy(p, &AS, sizeof(int));
-	p += sizeof(int);
-	
-	sprintf(p, "NHi");
-	p += 3;
-	memcpy(p, &num_mappings, sizeof(int));
-	p += sizeof(int);
-
-	sprintf(p, "NMi");
-	p += 3;
-	cigar_len = strlen(alignment->cigar);
-
-	if (alignment->cigar[cigar_len - 1] == '=') {
-	  distance = 0;
-	} else {
-	  distance = 1;
-	}
-
-	memcpy(p, &distance, sizeof(int));
-	p += sizeof(int);
-	alignment->optional_fields_length = p - optional_fields;
-	alignment->optional_fields = optional_fields;
-	//************************* OPTIONAL FIELDS END ************************//
+	alignment = add_optional_fields(alignment, num_mappings);
+	//*********************** OPTIONAL FIELDS END ************************//
       }
     } else {
       unmapped_indices[(*num_unmapped)++] = i;
       array_list_set_flag(0, lists[i]);
-      //      printf("\tbwt.c: bwt_map_inexact_batch_by_filter, setting flag to 0 for list %i\n", i);                                                                 
+      //      printf("\tbwt.c: bwt_map_inexact_batch_by_filter, setting flag to 0 for list %i\n", i);                                                       
     }
   }
 }
 
 //-----------------------------------------------------------------------------
 
+void bwt_map_inexact_array_list_by_filter(array_list_t *reads,
+					  bwt_optarg_t *bwt_optarg, 
+					  bwt_index_t *index,
+					  array_list_t **lists,
+					  size_t *num_unmapped, 
+					  size_t *unmapped_indices) {
+  alignment_t *alignment;
+  size_t header_len, num_mappings, total_mappings;
+  size_t num_threads = bwt_optarg->num_threads;
+  size_t num_reads = array_list_size(reads);
+  size_t chunk = MAX(1, num_reads/(num_threads*10));
+  fastq_read_t* fq_read;
+  *num_unmapped = 0;
+
+  for (size_t i = 0; i < num_reads; i++) {
+    fq_read = (fastq_read_t *) array_list_get(i, reads);
+    num_mappings = bwt_map_inexact_seq(fq_read->sequence, 
+				       bwt_optarg, index, 
+				       lists[i]);
+
+      if (num_mappings > 0) {
+	array_list_set_flag(1, lists[i]);
+	for (size_t j = 0; j < num_mappings; j++) {
+	  alignment = (alignment_t *) array_list_get(j, lists[i]);
+	  header_len = strlen(fq_read->id);
+	  alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	  //printf("Process %s\n", fq_read->id);                                                                                                                         
+	  get_to_first_blank(fq_read->id, header_len, alignment->query_name);
+	  bwt_cigar_cpy(alignment, fq_read->quality);
+	  
+	  //************************* OPTIONAL FIELDS ***************************//
+	  alignment = add_optional_fields(alignment, num_mappings);
+	  //*********************** OPTIONAL FIELDS END ************************//
+	}
+      } else {
+	unmapped_indices[(*num_unmapped)++] = i;
+	array_list_set_flag(0, lists[i]);
+      }
+  }
+ 
+}
+
+//-----------------------------------------------------------------------------
+/*
 void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
 				     bwt_optarg_t *bwt_optarg, 
 				     bwt_index_t *index,
@@ -2198,7 +2249,6 @@ void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
   *num_unmapped = 0;
 
   if (selected == NULL || num_selected == num_reads) {
-
     for (size_t i = 0; i < num_reads; i++) {
       //      printf("bwt, read #%i of %i (len = %i) : %s\n", i, num_reads, strlen(&(batch->seq[batch->data_indices[i]])), &(batch->seq[batch->data_indices[i]]));
 
@@ -2233,7 +2283,7 @@ void bwt_map_inexact_batch_by_filter(fastq_batch_t *batch,
     exit(-1);
   }
 }
-
+*/
 //-----------------------------------------------------------------------------
 
 size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_size,
