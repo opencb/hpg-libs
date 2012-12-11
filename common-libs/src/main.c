@@ -47,6 +47,8 @@ double sse1_matrix_t = 0.0f, sse1_tracking_t = 0.0f;
 double avx_matrix_t = 0.0f, avx_tracking_t = 0.0f;
 double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
+//char *qq3, *qq2, *qq1, *qq0;
+//char *rr3, *rr2, *rr1, *rr0;
 
 //--------------------------------------------------------------------
 // constants
@@ -106,6 +108,10 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
 //--------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+
+  //  qq3 = (char *) malloc(18192); qq2 = (char *) malloc(18192); qq1 = (char *) malloc(18192); qq0 = (char *) malloc(18192);
+  //  rr3 = (char *) malloc(18192); rr2 = (char *) malloc(18192); rr1 = (char *) malloc(18192); rr0 = (char *) malloc(18192);
+
   // parsing options
   options_t *options = parse_options(argc, argv);
 
@@ -448,7 +454,7 @@ int main(int argc, char* argv[]) {
 				    options->pair_mode, options->batch_size, 
 				    &read_list, &input);
       fastq_batch_reader_aligner(&input);
-      //      fastq_batch_reader(&input);
+      //fastq_batch_reader(&input);
     }
 
 

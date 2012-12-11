@@ -101,11 +101,11 @@ void apply_bwt(bwt_server_input_t* input, mapping_batch_t *batch) {
   // count the number of BWT to run
   //  batch->num_done = batch->num_mapping_lists;
   
-  // run bwt
-  bwt_map_inexact_array_list(batch->fq_batch, input->bwt_optarg_p,
-			     input->bwt_index_p, 
-			     batch->mapping_lists,
-			     &batch->num_targets, batch->targets);
+  // run bwt _by_filter
+  bwt_map_inexact_array_list_by_filter(batch->fq_batch, input->bwt_optarg_p,
+				       input->bwt_index_p, 
+				       batch->mapping_lists,
+				       &batch->num_targets, batch->targets);
   
   size_t num_mapped_reads = array_list_size(batch->fq_batch) - batch->num_targets;
   batch->num_to_do = num_mapped_reads;
