@@ -6,4 +6,4 @@ bin/*
 *anjuta*
 *sonar*
 *kdev*
-
+.sconsign.dblite
