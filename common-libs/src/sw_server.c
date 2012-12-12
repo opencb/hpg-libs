@@ -4,14 +4,14 @@
 //  Input structure for Smith-Waterman server
 //====================================================================================
 
-void sw_server_input_init(list_t* sw_list, list_t* write_list, unsigned int write_size, 
+void sw_server_input_init(list_t* sw_list, list_t* alignment_list, unsigned int write_size, 
 			  float match, float mismatch, float gap_open, float gap_extend, 
 			  float min_score, unsigned int flank_length, genome_t* genome, 
-			  size_t max_intron_size, size_t min_intron_size, 
+			  size_t max_intron_size, int min_intron_size, 
 			  size_t seed_max_distance, bwt_optarg_t* bwt_optarg_p, sw_server_input_t* input) {
   
   input->sw_list_p = sw_list;
-  input->write_list_p = write_list;
+  input->alignment_list_p = alignment_list;
   input->write_size = write_size;
   input->genome_p = genome;
   input->max_intron_size = max_intron_size;
@@ -33,21 +33,31 @@ void sw_server_input_init(list_t* sw_list, list_t* write_list, unsigned int writ
   input->sw_optarg.subst_matrix['C']['A'] = input->mismatch;
   input->sw_optarg.subst_matrix['T']['A'] = input->mismatch;
   input->sw_optarg.subst_matrix['G']['A'] = input->mismatch;
+  input->sw_optarg.subst_matrix['N']['A'] = input->mismatch;
 
   input->sw_optarg.subst_matrix['A']['C'] = input->mismatch;
   input->sw_optarg.subst_matrix['C']['C'] = input->match;
   input->sw_optarg.subst_matrix['T']['C'] = input->mismatch;
   input->sw_optarg.subst_matrix['G']['C'] = input->mismatch;
+  input->sw_optarg.subst_matrix['N']['C'] = input->mismatch;
 
   input->sw_optarg.subst_matrix['A']['T'] = input->mismatch;
   input->sw_optarg.subst_matrix['C']['T'] = input->mismatch;
   input->sw_optarg.subst_matrix['T']['T'] = input->match;
   input->sw_optarg.subst_matrix['G']['T'] = input->mismatch;
+  input->sw_optarg.subst_matrix['N']['T'] = input->mismatch;
 
   input->sw_optarg.subst_matrix['A']['G'] = input->mismatch;
   input->sw_optarg.subst_matrix['C']['G'] = input->mismatch;
   input->sw_optarg.subst_matrix['T']['G'] = input->mismatch;
   input->sw_optarg.subst_matrix['G']['G'] = input->match;
+  input->sw_optarg.subst_matrix['N']['G'] = input->mismatch;
+
+  input->sw_optarg.subst_matrix['A']['N'] = input->mismatch;
+  input->sw_optarg.subst_matrix['C']['N'] = input->mismatch;
+  input->sw_optarg.subst_matrix['T']['N'] = input->mismatch;
+  input->sw_optarg.subst_matrix['G']['N'] = input->mismatch;
+  input->sw_optarg.subst_matrix['N']['N'] = input->match;
 
   // CAL
   input->flank_length = flank_length;
@@ -388,17 +398,23 @@ inline void sw_channel_update(size_t read_index, unsigned int cal_index, unsigne
 //====================================================================================
 // apply_sw
 //====================================================================================
-int unmapped_by_score_counter[100];
+//int unmapped_by_score_counter[100];
 
-void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
+//FILE *fd_ref = NULL, *fd_query = NULL;
 
+void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
+
+  //  if (fd_ref == NULL) { fd_ref = fopen("sw_ref2.txt", "w"); }
+  //  if (fd_query == NULL) { fd_query = fopen("sw_query2.txt", "w"); }
 
   //  printf("START: apply_sw\n"); 
   int tid = omp_get_thread_num();
 
   cal_t *cal = NULL;
   array_list_t *cal_list = NULL, *mapping_list = NULL;//, *old_list = NULL, *new_list = NULL;
-  fastq_batch_t *fq_batch = batch->fq_batch;
+
+  array_list_t *fq_batch = batch->fq_batch;
+  fastq_read_t *fq_read;
 
   size_t start, end;
   genome_t *genome = input->genome_p;
@@ -422,16 +438,17 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   //size_t header_len, read_len;
   //size_t strands[SIMD_DEPTH], chromosomes[SIMD_DEPTH], starts[SIMD_DEPTH];
   
-  size_t index, num_cals;
-  size_t total = 0, valids = 0;
+  size_t read_index, num_cals;
+  //  size_t total = 0, valids = 0;
 
-  size_t num_seqs = batch->num_targets;
+  size_t num_targets = batch->num_targets;
+  size_t new_num_targets = 0;
+
+  size_t sw_total = batch->num_to_do;
 
   // set to zero
-  batch->num_done = batch->num_to_do;
   batch->num_to_do = 0;
 
-  size_t sw_total = batch->num_done;
   /*
   // for all seqs pending to process !!
   size_t sw_total = 0;
@@ -456,7 +473,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   uint8_t strands[sw_total], chromosomes[sw_total];
   size_t starts[sw_total];
   size_t sw_count = 0, read_indices[sw_total];
-  int read_len;
+  int read_len, ref_len, max_ref_len;
 
   // debugging: to kown how many reads are not mapped by SW score
   //  int unmapped_by_score[fq_batch->num_reads];
@@ -465,59 +482,80 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   //  printf("num of sw to do: %i\n", sw_total);
 
   // initialize query and reference sequences to Smith-Waterman
-  for (size_t i = 0; i < num_seqs; i++) {
-    index = batch->targets[i];
+  for (size_t i = 0; i < num_targets; i++) {
+    //    printf("sw_server: target #%i of %i\n", i, num_seqs);
 
-    cal_list = batch->mapping_lists[index];
+    read_index = batch->targets[i];
+    fq_read = (fastq_read_t *) array_list_get(read_index, fq_batch);
+
+    //    printf("sw_server: read #%i\n", read_index);
+
+    cal_list = batch->mapping_lists[read_index];
     num_cals = array_list_size(cal_list);
 
-    //    printf("sw_server: read #%i with %i cals\n", index, num_cals);
+    read_len = fq_read->length;
+    //    max_ref_len = read_len + (read_len / 2);
+
+    //    printf("sw_server: num_cals = %i cals\n", num_cals);
 
     // processing each CAL from this read
     for(size_t j = 0; j < num_cals; j++) {
 
       // get cal and read index
       cal = array_list_get(j, cal_list);
-      read_indices[sw_count] = index;
+      read_indices[sw_count] = read_index;
 
-      // query sequence, revcomp if necessary
-      read_len = fq_batch->data_indices[index + 1] - fq_batch->data_indices[index];
-      q[sw_count] = (char *) calloc((read_len + 1), sizeof(char));
-      memcpy(q[sw_count], &(fq_batch->seq[fq_batch->data_indices[index]]), read_len);
-      if (cal->strand == 1) {
-	seq_reverse_complementary(q[sw_count], read_len);
-      }
-      //q[sw_count] = &(fq_batch->seq[fq_batch->data_indices[index]]);
-
-      // reference sequence
-      //printf("\tSW: %d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", j, cal->chromosome_id, cal->strand, cal->start, cal->end);
-  
       start = cal->start - flank_length;
       end = cal->end + flank_length;
-      r[sw_count] = calloc(1, end - start + 2);
-      genome_read_sequence_by_chr_index(r[sw_count], cal->strand,
-					cal->chromosome_id - 1, &start, &end, genome);
 
-      // save some stuff, we'll use them after...
-      strands[sw_count] = cal->strand;
-      chromosomes[sw_count] = cal->chromosome_id;
-      starts[sw_count] = start;
+      ref_len = end - start + 2;
+      //      if (ref_len < max_ref_len) {
 
-
-      //      printf("read #%i (sw #%i): query: %s (%i)\nref  : %s (%i)\n\n", index, sw_count, q[sw_count], strlen(q[sw_count]), r[sw_count], strlen(r[sw_count]));
-
-      // increase counter
-      sw_count++;
+	// query sequence, revcomp if necessary
+	q[sw_count] = (char *) calloc((read_len + 1), sizeof(char));
+	memcpy(q[sw_count], fq_read->sequence, read_len);
+	if (cal->strand == 1) {
+	  seq_reverse_complementary(q[sw_count], read_len);
+	}
+	//q[sw_count] = &(fq_batch->seq[fq_batch->data_indices[index]]);
+	
+	// reference sequence
+	//printf("\tSW: %d.[chromosome:%d]-[strand:%d]-[start:%d, end:%d]\n", j, cal->chromosome_id, cal->strand, cal->start, cal->end);
+	
+	r[sw_count] = calloc(1, end - start + 2);
+	genome_read_sequence_by_chr_index(r[sw_count], cal->strand,
+					  cal->chromosome_id - 1, &start, &end, genome);
+	
+	// save some stuff, we'll use them after...
+	strands[sw_count] = cal->strand;
+	chromosomes[sw_count] = cal->chromosome_id;
+	starts[sw_count] = start;
+	
+	//      if ( strchr(r[sw_count], 'N') == NULL && strlen(r[sw_count]) < (strlen(q[sw_count]) + (strlen(q[sw_count])/2)) ) {
+	//	fprintf(fd_ref, "%s\n", r[sw_count]);
+	//	fprintf(fd_query, "%s\n", q[sw_count]);
+	//      }
+	
+	/*
+	  printf("\tread #%i (sw #%i of %i):\n", index, sw_count, sw_total);
+	  printf("\t\tquery: %s (%i)\n\t\tref  : %s (%i)\n\n", 
+	  q[sw_count], strlen(q[sw_count]), r[sw_count], strlen(r[sw_count]));
+	*/
+	// increase counter
+	sw_count++;
+	//      } else {
+	//	printf("ref_len = %i (max. %i)\n", ref_len, max_ref_len);
+	//      }
     }
 
     // free cal_list
-    array_list_free(cal_list, (void *)cal_free);
-    batch->mapping_lists[index] = NULL;
+    array_list_clear(cal_list, (void *) cal_free);
+    //    batch->mapping_lists[index] = NULL;
   }
 
   // run Smith-Waterman
-  //  printf("before smith_waterman: number of sw = %i\n", sw_total);
-  smith_waterman_mqmr(q, r, sw_total, sw_optarg, 1, output);
+  //  printf("before smith_waterman: sw_total = %i, sw_count = %i\n", sw_total, sw_count);
+  smith_waterman_mqmr(q, r, sw_count, sw_optarg, 1, output);
   //  printf("after smith_waterman\n");
 
   /*
@@ -528,17 +566,16 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     fclose(fd);
   }
   */
-
-  size_t num_targets = 0;
+  double norm_score;
   // filter alignments by min_score
-  for (size_t i = 0; i < sw_total; i++) {
+  for (size_t i = 0; i < sw_count; i++) {
 
     //    score = output->score_p[i] / (strlen(output->query_map_p[i]) * input->match);
     //    if (score >= min_score) {
     /*
     printf("--------------------------------------------------------------\n");
-    printf("Smith-Waterman results:\n");
-    printf("id\t%s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[read_indices[i]]]));
+    printf("Smith-Waterman results: read_indices = %i\n", read_indices[i]);
+    //    printf("id\t%s\n", &(batch->fq_batch->header[batch->fq_batch->header_indices[read_indices[i]]]));
     printf("ref\n%s\n", r[i]);
     printf("query\n%s\n", q[i]);
     printf("map\n%s\n", output->ref_map_p[i]);
@@ -548,18 +585,26 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     printf("score = %0.2f (min. score = %0.2f)\n", output->score_p[i], min_score);
     printf("--------------------------------------------------------------\n");
     */
-    if (output->score_p[i] >= min_score) {
+
+    read_index = read_indices[i];
+    fq_read = (fastq_read_t *) array_list_get(read_index, fq_batch);
+
+    read_len = fq_read->length;
+    norm_score = NORM_SCORE(output->score_p[i], read_len, input->match);
+
+    if (norm_score >= min_score) {
       // valid mappings, 
       //insert in the list for further processing
-      index = read_indices[i];
-      if (batch->mapping_lists[index] == NULL) {
-	mapping_list = array_list_new(1000, 
-				      1.25f, 
-				      COLLECTION_MODE_ASYNCHRONIZED);
-	array_list_set_flag(0, mapping_list);
+      mapping_list = batch->mapping_lists[read_index];
+      array_list_set_flag(0, mapping_list);
+
+      if (array_list_size(mapping_list) == 0) {
+      //	mapping_list = array_list_new(1000, 
+      //				      1.25f, 
+      //				      COLLECTION_MODE_ASYNCHRONIZED);
 	
-	batch->mapping_lists[index] = mapping_list;
-	batch->targets[num_targets++] = index;
+      //	batch->mapping_lists[index] = mapping_list;
+	batch->targets[new_num_targets++] = read_index;
       }
 
       sw_output = sw_output_new(strands[i],
@@ -570,7 +615,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
 				output->query_start_p[i],
 				output->ref_start_p[i],
 				output->score_p[i],
-				score,
+				norm_score,
 				output->query_map_p[i],
 				output->ref_map_p[i]);
       array_list_insert(sw_output, mapping_list);
@@ -585,7 +630,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
     free(q[i]);
     free(r[i]);
   }
-  batch->num_targets = num_targets;
+  batch->num_targets = new_num_targets;
   /*
   // debugging
   for (size_t i = 0; i < fq_batch->num_reads; i++) {
@@ -597,7 +642,7 @@ void apply_sw(sw_server_input_t* input, aligner_batch_t *batch) {
   */
 
   // update counter
-  thr_sw_items[tid] += sw_count;
+  //  thr_sw_items[tid] += sw_count;
 
   // free
   sw_multi_output_free(output);

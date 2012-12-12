@@ -4,7 +4,7 @@
 // this functions writes reads to disk, reads came from
 // a list
 //------------------------------------------------------------------------------------
-
+/*
 void batch_writer(batch_writer_input_t* input_p) {
 
   struct timespec ts;
@@ -34,7 +34,9 @@ void batch_writer(batch_writer_input_t* input_p) {
   FILE* splice_extend_fd = fopen(splice_extend_filename, "w");
   
   //printf("HEADER FROM WRITE: %s\n", input_p->header_filename);
-  bam_header_p = bam_header_new(HUMAN, NCBI37, input_p->header_filename);
+  //  bam_header_p = bam_header_new(HUMAN, NCBI37, input_p->header_filename);
+  bam_header_p = create_bam_header_by_genome(input_p->genome);
+
   //bam_file_p = bam_fopen(match_filename);
   bam_file_p = bam_fopen_mode(match_filename, bam_header_p, "w");
   bam_fwrite_header(bam_header_p, bam_file_p);
@@ -49,8 +51,9 @@ void batch_writer(batch_writer_input_t* input_p) {
     if (batch_p->flag == MATCH_FLAG || batch_p->flag == MISMATCH_FLAG) { //fd = match_fd; 
       //printf("start write alignment. Total %d\n", batch_p->size);
       buffer_p = (alignment_t **)batch_p->buffer_p;
-      for(int i = 0; i < batch_p->size; i++){
+      for(size_t i = 0; i < batch_p->size; i++){
 	//alignment_print(buffer_p[i]);
+	//if (!buffer_p[i]) {exit(-1);}
 	bam1_p = convert_to_bam(buffer_p[i], 33);
 	bam_fwrite(bam1_p, bam_file_p);
 	bam_destroy1(bam1_p);
@@ -84,7 +87,7 @@ void batch_writer(batch_writer_input_t* input_p) {
   //bam_header_free(bam_header_p);
   printf("batch_writer: END\n");
 }
-
+*/
 //------------------------------------------------------------------------------------
 /*
 unsigned long alignment_hash_code(void *p) {
@@ -194,58 +197,59 @@ void batch_writer2(batch_writer_input_t* input) {
   array_list_t *array_list;
   
   list_item_t *item = NULL;
-  aligner_batch_t *batch = NULL;
-  fastq_batch_t *fq_batch = NULL;
+  mapping_batch_t *batch = NULL;
+  //  fastq_batch_t *fq_batch = NULL;
 
   FILE* fd;
 
-  static char aux[10];
-  
-  size_t read_len;
+  fastq_read_t *fq_read;
 
-  bam_header = bam_header_new(HUMAN, NCBI37, input->header_filename);
+  char *id, *sequence, *quality;
+  static char aux[8096];
+  
+  size_t read_index, read_len, header_len;
+
+  //  bam_header = bam_header_new(HUMAN, NCBI37, input_p->header_filename);
+  bam_header = create_bam_header_by_genome(input->genome);
   bam_file = bam_fopen_mode(match_filename, bam_header, "w");
 
   bam_fwrite_header(bam_header, bam_file);
 
-  size_t num_reads = 0, num_items = 0, total_mappings = 0;
-
+  size_t num_reads = 0, num_mapped_reads = 0, num_items = 0;
+  size_t total_reads = 0, total_mappings = 0, total_batches = 0;
+  size_t reads_mapped = 0;
+  size_t limit_print = 500000;
   // main loop
   while ( (item = list_remove_item(write_list)) != NULL ) {
-
     //    if (array_list == NULL) printf("batch_writer.c...\n");
+    //printf("######Extract item Write\n");
+    total_batches++;
+    batch = (mapping_batch_t *) item->data_p;
 
-    batch = (aligner_batch_t *) item->data_p;
-    fq_batch = batch->fq_batch;
-    num_reads = batch->num_mapping_lists;
-
+    num_reads = array_list_size(batch->fq_batch);
+    total_reads += num_reads;
+    
     for (size_t i = 0; i < num_reads; i++) {
-
       array_list = batch->mapping_lists[i];
-      //      if (array_list == NULL) printf("READ %d, writer, list is NULL\n", i);
-
-      //      printf("----> list == NULL ? %d\n", (array_list == NULL));
-      num_items = (array_list == NULL ? 0 : array_list_size(array_list));
-      //      printf("----> number of items = %d, num_items <= 0 ? %d\n", num_items, num_items <= 0);
-
-      read_len = fq_batch->data_indices[i + 1] - fq_batch->data_indices[i] - 1;
-
+      num_items = array_list_size(array_list);
+      total_mappings += num_items;
       // mapped or not mapped ?
       if (num_items == 0) {
+	total_mappings++;
 
-	//printf("\tWRITE : read %i (%d items): unmapped...\n", i, num_items);
+	fq_read = (fastq_read_t *) array_list_get(i, batch->fq_batch);
 
 	// calculating cigar
-	sprintf(aux, "%luX", read_len);
+	sprintf(aux, "%luX", fq_read->length);
 	
 	alig = alignment_new();
-	alignment_init_single_end(&(fq_batch->header[fq_batch->header_indices[i]])+1,
-				  &(fq_batch->seq[fq_batch->data_indices[i]]),
-				  &(fq_batch->quality[fq_batch->data_indices[i]]),
-				  0, 
-				  0,
-				  0, 
-				  aux, 1, 255, 0, 0, alig);
+
+	header_len = strlen(fq_read->id);
+        id = (char *)malloc(sizeof(char)*(header_len + 1));
+	get_to_first_blank(fq_read->id, header_len, id);
+	//free(fq_read->id);
+	alignment_init_single_end(id, fq_read->sequence, fq_read->quality, 
+				  0, -1, -1, aux, 1, 0, 0, 0, 0, NULL, alig);
 
 	bam1 = convert_to_bam(alig, 33);
 	bam_fwrite(bam1, bam_file);
@@ -253,7 +257,7 @@ void batch_writer2(batch_writer_input_t* input) {
 
 	// some cosmetic stuff before freeing the alignment,
 	// (in order to not free twice some fields)
-	alig->query_name = NULL;
+	//alig->query_name = NULL;
 	alig->sequence = NULL;
 	alig->quality = NULL;
 	alig->cigar = NULL;
@@ -262,9 +266,11 @@ void batch_writer2(batch_writer_input_t* input) {
 	//	printf("\tWRITE : read %i (%d items): unmapped...done !!\n", i, num_items);
 
       } else {
+	num_mapped_reads++;
 	//	printf("\tWRITE : read %d (%d items): mapped...\n", i, num_items);
 	for (size_t j = 0; j < num_items; j++) {
 	  alig = (alignment_t *) array_list_get(j, array_list);
+	  //printf("\t%s\n", alig->cigar);
 	  if (alig != NULL) {
 	    
 	    bam1 = convert_to_bam(alig, 33);
@@ -276,23 +282,53 @@ void batch_writer2(batch_writer_input_t* input) {
 	}
 	//	printf("\tWRITE : read %d (%d items): mapped...done !!\n", i, num_items);
       }
-      if (array_list != NULL) array_list_free(array_list, NULL);
+      if (array_list) array_list_free(array_list, NULL);
     }
-
-    if (batch != NULL) aligner_batch_free(batch);
+    /*
+    if (total_reads >= limit_print) {
+      printf("TOTAL READS PROCESS: %lu\n", total_reads);
+      printf("\tTotal Reads Mapped: %lu(%.2f%)\n", num_mapped_reads, (float)(num_mapped_reads*100)/(float)(total_reads));
+      limit_print += 500000;
+    }
+    */
+    //printf("Batch Write OK!\n");
+    
+    if (batch != NULL) mapping_batch_free(batch);
     if (item != NULL) list_item_free(item);
-
-    if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
+    
+    //if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
   } // end of batch loop                                                                                           
   bam_fclose(bam_file);
-  printf("END: batch_writer (total mappings %lu)\n", total_mappings);
+
+  basic_statistics_init(total_reads, num_mapped_reads, total_mappings, &basic_st);
+}
+
+//------------------------------------------------------------------------------------
+
+bam_header_t *create_bam_header_by_genome(genome_t *genome) {
+
+  bam_header_t *bam_header = (bam_header_t *) calloc(1, sizeof(bam_header_t));
+
+  int num_targets = genome->num_chromosomes;
+
+  bam_header->n_targets = num_targets;
+  bam_header->target_name = (char **) calloc(num_targets, sizeof(char *));
+  bam_header->target_len = (uint32_t*) calloc(num_targets, sizeof(uint32_t));
+  for (int i = 0; i < num_targets; i++) {
+    bam_header->target_name[i] = strdup(genome->chr_name[i]);
+    bam_header->target_len[i] = genome->chr_size[i] + 1;
+  }
+  bam_header->text = strdup("@PG\tID:HPG-Aligner\tVN:1.0\n");
+  bam_header->l_text = strlen(bam_header->text);
+
+  return bam_header;
 }
 
 //------------------------------------------------------------------------------------
 
 void batch_writer_input_init(char* match_filename, char* splice_exact_filename, 
 			     char* splice_extend_filename, 
-			     list_t* list_p, char* header_filename, 
+			     list_t* list_p, genome_t* genome, 
 			     batch_writer_input_t* input_p) {
 
   input_p->match_filename = match_filename;
@@ -300,7 +336,7 @@ void batch_writer_input_init(char* match_filename, char* splice_exact_filename,
   input_p->splice_extend_filename = splice_extend_filename;
   input_p->list_p = list_p;
 
-  input_p->header_filename = header_filename;
+  input_p->genome = genome;
 
 }
 

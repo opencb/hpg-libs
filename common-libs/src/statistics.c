@@ -115,3 +115,43 @@ void timing_and_statistics_display(statistics_t* statistics_p, timing_t *t_p) {
 
 }
 
+//---------------------------------------------------------------------------------------
+
+void basic_statistics_display(basic_statistics_t statistics, int rna_mode){
+  size_t total_reads = statistics.total_reads;
+  size_t num_mapped_reads = statistics.num_mapped_reads;
+  size_t total_mappings = statistics.total_mappings;
+
+  size_t total_sp = statistics.total_sp;
+  size_t uniq_sp = statistics.uniq_sp;
+
+  printf("END: batch_writer\n");
+  printf("-------------------------------------------------\n");
+  printf("-                MAPPING STATISTICS             -\n");
+  printf("-------------------------------------------------\n");
+  printf("Num. total reads   : %lu\n", total_reads);
+  printf("    Mapped reads   : %lu\t(%0.2f %)\n", num_mapped_reads, num_mapped_reads * 100.0 / total_reads);
+  printf("    Unmapped reads : %lu\t(%0.2f %)\n", total_reads - num_mapped_reads, (total_reads - num_mapped_reads) * 100.0 / total_reads);
+  printf("Num. total mappings: %lu\n", total_mappings);
+  if (rna_mode) {
+    printf("Total Splice Junctions: %lu\n", total_sp);
+    printf("    Differents Splice Junctions: %lu\n", uniq_sp);
+  }
+  printf("-------------------------------------------------\n");
+}
+
+//---------------------------------------------------------------------------------------
+
+void basic_statistics_init(size_t total_reads, size_t num_mapped_reads, size_t total_mappings, basic_statistics_t *statistics){
+  statistics->total_reads =  total_reads;
+  statistics->num_mapped_reads = num_mapped_reads;
+  statistics->total_mappings = total_mappings;
+}
+
+//---------------------------------------------------------------------------------------
+
+void basic_statistics_sp_init(size_t total_sp, size_t uniq_sp, basic_statistics_t *statistics){
+  statistics->total_sp = total_sp;
+  statistics->uniq_sp = uniq_sp;
+}
+

@@ -15,12 +15,15 @@
 #define DEFAULT_NUM_SW_THREADS		1
 #define DEFAULT_MIN_SEED_SIZE		16
 #define DEFAULT_SEED_SIZE		18
+#define DEFAULT_MIN_SEED_SIZE_RNA	15
+#define DEFAULT_SEED_SIZE_RNA		15
 #define DEFAULT_MIN_NUM_SEEDS		10
 #define DEFAULT_MAX_NUM_SEEDS		20
-#define DEFAULT_MAX_INTRON_LENGTH	1000000
+#define DEFAULT_MAX_INTRON_LENGTH	800000
 #define DEFAULT_MIN_INTRON_LENGTH	40
 #define DEFAULT_FLANK_LENGTH		5
-#define DEFAULT_SW_MIN_SCORE		300
+#define DEFAULT_FLANK_LENGTH_RNA	30
+#define DEFAULT_SW_MIN_SCORE		0.6
 #define DEFAULT_SW_MATCH		5
 #define DEFAULT_SW_MISMATCH		-4
 #define DEFAULT_SW_GAP_OPEN		10
@@ -30,23 +33,23 @@
 #define DEFAULT_PAIR_MAX_DISTANCE	800
 
 #define MINIMUM_CAL_SIZE                15
-#define MINIMUM_FLANK_LENGTH            10
+#define MINIMUM_FLANK_LENGTH            20
 #define MINIMUM_SEED_MAX_DISTANCE       40
 #define MINIMUM_BATCH_SIZE              10000
 #define MINIMUM_SEED_SIZE               14
-#define MINIMUM_MIN_SEED_SIZE           10
+#define MINIMUM_MIN_SEED_SIZE           12
 
 const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
 const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
 const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
 const char INDEX_NAME[30]  = "index";
 const char HEADER_FILE[1024] = "Human_NCBI37.hbam\0";
-
+const char DNA_COMPRESSION[128] = "dna_compression.bin";
 //========================================================================
 
 options_t *options_new(void) {
 	options_t *options = (options_t*) calloc (1, sizeof(options_t));
-
+	size_t num_cores = 0;
 	options->in_filename = NULL;
 	options->in_filename2 = NULL;
 	options->report_all =  0;
@@ -54,7 +57,14 @@ options_t *options_new(void) {
 	options->splice_exact_filename = strdup(SPLICE_EXACT_FILENAME);
 	options->splice_extend_filename = strdup(SPLICE_EXTEND_FILENAME);
 	options->num_gpu_threads = DEFAULT_GPU_THREADS;
-	options->num_cpu_threads = DEFAULT_CPU_THREADS;
+	//GET Number System Cores
+	//----------------------------------------------
+	if (num_cores = get_optimal_cpu_num_threads()) {
+	  options->num_cpu_threads = num_cores;
+	}else {
+	  options->num_cpu_threads = DEFAULT_CPU_THREADS;
+	}
+	//----------------------------------------------
 	options->rna_seq = 0; 
 	options->min_cal_size = DEFAULT_MIN_CAL_SIZE; 
 	options->cal_seeker_errors = DEFAULT_CAL_SEEKER_ERRORS;
@@ -219,7 +229,7 @@ void** argtable_options_new(void) {
 	// NOTICE that order cannot be changed as is accessed by index in other functions
 	argtable[0] = arg_file1("i", "fq,fastq", NULL, "Reads file input");
 	argtable[1] = arg_file1("b", "bwt-index", NULL, "BWT directory name");
-	argtable[2] = arg_file1("g", "genome-ref", NULL, "Genome filename");
+	argtable[2] = arg_file0("g", "genome-ref", NULL, "Genome filename");
 	argtable[3] = arg_lit0(NULL, "report-all", "Report all alignments");
 	argtable[4] = arg_file0("m", "match-output", NULL, "Match output filename");
 	argtable[5] = arg_int0(NULL, "gpu-threads", NULL, "Number of GPU Threads");
@@ -256,7 +266,7 @@ void** argtable_options_new(void) {
 	argtable[34] = arg_int0(NULL, "pair-min-distance", NULL, "Minimum distance between pairs");
 	argtable[35] = arg_int0(NULL, "pair-max-distance", NULL, "Maximum distance between pairs");
 	
-	argtable[36] = arg_int0(NULL, "report-best", NULL, "Report the <n> best alignments");
+	argtable[36] = arg_int0(NULL, "report-n-best", NULL, "Report the <n> best alignments");
 	argtable[37] = arg_int0(NULL, "report-n-hits", NULL, "Report <n> hits");
 
 	argtable[38] = arg_int0(NULL, "min-num-seeds", NULL, "Minimum number of seeds per read");
@@ -337,7 +347,20 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
     //printf("HEADER 2: %s\n", options->header_filename); 
  }
 
-  if (((struct arg_file*)argtable[2])->count) { options->genome_filename = strdup(*(((struct arg_file*)argtable[2])->filename)); }
+  if (((struct arg_file*)argtable[2])->count) { 
+    options->genome_filename = strdup(*(((struct arg_file*)argtable[2])->filename)); 
+  } else {
+    options->genome_filename = (char *)calloc((strlen(options->bwt_dirname) + strlen(DNA_COMPRESSION) + 32), sizeof(char));
+    strcat(options->genome_filename, options->bwt_dirname);
+    strcat(options->genome_filename, DNA_COMPRESSION);
+    fd = fopen(options->genome_filename, "r");
+    if (fd == NULL) {
+      printf("Error opening genome file %s \n",  options->genome_filename);
+      exit(-1);  
+    }
+    fclose(fd);
+  }
+
   if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); } 
   if (((struct arg_file*)argtable[4])->count) { free(options->output_filename); options->output_filename = strdup(*(((struct arg_file*)argtable[4])->filename)); }
   
@@ -355,7 +378,12 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
     } 
   }
 
-  if (((struct arg_int*)argtable[7])->count) { options->rna_seq = (((struct arg_int *)argtable[7])->count); }
+  if (((struct arg_int*)argtable[7])->count) { 
+    options->rna_seq = (((struct arg_int *)argtable[7])->count); 
+    options->seed_size = DEFAULT_SEED_SIZE_RNA;
+    options->min_seed_size = DEFAULT_MIN_SEED_SIZE_RNA;;
+    options->flank_length = DEFAULT_FLANK_LENGTH_RNA;
+  }
 
   if (((struct arg_int*)argtable[8])->count) { 
     options->cal_seeker_errors = *(((struct arg_int*)argtable[8])->ival); 
@@ -442,8 +470,8 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
 
   if (((struct arg_int*)argtable[19])->count) { 
     options->flank_length = *((struct arg_int*)argtable[19])->ival; 
-    if (options->flank_length < MINIMUM_FLANK_LENGTH) {
-      options->flank_length = DEFAULT_FLANK_LENGTH;
+    if ((options->rna_seq) && (options->flank_length < MINIMUM_FLANK_LENGTH)) {
+      options->flank_length = MINIMUM_FLANK_LENGTH;
     }
   }
 
@@ -486,7 +514,15 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
 
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
   if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
-  if (((struct arg_int*)argtable[35])->count) { options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); }
+
+  
+  if (((struct arg_int*)argtable[35])->count) { 
+    options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); 
+  }
+  
+  if (options->rna_seq) {
+    options->pair_max_distance += options->max_intron_length;
+  }
 
   if (((struct arg_int*)argtable[36])->count) { 
     options->report_best = *(((struct arg_int*)argtable[36])->ival); 

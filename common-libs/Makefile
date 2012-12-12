@@ -26,10 +26,11 @@ CONTAINERS_DIR = $(COMMON_LIBS_DIR)/containers
 COMMONS_DIR = $(COMMON_LIBS_DIR)/commons
 BIOFORMATS_DIR = $(BIOINFO_LIBS_DIR)/bioformats
 ALIGNERS_DIR = $(BIOINFO_LIBS_DIR)/aligners
+SAMTOOLS_DIR = ~/appl/bioinfo-c/libs/ext/samtools-0.1.18
 
 # Include and lib folders
-INCLUDES = -I . -I ./include -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include
-LIBS = -L$(LIB_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprops -fopenmp -largtable2 -lconfig -lbam -lcurl -lm -lz -lxml2
+INCLUDES = -I . -I ./include -I $(LIB_DIR) -I $(BIOINFO_LIBS_DIR) -I $(COMMON_LIBS_DIR) -I $(INC_DIR) -I /usr/include/libxml2 -I/usr/local/include -I $(SAMTOOLS_DIR)
+LIBS = -L$(LIB_DIR) -L$(SAMTOOLS_DIR) -L/usr/lib/x86_64-linux-gnu -Wl,-Bsymbolic-functions -lcprops -fopenmp -largtable2 -lconfig -lbam -lcurl -lm -lz -lxml2
 
 #CUDA_HOME = /usr/local/cuda
 CUDA_HOME = /opt/cuda/4.1/cuda
@@ -79,7 +80,7 @@ compile-dependencies-gpu:
 
 bam-dependencies:
 	cd $(BIOFORMATS_DIR)/bam-sam &&  \
-        $(CC) $(CFLAGS) -c -o $(BIOFORMATS_DIR)/bam-sam/alignment.o $(BIOFORMATS_DIR)/bam-sam/alignment.c $(INCLUDES) $(LIBS) && \
+        $(CC) $(CFLAGS) -c -o $(BIOFORMATS_DIR)/bam-sam/alignment.o $(BIOFORMATS_DIR)/bam-sam/alignment.c $(INCLUDES) $(LIBS)  &&  \
         $(CC) $(CFLAGS) -c -o $(BIOFORMATS_DIR)/bam-sam/bam_file.o $(BIOFORMATS_DIR)/bam-sam/bam_file.c $(INCLUDES) $(LIBS)
 
 clean:
