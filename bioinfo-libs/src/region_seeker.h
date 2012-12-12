@@ -73,7 +73,7 @@ void region_seeker_server(region_seeker_input_t *input);
 
 //====================================================================================
 
-void apply_seeding(region_seeker_input_t* input, aligner_batch_t *batch);
+void apply_seeding(region_seeker_input_t* input, mapping_batch_t *batch);
 
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------

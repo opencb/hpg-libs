@@ -47,6 +47,8 @@ double sse1_matrix_t = 0.0f, sse1_tracking_t = 0.0f;
 double avx_matrix_t = 0.0f, avx_tracking_t = 0.0f;
 double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
+//char *qq3, *qq2, *qq1, *qq0;
+//char *rr3, *rr2, *rr1, *rr0;
 
 //--------------------------------------------------------------------
 // constants
@@ -54,7 +56,7 @@ double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
 #define OPTIONS 			30
 #define MIN_ARGC  			5
-#define NUM_SECTIONS_TIME 		10
+#define NUM_SECTIONS_TIME 		7
 #define NUM_SECTIONS_STATISTICS 	5
 #define NUM_SECTIONS_STATISTICS_SB	21
 //#define REQUIRED 1
@@ -76,10 +78,12 @@ char statistics_on = 0;
 timing_t* timing_p = NULL;
 int num_of_chromosomes;
 statistics_t *statistics_p;
+basic_statistics_t basic_st;
+
 double kl_time;
 
 #ifdef HPG_GPU
-void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng,
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     gpu_context_t *context, options_t *options);
 
@@ -93,7 +97,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 		        pair_mng_t *pair_mng, options_t *options);
 
 
-void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
+void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng,
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg,
 		     options_t *options);
 
@@ -104,6 +108,10 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 //--------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+
+  //  qq3 = (char *) malloc(18192); qq2 = (char *) malloc(18192); qq1 = (char *) malloc(18192); qq0 = (char *) malloc(18192);
+  //  rr3 = (char *) malloc(18192); rr2 = (char *) malloc(18192); rr1 = (char *) malloc(18192); rr0 = (char *) malloc(18192);
+
   // parsing options
   options_t *options = parse_options(argc, argv);
 
@@ -147,25 +155,22 @@ int main(int argc, char* argv[]) {
 
   // timing
   if (time_on) { 
-    char* labels_time[NUM_SECTIONS_TIME] = {"Initialization BWT index   ", 
-					    "Initialization genome index", 
-					    "FastqQ reader              ", 
+    char* labels_time[NUM_SECTIONS_TIME] = {"Index Initialization       ", 
 					    "BWT server                 ", 
 					    "Region Seeker              ", 
 					    "CAL seeker                 ", 
 					    "Rna server                 ", 
-					    "Batch writer               ", 
 					    "Free main memory           ", 
 					    "Total time                 "};
     
-    int num_threads[NUM_SECTIONS_TIME] = {1, 1, 1, 1, 1, options->num_cal_seekers, 
-					  options->num_sw_servers, 1, 1, 1};
+    int num_threads[NUM_SECTIONS_TIME] = {1, 1, 1, options->num_cal_seekers, 
+					  options->num_sw_servers, 1, 1};
     timing_p = timing_new((char**) labels_time, (int*) num_threads, NUM_SECTIONS_TIME);
     
     //timing_start(INIT_INDEX, 0, timing_p);    
   }
 
-  if (statistics_on) {
+  //if (statistics_on) {
     /*
      * FastqQ reader      : Num Batches %d 
      * BWT server         : Num Reads process %d, Num reads mapped %d, Num reads unmapped %d, Num mappings report %d 
@@ -175,7 +180,7 @@ int main(int argc, char* argv[]) {
      * Batch writer       : Total num mappings report %d
      * Total 		  : Total reads %d, Total reads mapped %d, Total reads unmapped %d, Total splice junctions %d 	
      */				
-    char* labels_statistics[NUM_SECTIONS_STATISTICS] = { "BWT server                 ", 
+    /*    char* labels_statistics[NUM_SECTIONS_STATISTICS] = { "BWT server                 ", 
 							 "Region seeker              ", 
 							 "CAL seeker                 ", 
 							 "Rna server                 ",
@@ -211,17 +216,45 @@ int main(int argc, char* argv[]) {
     unsigned int num_values[NUM_SECTIONS_STATISTICS] = {5, 2, 3, 7, 4};
     statistics_p = statistics_new((char **)labels_statistics, (char **)sub_labels_statistics, 
 				  (unsigned int *)num_values, NUM_SECTIONS_STATISTICS, NUM_SECTIONS_STATISTICS_SB);
-    
-  }
+    */
+  //}
 
   // initialize some structures: Burrow-Wheeler objects, genome, nucletotide table...
   // (all these initializations could be performed in parallel)
+
+  // genome parameters
+  printf("Reading genome...\n");
+  genome_t* genome = genome_new(options->genome_filename, options->bwt_dirname);
+  printf("Done !!\n");
+
+  /*
+  {
+    int num_targets = genome->num_chromosomes;
+
+    char *filename = "./header.bam";
+    bam_header_t *bam_header = (bam_header_t *) calloc(1, sizeof(bam_header_t));
+    bam_header->n_targets = num_targets;
+    bam_header->target_name = (char **) calloc(num_targets, sizeof(char *));
+    bam_header->target_len = (uint32_t*) calloc(num_targets, sizeof(uint32_t));
+    for (int i = 0; i < num_targets; i++) {
+      bam_header->target_name[i] = strdup(genome->chr_name[i]);
+      bam_header->target_len[i] = genome->chr_size[i];
+      printf("target %i: %s, len = %i\n", i, bam_header->target_name[i], bam_header->target_len[i]);
+    }
+    bam_header->text = strdup("@PG\tID:hpg-aligner\tVN:1.0\n");
+    bam_header->l_text = strlen(bam_header->text);
+
+    bam_file_t* bamf = bam_fopen_mode(filename, bam_header, "w");
+    bam_fwrite_header(bam_header, bamf);
+    bam_fclose(bamf);
+    exit(-1);
+  }
+  */
 
   // BWT parameters
   printf("Reading bwt index...\n");
   if (time_on) { timing_start(INIT_BWT_INDEX, 0, timing_p); }
   bwt_index_t *bwt_index = bwt_index_new(options->bwt_dirname);
-  if (time_on) { timing_stop(INIT_BWT_INDEX, 0, timing_p); }
   printf("Reading bwt index done !!\n");
 
   // bwt_optarg_new(errors, threads, max aligns) 
@@ -243,19 +276,9 @@ int main(int argc, char* argv[]) {
   }
   #endif
 
-  // genome parameters
-  printf("reading genome...\n");
-  if (time_on) { timing_start(INIT_GENOME_INDEX, 0, timing_p); }
-  genome_t* genome = genome_new(options->genome_filename, options->bwt_dirname);
-  if (time_on) { timing_stop(INIT_GENOME_INDEX, 0, timing_p); }
-  printf("Done !!\n");
-
   // pair mode parameters
-  pair_mng_t *pair_mng = NULL;
-  if (options->pair_mode != SINGLE_END_MODE) {
-    pair_mng = pair_mng_new(options->pair_mode, options->pair_min_distance, 
-			    options->pair_max_distance);
-  }
+  pair_mng_t *pair_mng = pair_mng_new(options->pair_mode, options->pair_min_distance, 
+				      options->pair_max_distance);
     
   /*
   {
@@ -292,9 +315,9 @@ int main(int argc, char* argv[]) {
   if (options->rna_seq) {
     // RNA version
     #ifdef HPG_GPU
-      run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, context, options);
+    run_rna_aligner(genome, bwt_index, pair_mng, bwt_optarg, cal_optarg, context, options);
     #else
-      run_rna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, options);
+    run_rna_aligner(genome, bwt_index, pair_mng, bwt_optarg, cal_optarg, options);
     #endif
   } else {
     // DNA version
@@ -311,13 +334,15 @@ int main(int argc, char* argv[]) {
   }
 
   // free memory
-  if (time_on) { timing_start(FREE_MAIN, 0, timing_p); }
+  if (time_on) { 
+    timing_start(FREE_MAIN, 0, timing_p); 
+  }
   
   bwt_index_free(bwt_index);
   genome_free(genome);
   bwt_optarg_free(bwt_optarg);
   cal_optarg_free(cal_optarg);
-  if (pair_mng != NULL) pair_mng_free(pair_mng);
+  pair_mng_free(pair_mng);
   
   if (time_on) { timing_stop(FREE_MAIN, 0, timing_p); }
   
@@ -330,30 +355,32 @@ int main(int argc, char* argv[]) {
     timing_display(timing_p);
   }
   
-  if (statistics_on) { statistics_display(statistics_p); }
+  //if (statistics_on) { 
+    //statistics_display(statistics_p); 
+  basic_statistics_display(basic_st, options->rna_seq);
+    //}
   
   //  if (statistics_on && time_on) { timing_and_statistics_display(statistics_p, timing_p); }
 
   if (time_on){ timing_free(timing_p); }
 
-  if (statistics_on) { statistics_free(statistics_p); }
+  //if (statistics_on) { statistics_free(statistics_p); }
 
   options_free(options);
-
   
-  printf("CPU :: Time BWT Search %.3fs\n", time_bwt_seed/1000000);
-  printf("CPU :: Time S Search %.3fs\n", time_search_seed/1000000);
-  printf("GPU :: Time BWT Search %.3fs\n", kl_time/1000000);
+  //  printf("CPU :: Time BWT Search %.3fs\n", time_bwt_seed/1000000);
+  //  printf("CPU :: Time S Search %.3fs\n", time_search_seed/1000000);
+  //  printf("GPU :: Time BWT Search %.3fs\n", kl_time/1000000);
 
   return 0;
 }
 
 //--------------------------------------------------------------------
-extern int mapped_by_bwt[100];
+//extern int mapped_by_bwt[100];
 
-extern int unmapped_by_max_cals_counter[100];
-extern int unmapped_by_zero_cals_counter[100];
-extern int unmapped_by_score_counter[100];
+//extern int unmapped_by_max_cals_counter[100];
+//extern int unmapped_by_zero_cals_counter[100];
+//extern int unmapped_by_score_counter[100];
 
 #ifdef HPG_GPU
    void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
@@ -365,6 +392,7 @@ extern int unmapped_by_score_counter[100];
 		        pair_mng_t *pair_mng, options_t *options) {
 #endif
 
+     /*
   // for debugging
   for (int i = 0; i < options->num_cpu_threads; i++) {
     mapped_by_bwt[i] = 0;
@@ -372,7 +400,7 @@ extern int unmapped_by_score_counter[100];
     unmapped_by_zero_cals_counter[i] = 0;
     unmapped_by_score_counter[i] = 0;
   }
-
+     */
   // lists to communicate/synchronize the different threads
   list_t read_list, write_list;
   list_init("read", 1, 24, &read_list);
@@ -402,7 +430,8 @@ extern int unmapped_by_score_counter[100];
 			NULL, NULL, &cal_input);
   
   pair_server_input_t pair_input;
-  pair_server_input_init(pair_mng, NULL, NULL, NULL, &pair_input);
+  pair_server_input_init(pair_mng, bwt_optarg->report_best, bwt_optarg->report_n_hits, 
+			 bwt_optarg->report_all, NULL, NULL, NULL, &pair_input);
   
   sw_server_input_t sw_input;
   sw_server_input_init(NULL, NULL, 0, options->match, options->mismatch, 
@@ -424,7 +453,8 @@ extern int unmapped_by_score_counter[100];
       fastq_batch_reader_input_init(options->in_filename, options->in_filename2, 
 				    options->pair_mode, options->batch_size, 
 				    &read_list, &input);
-      fastq_batch_reader(&input);
+      fastq_batch_reader_aligner(&input);
+      //fastq_batch_reader(&input);
     }
 
 
@@ -437,8 +467,7 @@ extern int unmapped_by_score_counter[100];
 	batch_aligner_input_t input;
 	batch_aligner_input_init(&read_list, &write_list,
 				 &bwt_input, &region_input, &cal_input,
-				 (options->pair_mode != SINGLE_END_MODE ? &pair_input : NULL), 
-				 &sw_input, &input);
+				 &pair_input, &sw_input, &input);
 	
 	batch_aligner(&input);
       }
@@ -449,85 +478,89 @@ extern int unmapped_by_score_counter[100];
     #pragma omp section
     {
       batch_writer_input_t input;
-      batch_writer_input_init(options->output_filename, NULL, NULL, &write_list, options->header_filename, &input);
+      batch_writer_input_init(options->output_filename, NULL, NULL, &write_list, genome, &input);
       batch_writer2(&input);
     }
   }
 
-  size_t total_item = 0;
-  double max_time = 0, total_throughput = 0;
-  printf("\nBWT time:\n");
-  for (int i = 0; i < options->num_cpu_threads; i++) {
-    printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f BWT/s (reads)\n", 
-	   i, bwt_time[i] / 1e6, thr_batches[i], thr_bwt_items[i], 1e6 * thr_bwt_items[i] / bwt_time[i]);
-    total_item += thr_bwt_items[i];
-    total_throughput += (1e6 * thr_bwt_items[i] / bwt_time[i]);
-    if (max_time < bwt_time[i]) max_time = bwt_time[i];
-  }
-  printf("\n\tTotal BWTs: %lu, Max time = %0.4f, Throughput = %0.2f BWT/s\n", total_item, max_time / 1e6, total_throughput);
-
-  total_item = 0; max_time = 0; total_throughput = 0;
-  printf("\nSeeding time:\n");
-  for (int i = 0; i < options->num_cpu_threads; i++) {
-    printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f BWT/s (seeds)\n", 
-	   i, seeding_time[i] / 1e6, thr_batches[i], thr_seeding_items[i], 1e6 * thr_seeding_items[i] / seeding_time[i]);
-    total_item += thr_seeding_items[i];
-    total_throughput += (1e6 * thr_seeding_items[i] / seeding_time[i]);
-    if (max_time < seeding_time[i]) max_time = seeding_time[i];
-  }
-  printf("\n\tTotal BWTs: %lu, Max time = %0.4f, Throughput = %0.2f BWT/s\n", total_item, max_time / 1e6, total_throughput);
-
-  total_item = 0; max_time = 0; total_throughput = 0;
-  printf("\nCAL time:\n");
-  for (int i = 0; i < options->num_cpu_threads; i++) {
-    printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f CAL/s)\n", 
-	   i, cal_time[i] / 1e6, thr_batches[i], thr_cal_items[i], 1e6 * thr_cal_items[i] / cal_time[i]);
-    total_item += thr_cal_items[i];
-    total_throughput += (1e6 * thr_cal_items[i] / cal_time[i]);
-    if (max_time < cal_time[i]) max_time = cal_time[i];
-  }
-  printf("\n\tTotal CALs: %lu, Max time = %0.4f, Throughput = %0.2f CAL/s\n", total_item, max_time / 1e6, total_throughput);
-
-  total_item = 0; max_time = 0; total_throughput = 0;
-  printf("\nSW time:\n");
-  for (int i = 0; i < options->num_cpu_threads; i++) {
-    printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f SW/s)\n", 
-	   i, sw_time[i] / 1e6, thr_batches[i], thr_sw_items[i], 1e6 * thr_sw_items[i] / sw_time[i]);
-    total_item += thr_sw_items[i];
-    total_throughput += (1e6 * thr_sw_items[i] / sw_time[i]);
-    if (max_time < sw_time[i]) max_time = sw_time[i];
-  }
-  printf("\n\tTotal SWs: %lu, Max time = %0.4f, Throughput = %0.2f SW/s\n", total_item, max_time / 1e6, total_throughput);
-
-
+  if (statistics_on) {
+    size_t total_item = 0;
+    double max_time = 0, total_throughput = 0;
+    printf("\nBWT time:\n");
+    for (int i = 0; i < options->num_cpu_threads; i++) {
+      printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f BWT/s (reads)\n", 
+	     i, bwt_time[i] / 1e6, thr_batches[i], thr_bwt_items[i], 1e6 * thr_bwt_items[i] / bwt_time[i]);
+      total_item += thr_bwt_items[i];
+      total_throughput += (1e6 * thr_bwt_items[i] / bwt_time[i]);
+      if (max_time < bwt_time[i]) max_time = bwt_time[i];
+    }
+    printf("\n\tTotal BWTs: %lu, Max time = %0.4f, Throughput = %0.2f BWT/s\n", total_item, max_time / 1e6, total_throughput);
+    
+    total_item = 0; max_time = 0; total_throughput = 0;
+    printf("\nSeeding time:\n");
+    for (int i = 0; i < options->num_cpu_threads; i++) {
+      printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f BWT/s (seeds)\n", 
+	     i, seeding_time[i] / 1e6, thr_batches[i], thr_seeding_items[i], 1e6 * thr_seeding_items[i] / seeding_time[i]);
+      total_item += thr_seeding_items[i];
+      total_throughput += (1e6 * thr_seeding_items[i] / seeding_time[i]);
+      if (max_time < seeding_time[i]) max_time = seeding_time[i];
+    }
+    printf("\n\tTotal BWTs: %lu, Max time = %0.4f, Throughput = %0.2f BWT/s\n", total_item, max_time / 1e6, total_throughput);
+    
+    total_item = 0; max_time = 0; total_throughput = 0;
+    printf("\nCAL time:\n");
+    for (int i = 0; i < options->num_cpu_threads; i++) {
+      printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f CAL/s)\n", 
+	     i, cal_time[i] / 1e6, thr_batches[i], thr_cal_items[i], 1e6 * thr_cal_items[i] / cal_time[i]);
+      total_item += thr_cal_items[i];
+      total_throughput += (1e6 * thr_cal_items[i] / cal_time[i]);
+      if (max_time < cal_time[i]) max_time = cal_time[i];
+    }
+    printf("\n\tTotal CALs: %lu, Max time = %0.4f, Throughput = %0.2f CAL/s\n", total_item, max_time / 1e6, total_throughput);
+    
+    total_item = 0; max_time = 0; total_throughput = 0;
+    printf("\nSW time:\n");
+    for (int i = 0; i < options->num_cpu_threads; i++) {
+      printf("\tThread %d: %0.4f s (%d batches, %d items) -> %0.2f SW/s)\n", 
+	     i, sw_time[i] / 1e6, thr_batches[i], thr_sw_items[i], 1e6 * thr_sw_items[i] / sw_time[i]);
+      total_item += thr_sw_items[i];
+      total_throughput += (1e6 * thr_sw_items[i] / sw_time[i]);
+      if (max_time < sw_time[i]) max_time = sw_time[i];
+    }
+    printf("\n\tTotal SWs: %lu, Max time = %0.4f, Throughput = %0.2f SW/s\n", total_item, max_time / 1e6, total_throughput);
+    
+    
   //if (cuda) {
   //   gpu_context_free((gpu_context_t*) context_p);
   //   }
   //   if (time_on) { timing_stop(FREE_INDEX, 0, timing_p); }
-  
-  int reads_by_bwt = 0, by_max_cals = 0, by_zero_cals, by_score = 0;
-  for (int i = 0; i < options->num_cpu_threads; i++) {
-    by_max_cals += unmapped_by_max_cals_counter[i];
-    by_zero_cals += unmapped_by_zero_cals_counter[i];
-    by_score += unmapped_by_score_counter[i];
-    reads_by_bwt += mapped_by_bwt[i];
-  }
-  printf("mapped by BWT = %d\n", reads_by_bwt);
 
-  printf("unmapped by MAX_CALS = %d\n", by_max_cals);
-  printf("unmapped by ZERO_CALS = %d\n", by_zero_cals);
-  //  printf("unmapped by SW score = %d\n", by_score);
+    /*    
+    int reads_by_bwt = 0, by_max_cals = 0, by_zero_cals, by_score = 0;
+    for (int i = 0; i < options->num_cpu_threads; i++) {
+      by_max_cals += unmapped_by_max_cals_counter[i];
+      by_zero_cals += unmapped_by_zero_cals_counter[i];
+      by_score += unmapped_by_score_counter[i];
+      reads_by_bwt += mapped_by_bwt[i];
+    }
+    printf("mapped by BWT = %d\n", reads_by_bwt);
+    
+    printf("unmapped by MAX_CALS = %d\n", by_max_cals);
+    printf("unmapped by ZERO_CALS = %d\n", by_zero_cals);
+    //  printf("unmapped by SW score = %d\n", by_score);
+    */
+  }
 }
 
 //--------------------------------------------------------------------
 #ifdef HPG_GPU
-void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
-		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
-		     gpu_context_t *context, options_t *options) {
+   void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng, 
+			bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+			gpu_context_t *context, options_t *options) {
 #else
-void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
-		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
-		     options_t *options) {
+     void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng,
+			  bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
+			  options_t *options) {
 #endif
 
   list_t read_list;
@@ -542,13 +575,16 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   list_t sw_list;
   list_init("sw", options->num_cal_seekers, 10, &sw_list);
 
+  list_t alignment_list;
+  list_init("alignments", options->num_sw_servers, 10, &alignment_list);
+
   list_t write_list;
-  list_init("write", 1 + options->num_cal_seekers + options->num_sw_servers, 10, &write_list);
+  list_init("write", 1, 10, &write_list);
 
   allocate_splice_elements_t chromosome_avls[CHROMOSOME_NUMBER];
   init_allocate_splice_elements(chromosome_avls);
 
-  #pragma omp parallel sections num_threads(6)
+  #pragma omp parallel sections num_threads(7)
   {
     printf("Principal Sections %d threads\n", omp_get_num_threads());
     #pragma omp section
@@ -557,9 +593,9 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
       fastq_batch_reader_input_init(options->in_filename, options->in_filename2, 
 				    options->pair_mode, options->batch_size, 
 				    &read_list, &input);
-      
-      /*fastq_batch_reader_input_init( options->in_filename,  options->batch_size, &read_list, &input);*/
-      fastq_batch_reader(&input);
+      //fastq_batch_reader(&input);
+      fastq_batch_reader_aligner(&input);
+      //fastq_batch_reader_array_list_single(&input);
     }
     #pragma omp section
     {
@@ -567,7 +603,7 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
         bwt_server_input_init(&read_list,  options->batch_size,  bwt_optarg, 
 			      bwt_index, &write_list,  options->write_size, 
 			      &unmapped_reads_list, &input);
-	bwt_server_cpu(&input);
+	bwt_server_cpu(&input, pair_mng);
     }
     #pragma omp section
     {
@@ -598,34 +634,42 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index,
     #pragma omp section
     {
       sw_server_input_t input;
-
-      sw_server_input_init(&sw_list, &write_list, options->write_size,  options->match,  
+      sw_server_input_init(&sw_list, &alignment_list, options->write_size,  options->match,  
 			   options->mismatch,  options->gap_open, options->gap_extend,  
 			   options->min_score,  options->flank_length, genome,  
 			   options->max_intron_length, options->min_intron_length,  
 			   options->seeds_max_distance,  bwt_optarg, &input);
-
-      list_incr_writers(&write_list);
+      //list_incr_writers(&write_list);
       #pragma omp parallel num_threads( options->num_sw_servers)
       {
 	rna_server_omp_smith_waterman(&input, chromosome_avls);
       }
 
-      process_and_free_chromosome_avls(chromosome_avls, &write_list,  options->write_size);     
-
-      }
+      write_chromosome_avls(chromosome_avls, &write_list,  
+			    options->splice_extend_filename, 
+			    options->splice_exact_filename,
+			    options->write_size);
+    }
+     #pragma omp section
+    {
+	 pair_server_input_t input;
+	 pair_server_input_init(pair_mng, 0, 0, 0, &alignment_list, NULL, &write_list, &input);
+	 prepare_pair_server(&input);
+     }
+     
      #pragma omp section
     {
       batch_writer_input_t input;
       batch_writer_input_init( options->output_filename,  
 			       options->splice_exact_filename,  
 			       options->splice_extend_filename,  
-			       &write_list, options->header_filename, &input);
-      batch_writer(&input);
-    }
+			       &write_list, genome, &input);
+      batch_writer2(&input);
+      }
   }  
   
-}
+  
+     }
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------

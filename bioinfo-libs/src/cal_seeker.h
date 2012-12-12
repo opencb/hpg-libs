@@ -5,6 +5,7 @@
 #include "aligners/bwt/bwt.h"
 
 #define MAX_CALS 200
+#define MAX_RNA_CALS 100
 
 //====================================================================================
 //  structures and prototypes
@@ -59,7 +60,7 @@ void cal_seeker_server(cal_seeker_input_t* input);
 // apply_caling
 //====================================================================================
 
-void apply_caling(cal_seeker_input_t* input, aligner_batch_t *batch);
+void apply_caling(cal_seeker_input_t* input, mapping_batch_t *batch);
 
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
