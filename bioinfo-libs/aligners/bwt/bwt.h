@@ -11,6 +11,7 @@
 
 #include "commons/string_utils.h"
 #include "containers/array_list.h"
+#include "containers/linked_list.h"
 #include "bioformats/fastq/fastq_read.h"
 #include "bioformats/fastq/fastq_batch.h"
 #include "bioformats/bam-sam/alignment.h"
@@ -317,6 +318,31 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
 					array_list_t *cal_list);
+
+
+size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
+					     cal_optarg_t *cal_optarg,
+					     size_t *min_seeds, size_t *max_seeds,
+					     array_list_t *cal_list);
+
+
+size_t bwt_map_inexact_array_list(array_list_t *reads,
+				  bwt_optarg_t *bwt_optarg, 
+				  bwt_index_t *index,
+				  array_list_t **lists,
+				  size_t *num_unmapped, 
+				  size_t *unmapped_indices);
+
+void bwt_map_inexact_array_list_by_filter(array_list_t *reads,
+					  bwt_optarg_t *bwt_optarg, 
+					  bwt_index_t *index,
+					  array_list_t **lists,
+					  size_t *num_unmapped, 
+					  size_t *unmapped_indices);
+
+size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
+					    cal_optarg_t *cal_optarg,
+					     array_list_t *cal_list);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

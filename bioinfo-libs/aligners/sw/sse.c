@@ -50,11 +50,11 @@ void sse_matrix(int num_seqs,
     //    printf("from left: %0.2f\n", ((float *)&e_simd)[0]);
     
     // diagonal value: match or mismatch
-
     subst_simd = _mm_set_ps((q_len[3] > j) ? profile[q[3][j]][r[3][0]] : -1000.0f,
                             (q_len[2] > j) ? profile[q[2][j]][r[2][0]] : -1000.0f,
                             (q_len[1] > j) ? profile[q[1][j]][r[1][0]] : -1000.0f,
                             (q_len[0] > j) ? profile[q[0][j]][r[0][0]] : -1000.0f);
+    //printf("Init end\n");
     /*
     subst_simd = _mm_set_ps(profile[q[3][j]][r[3][0]], 
 			    profile[q[2][j]][r[2][0]], 
@@ -185,6 +185,10 @@ void sse_matrix(int num_seqs,
     //    printf("\n");
   }
   _mm_store_ps(max_score, score_simd);
+  //  max_score[0] = 100.0f;
+  //  max_score[1] = 100.0f;
+  //  max_score[2] = 100.0f;
+  //  max_score[3] = 100.0f;
   
   /*
 
