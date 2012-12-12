@@ -82,6 +82,8 @@ int result_file_read(result_file_t *result_file);
 
 int result_file_write(char *filename, result_file_t *result_file);
 
+int result_json_file_write(char *filename, result_file_t *result_file);
+
 int result_add_meta_item(result_item_t* item_p, result_file_t *result_file);
 
 int result_add_input_item(result_item_t* item_p, result_file_t *result_file);
