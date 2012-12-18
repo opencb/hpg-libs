@@ -34,7 +34,7 @@
 /**
  * @brief The type of the filter to apply
  **/
-enum filter_type { COVERAGE, MAF, NUM_ALLELES, QUALITY, REGION, SNP  };
+enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP  };
 
 /**
  * @brief Arguments for the filter by coverage
@@ -52,6 +52,14 @@ typedef struct {
 typedef struct {
     float max_maf;      /**< Maximum MAF a record must have */
 } maf_filter_args;
+
+/**
+ * @brief Arguments for the filter by percentage of missing values
+ * @details The only argument of a filter by percentage of missing values is the maximum percentage in a record.
+ **/
+typedef struct {
+    float max_missing;      /**< Maximum percentage of missing values a record must have */
+} missing_values_filter_args;
 
 /**
  * @brief Arguments for the filter by number of alleles
@@ -139,6 +147,17 @@ array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed,
 array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 /**
+ * @brief Given a list of records, check which ones have a percentage of missing values less or equals to the one specified.
+ * @details Given a list of records, check which ones have a percentage of missing values less or equals to the one specified.
+ * 
+ * @param input_records List of records to filter
+ * @param[out] failed Records that failed the filter's test
+ * @param args Filter arguments
+ * @return Records that passed the filter's test
+ */
+array_list_t *missing_values_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
+
+/**
  * @brief Given a list of records, check which ones have a num_alleles equals to the one specified.
  * @details Given a list of records, check which ones have a num_alleles equals to the one specified.
  * 
@@ -206,6 +225,7 @@ filter_t *coverage_filter_new(int min_coverage);
  **/
 void coverage_filter_free(filter_t *filter);
 
+
 /**
  * @brief Creates a new filter by maximum MAF.
  * @details Creates a new filter by maximum MAF.
@@ -222,6 +242,25 @@ filter_t *maf_filter_new(float max_maf);
  * @param filter The filter to deallocate
  **/
 void maf_filter_free(filter_t *filter);
+
+
+/**
+ * @brief Creates a new filter by maximum percentage of missing values.
+ * @details Creates a new filter by maximum percentage of missing values.
+ *
+ * @param max_maf Maximum percentage of missing values for the records to pass the filter
+ * @return The new filter
+ **/
+filter_t *missing_values_filter_new(float max_missing);
+
+/**
+ * @brief Deallocates memory of a filter by maximum percentage of missing values.
+ * @details Deallocates memory of a filter by maximum percentage of missing values.
+ *
+ * @param filter The filter to deallocate
+ **/
+void missing_values_filter_free(filter_t *filter);
+
 
 /**
  * @brief Creates a new filter by number of alleles.
@@ -240,6 +279,7 @@ filter_t *num_alleles_filter_new(int num_alleles);
  **/
 void num_alleles_filter_free(filter_t *filter);
 
+
 /**
  * @brief Creates a new filter by minimum quality.
  * @details Creates a new filter by minimum quality.
@@ -256,6 +296,7 @@ filter_t *quality_filter_new(int min_quality);
  * @param filter The filter to deallocate
  **/
 void quality_filter_free(filter_t *filter);
+
 
 /**
  * @brief Creates a new filter by region(s), considering them as ranges.
@@ -290,6 +331,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
  * @param filter The filter to deallocate
  **/
 void region_filter_free(filter_t *filter);
+
 
 /**
  * @brief Creates a new filter by SNP.

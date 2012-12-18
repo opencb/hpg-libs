@@ -97,6 +97,58 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char
     return passed;
 }
 
+array_list_t* missing_values_filter(array_list_t* input_records, array_list_t* failed, char* filter_name, void* args) {
+    assert(input_records);
+    assert(failed);
+    
+    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
+    list_init("stats", 1, input_records->size + 1, input_stats);
+    file_stats_t *file_stats = file_stats_new();
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    float max_missing = ((missing_values_filter_args*) args)->max_missing;
+    float record_missing;
+    float allele_count;
+
+    // TODO candidate for parallelization
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
+    
+    list_item_t *stats_item = NULL;
+    variant_stats_t *variant_stats;
+    // The stats returned by get_variants_stats are related to a record in the same
+    // position of the input_records list, so when a variant_stats_t fulfills the condition,
+    // it means the related vcf_record_t passes the filter
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        stats_item = list_remove_item(input_stats);
+        variant_stats = stats_item->data_p;
+        allele_count = 0;
+        
+        for (int j = 0; j < variant_stats->num_alleles; j++) {
+            allele_count += variant_stats->alleles_count[j];
+        }
+        record_missing = variant_stats->missing_alleles / (allele_count + variant_stats->missing_alleles);
+        
+        if (record_missing <= max_missing) {
+            array_list_insert(record, passed);
+        } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
+            array_list_insert(record, failed);
+        }
+        
+        variant_stats_free(variant_stats);
+        list_item_free(stats_item);
+    }
+    
+    list_decr_writers(input_stats);
+    file_stats_free(file_stats);
+    
+    return passed;
+}
+
 
 array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* args) {
     assert(input_records);
@@ -271,6 +323,7 @@ void coverage_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *maf_filter_new(float max_maf) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     sprintf(filter->name, "maf%.2f", max_maf);
@@ -279,7 +332,7 @@ filter_t *maf_filter_new(float max_maf) {
     filter->type = MAF;
     filter->filter_func = maf_filter;
     filter->free_func = maf_filter_free;
-    filter->priority = 4;
+    filter->priority = 3;
     
     maf_filter_args *filter_args = (maf_filter_args*) malloc (sizeof(maf_filter_args));
     filter_args->max_maf = max_maf;
@@ -293,6 +346,31 @@ void maf_filter_free(filter_t *filter) {
     free(filter->args);
     free(filter);
 }
+
+
+filter_t* missing_values_filter_new(float max_missing) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "missign%.2f", max_missing);
+    sprintf(filter->description, "Missing values <= %.2f", max_missing);
+    
+    filter->type = MISSING_VALUES;
+    filter->filter_func = missing_values_filter;
+    filter->free_func = missing_values_filter_free;
+    filter->priority = 5;
+    
+    missing_values_filter_args *filter_args = (missing_values_filter_args*) malloc (sizeof(missing_values_filter_args));
+    filter_args->max_missing = max_missing;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void missing_values_filter_free(filter_t* filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
 
 filter_t* num_alleles_filter_new(int num_alleles) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
@@ -340,6 +418,7 @@ void quality_filter_free(filter_t *filter) {
     free(filter->args);
     free(filter);
 }
+
 
 filter_t *region_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
     assert(region_descriptor);
@@ -415,6 +494,7 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
     if (include_snps) {
@@ -441,6 +521,7 @@ void snp_filter_free(filter_t *filter) {
     free(filter->args);
     free(filter);
 }
+
 
 int filter_compare(const void *filter1, const void *filter2) {
     assert(filter1);
