@@ -252,7 +252,6 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         // Insert results in output list
         list_item_t *variant_result = list_item_new(i, 0, stats);
         list_insert_item(variant_result, output_list);
-
     }
     
     // Update file_stats_t structure

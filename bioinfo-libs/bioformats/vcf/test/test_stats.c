@@ -3,10 +3,9 @@
 
 #include <check.h>
 
-#include <vcf_file_structure.h>
-#include <vcf_file.h>
-#include <vcf_read.h>
-#include <vcf_stats.h>
+#include <bioformats/vcf/vcf_file_structure.h>
+#include <bioformats/vcf/vcf_file.h>
+#include <bioformats/vcf/vcf_stats.h>
 
 
 static vcf_record_t *record;
@@ -23,33 +22,23 @@ Suite *create_test_suite(void);
  * ******************************/
 
 void setup_stats(void) {
-    record = create_record();
-    record->chromosome = (char*) calloc (2, sizeof(char));
-    strcat(record->chromosome, "1");
-    
-    record->id = (char*) calloc (5, sizeof(char));
-    strcat(record->id, "rs12");
-    
-    record->position = 1234567;
-    
-    record->reference = (char*) calloc (2, sizeof(char));
-    strcat(record->reference, "G");
-    
-    record->filter = (char*) calloc (5, sizeof(char));
-    strcat(record->filter, "PASS");
-    
-    record->info = (char*) calloc (5, sizeof(char));
-    strcat(record->info, "NS=3");
+    record = vcf_record_new();
+    set_vcf_record_chromosome("1", 1, record);
+    set_vcf_record_position(1234567, record);
+    set_vcf_record_id("rs12", 4, record);
+    set_vcf_record_reference("G", 1, record);
+    set_vcf_record_filter("PASS", 4, record);
+    set_vcf_record_info("NS=3", 4, record);
     
     output_list = (list_t*) malloc (sizeof(list_t));
     list_init("output", 1, 8, output_list);
-    record_item = list_item_new(0, 0, record);
     
-    file_stats = new_file_stats();
+    file_stats = file_stats_new();
 }
 
 void teardown_stats(void) {
-//     vcf_record_free(record);
+    free(output_list);
+    file_stats_free(file_stats);
 }
 
 /* ******************************
@@ -57,32 +46,18 @@ void teardown_stats(void) {
  * ******************************/
 
 START_TEST (biallelic) {
-    record->alternate = (char*) calloc (2, sizeof(char));
-    strcat(record->alternate, "T");
-    record->format = (char*) calloc (6, sizeof(char));
-    strcat(record->format, "GC:GT");
+    set_vcf_record_alternate("T", 1, record);
+    set_vcf_record_format("GC:GT", 5, record);
     
     size_t sample_idx = 0;
-    char *sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1:0/0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "2:1/0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1:0/1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "3:0/0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1:1/1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1:./1");
-    add_record_sample(sample, record, &sample_idx);
+    char *sample = strdup("1:0/0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("2:1/0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1:0/1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("3:0/0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1:1/1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1:./1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(record_item, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -104,44 +79,22 @@ START_TEST (biallelic) {
 END_TEST
 
 START_TEST (multiallelic) {
-    record->alternate = (char*) calloc (5, sizeof(char));
-    strcat(record->alternate, "T,GT");
-    record->format = (char*) calloc (6, sizeof(char));
-    strcat(record->format, "GT:GC");
+    set_vcf_record_alternate("T,GT", 4, record);
+    set_vcf_record_format("GT:GC", 5, record);
     
     size_t sample_idx = 0;
-    char *sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/0:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1/0:2");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1/2:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1/1:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1/.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/2:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "2/1:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:1");
-    add_record_sample(sample, record, &sample_idx);
+    char *sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/0:2"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/2:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/2:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("2/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(record_item, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -171,38 +124,24 @@ START_TEST (multiallelic) {
 END_TEST
 
 START_TEST (homozygous) {
-    record->alternate = (char*) calloc (2, sizeof(char));
-    strcat(record->alternate, ".");
-    record->format = (char*) calloc (12, sizeof(char));
-    strcat(record->format, "GT:GQ:DP:HQ");
+    set_vcf_record_alternate(".", 1, record);
+    set_vcf_record_format("GT:GQ:DP:HQ", 11, record);
     
     size_t sample_idx = 0;
-    char *sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/0:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/0:2");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./0:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/0:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
+    char *sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/0:2"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./0:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(record_item, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
     
     fail_unless(strcmp(result->ref_allele, "G") == 0, "The reference allele should be G");
-    fail_unless(result->num_alleles == 1, "There should be 1 allele");
+    fail_unless(result->num_alleles == 2, "There should be 2 alleles");
     fail_unless(strcmp(result->alternates[0], ".") == 0, "The alternate allele should be .");
     fail_unless(result->alleles_count[0] == 8, "There should be 8 reference alleles read");
     
@@ -214,293 +153,110 @@ START_TEST (homozygous) {
 END_TEST
 
 START_TEST (from_CEU_exon) {
-    record->reference = (char*) calloc (2, sizeof(char));
-    strcat(record->reference, "A");
-    record->alternate = (char*) calloc (2, sizeof(char));
-    strcat(record->alternate, "G");
-    record->format = (char*) calloc (12, sizeof(char));
-    strcat(record->format, "GT:DP");
+    set_vcf_record_reference("A", 1, record);
+    set_vcf_record_alternate("G", 1, record);
+    set_vcf_record_format("GT:DP", 5, record);
     
     size_t sample_idx = 0;
-    char *sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:31");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:2");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:12");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:20");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:13");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:11");
-    add_record_sample(sample, record, &sample_idx);
+    char *sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:31"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:2"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:12"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:20"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:13"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:11"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:39");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:26");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:29");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:39"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:26"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:29"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:2");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:36");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:19");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:27");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:2");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:5");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:2"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:36"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:19"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:27"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:2"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:5"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:29");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:19");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "1/1:5");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:29"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:19"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:5"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:4");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:6");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:4"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:6"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:4");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:4"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "0/1:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:0");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:1");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/0:44");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (6, sizeof(char*));
-    strcat(sample, "./.:3");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "1/1:11");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/1:21");
-    add_record_sample(sample, record, &sample_idx);
-    sample = (char*) calloc (7, sizeof(char*));
-    strcat(sample, "0/0:53");
-    add_record_sample(sample, record, &sample_idx);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/0:44"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("./.:3"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("1/1:11"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/1:21"); add_vcf_record_sample(sample, strlen(sample), record);
+    sample = strdup("0/0:53"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(record_item, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;

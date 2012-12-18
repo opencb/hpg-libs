@@ -731,8 +731,10 @@ st54:
 		goto _test_eof54;
 case 54:
 #line 734 "vcf_ragel.c"
-	if ( (*p) == 46 )
-		goto tr63;
+	switch( (*p) ) {
+		case 46: goto tr63;
+		case 95: goto tr64;
+	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr64;
@@ -752,7 +754,7 @@ st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-#line 756 "vcf_ragel.c"
+#line 758 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr65;
 	goto tr62;
@@ -766,7 +768,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 770 "vcf_ragel.c"
+#line 772 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 65: goto tr67;
 		case 67: goto tr67;
@@ -785,7 +787,7 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 789 "vcf_ragel.c"
+#line 791 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr68;
 		case 65: goto st57;
@@ -805,7 +807,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 809 "vcf_ragel.c"
+#line 811 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr71;
 		case 48: goto tr71;
@@ -827,7 +829,7 @@ st59:
 	if ( ++p == pe )
 		goto _test_eof59;
 case 59:
-#line 831 "vcf_ragel.c"
+#line 833 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr74;
 	goto tr70;
@@ -847,7 +849,7 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 851 "vcf_ragel.c"
+#line 853 "vcf_ragel.c"
 	if ( (*p) == 46 )
 		goto tr76;
 	if ( 48 <= (*p) && (*p) <= 57 )
@@ -863,7 +865,7 @@ st61:
 	if ( ++p == pe )
 		goto _test_eof61;
 case 61:
-#line 867 "vcf_ragel.c"
+#line 869 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr78;
 	goto tr75;
@@ -883,7 +885,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 887 "vcf_ragel.c"
+#line 889 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr80;
 		case 95: goto tr80;
@@ -907,7 +909,7 @@ st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-#line 911 "vcf_ragel.c"
+#line 913 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr81;
 		case 44: goto st74;
@@ -934,7 +936,7 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 938 "vcf_ragel.c"
+#line 940 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr85;
 		case 95: goto tr86;
@@ -958,7 +960,7 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 962 "vcf_ragel.c"
+#line 964 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr87;
 		case 59: goto st70;
@@ -975,7 +977,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 979 "vcf_ragel.c"
+#line 981 "vcf_ragel.c"
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr91;
@@ -995,7 +997,7 @@ st67:
 	if ( ++p == pe )
 		goto _test_eof67;
 case 67:
-#line 999 "vcf_ragel.c"
+#line 1001 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr92;
 		case 58: goto st69;
@@ -1025,7 +1027,7 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 1029 "vcf_ragel.c"
+#line 1031 "vcf_ragel.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr96;
 	goto tr95;
@@ -1039,7 +1041,7 @@ st127:
 	if ( ++p == pe )
 		goto _test_eof127;
 case 127:
-#line 1043 "vcf_ragel.c"
+#line 1045 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr160;
 		case 10: goto tr161;
@@ -1084,7 +1086,7 @@ st128:
 	if ( ++p == pe )
 		goto _test_eof128;
 case 128:
-#line 1088 "vcf_ragel.c"
+#line 1090 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st129;
 		case 95: goto tr155;
@@ -1145,7 +1147,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 1149 "vcf_ragel.c"
+#line 1151 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr87;
 		case 59: goto st70;
@@ -1204,7 +1206,7 @@ st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-#line 1208 "vcf_ragel.c"
+#line 1210 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr78;
 		case 46: goto st76;
@@ -1238,7 +1240,7 @@ st78:
 	if ( ++p == pe )
 		goto _test_eof78;
 case 78:
-#line 1242 "vcf_ragel.c"
+#line 1244 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 67: goto st79;
 		case 68: goto st82;
@@ -1424,7 +1426,7 @@ st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1428 "vcf_ragel.c"
+#line 1430 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr74;
 		case 44: goto st101;
@@ -1457,9 +1459,11 @@ st102:
 	if ( ++p == pe )
 		goto _test_eof102;
 case 102:
-#line 1461 "vcf_ragel.c"
-	if ( (*p) == 9 )
-		goto tr65;
+#line 1463 "vcf_ragel.c"
+	switch( (*p) ) {
+		case 9: goto tr65;
+		case 95: goto st102;
+	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto st102;
@@ -1483,7 +1487,7 @@ st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1487 "vcf_ragel.c"
+#line 1491 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr129;
@@ -1519,7 +1523,7 @@ st104:
 	if ( ++p == pe )
 		goto _test_eof104;
 case 104:
-#line 1523 "vcf_ragel.c"
+#line 1527 "vcf_ragel.c"
 	if ( (*p) == 10 )
 		goto tr5;
 	if ( 32 <= (*p) && (*p) <= 126 )
@@ -1535,7 +1539,7 @@ st105:
 	if ( ++p == pe )
 		goto _test_eof105;
 case 105:
-#line 1539 "vcf_ragel.c"
+#line 1543 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr132;
@@ -1575,7 +1579,7 @@ st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1579 "vcf_ragel.c"
+#line 1583 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr133;
@@ -1593,7 +1597,7 @@ st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1597 "vcf_ragel.c"
+#line 1601 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st108;
 		case 67: goto st5;
@@ -1640,7 +1644,7 @@ st109:
 	if ( ++p == pe )
 		goto _test_eof109;
 case 109:
-#line 1644 "vcf_ragel.c"
+#line 1648 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr129;
@@ -1946,7 +1950,7 @@ st119:
 	if ( ++p == pe )
 		goto _test_eof119;
 case 119:
-#line 1950 "vcf_ragel.c"
+#line 1954 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 32: goto tr130;
@@ -1974,7 +1978,7 @@ st120:
 	if ( ++p == pe )
 		goto _test_eof120;
 case 120:
-#line 1978 "vcf_ragel.c"
+#line 1982 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr148;
 		case 32: goto st105;
@@ -2015,7 +2019,7 @@ st121:
 	if ( ++p == pe )
 		goto _test_eof121;
 case 121:
-#line 2019 "vcf_ragel.c"
+#line 2023 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr148;
 		case 32: goto tr130;
@@ -2296,7 +2300,7 @@ case 121:
         
     }
 	break;
-#line 2300 "vcf_ragel.c"
+#line 2304 "vcf_ragel.c"
 	}
 	}
 
@@ -2313,7 +2317,7 @@ case 121:
 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < 
-#line 2317 "vcf_ragel.c"
+#line 2321 "vcf_ragel.c"
 122
 #line 322 "vcf.ragel"
 ;

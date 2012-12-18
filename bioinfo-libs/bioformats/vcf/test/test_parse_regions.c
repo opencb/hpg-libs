@@ -9,7 +9,6 @@
 
 Suite *create_test_suite();
 
-char *filename;
 region_table_t *region_table;
 
 char *chromosomes[6] = { "1", "2", "20", "22", "3", "X" };
@@ -19,7 +18,7 @@ char *chromosomes[6] = { "1", "2", "20", "22", "3", "X" };
  * ******************************/
 
 void setup_gff(void) {
-    region_table = parse_regions_from_gff_file(filename);
+    region_table = parse_regions_from_gff_file(strdup("test_parse_regions_01.gff"), "http://ws.bioinfo.cipf.es", "hsa", "latest");
 }
 
 void teardown_gff(void) {
@@ -69,47 +68,47 @@ START_TEST (gff_file_regions)
     region.chromosome = "2";
     region.start_position = 20020000;
     region.end_position = 20025000;
-    fail_if(!find_region(&region, region_table), "Region 1:20020000-20025000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 2:20020000-20025000 must have been inserted");
     
     region.start_position = 20000000;
     region.end_position = 20001000;
-    fail_if(!find_region(&region, region_table), "Region 1:20000000-20001000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 2:20000000-20001000 must have been inserted");
     
     region.start_position = 20010000;
     region.end_position = 20010100;
-    fail_if(!find_region(&region, region_table), "Region 1:20010000-20010100 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 2:20010000-20010100 must have been inserted");
     
     // Check regions in chr3
     region.chromosome = "3";
     region.start_position = 30020000;
     region.end_position = 30025000;
-    fail_if(!find_region(&region, region_table), "Region 1:30020000-30025000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 3:30020000-30025000 must have been inserted");
     
     region.start_position = 30000000;
     region.end_position = 30001000;
-    fail_if(!find_region(&region, region_table), "Region 1:30000000-30001000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 3:30000000-30001000 must have been inserted");
     
     // Check regions in chr20
     region.chromosome = "20";
     region.start_position = 20010000;
     region.end_position = 20010100;
-    fail_if(!find_region(&region, region_table), "Region 1:20010000-20010100 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 20:20010000-20010100 must have been inserted");
     
     // Check regions in chr22
     region.chromosome = "22";
     region.start_position = 22000000;
     region.end_position = 22001000;
-    fail_if(!find_region(&region, region_table), "Region 1:22000000-22001000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 22:22000000-22001000 must have been inserted");
     
     region.start_position = 22010000;
     region.end_position = 22010100;
-    fail_if(!find_region(&region, region_table), "Region 1:22010000-22010100 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region 22:22010000-22010100 must have been inserted");
     
     // Check regions in chrX
     region.chromosome = "X";
     region.start_position = 95020000;
     region.end_position = 95025000;
-    fail_if(!find_region(&region, region_table), "Region 1:95020000-95025000 must have been inserted");
+    fail_if(!find_region(&region, region_table), "Region X:95020000-95025000 must have been inserted");
     
 }
 END_TEST

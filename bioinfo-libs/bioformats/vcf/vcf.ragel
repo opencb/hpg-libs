@@ -255,7 +255,7 @@
     # Records
     record_chrom	= (alnum | "_")+ ;
     record_pos	= (digit)+ ;
-    record_id	= (alnum)+ | "." ;
+    record_id	= (alnum | "_")+ | "." ;
     record_ref	= bases ;
     record_alt	= (bases ("," bases)*)+ | "." | "0" | 
                    "<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" |
