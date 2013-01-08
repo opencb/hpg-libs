@@ -111,13 +111,27 @@ int main(int argc, char* argv[]) {
 
   //  qq3 = (char *) malloc(18192); qq2 = (char *) malloc(18192); qq1 = (char *) malloc(18192); qq0 = (char *) malloc(18192);
   //  rr3 = (char *) malloc(18192); rr2 = (char *) malloc(18192); rr1 = (char *) malloc(18192); rr0 = (char *) malloc(18192);
+	log_level = LOG_DEBUG_LEVEL;
+	log_verbose = 1;
 
+	char *command = argv[1];
+
+		// We need to consume command: {qc | filter | prepro}
+	argc -= 1;
+	argv += 1;
+	LOG_DEBUG_F("Command Mode: %s\n", command);
+	if(strcmp()...) {
+
+	}
   // parsing options
   options_t *options = parse_options(argc, argv);
 
+  LOG_DEBUG_F("Command Mode: %s\n", command);
   //************** Set Threads to sections **************//
   size_t cpu_threads = options->num_cpu_threads; 
-  if (options->rna_seq) {
+//  if (options->rna_seq) {
+  if (!strcmp(command, "rna")) {
+	LOG_DEBUG_F("Command Mode: %s\n", command);
     if (!options->bwt_set && 
 	!options->reg_set && 
 	!options->cal_set &&
@@ -276,7 +290,7 @@ int main(int argc, char* argv[]) {
   }
   #endif
 
-  // pair mode parameters
+  // paired mode parameters
   pair_mng_t *pair_mng = pair_mng_new(options->pair_mode, options->pair_min_distance, 
 				      options->pair_max_distance);
     
@@ -312,7 +326,8 @@ int main(int argc, char* argv[]) {
   // launch threads in parallel
   omp_set_nested(1);
 
-  if (options->rna_seq) {
+//  if (options->rna_seq) {
+  if (!strcmp(command, "rna")) {
     // RNA version
     #ifdef HPG_GPU
     run_rna_aligner(genome, bwt_index, pair_mng, bwt_optarg, cal_optarg, context, options);
@@ -357,7 +372,8 @@ int main(int argc, char* argv[]) {
   
   //if (statistics_on) { 
     //statistics_display(statistics_p); 
-  basic_statistics_display(basic_st, options->rna_seq);
+//  basic_statistics_display(basic_st, options->rna_seq);
+  basic_statistics_display(basic_st, !strcmp(command, "rna"));
     //}
   
   //  if (statistics_on && time_on) { timing_and_statistics_display(statistics_p, timing_p); }
