@@ -316,6 +316,9 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
   sw_output_t *sw_output;
   array_list_t *sw_list, *alignment_list;
 
+  int c;
+  char *quality;
+
   // convert the SW output to alignments
   for (size_t i = 0; i < num_targets; i++) {
     //    printf("pair_server.c, prepare_single_alignments: target = #%i of %i\n", i, num_targets);
@@ -340,15 +343,7 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
       sw_output = (sw_output_t *) array_list_get(j, sw_list);
       
       mapped_len = sw_output->mref_len;
-      
-      // gaps counting
-      deletion_n = 0;
-      for (int ii = 0; ii < mapped_len; ii++){
-	if (sw_output->mquery[ii] == '-') {
-	  deletion_n++;
-	}
-      }
-      
+
       header_len = get_to_first_blank(fq_read->id, header_len, aux);
       
       header_match = (char *) malloc(sizeof(char) * (header_len + 1));
@@ -362,64 +357,22 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
       //printf("\tstrand = %i, chromosome = %i\n", sw_output->strand, sw_output->chromosome - 1);
       //printf("\tmquery_start = %i, mref_start = %i\n", mquery_start, mref_start);
 
-      // pos = sw_output->ref_start + sw_output->mref_start;
-      if (sw_output->strand == 0) {
-	// positive strand
-	pos = sw_output->ref_start + mref_start - 1;
-	//printf("\t+++ pos = ref_start (%lu) + mref_start (%i) - 1 = %lu\n", sw_output->ref_start, mref_start, pos);
-	//printf("\tread       = %s\n", &fq_batch->seq[fq_batch->data_indices[index]]);
-	//printf("\tread crop  = %s\n", &fq_batch->seq[fq_batch->data_indices[index]] + mquery_start);
-	// sequence
-	read_match = (char *) calloc(sizeof(char), (mapped_len + 1));
-	memcpy(read_match, 
-	       fq_read->sequence + mquery_start, 
-	       mapped_len - deletion_n);
-	read_match[mapped_len - deletion_n ] = '\0';
-	//	printf("read_match = %s\n", read_match);
-	
-	//	printf("quality crop = %s\n", (&fq_batch->quality[fq_batch->data_indices[index]]) + mquery_start);
-	// quality
-	quality_match = (char *) calloc(sizeof(char), (mapped_len + 1));
-	memcpy(quality_match, 
-	       fq_read->quality + mquery_start, 
-	       mapped_len - deletion_n);
-	quality_match[mapped_len - deletion_n] = '\0';
-	//	printf("quality_match = %s\n", quality_match);
-      } else {
-	// negative strand
-	pos = sw_output->ref_start + (sw_output->ref_len - 
-				      sw_output->mref_len - 
-				      mref_start);
+      pos = sw_output->ref_start + mref_start - 1;
 
-	//printf("\t\tpos = ref_start (%lu) + (ref_len (%lu) - mref_len (%lu) - mref_start (%i)) = %lu\n", sw_output->ref_start, sw_output->ref_len, sw_output->mref_len, mref_start, pos);
-
-	char *rev_str = (char *) malloc(sizeof(char) * (read_len + 1));
-	len = mapped_len - deletion_n;
-	shift = read_len - len - mquery_start;
- 
-	// reverse and complementary sequence
-	memcpy(rev_str, fq_read->sequence, read_len);
-	seq_reverse_complementary(rev_str, read_len);
-	read_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
-	//	printf("%s\n", header_match);
-	//	printf("\tcopy %i bytes (%i mapped_len - %i deletion_n), offset %i into an allocated memory of %i bytes (read_len = %i)\n", 
-	//	       len, mapped_len, deletion_n, shift, read_len + 10, read_len);
-	memcpy(read_match, rev_str + shift, len);
-	read_match[mapped_len - deletion_n ] = '\0';
-
-	// reverse quality 
-	reverse_str(fq_read->quality, rev_str, read_len);
-	quality_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
-	memcpy(quality_match, rev_str + shift, len);
-	quality_match[mapped_len - deletion_n] = '\0';
-
-	free(rev_str);
-	/*
-	read_match = strdup(&fq_batch->seq[fq_batch->data_indices[index]]);
-	quality_match = strdup(&fq_batch->quality[fq_batch->data_indices[index]]);
-	*/
+      read_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
+      quality_match = (char *) malloc(sizeof(char) * (mapped_len + 1));
+      c = 0;
+      quality = fq_read->quality + mquery_start;
+      for (int ii = 0; ii < mapped_len; ii++){
+	   if (sw_output->mquery[ii] != '-') {
+		read_match[c] = sw_output->mquery[ii]; 
+		quality_match[c] = quality[c];
+		c++;
+	   }
       }
-      
+      read_match[c] = '\0'; 
+      quality_match[c] = '\0'; 
+
       cigar =  generate_cigar_str(sw_output->mquery, 
 				  sw_output->mref, 
 				  mquery_start, 
@@ -427,9 +380,13 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
 				  sw_output->mref_len, 
 				  &distance,
 				  (int *) &num_cigar_ops);
-      
-      //      printf("\tcigar = %s\n", cigar);
-
+/*
+      printf(">>>>> %s : %s, pos = %lu\n", header_match, cigar, pos);
+      printf("\tref_start = %lu, ref_len = %lu, mref_start = %lu ,mref_len = %lu\n",
+	     sw_output->ref_start, sw_output->ref_len, mref_start, sw_output->mref_len);
+      printf("\tmquery = %s (start = %i)\n", sw_output->mquery, mquery_start);
+      printf("\tmref   = %s (start = %i)\n", sw_output->mref, mref_start);
+*/
       // set optional fields
       //      optional_fields_length = 0;
       //      optional_fields = NULL;
@@ -455,6 +412,7 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
       p += sizeof(int);
       //      *p = '\0';
 
+
       optional_fields_length = p - optional_fields;
       // create the alignment and insert into the list
       alignment = alignment_new();
@@ -466,8 +424,6 @@ static void prepare_single_alignments(pair_server_input_t *input, mapping_batch_
 				optional_fields_length, optional_fields, alignment);
 
       array_list_insert(alignment, alignment_list);
-
-      //printf("%s : %s\n", header_match, cigar);
 
       // free memory (sw output)
       sw_output_free(sw_output);

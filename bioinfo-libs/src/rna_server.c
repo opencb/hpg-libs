@@ -772,9 +772,9 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
     p += sizeof(int);
 
     optional_fields_length = p - optional_fields;
-
+    //printf("Start mapped %i\n", start_mapped);
     alignment_init_single_end(header_match, read_match, quality_match, depth_cal_fusion_p[i].allocate_data->genome_strand, 
-			      depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped, cigar_str, num_cigar_op, 
+			      depth_cal_fusion_p[i].allocate_data->genome_chromosome - 1, start_mapped - 1, cigar_str, num_cigar_op, 
 			      (int)output_p->norm_score_p[i] * 254, 1, primary_alignment, optional_fields_length, optional_fields, alignment_p);
 
     //printf("Score %i\n", alignment_p->map_quality);

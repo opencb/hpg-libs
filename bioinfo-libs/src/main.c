@@ -115,6 +115,19 @@ int main(int argc, char* argv[]) {
   // parsing options
   options_t *options = parse_options(argc, argv);
 
+  if (1) {
+       int bwt_ratio = 12;
+       char *binary_filename = calloc(strlen(options->bwt_dirname) + 128, sizeof(char));
+       sprintf(binary_filename, "%s/dna_compression.bin", options->bwt_dirname);
+   
+       bwt_generate_index_files(options->genome_filename, options->bwt_dirname, bwt_ratio);
+       generate_codes(binary_filename, options->genome_filename);
+
+       free(binary_filename);
+       exit(0);
+  }
+
+
   //************** Set Threads to sections **************//
   size_t cpu_threads = options->num_cpu_threads; 
   if (options->rna_seq) {
