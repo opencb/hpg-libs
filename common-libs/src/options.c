@@ -42,14 +42,15 @@
 const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
 const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
 const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
-const char INDEX_NAME[30]  = "index";
-const char HEADER_FILE[1024] = "Human_NCBI37.hbam\0";
-const char DNA_COMPRESSION[128] = "dna_compression.bin";
+//const char INDEX_NAME[30]  = "index";
+
+
 //========================================================================
 
 options_t *options_new(void) {
 	options_t *options = (options_t*) calloc (1, sizeof(options_t));
 	size_t num_cores = 0;
+
 	options->in_filename = NULL;
 	options->in_filename2 = NULL;
 	options->report_all =  0;
@@ -100,25 +101,18 @@ options_t *options_new(void) {
 	options->cal_set = 0;
 	options->sw_set = 0;
 	
-	//	options->help = DEFAULT_HELP;
-	
 	return options;
 }
 
 
 void options_free(options_t *options) {
-	if(options == NULL) {
-		return;
-	}
-
+	if(options == NULL) { return; }
 	if (options->splice_exact_filename != NULL)	{ free(options->splice_exact_filename); }
 	if (options->splice_extend_filename  != NULL)	{ free(options->splice_extend_filename); }
 	if (options->in_filename  != NULL)		{ free(options->in_filename); }
 	if (options->in_filename2  != NULL)		{ free(options->in_filename2); }
 	if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
-	if (options->genome_filename  != NULL)		{ free(options->genome_filename); }
 	if (options->output_filename  != NULL)		{ free(options->output_filename); }
-	if (options->header_filename != NULL)           { free(options->header_filename); }
 
 	free(options);
 }
@@ -132,7 +126,7 @@ void options_display(options_t *options) {
     in_filename2 = strdup(options->in_filename2);
   }
   char* bwt_dirname =  strdup(options->bwt_dirname);
-  char* genome_filename =  strdup(options->genome_filename);
+  //char* genome_filename =  strdup(options->genome_filename);
   unsigned int  report_all = (unsigned int)options->report_all;
   unsigned int  report_best = (unsigned int)options->report_best;
   unsigned int  report_n_hits = (unsigned int)options->report_n_hits;
@@ -170,8 +164,6 @@ void options_display(options_t *options) {
   float mismatch =   (float)options->mismatch;
   float gap_open =   (float)options->gap_open;
   float gap_extend =   (float)options->gap_extend;
-  char *splice_exact_filename =  strdup(options->splice_exact_filename);
-  char *splice_extend_filename =  strdup(options->splice_extend_filename);
   
   printf("PARAMETERS CONFIGURATION\n");
   printf("=================================================\n");
@@ -215,10 +207,8 @@ void options_display(options_t *options) {
   free(in_filename);
   if (in_filename2 != NULL) free(in_filename2);
   free(bwt_dirname);
-  free(genome_filename);
+  //free(genome_filename);
   free(output_filename);
-  free(splice_exact_filename);
-  free(splice_extend_filename);
 }
 
 //--------------------------------------------------------------------
@@ -229,12 +219,12 @@ void** argtable_options_new(void) {
 	// NOTICE that order cannot be changed as is accessed by index in other functions
 	argtable[0] = arg_file0("f", "fq,fastq", NULL, "Reads file input");
 	argtable[1] = arg_file0("i", "bwt-index", NULL, "BWT directory name");
-//	argtable[2] = arg_file0("g", "genome-ref", NULL, "Genome filename");
+	argtable[2] = arg_int0("l", "log-debug", NULL, "Log debug level");
 	argtable[3] = arg_lit0(NULL, "report-all", "Report all alignments");
 	argtable[4] = arg_file0("o", "outdir", NULL, "Output directory");
 	argtable[5] = arg_int0(NULL, "gpu-threads", NULL, "Number of GPU Threads");
 	argtable[6] = arg_int0(NULL, "cpu-threads", NULL, "Number of CPU Threads");
-//	argtable[7] = arg_lit0(NULL, "rna-seq", "Enable RNA Seq");
+	argtable[7] = arg_int0(NULL, "xxxx", NULL, "xxxxx");
 	argtable[8] = arg_int0(NULL, "cal-seeker-errors", NULL, "Number of errors in CAL Seeker");
 	argtable[9] = arg_int0(NULL, "min-cal-size", NULL, "Minimum CAL size");
 	argtable[10] = arg_int0(NULL, "max-distance-seeds", NULL, "Maximum distance between seeds");
@@ -257,23 +247,17 @@ void** argtable_options_new(void) {
 	argtable[27] = arg_lit0("t", "time", "Timming mode active");
 	argtable[28] = arg_lit0("s", "stats", "Statistics mode active");
 	argtable[29] = arg_lit0("h", "help", "Help option");
-//	argtable[30] = arg_file0(NULL, "splice-exact-file", NULL, "Splice Junctions exact filename");
-//	argtable[31] = arg_file0(NULL, "splice-extend-file", NULL, "Splice Junctions extend filename");
-
+	argtable[30] = arg_file0(NULL, "xxxxx", NULL, "xxxxxxxx");
+	argtable[31] = arg_file0(NULL, "xxxxx", NULL, "xxxxxxxx");
 	argtable[32] = arg_file0("j", "fq2,fastq2", NULL, "Reads file input #2 (for paired mode)");
-
 	argtable[33] = arg_int0(NULL, "paired-mode", NULL, "Pair mode: 0 = single-end, 1 = paired-end, 2 = mate-pair [Default 0]");
 	argtable[34] = arg_int0(NULL, "paired-min-distance", NULL, "Minimum distance between pairs");
 	argtable[35] = arg_int0(NULL, "paired-max-distance", NULL, "Maximum distance between pairs");
-	
 	argtable[36] = arg_int0(NULL, "report-n-best", NULL, "Report the <n> best alignments");
 	argtable[37] = arg_int0(NULL, "report-n-hits", NULL, "Report <n> hits");
-
 	argtable[38] = arg_int0(NULL, "min-num-seeds", NULL, "Minimum number of seeds per read");
 	argtable[39] = arg_int0(NULL, "max-num-seeds", NULL, "Maximum number of seeds per read");
-
 	argtable[40] = arg_lit0(NULL, "gpu-enable", "Enable GPU Process");
-
 	argtable[41] = arg_end(20);
 
 	return argtable;
@@ -314,54 +298,17 @@ int read_config_file(const char *filename, options_t *options) {
 
 	return ret_code;
 }
-
-
 /**
  * @brief Initializes an options_t structure from argtable parsed CLI with default values. Notice that options are order dependent.
  * @return A new options_t structure initialized with default values.
  *
  * Initializes the only default options from options_t.
  */
-options_t *read_CLI_options(void **argtable, options_t *options) {
-  //	options_t *options = (options_t*) calloc (1, sizeof(options_t));
-  FILE *fd;
-	
-  if (((struct arg_file*)argtable[0])->count) { 
-    options->in_filename = strdup(*(((struct arg_file*)argtable[0])->filename)); 
-    fd = fopen( options->in_filename, "r" );
-    if (fd == NULL) {
-      printf("Error opening file %s \n",  options->in_filename);
-      exit(-1);
-    }
-    fclose(fd);
-  }
- 
- if (((struct arg_file*)argtable[1])->count) { 
-    options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); 
-    options->header_filename = (char *)calloc((strlen(options->bwt_dirname) + strlen(HEADER_FILE) + 32), sizeof(char));
-    //printf("BWT: %s\n", options->bwt_dirname);
-    //printf("HEADER: %s\n", options->header_filename); 
-    strcat(options->header_filename, options->bwt_dirname);
-    //printf("HEADER 1: %s\n", options->header_filename); 
-    strcat(options->header_filename, HEADER_FILE);
-    //printf("HEADER 2: %s\n", options->header_filename); 
- }
-
-  if (((struct arg_file*)argtable[2])->count) { 
-    options->genome_filename = strdup(*(((struct arg_file*)argtable[2])->filename)); 
-  } else {
-    options->genome_filename = (char *)calloc((strlen(options->bwt_dirname) + strlen(DNA_COMPRESSION) + 32), sizeof(char));
-    strcat(options->genome_filename, options->bwt_dirname);
-    strcat(options->genome_filename, DNA_COMPRESSION);
-    fd = fopen(options->genome_filename, "r");
-    if (fd == NULL) {
-      printf("Error opening genome file %s \n",  options->genome_filename);
-      exit(-1);  
-    }
-    fclose(fd);
-  }
-
-  if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); } 
+options_t *read_CLI_options(void **argtable, options_t *options) {	
+  if (((struct arg_file*)argtable[0])->count) { options->in_filename = strdup(*(((struct arg_file*)argtable[0])->filename)); }
+  if (((struct arg_file*)argtable[1])->count) { options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); }
+  if (((struct arg_file*)argtable[2])->count) { options->log_level = *(((struct arg_int*)argtable[2])->ival); }
+  if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); }
   if (((struct arg_file*)argtable[4])->count) { free(options->output_filename); options->output_filename = strdup(*(((struct arg_file*)argtable[4])->filename)); }
   
   if (((struct arg_int*)argtable[5])->count) {     
@@ -370,7 +317,7 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
       options->num_gpu_threads = DEFAULT_GPU_THREADS;
     } 
   }
-
+  
   if (((struct arg_int*)argtable[6])->count) { 
     options->num_cpu_threads = *(((struct arg_int*)argtable[6])->ival);
     if (options->num_cpu_threads < DEFAULT_CPU_THREADS) {
@@ -407,7 +354,6 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
     }
   }
   
-
   if (((struct arg_int*)argtable[11])->count) { 
     options->batch_size = *(((struct arg_int*)argtable[11])->ival); 
     if (options->batch_size < MINIMUM_BATCH_SIZE) {
@@ -498,20 +444,7 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_int*)argtable[27])->count) { options->timming = ((struct arg_int*)argtable[27])->count; }
   if (((struct arg_int*)argtable[28])->count) { options->statistics = ((struct arg_int*)argtable[28])->count; }
   if (((struct arg_int*)argtable[29])->count) { options->help = ((struct arg_int*)argtable[29])->count; }
-  if (((struct arg_file*)argtable[30])->count) { free(options->splice_exact_filename); options->splice_exact_filename = strdup(*(((struct arg_file*)argtable[30])->filename)); }
-  if (((struct arg_file*)argtable[31])->count) { free(options->splice_extend_filename); options->splice_extend_filename = strdup(*(((struct arg_file*)argtable[31])->filename)); }
-
-  if (((struct arg_file*)argtable[32])->count) { 
-    free(options->in_filename2); 
-    options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); 
-    fd = fopen( options->in_filename2, "r" );
-    if (fd == NULL) {
-      printf("Error opening file %s \n",  options->in_filename2);
-      exit(-1);
-    }
-    fclose(fd);  
-  }
-
+  if (((struct arg_file*)argtable[32])->count) { options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); }
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
   if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
 
@@ -537,7 +470,6 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
       options->report_n_hits = 1;
     }
   }
-
   if (((struct arg_int*)argtable[38])->count) { options->min_num_seeds = *(((struct arg_int*)argtable[38])->ival); }
   if (((struct arg_int*)argtable[39])->count) { options->max_num_seeds = *(((struct arg_int*)argtable[39])->ival); }
 
@@ -606,4 +538,10 @@ void usage(void **argtable) {
   printf("Usage:\n./hpg-aligner {dna | rna | bs | build-index}");
   arg_print_syntaxv(stdout, argtable, "\n");
   arg_print_glossary(stdout, argtable, "%-50s\t%s\n");
+}
+
+void usage_cli() {
+  void **argtable = argtable_options_new();
+  usage(argtable);
+  exit(0);
 }

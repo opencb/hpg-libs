@@ -53,6 +53,7 @@ typedef struct options {
   int report_best;
   int report_n_hits;
   int gpu_process;
+  int log_level;
   double min_score;
   double match;
   double mismatch;

@@ -186,26 +186,6 @@ typedef struct mapping_batch {
 mapping_batch_t *mapping_batch_new(array_list_t *fq_batch, pair_mng_t *pair_mng);
 void mapping_batch_free(mapping_batch_t *p);
 
-/*
-typedef struct rna_batch {
-  int action;
-  int all_targets;
-  size_t num_targets;
-  size_t num_allocated_targets;  
-  size_t num_mapping_lists; // = num_reads in fastq_batch
-
-  size_t num_done;
-  size_t num_to_do;
-
-  array_list_t *fq_batch;
-  size_t *targets;
-  array_list_t **mapping_lists;
-  char *status;
-} rna_batch_t;
-
-rna_batch_t *rna_batch_new(array_list_t *fq_batch);
-void rna_batch_free(rna_batch_t *p);
-*/
 //=====================================================================================
 //=====================================================================================
 
