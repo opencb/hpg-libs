@@ -65,7 +65,6 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   fclose(fd);
   
   //printf("In genome %d chromosome and %d\n", num_chromosomes, offset);
-
   genome_p->num_chromosomes = num_chromosomes;
 
   return genome_p;
