@@ -176,9 +176,3 @@ char* get_filename_from_path(char* path, char* filename_p) {
 
     return filename_p;
 }
-
-
-
-
-
-
