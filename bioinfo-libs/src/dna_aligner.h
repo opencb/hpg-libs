@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "commons/log.h"
+#include "commons/file_utils.h"
 #include "error.h"
 #include "timing.h"
 #include "buffers.h"

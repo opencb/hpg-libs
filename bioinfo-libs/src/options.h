@@ -13,9 +13,32 @@
 
 #include "argtable2.h"
 #include "libconfig.h"
-
 #include "commons/log.h"
 #include "commons/system_utils.h"
+
+//============================ DEFAULT VALUES ============================
+#define DEFAULT_GPU_THREADS		32
+#define DEFAULT_CPU_THREADS		1
+#define DEFAULT_CAL_SEEKER_ERRORS	0
+#define DEFAULT_BWT_THREADS		1
+#define DEFAULT_WRITE_BATCH_SIZE	500000
+#define DEFAULT_NUM_CAL_SEEKERS		1
+#define DEFAULT_REGION_THREADS		1
+#define DEFAULT_NUM_SW_THREADS		1
+#define DEFAULT_MIN_NUM_SEEDS		10
+#define DEFAULT_MAX_NUM_SEEDS		20
+#define DEFAULT_MAX_INTRON_LENGTH	800000
+#define DEFAULT_MIN_INTRON_LENGTH	40
+#define DEFAULT_SW_MIN_SCORE		0.6
+#define DEFAULT_SW_MATCH		5
+#define DEFAULT_SW_MISMATCH		-4
+#define DEFAULT_SW_GAP_OPEN		10
+#define DEFAULT_SW_GAP_EXTEND		0.5
+#define DEFAULT_PAIR_MODE	        0
+#define DEFAULT_PAIR_MIN_DISTANCE	200
+#define DEFAULT_PAIR_MAX_DISTANCE	800
+#define MINIMUM_BATCH_SIZE              10000
+//=====================================================================
 
 #define NUM_OPTIONS			41
 
@@ -66,7 +89,7 @@ typedef struct options {
   char* in_filename2;
   char* bwt_dirname;
   char* genome_filename;
-  char* output_filename;
+  char* output_name;
   char* header_filename;
 } options_t;
 
