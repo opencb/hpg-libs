@@ -107,7 +107,7 @@ size_t get_optimal_cpu_num_threads() {
     }
   }
   
-  sprintf(log_message, "optimal_cpu_num_threads: %zu\n", optimal_cpu_num_threads);
+  sprintf(log_message, "optimal_cpu_num_threads: %zu", optimal_cpu_num_threads);
   LOG_DEBUG(log_message);
 
   fclose(fd_cpu_num_cores);
