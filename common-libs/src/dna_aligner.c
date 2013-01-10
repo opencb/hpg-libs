@@ -1,11 +1,23 @@
 #include "dna_aligner.h"
 
-
 //--------------------------------------------------------------------
+
 void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index, 
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     pair_mng_t *pair_mng, options_t *options) {
 
+  int path_length = strlen(options->output_name);
+  char reads_results[30] = "reads_results.bam\0";
+  char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
+  strcat(output_filename, options->output_name);
+  strcat(output_filename, reads_results);
+
+  validate_options(options, "dna");
+
+  // display selected options
+  LOG_DEBUG("Displaying options...\n");
+  options_display(options);
+  
   // lists to communicate/synchronize the different threads
   list_t read_list, write_list;
   list_init("read", 1, 24, &read_list);
@@ -15,6 +27,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   printf("writers to write_list = %d\n", list_get_writers(&write_list));
 
   omp_set_nested(1);  
+
   bwt_server_input_t bwt_input;
   bwt_server_input_init(NULL, 0, bwt_optarg, bwt_index, 
 			NULL, 0, NULL, &bwt_input);
@@ -40,6 +53,10 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 
   double t_total;
   struct timeval t1, t2;
+
+  if (time_on) { 
+    timing_start(MAIN_INDEX, 0, timing_p);
+  }
   
   #pragma omp parallel sections num_threads(3) //options->num_cpu_threads)
   {
@@ -76,9 +93,13 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
     #pragma omp section
     {
       batch_writer_input_t input;
-      batch_writer_input_init(options->output_filename, NULL, NULL, &write_list, genome, &input);
+      batch_writer_input_init(output_filename, NULL, NULL, &write_list, genome, &input);
       batch_writer2(&input);
     }
+  }
+
+  if (time_on) { 
+    timing_stop(MAIN_INDEX, 0, timing_p);
   }
 
   if (statistics_on) {
@@ -126,5 +147,5 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
       if (max_time < sw_time[i]) max_time = sw_time[i];
     }
     printf("\n\tTotal SWs: %lu, Max time = %0.4f, Throughput = %0.2f SW/s\n", total_item, max_time / 1e6, total_throughput);
-  }
+  }  
 }
