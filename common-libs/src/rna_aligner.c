@@ -1,10 +1,31 @@
 #include "rna_aligner.h"
 
-//--------------------------------------------------------------------
-
 void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng,
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     options_t *options) {
+
+  int path_length = strlen(options->output_name);
+  char reads_results[30] = "reads_results.bam\0";
+  char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
+  strcat(output_filename, options->output_name);
+  strcat(output_filename, reads_results);
+
+  char extend_junction[30] = "extend_junctions.bed\0";
+  char *extend_filename = (char *)calloc((path_length + 60), sizeof(char));
+  strcat(extend_filename, options->output_name);
+  strcat(extend_filename, extend_junction);
+  
+  char exact_junction[30] = "exact_junctions.bed\0";
+  char *exact_filename = (char *)calloc((path_length + 60), sizeof(char));
+  strcat(exact_filename, options->output_name);
+  strcat(exact_filename, exact_junction);
+
+  validate_options(options, "rna");
+  
+  // display selected options
+  LOG_DEBUG("Displaying options...\n");
+  options_display(options);
+
   list_t read_list;
   list_init("read", 1, 10, &read_list);
   
@@ -26,6 +47,11 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
   allocate_splice_elements_t chromosome_avls[CHROMOSOME_NUMBER];
   init_allocate_splice_elements(chromosome_avls);
   omp_set_nested(1);
+  
+  if (time_on) { 
+    timing_start(MAIN_INDEX, 0, timing_p);
+  }
+
   #pragma omp parallel sections num_threads(7)
   {
     printf("Principal Sections %d threads\n", omp_get_num_threads());
@@ -88,8 +114,8 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
       }
 
       write_chromosome_avls(chromosome_avls, &write_list,  
-			    options->splice_extend_filename, 
-			    options->splice_exact_filename,
+			    extend_filename, 
+			    exact_filename,
 			    options->write_size);
     }
      #pragma omp section
@@ -102,13 +128,18 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
      #pragma omp section
     {
       batch_writer_input_t input;
-      batch_writer_input_init( options->output_filename,  
-			       options->splice_exact_filename,  
-			       options->splice_extend_filename,  
+      batch_writer_input_init( output_filename,  
+			       exact_filename,  
+			       extend_filename,  
 			       &write_list, genome, &input);
       batch_writer2(&input);
       }
-  }   
+  }
+
+  if (time_on) { 
+    timing_stop(MAIN_INDEX, 0, timing_p);
+  }
+
 }
 
 //--------------------------------------------------------------------
