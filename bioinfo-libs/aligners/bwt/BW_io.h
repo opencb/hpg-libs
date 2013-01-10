@@ -26,12 +26,14 @@
 #ifndef _BW_IO_
 #define _BW_IO_
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<limits.h>
-#include<stddef.h>
-#include<malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <stddef.h>
+#include <malloc.h>
+
+#include "commons/log.h"
 
 #define nA              4
 
@@ -176,27 +178,23 @@
 #endif
 
 #define checkMalloc(D, path)						 \
-  if ((D)==NULL) {							 \
-    fprintf(stderr, "Data structure " #D " in %s is too large", (path)); \
-    exit(1);								 \
+  if ((D)==NULL) {							\
+    LOG_FATAL_F("Data structure " #D " in %s is too large", path);	\
   }
 
 #define checkFileOpen(fp, path)						\
-  if (!(fp)) {								\
-    fprintf(stderr, "Error opening file: %s\n", (path));		\
-    exit(1);								\
+  if (!fp) {								\
+    LOG_FATAL_F("Error opening file: %s\n", path);			\
   }
 
 #define checkFileRead(err, nmemb, path)					\
   if ((err) != (nmemb)) {						\
-    fprintf(stderr, "Error reading file '%s'\n", (path));		\
-    exit(1);								\
+    LOG_FATAL_F("Error reading file '%s'\n", path);			\
   }
 
 #define checkFileWrite(err, nmemb, path)			\
   if ((err) != (nmemb)) {					\
-    fprintf(stderr, "Error writing file '%s'\n", (path));	\
-    exit(1);							\
+    LOG_FATAL_F("Error writing file '%s'\n", (path));	        \
   }
 
 #define timevars() struct timeval t1, t2;
