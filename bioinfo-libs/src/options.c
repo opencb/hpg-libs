@@ -1,118 +1,131 @@
 #include "options.h"
 
-//============================ DEFAULT VALUES ============================
-
-#define DEFAULT_GPU_THREADS		32
-#define DEFAULT_CPU_THREADS		1
-#define DEFAULT_CAL_SEEKER_ERRORS	0
-#define DEFAULT_MIN_CAL_SIZE		20
-#define DEFAULT_SEEDS_MAX_DISTANCE	60
-#define DEFAULT_BWT_THREADS		1
-#define DEFAULT_READ_BATCH_SIZE		200000
-#define DEFAULT_WRITE_BATCH_SIZE	500000
-#define DEFAULT_NUM_CAL_SEEKERS		1
-#define DEFAULT_REGION_THREADS		1
-#define DEFAULT_NUM_SW_THREADS		1
-#define DEFAULT_MIN_SEED_SIZE		16
-#define DEFAULT_SEED_SIZE		18
-#define DEFAULT_MIN_SEED_SIZE_RNA	15
-#define DEFAULT_SEED_SIZE_RNA		15
-#define DEFAULT_MIN_NUM_SEEDS		10
-#define DEFAULT_MAX_NUM_SEEDS		20
-#define DEFAULT_MAX_INTRON_LENGTH	800000
-#define DEFAULT_MIN_INTRON_LENGTH	40
-#define DEFAULT_FLANK_LENGTH		5
-#define DEFAULT_FLANK_LENGTH_RNA	30
-#define DEFAULT_SW_MIN_SCORE		0.6
-#define DEFAULT_SW_MATCH		5
-#define DEFAULT_SW_MISMATCH		-4
-#define DEFAULT_SW_GAP_OPEN		10
-#define DEFAULT_SW_GAP_EXTEND		0.5
-#define DEFAULT_PAIR_MODE	        0
-#define DEFAULT_PAIR_MIN_DISTANCE	200
-#define DEFAULT_PAIR_MAX_DISTANCE	800
-
-#define MINIMUM_CAL_SIZE                15
-#define MINIMUM_FLANK_LENGTH            20
-#define MINIMUM_SEED_MAX_DISTANCE       40
-#define MINIMUM_BATCH_SIZE              10000
-#define MINIMUM_SEED_SIZE               14
-#define MINIMUM_MIN_SEED_SIZE           12
-
-const char DEFAULT_OUTPUT_FILENAME[30] = "reads_results.bam";
-const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
-const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
+const char DEFAULT_OUTPUT_NAME[30] = "hpg-aligner_output";
+//const char SPLICE_EXACT_FILENAME[30]   = "exact_junctions.bed";
+//const char SPLICE_EXTEND_FILENAME[30]  = "extend_junctions.bed";
 //const char INDEX_NAME[30]  = "index";
 
-
-//========================================================================
-
 options_t *options_new(void) {
-	options_t *options = (options_t*) calloc (1, sizeof(options_t));
-	size_t num_cores = 0;
+  options_t *options = (options_t*) calloc (1, sizeof(options_t));
+  size_t num_cores = 0;
+  
+  //======================= COMMON OPTIONS ====================
+  options->in_filename = NULL;
+  options->in_filename2 = NULL;
+  options->report_all =  0;
+  options->log_level = 0;
+  options->output_name = strdup(DEFAULT_OUTPUT_NAME);
+  options->num_gpu_threads = DEFAULT_GPU_THREADS;
+  //GET Number System Cores
+  //----------------------------------------------
+  if (num_cores = get_optimal_cpu_num_threads()) {
+    options->num_cpu_threads = num_cores;
+  }else {
+    options->num_cpu_threads = DEFAULT_CPU_THREADS;
+  }
+  //----------------------------------------------
+  options->max_intron_length = DEFAULT_MAX_INTRON_LENGTH;
+  options->min_num_seeds = DEFAULT_MIN_NUM_SEEDS;
+  options->max_num_seeds = DEFAULT_MAX_NUM_SEEDS;
+  options->cal_seeker_errors = DEFAULT_CAL_SEEKER_ERRORS;
+  options->write_size = DEFAULT_WRITE_BATCH_SIZE;
+  options->bwt_threads = DEFAULT_BWT_THREADS;
+  options->region_threads = DEFAULT_REGION_THREADS;
+  options->num_cal_seekers = DEFAULT_NUM_CAL_SEEKERS;
+  options->num_sw_servers = DEFAULT_NUM_SW_THREADS;
+  options->min_score = DEFAULT_SW_MIN_SCORE;
+  options->match = DEFAULT_SW_MATCH;
+  options->mismatch = DEFAULT_SW_MISMATCH;
+  options->gap_open = DEFAULT_SW_GAP_OPEN;
+  options->gap_extend = DEFAULT_SW_GAP_EXTEND;
+  options->min_intron_length = DEFAULT_MIN_INTRON_LENGTH;
+  options->pair_mode = DEFAULT_PAIR_MODE;
+  options->pair_min_distance = DEFAULT_PAIR_MIN_DISTANCE;
+  options->pair_max_distance = DEFAULT_PAIR_MAX_DISTANCE;
+  options->timming = 0;
+  options->statistics = 0;
+  options->report_best = 0;
+  options->report_n_hits = 0;
+  options->gpu_process = 0;
+  options->bwt_set = 0;
+  options->reg_set = 0;
+  options->cal_set = 0;
+  options->sw_set = 0;
+  //=========================================================
+  options->min_cal_size = 0; 
+  options->seeds_max_distance = 0;
+  options->batch_size = 0;
+  options->min_seed_size = 0;
+  options->seed_size = 0;
+  options->flank_length = 0;
+  
+  return options;
+}
 
-	options->in_filename = NULL;
-	options->in_filename2 = NULL;
-	options->report_all =  0;
-	options->output_filename = strdup(DEFAULT_OUTPUT_FILENAME);
-	options->splice_exact_filename = strdup(SPLICE_EXACT_FILENAME);
-	options->splice_extend_filename = strdup(SPLICE_EXTEND_FILENAME);
-	options->num_gpu_threads = DEFAULT_GPU_THREADS;
-	//GET Number System Cores
-	//----------------------------------------------
-	if (num_cores = get_optimal_cpu_num_threads()) {
-	  options->num_cpu_threads = num_cores;
-	}else {
-	  options->num_cpu_threads = DEFAULT_CPU_THREADS;
-	}
-	//----------------------------------------------
-	options->rna_seq = 0; 
-	options->min_cal_size = DEFAULT_MIN_CAL_SIZE; 
-	options->cal_seeker_errors = DEFAULT_CAL_SEEKER_ERRORS;
-	options->seeds_max_distance = DEFAULT_SEEDS_MAX_DISTANCE;
-	options->bwt_threads = DEFAULT_BWT_THREADS;
-	options->batch_size = DEFAULT_READ_BATCH_SIZE;
-	options->write_size = DEFAULT_WRITE_BATCH_SIZE;
-	options->num_cal_seekers = DEFAULT_NUM_CAL_SEEKERS;
-	options->region_threads = DEFAULT_REGION_THREADS;
-	options->num_sw_servers = DEFAULT_NUM_SW_THREADS;
-	options->min_seed_size = DEFAULT_MIN_SEED_SIZE;
-	options->seed_size = DEFAULT_SEED_SIZE;
-	options->min_num_seeds = DEFAULT_MIN_NUM_SEEDS;
-	options->max_num_seeds = DEFAULT_MAX_NUM_SEEDS;
-	options->max_intron_length = DEFAULT_MAX_INTRON_LENGTH;
-	options->flank_length = DEFAULT_FLANK_LENGTH;
-	options->min_score = DEFAULT_SW_MIN_SCORE;
-	options->match = DEFAULT_SW_MATCH;
-	options->mismatch = DEFAULT_SW_MISMATCH;
-	options->gap_open = DEFAULT_SW_GAP_OPEN;
-	options->gap_extend = DEFAULT_SW_GAP_EXTEND;
-	options->min_intron_length = DEFAULT_MIN_INTRON_LENGTH;
-	options->pair_mode = DEFAULT_PAIR_MODE;
-	options->pair_min_distance = DEFAULT_PAIR_MIN_DISTANCE;
-	options->pair_max_distance = DEFAULT_PAIR_MAX_DISTANCE;
-	options->timming = 0;
-	options->statistics = 0;
-	options->report_best = 0;
-	options->report_n_hits = 0;
-	options->gpu_process = 0;
-	options->bwt_set = 0;
-	options->reg_set = 0;
-	options->cal_set = 0;
-	options->sw_set = 0;
-	
-	return options;
+void validate_options(options_t *options, char *mode) {
+  int value_dir = exists(options->output_name);
+  int DEFAULT_READ_BATCH_SIZE;
+  int DEFAULT_SEED_SIZE;
+  int DEFAULT_FLANK_LENGTH;
+  int DEFAULT_MIN_SEED_SIZE;
+  int DEFAULT_MIN_CAL_SIZE;
+  int DEFAULT_SEEDS_MAX_DISTANCE;
+
+  if (strcmp("rna", mode) == 0) {
+    DEFAULT_READ_BATCH_SIZE = 20000;
+    DEFAULT_SEED_SIZE	= 20;
+    DEFAULT_FLANK_LENGTH = 5;
+    DEFAULT_MIN_SEED_SIZE = 16;
+    DEFAULT_MIN_CAL_SIZE = 30;
+    DEFAULT_SEEDS_MAX_DISTANCE = 100;
+  }else if (strcmp("dna", mode) == 0) {
+    DEFAULT_READ_BATCH_SIZE = 200000;
+    DEFAULT_SEED_SIZE = 15;
+    DEFAULT_FLANK_LENGTH = 30;
+    DEFAULT_MIN_SEED_SIZE = 15;
+    DEFAULT_MIN_CAL_SIZE = 20;
+    DEFAULT_SEEDS_MAX_DISTANCE = 60;
+  }
+
+  if (!value_dir) {
+    create_directory(options->output_name);
+    exit(-1);
+  }
+
+  if (!options->min_cal_size) {
+    options->min_cal_size = DEFAULT_MIN_CAL_SIZE;
+  }
+ 
+  if (!options->seeds_max_distance) {
+    options->seeds_max_distance = DEFAULT_SEEDS_MAX_DISTANCE;
+  }
+  
+  if (!options->batch_size) {
+    options->batch_size = DEFAULT_READ_BATCH_SIZE;
+  }
+   
+  if (!options->min_seed_size) {
+    options->min_seed_size = DEFAULT_MIN_SEED_SIZE;
+  }
+  
+  if (!options->seed_size) {
+    options->seed_size = DEFAULT_SEED_SIZE;
+  }
+
+  if (!options->flank_length) {
+    options->flank_length = DEFAULT_FLANK_LENGTH;
+  }
 }
 
 
 void options_free(options_t *options) {
 	if(options == NULL) { return; }
-	if (options->splice_exact_filename != NULL)	{ free(options->splice_exact_filename); }
-	if (options->splice_extend_filename  != NULL)	{ free(options->splice_extend_filename); }
+	//if (options->splice_exact_filename != NULL)	{ free(options->splice_exact_filename); }
+	//if (options->splice_extend_filename  != NULL)	{ free(options->splice_extend_filename); }
 	if (options->in_filename  != NULL)		{ free(options->in_filename); }
 	if (options->in_filename2  != NULL)		{ free(options->in_filename2); }
 	if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
-	if (options->output_filename  != NULL)		{ free(options->output_filename); }
+	if (options->output_name  != NULL)		{ free(options->output_name); }
 
 	free(options);
 }
@@ -135,7 +148,7 @@ void options_display(options_t *options) {
     report_all = 1;
   }
 
-  char* output_filename =  strdup(options->output_filename);
+  char* output_name =  strdup(options->output_name);
   unsigned int num_gpu_threads =  (unsigned int)options->num_gpu_threads;
   unsigned int num_cpu_threads =  (unsigned int)options->num_cpu_threads;
   unsigned int rna_seq =  (unsigned int)options->rna_seq; 
@@ -208,18 +221,17 @@ void options_display(options_t *options) {
   if (in_filename2 != NULL) free(in_filename2);
   free(bwt_dirname);
   //free(genome_filename);
-  free(output_filename);
+  free(output_name);
 }
 
 //--------------------------------------------------------------------
 
 void** argtable_options_new(void) {
 	void **argtable = (void**)malloc((NUM_OPTIONS + 1) * sizeof(void*));	// NUM_OPTIONS +1 to allocate end structure
-
 	// NOTICE that order cannot be changed as is accessed by index in other functions
 	argtable[0] = arg_file0("f", "fq,fastq", NULL, "Reads file input");
 	argtable[1] = arg_file0("i", "bwt-index", NULL, "BWT directory name");
-	argtable[2] = arg_int0("l", "log-debug", NULL, "Log debug level");
+	argtable[2] = arg_int0("l", "log-level", NULL, "Log debug level");
 	argtable[3] = arg_lit0(NULL, "report-all", "Report all alignments");
 	argtable[4] = arg_file0("o", "outdir", NULL, "Output directory");
 	argtable[5] = arg_int0(NULL, "gpu-threads", NULL, "Number of GPU Threads");
@@ -298,6 +310,8 @@ int read_config_file(const char *filename, options_t *options) {
 
 	return ret_code;
 }
+
+
 /**
  * @brief Initializes an options_t structure from argtable parsed CLI with default values. Notice that options are order dependent.
  * @return A new options_t structure initialized with default values.
@@ -309,170 +323,39 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_file*)argtable[1])->count) { options->bwt_dirname = strdup(*(((struct arg_file*)argtable[1])->filename)); }
   if (((struct arg_file*)argtable[2])->count) { options->log_level = *(((struct arg_int*)argtable[2])->ival); }
   if (((struct arg_file*)argtable[3])->count) { options->report_all = (((struct arg_int *)argtable[3])->count); }
-  if (((struct arg_file*)argtable[4])->count) { free(options->output_filename); options->output_filename = strdup(*(((struct arg_file*)argtable[4])->filename)); }
-  
-  if (((struct arg_int*)argtable[5])->count) {     
-    options->num_gpu_threads = *(((struct arg_int*)argtable[5])->ival); 
-    if (options->num_gpu_threads < DEFAULT_GPU_THREADS) {
-      options->num_gpu_threads = DEFAULT_GPU_THREADS;
-    } 
-  }
-  
-  if (((struct arg_int*)argtable[6])->count) { 
-    options->num_cpu_threads = *(((struct arg_int*)argtable[6])->ival);
-    if (options->num_cpu_threads < DEFAULT_CPU_THREADS) {
-      options->num_cpu_threads = DEFAULT_CPU_THREADS;
-    } 
-  }
-
-  if (((struct arg_int*)argtable[7])->count) { 
-    options->rna_seq = (((struct arg_int *)argtable[7])->count); 
-    options->seed_size = DEFAULT_SEED_SIZE_RNA;
-    options->min_seed_size = DEFAULT_MIN_SEED_SIZE_RNA;;
-    options->flank_length = DEFAULT_FLANK_LENGTH_RNA;
-  }
-
-  if (((struct arg_int*)argtable[8])->count) { 
-    options->cal_seeker_errors = *(((struct arg_int*)argtable[8])->ival); 
-    if (options->cal_seeker_errors < DEFAULT_CAL_SEEKER_ERRORS || 
-	options->cal_seeker_errors > 1) {
-      options->cal_seeker_errors = DEFAULT_CAL_SEEKER_ERRORS;
-    }
-  }
-
-  if (((struct arg_int*)argtable[9])->count) { 
-    options->min_cal_size = *(((struct arg_int*)argtable[9])->ival); 
-    if (options->min_cal_size < MINIMUM_CAL_SIZE) {
-      options->min_cal_size = MINIMUM_CAL_SIZE;
-    }
-  }
-
-  if (((struct arg_int*)argtable[10])->count) { 
-    options->seeds_max_distance = *(((struct arg_int*)argtable[10])->ival); 
-    if (options->seeds_max_distance < MINIMUM_SEED_MAX_DISTANCE) {
-      options->seeds_max_distance = MINIMUM_SEED_MAX_DISTANCE;
-    }
-  }
-  
-  if (((struct arg_int*)argtable[11])->count) { 
-    options->batch_size = *(((struct arg_int*)argtable[11])->ival); 
-    if (options->batch_size < MINIMUM_BATCH_SIZE) {
-      options->batch_size = DEFAULT_READ_BATCH_SIZE;
-    }
-  }
-
-  if (((struct arg_int*)argtable[12])->count) { 
-    options->write_size = *(((struct arg_int*)argtable[12])->ival); 
-    if (options->write_size < MINIMUM_BATCH_SIZE) {
-      options->write_size = DEFAULT_WRITE_BATCH_SIZE;
-    }
-  }
-
-  if (((struct arg_int*)argtable[13])->count) { 
-    options->num_cal_seekers = *(((struct arg_int*)argtable[13])->ival); 
-    options->cal_set = 1;
-    if (options->num_cal_seekers < DEFAULT_NUM_CAL_SEEKERS) {
-      options->num_cal_seekers = DEFAULT_NUM_CAL_SEEKERS;
-    }
-  }
-
-  if (((struct arg_int*)argtable[14])->count) { 
-    options->num_sw_servers = *(((struct arg_int*)argtable[14])->ival); 
-    options->sw_set = 1;
-    if (options->num_sw_servers < DEFAULT_NUM_SW_THREADS) {
-      options->num_sw_servers = DEFAULT_NUM_SW_THREADS;
-    }
-  }
-  
-  if (((struct arg_int*)argtable[15])->count) { 
-    options->bwt_threads = *(((struct arg_int*)argtable[15])->ival); 
-    options->bwt_set = 1;
-    if (options->bwt_threads < DEFAULT_BWT_THREADS) {
-      options->bwt_threads = DEFAULT_BWT_THREADS;
-    }
-  }
-
-  if (((struct arg_int*)argtable[16])->count) { 
-    options->region_threads = *(((struct arg_int*)argtable[16])->ival);
-    options->reg_set = 1;
-    if (options->region_threads < DEFAULT_REGION_THREADS) {
-      options->region_threads = DEFAULT_REGION_THREADS;
-    }
-  }
-
-  if (((struct arg_int*)argtable[17])->count) { 
-    options->seed_size = *(((struct arg_int*)argtable[17])->ival); 
-    if (options->seed_size < MINIMUM_SEED_SIZE) {
-      options->seed_size = MINIMUM_SEED_SIZE; 
-    }
-  }
-
-  if (((struct arg_int*)argtable[18])->count) { 
-    options->min_seed_size = *(((struct arg_int*)argtable[18])->ival); 
-    if (options->min_seed_size < MINIMUM_MIN_SEED_SIZE) {
-      options->min_seed_size = MINIMUM_MIN_SEED_SIZE;
-    }
-  }
-
-  if (((struct arg_int*)argtable[19])->count) { 
-    options->flank_length = *((struct arg_int*)argtable[19])->ival; 
-    if ((options->rna_seq) && (options->flank_length < MINIMUM_FLANK_LENGTH)) {
-      options->flank_length = MINIMUM_FLANK_LENGTH;
-    }
-  }
-
+  if (((struct arg_file*)argtable[4])->count) { free(options->output_name); options->output_name = strdup(*(((struct arg_file*)argtable[4])->filename)); }  
+  if (((struct arg_int*)argtable[5])->count) { options->num_gpu_threads = *(((struct arg_int*)argtable[5])->ival); }
+  if (((struct arg_int*)argtable[6])->count) { options->num_cpu_threads = *(((struct arg_int*)argtable[6])->ival); }
+  if (((struct arg_int*)argtable[8])->count) { options->cal_seeker_errors = *(((struct arg_int*)argtable[8])->ival); }
+  if (((struct arg_int*)argtable[9])->count) { options->min_cal_size = *(((struct arg_int*)argtable[9])->ival); }
+  if (((struct arg_int*)argtable[10])->count) { options->seeds_max_distance = *(((struct arg_int*)argtable[10])->ival); }
+  if (((struct arg_int*)argtable[11])->count) { options->batch_size = *(((struct arg_int*)argtable[11])->ival); }
+  if (((struct arg_int*)argtable[12])->count) { options->write_size = *(((struct arg_int*)argtable[12])->ival); }
+  if (((struct arg_int*)argtable[13])->count) { options->cal_set = 1; options->num_cal_seekers = *(((struct arg_int*)argtable[13])->ival); }
+  if (((struct arg_int*)argtable[14])->count) { options->sw_set = 1; options->num_sw_servers = *(((struct arg_int*)argtable[14])->ival); }
+  if (((struct arg_int*)argtable[15])->count) { options->bwt_set = 1; options->bwt_threads = *(((struct arg_int*)argtable[15])->ival); }
+  if (((struct arg_int*)argtable[16])->count) { options->reg_set = 1; options->region_threads = *(((struct arg_int*)argtable[16])->ival); }
+  if (((struct arg_int*)argtable[17])->count) { options->seed_size = *(((struct arg_int*)argtable[17])->ival); }
+  if (((struct arg_int*)argtable[18])->count) { options->min_seed_size = *(((struct arg_int*)argtable[18])->ival); }
+  if (((struct arg_int*)argtable[19])->count) { options->flank_length = *((struct arg_int*)argtable[19])->ival; }
   if (((struct arg_dbl*)argtable[20])->count) { options->match = *((struct arg_dbl*)argtable[20])->dval; }
   if (((struct arg_dbl*)argtable[21])->count) { options->mismatch = *(((struct arg_dbl*)argtable[21])->dval); }
   if (((struct arg_dbl*)argtable[22])->count) { options->gap_open = *(((struct arg_dbl*)argtable[22])->dval); }
   if (((struct arg_dbl*)argtable[23])->count) { options->gap_extend = *(((struct arg_dbl*)argtable[23])->dval); }
   if (((struct arg_dbl*)argtable[24])->count) { options->min_score = *(((struct arg_dbl*)argtable[24])->dval); }
-
-  if (((struct arg_int*)argtable[25])->count) { 
-    options->max_intron_length = *(((struct arg_int*)argtable[25])->ival);    
-    if (options->max_intron_length <= 0) {
-      options->max_intron_length = DEFAULT_MAX_INTRON_LENGTH; 
-    }
-  }
-
-  if (((struct arg_int*)argtable[26])->count) { 
-    options->min_intron_length = *(((struct arg_int*)argtable[26])->ival);
-    if (options->min_intron_length <= 0) {
-      options->min_intron_length = DEFAULT_MIN_INTRON_LENGTH;
-    }
-  }
-
+  if (((struct arg_int*)argtable[25])->count) { options->max_intron_length = *(((struct arg_int*)argtable[25])->ival); }
+  if (((struct arg_int*)argtable[26])->count) { options->min_intron_length = *(((struct arg_int*)argtable[26])->ival); }
   if (((struct arg_int*)argtable[27])->count) { options->timming = ((struct arg_int*)argtable[27])->count; }
   if (((struct arg_int*)argtable[28])->count) { options->statistics = ((struct arg_int*)argtable[28])->count; }
   if (((struct arg_int*)argtable[29])->count) { options->help = ((struct arg_int*)argtable[29])->count; }
   if (((struct arg_file*)argtable[32])->count) { options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); }
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
   if (((struct arg_int*)argtable[34])->count) { options->pair_min_distance = *(((struct arg_int*)argtable[34])->ival); }
-
-  
-  if (((struct arg_int*)argtable[35])->count) { 
-    options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); 
-  }
-  
-  if (options->rna_seq) {
-    options->pair_max_distance += options->max_intron_length;
-  }
-
-  if (((struct arg_int*)argtable[36])->count) { 
-    options->report_best = *(((struct arg_int*)argtable[36])->ival); 
-    if (options->report_best <= 0) {
-      options->report_best = 1;
-    }
-  }
-
-  if (((struct arg_int*)argtable[37])->count) { 
-    options->report_n_hits = *(((struct arg_int*)argtable[37])->ival); 
-    if (options->report_n_hits <= 0) {
-      options->report_n_hits = 1;
-    }
-  }
+  if (((struct arg_int*)argtable[35])->count) { options->pair_max_distance = *(((struct arg_int*)argtable[35])->ival); }
+  if (((struct arg_int*)argtable[36])->count) { options->report_best = *(((struct arg_int*)argtable[36])->ival); }
+  if (((struct arg_int*)argtable[37])->count) { options->report_n_hits = *(((struct arg_int*)argtable[37])->ival); }
   if (((struct arg_int*)argtable[38])->count) { options->min_num_seeds = *(((struct arg_int*)argtable[38])->ival); }
   if (((struct arg_int*)argtable[39])->count) { options->max_num_seeds = *(((struct arg_int*)argtable[39])->ival); }
-
   if (((struct arg_int*)argtable[40])->count) { 
     #ifdef HPG_GPU
        options->gpu_process = (((struct arg_int *)argtable[40])->count); 

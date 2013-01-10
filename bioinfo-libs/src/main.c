@@ -78,10 +78,6 @@ int main(int argc, char* argv[]) {
   // parsing options
   options_t *options = parse_options(argc, argv);
 
-  // display selected options
-  LOG_DEBUG("Displaying options...\n");
-  options_display(options);
-
   time_on =  (unsigned int) options->timming;
   statistics_on =  (unsigned int) options->statistics;
 
@@ -102,15 +98,15 @@ int main(int argc, char* argv[]) {
   }
 
   // genome parameters
-  LOG_DEBUG("Reading genome...\n");
+  LOG_DEBUG("Reading genome...");
   genome_t* genome = genome_new("dna_compression.bin", options->bwt_dirname);
-  LOG_DEBUG("Done !!\n");
+  LOG_DEBUG("Done !!");
   
   // BWT parameters
-  LOG_DEBUG("Reading bwt index...\n");
+  LOG_DEBUG("Reading bwt index...");
   //if (time_on) { timing_start(INIT_BWT_INDEX, 0, timing_p); }
   bwt_index_t *bwt_index = bwt_index_new(options->bwt_dirname);
-  LOG_DEBUG("Reading bwt index done !!\n");
+  LOG_DEBUG("Reading bwt index done !!");
   
   //BWT parameters
   bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 500,
@@ -128,23 +124,19 @@ int main(int argc, char* argv[]) {
   pair_mng_t *pair_mng = pair_mng_new(options->pair_mode, options->pair_min_distance, 
 				      options->pair_max_distance);
   
-  LOG_DEBUG("init table...\n");
+  LOG_DEBUG("init table...");
   initTable();
-  LOG_DEBUG("init table done !!\n");
+  LOG_DEBUG("init table done !!");
   
-  if (time_on) { 
-    timing_start(MAIN_INDEX, 0, timing_p);
-  }
-
   if (!strcmp(command, "rna")) {
     //************** Set Threads to sections **************//
     size_t cpu_threads = options->num_cpu_threads;
-    if (!options->bwt_set && 
+    if (!options->bwt_set &&
 	!options->reg_set && 
 	!options->cal_set &&
 	!options->sw_set &&
 	cpu_threads > 4) {
-      LOG_DEBUG("Auto Thread configuration ...\n");
+      LOG_DEBUG("Auto Thread configuration ...");
       if (cpu_threads == 5) { options->region_threads++; }
       else if (cpu_threads == 6) { 
 	options->region_threads++; 
@@ -153,27 +145,22 @@ int main(int argc, char* argv[]) {
       else {
 	options->region_threads = options->num_cpu_threads / 2;
 	cpu_threads -= options->region_threads;
-	cpu_threads -= options->bwt_threads;
-	
+	cpu_threads -= options->bwt_threads;	
 	options->num_sw_servers = (cpu_threads / 2) + 1;
 	cpu_threads -= options->num_sw_servers;
-	
 	options->num_cal_seekers = cpu_threads;
       }
-      LOG_DEBUG("Set %d Threads successful\n");
+      LOG_DEBUG("Set %d Threads successful");
     }
     //****************************************************//
-    LOG_DEBUG("Auto Thread Configuration Done !\n");
+    LOG_DEBUG("Auto Thread Configuration Done !");
     run_rna_aligner(genome, bwt_index, pair_mng, bwt_optarg, cal_optarg, options);
   } else {
     // DNA version
     run_dna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, pair_mng, options);
   }
 
-  LOG_DEBUG("\nmain done !!\n");
-  if (time_on) { 
-    timing_stop(MAIN_INDEX, 0, timing_p);
-  }
+  LOG_DEBUG("\nmain done !!");
 
   // Free memory
   if (time_on) { 

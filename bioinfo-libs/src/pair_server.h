@@ -40,7 +40,7 @@ void pair_server_input_init(pair_mng_t *pair_mng, int report_best, int report_n_
 //====================================================================================
 
 void pair_server(pair_server_input_t* input);
-
+void prepare_pair_server(pair_server_input_t* input);
 //------------------------------------------------------------------------------------
 
 void apply_pair(pair_server_input_t* input, mapping_batch_t *batch);
