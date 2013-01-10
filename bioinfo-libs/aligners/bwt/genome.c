@@ -19,16 +19,18 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   size_t j, i;
   char path[strlen(directory) + 512];
   
+  // read compressed genome file
   strcpy(path, directory);
-  strcat(path, "/index");
+  strcat(path, sequence_filename);
 
   printf("Loading Binary File\n");
-  genome_p->X = load_binary_dna(sequence_filename, &dna_size);
+  genome_p->X = load_binary_dna(path, &dna_size);
   printf("Load done!\n");
   genome_p->code_table = load_array_codes();
 
   // read index file
-  //
+  strcpy(path, directory);
+  strcat(path, "/index");
   unsigned int num_chromosomes = 0;
   unsigned int offset = 0;
   char* p;

@@ -1454,9 +1454,11 @@ size_t bwt_map_inexact_seq(char *seq,
   array_list_t *mapping_list_filter;
   alignment_t *best_alignment, *aux_alignment;
   size_t best_pos, array_size;
-  int i, j, z;
+//  size_t i, j, z;
   size_t *allocate_pos_alignments;
   size_t k_start, l_start;
+
+  size_t start_mapping;
 
   //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
   seq_strand = strdup(seq);
@@ -1506,7 +1508,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	l_start = r->l;
       }
 
-      for (unsigned int j = k_start; j <= l_start; j++) {
+      for (size_t j = k_start; j <= l_start; j++) {
 	if (type) {
 	  direction = r->dir;
 	} else {
@@ -1523,6 +1525,7 @@ size_t bwt_map_inexact_seq(char *seq,
 	    : getScompValue(j, &index->S, &index->h_C, &index->h_O);
 	}
 	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);                        
 	if(key + len <= index->karyotype.offset[idx]) {
 	  //optional_fields = (char *)malloc(sizeof(char)*256);
 	  quality_clipping = (char *)malloc(sizeof(char)*50);
@@ -1538,13 +1541,23 @@ size_t bwt_map_inexact_seq(char *seq,
 
 	    if (pos == 0) {
 	      //Positive strand
-	      if(type) { sprintf(cigar, "1S%luM\0", len-1); }
-	      else{ sprintf(cigar, "%luM1S\0", len-1); }
+	      if(type) { 
+		   sprintf(cigar, "1S%luM\0", len-1); 
+		   start_mapping++;
+	      }
+	      else { 
+		   sprintf(cigar, "%luM1S\0", len-1); 
+	      }
 	      num_cigar_ops = 2;
 	    } else if (pos == len - 1) {
 	      //Positive strand
-	      if(type) { sprintf(cigar, "%luM1S\0", len-1); }
-	      else{ sprintf(cigar, "1S%luM\0", len-1); }
+	      if(type) { 
+		   sprintf(cigar, "%luM1S\0", len-1); 
+	      }
+	      else{ 
+		   sprintf(cigar, "1S%luM\0", len-1); 
+		   start_mapping++;
+	      }
 	      num_cigar_ops = 2;
 	    } else {
 	      sprintf(cigar, "%luM\0", len);
@@ -1562,11 +1575,13 @@ size_t bwt_map_inexact_seq(char *seq,
 		sprintf(cigar, "1H%luM\0", len-1); 
 		memcpy(seq_dup, seq_strand + 1, len - 1);
 		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
+		start_mapping += 2;
 	      }
 	      else{ 
 		sprintf(cigar, "%luM1H\0", len-1); 
 		memcpy(seq_dup, seq_strand, len - 1);
 		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
+		start_mapping--;
 	      }
 	      seq_dup[len - 1] = '\0';
 	      num_cigar_ops = 2;
@@ -1576,11 +1591,13 @@ size_t bwt_map_inexact_seq(char *seq,
 		sprintf(cigar, "%luM1H\0", len-1); 
 		memcpy(seq_dup, seq_strand, len - 1);
 		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
+		start_mapping--;
 	      }
 	      else{ 
 		sprintf(cigar, "1H%luM\0", len-1); 
 		memcpy(seq_dup, seq_strand + 1, len - 1);
 		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
+		start_mapping += 2;
 	      }
 	      seq_dup[len - 1] = '\0';
 	      num_cigar_ops = 2;
@@ -1596,16 +1613,36 @@ size_t bwt_map_inexact_seq(char *seq,
 	    //printf("DELETION\n");
 	    if (pos == 0) {
 	      if(type) { sprintf(cigar, "1I%luM\0", len -1); }
-	      else{ sprintf(cigar, "%luM1I\0", len -1); }
+	      else{ 
+		   sprintf(cigar, "%luM1I\0", len -1); 
+		   start_mapping++;
+	      }
 	      
 	      num_cigar_ops = 2;		
 	    } else if (pos == len - 1) {
-	      if(type) { sprintf(cigar, "%luM1I\0", len -1); }
-	      else{ sprintf(cigar, "1I%luM\0", len -1); }
+	      if(type) { 
+		   sprintf(cigar, "%luM1I\0", len -1); 
+		   start_mapping++;
+	      }
+	      else{ 
+		   sprintf(cigar, "1I%luM\0", len -1); 
+	      }
 	      num_cigar_ops = 2;
 	    } else {
-	      if(type) { sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); }
-	      else{ sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); }
+	      if(type) { 
+		   sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
+//		   printf("cigar = %s\n", cigar);
+//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
+		   if (len - pos - 1 == 1) start_mapping++;
+//		   printf("\tstart_mapping = %lu\n", start_mapping);
+	      }
+	      else{ 
+		   sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
+//		   printf("cigar = %s\n", cigar);
+//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
+		   if (pos == 1) start_mapping++;
+//		   printf("\tstart_mapping = %lu\n", start_mapping);
+	      }
 	      num_cigar_ops = 3;
 	    }
 	    memcpy(seq_dup, seq_strand , len );
@@ -1619,6 +1656,9 @@ size_t bwt_map_inexact_seq(char *seq,
 	  }
 	  //printf("IN FUNCTION SEQ_DUP %d :: %s\n", strlen(seq_dup), seq_dup);
 
+
+//	  printf("************* start_mapping = %lu, cigar = %s, type = %i, j (k to l) = %lu\n", start_mapping, cigar, type, j);
+
 	  cigar_len = strlen(cigar) + 1;
 	  cigar_dup = (char *)calloc(cigar_len, sizeof(char));
 	  memcpy(cigar_dup, cigar, cigar_len);
@@ -1629,9 +1669,10 @@ size_t bwt_map_inexact_seq(char *seq,
 	  //printf("Align chr :%i, start:%lu\n", idx-1, index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]));
 	  // save all into one alignment structure and insert to the list
 	  alignment = alignment_new();
+
 	  alignment_init_single_end(NULL, seq_dup, quality_clipping, !type, 
 				    idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-				    index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+				    start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
 				    cigar_dup, num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
 	  array_list_insert((void*) alignment, mapping_list);
   
