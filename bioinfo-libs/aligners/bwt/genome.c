@@ -13,18 +13,23 @@ const unsigned char TOTAL_CODES = NUCLEOTIDES_NUM*NUCLEOTIDES_NUM*NUCLEOTIDES_NU
 genome_t* genome_new(char* sequence_filename, char* directory) {
   const int MAXLINE = 1024;
   genome_t* genome_p = (genome_t*) calloc(1, sizeof(genome_t));
+  
   // genome file
   //
   size_t dna_size;
   size_t j, i;
   char path[strlen(directory) + 512];
-  
+  char path_dna[strlen(directory) + 512];
+
   strcpy(path, directory);
   strcat(path, "/index");
 
-  printf("Loading Binary File\n");
-  genome_p->X = load_binary_dna(sequence_filename, &dna_size);
-  printf("Load done!\n");
+  strcpy(path_dna, directory);
+  strcat(path_dna, sequence_filename);
+
+  LOG_DEBUG("Loading Binary DNA File");
+  genome_p->X = load_binary_dna(path_dna, &dna_size);
+  LOG_DEBUG("Load DNA File Done!");
   genome_p->code_table = load_array_codes();
 
   // read index file
@@ -34,8 +39,11 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   char* p;
   char line[MAXLINE];
   char value[1024];
+
   FILE *fd = fopen(path, "r");
-  if(fd == NULL) { printf("FILE: '%s' not found\n", path);exit(-1); }
+  if(fd == NULL) { 
+    LOG_FATAL_F("FILE: '%s' not found", path);
+  }
   //printf("%s\n", path);
   //FILE *fd = fopen("/home/hmartinez/BenchMarks/HomoSapiens_BWT_Index/chromosome_index.txt", "r");
   while (fgets(line, MAXLINE, fd) ) {
@@ -223,10 +231,10 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 
   FILE *binary_fd, *fd;
   fd = fopen(dna_filename, "r");
-  if (fd == NULL) {  printf("Error opening file %s\n", dna_filename); exit(-1); }
+  if (fd == NULL) {  LOG_FATAL_F("Error opening file %s", dna_filename); }
 
   binary_fd = fopen (dna_binary_filename, "wb");
-  if (binary_fd == NULL) { printf("Error opening file %s\n", dna_binary_filename); exit(-1); }
+  if (binary_fd == NULL) { LOG_FATAL_F("Error opening file %s", dna_binary_filename); }
 
   char *dna_chunk = (char *)malloc(sizeof(char)*chunk_size);
   
@@ -243,7 +251,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   unsigned char *value_ptr;
   size_t nt = 0;
   unsigned char key_chunk = 3;
-  printf("Process DNA File\n");
+  LOG_DEBUG("Process DNA File\n");
 
   while (!feof(fd)) {
     fgets(dna_chunk, chunk_size, fd);
@@ -281,7 +289,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 	}
       } //End for
     } else {
-      printf("Process: %s", &dna_chunk[1]);      
+      LOG_DEBUG_F("Process: %s", &dna_chunk[1]);      
     }//End if strcmp
   }
     
@@ -305,14 +313,13 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
   FILE *binary_fd = fopen (dna_binary_filename, "rb");
   if (!binary_fd) {
-    printf("Error to opening '%s' file\n", dna_binary_filename);
-    exit(-1);
+    LOG_FATAL_F("Error to opening '%s' file\n", dna_binary_filename);
   }
 
   struct stat st;                                                                                                                                                     
   stat(dna_binary_filename, &st);     
   *size = st.st_size;                                                                                                                                           
-  printf("size file=%lu\n", *size);
+  LOG_DEBUG_F("Size File %lu\n", *size);
 
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
   fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
@@ -416,14 +423,14 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------                                                                                  
 void generate_codes(char *dna_binary_filename, char *dna_filename){
-  printf("Loading hashtable Codes ...\n");
+  LOG_DEBUG("Loading hashtable Codes ...\n");
   cp_hashtable *t = load_hasthable_codes();
-  printf("Loading done!\n");
+  LOG_DEBUG("Loading done!\n");
 
-  printf("Genrate Binary Genome File...\n");
+  LOG_DEBUG("Genrate Binary Genome File...\n");
   code_binary_file_generator(100000000, dna_filename,
                              dna_binary_filename, t);
-  printf("Generate done! Happy usage!\n");
+  LOG_DEBUG("Generate done! Happy usage!\n");
 }
 
 //------------------------------------------------------------------------------------
