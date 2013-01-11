@@ -1509,15 +1509,9 @@ size_t bwt_map_inexact_seq(char *seq,
 
 	       len_calc = len;
 	       if (error == DELETION) {
-		    printf("DELETION\n");
 		    len_calc--;
 	       } else if (error == INSERTION) {
-		    printf("INSERTION\n");
 		    len_calc++;
-	       } else if (error == MISMATCH) {
-		    printf("MISMATCH\n");
-	       } else {
-		    printf("MATCH\n");
 	       }
 
 	       if (r->l - r->k + 1 >= bwt_optarg->max_alignments_per_read) {
@@ -1545,7 +1539,7 @@ size_t bwt_map_inexact_seq(char *seq,
 		    if(key + len_calc <= index->karyotype.offset[idx]) {
 			 start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
 
-			 printf("\tlen = %lu, len_calc = %lu, start_mapping = %lu, key = %lu, error pos = %i\n", len, len_calc, start_mapping, key, pos);
+//			 printf("\tlen = %lu, len_calc = %lu, start_mapping = %lu, key = %lu, error pos = %i\n", len, len_calc, start_mapping, key, pos);
 			 //optional_fields = (char *)malloc(sizeof(char)*256);
 			 quality_clipping = (char *)malloc(sizeof(char)*50);
 			 sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
@@ -1670,7 +1664,7 @@ size_t bwt_map_inexact_seq(char *seq,
 			 //printf("IN FUNCTION SEQ_DUP %d :: %s\n", strlen(seq_dup), seq_dup);
 
 
-			 printf("\tstart_mapping = %lu, cigar = %s, type = %i, j (k to l) = %lu\n", start_mapping, cigar, type, j);
+//			 printf("\tstart_mapping = %lu, cigar = %s, type = %i, j (k to l) = %lu\n", start_mapping, cigar, type, j);
 
 			 cigar_len = strlen(cigar) + 1;
 			 cigar_dup = (char *)calloc(cigar_len, sizeof(char));
