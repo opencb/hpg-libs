@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
 
   // parsing options
   options_t *options = parse_options(argc, argv);
+  validate_options(options, command);
 
   if (!strcmp(command, "build-index")) {
        run_index_builder(options->genome_filename, options->bwt_dirname, options->index_ratio);

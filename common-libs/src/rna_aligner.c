@@ -5,22 +5,20 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
 		     options_t *options) {
 
   int path_length = strlen(options->output_name);
-  char reads_results[30] = "reads_results.bam\0";
+  char reads_results[30] = "/reads_results.bam\0";
   char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
   strcat(output_filename, options->output_name);
   strcat(output_filename, reads_results);
 
-  char extend_junction[30] = "extend_junctions.bed\0";
+  char extend_junction[30] = "/extend_junctions.bed\0";
   char *extend_filename = (char *)calloc((path_length + 60), sizeof(char));
   strcat(extend_filename, options->output_name);
   strcat(extend_filename, extend_junction);
   
-  char exact_junction[30] = "exact_junctions.bed\0";
+  char exact_junction[30] = "/exact_junctions.bed\0";
   char *exact_filename = (char *)calloc((path_length + 60), sizeof(char));
   strcat(exact_filename, options->output_name);
   strcat(exact_filename, exact_junction);
-
-  validate_options(options, "rna");
   
   // display selected options
   LOG_DEBUG("Displaying options...\n");

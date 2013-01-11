@@ -7,12 +7,12 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 		     pair_mng_t *pair_mng, options_t *options) {
 
   int path_length = strlen(options->output_name);
-  char reads_results[30] = "reads_results.bam\0";
+  char reads_results[30] = "/reads_results.bam\0";
   char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
   strcat(output_filename, options->output_name);
   strcat(output_filename, reads_results);
 
-  validate_options(options, "dna");
+//  validate_options(options, "dna");
 
   // display selected options
   LOG_DEBUG("Displaying options...\n");
