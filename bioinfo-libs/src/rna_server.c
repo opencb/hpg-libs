@@ -732,7 +732,8 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
     
     //printf("Cigar(%d):%s\n", cigar_pos, cigar_str);
     //end cigar string
-    if (array_list_size(mapping_batch_p->mapping_lists[sw_channels_p[i].read_index])) {
+//    if (array_list_size(mapping_batch_p->mapping_lists[sw_channels_p[i].read_index])) {
+    if (array_list_size(mapping_batch_p->mapping_lists[sw_channels_p[i].read_index]) > 1) {
       primary_alignment = 1;
     } else {
       primary_alignment = 0;
