@@ -281,7 +281,7 @@ void bwt_cigar_cpy(alignment_t *mapping, char *quality) {
   free(mapping->quality);
   mapping->quality = (char *)malloc(sizeof(char)*(quality_len + 1));
   //printf("Read:%s\n", mapping->sequence);
-
+/*
   if (quality_type == START_HARD_CLIPPING){
     if (mapping->seq_strand == 0) {
       memcpy(mapping->quality, 
@@ -304,17 +304,17 @@ void bwt_cigar_cpy(alignment_t *mapping, char *quality) {
     }
     mapping->quality[quality_len - 1] = '\0';
     //printf("HARD END : %s\n", mapping->quality);
-  }else{
+  }else{*/
     //printf("ELSE....\n");
-    if (mapping->seq_strand == 0) {
-      memcpy(mapping->quality, quality, quality_len);
-    } else {
-      reverse_str(quality,
-		  mapping->quality, quality_len);
-    }
-    //mapping->quality[quality_len] = '\0';
-    //printf("(%i)NORMAL : %s\n", mapping->seq_strand, mapping->quality);
+  if (mapping->seq_strand == 0) {
+       memcpy(mapping->quality, quality, quality_len);
+  } else {
+       reverse_str(quality,
+		   mapping->quality, quality_len);
   }
+  //mapping->quality[quality_len] = '\0';
+  //printf("(%i)NORMAL : %s\n", mapping->seq_strand, mapping->quality);
+//}
   //array_list_insert( mapping, mapping_list);
 }
 //-----------------------------------------------------------------------------
@@ -1373,347 +1373,360 @@ size_t bwt_map_inexact_seq(char *seq,
 			   array_list_t *mapping_list) {
   
 
-  alignment_t *alignment;
-  size_t len = strlen(seq);
+     alignment_t *alignment;
+     size_t len = strlen(seq);
 
-  if (len < 5) {
-    char aux[len + 2];
-    sprintf(aux, "%luX", len);
+     if (len < 5) {
+	  char aux[len + 2];
+	  sprintf(aux, "%luX", len);
 
-    char *quality_clipping = (char *)malloc(sizeof(char)*50);
-    sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
-
-    alignment = alignment_new();
-    alignment_init_single_end(NULL,
-			      strdup(seq),
-			      quality_clipping,
-			      0,
-			      -1,
-			      -1,
-			      strdup(aux), 1, 0, 0, 0, 0, NULL, alignment);
-    array_list_insert((void*) alignment, mapping_list);
-    return 1;
-  }
- 
-
-  //printf("------------>IN FUNCTION INEXACT SEQ...\n");
-  /*unsigned int len = strlen(seq);
-  unsigned int start = 0;
-  unsigned int end = len - 1;*/
-  char *seq_dup, *seq_strand;
-  /*char *codeSeq = (char *) calloc(len, sizeof(char));
-  replaceBases(seq, codeSeq, len);*/
-
-  //return bwt_map_inexact_seq_by_pos(seq, start, end,
-  //					bwt_optarg, index, mapping_list);
-  
-  size_t start = 0;
-  size_t end = len - 1;
-
-  char *code_seq = (char *) malloc(len * sizeof(char));
-
-  replaceBases(seq, code_seq, len);
-
-  // calculate vectors k and l
-  size_t *k0 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *l0 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *k1 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *l1 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *ki0 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *li0 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *ki1 = (size_t *) malloc(len * sizeof(size_t));
-  size_t *li1 = (size_t *) malloc(len * sizeof(size_t));
-
-  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_O.siz - 2,
-			      k1, l1, &index->h_C, &index->h_C1, &index->h_O);
-  
-  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_Oi.siz - 2,
-			     ki1, li1, &index->h_C, &index->h_C1, &index->h_Oi);
-  
-  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_rO.siz - 2,
-			     k0, l0, &index->h_rC, &index->h_rC1, &index->h_rO);
-  
-  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_rOi.siz - 2,
-			      ki0, li0, &index->h_rC, &index->h_rC1, &index->h_rOi);
-  
-
-  // compare the vectors k and l to get mappings in the genome
-  size_t num_mappings = 0;
-  char plusminus[2] = "-+";
-  size_t idx, key, direction;
-  char error;
-  int pos;
-  //results_list *r_list;
-  results_list r_list;
-  result *r;
-  char error_debug = 0;
-  char *cigar_dup;
-  char cigar[1024];
-  size_t cigar_len, num_cigar_ops;
-  char *quality_clipping;
-  array_list_t *mapping_list_filter;
-  alignment_t *best_alignment, *aux_alignment;
-  size_t best_pos, array_size;
-//  size_t i, j, z;
-  size_t *allocate_pos_alignments;
-  size_t k_start, l_start;
-
-  size_t start_mapping;
-
-  //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-  seq_strand = strdup(seq);
-  error = MISMATCH;
-
-  new_results_list(&r_list, bwt_optarg->max_alignments_per_read);
-
-  for (int type = 1; type >= 0; type--) {
-
-    r_list.num_results = 0;
-    r_list.read_index = 0;
-
-    //    printf("*** bwt.c: calling BWSearch1 with type = %d...\n", type);
-    if (type == 1) {
-      BWSearch1(code_seq, start, end, k1, l1, ki1, li1, 
-		&index->h_C, &index->h_C1, &index->h_O, &index->h_Oi, &r_list);
-    } else {
-      BWSearch1(code_seq, start, end, ki0, li0, k0, l0, 
-		&index->h_rC, &index->h_rC1, &index->h_rOi, &index->h_rO, &r_list);      
-      if (r_list.num_results) {
-	seq_reverse_complementary(seq_strand, len);
-      }
-    }
-
-    //    printf("*** bwt.c: calling BWSearch1 with type = %d (num_results = %d). Done !!\n", type, r_list.num_results);
-    
-    for (size_t ii = 0; ii < r_list.num_results; ii++) {
-      //for (size_t ii = 0; ii < r_list->n; ii++) {
-     
-      r = &r_list.list[ii];
-      //printf("Errors number %d\n", r->num_mismatches);
-      //if(r == NULL){printf("ERROR: Result list position null");exit(-1);}
-      if(!r->num_mismatches)
-	error = 0;
-      else
-	error = r->err_kind[0];
-
-      pos = r->err_pos[0];
-      //pos = r->position[0];
-	  
-      if (r->l - r->k + 1 >= bwt_optarg->max_alignments_per_read) {
-	k_start = r->k;
-	l_start = k_start + 10;
-      } else {
-	//printf("\tk=%d - l=%d\n", r->k, r->l);      
-	k_start = r->k;
-	l_start = r->l;
-      }
-
-      for (size_t j = k_start; j <= l_start; j++) {
-	if (type) {
-	  direction = r->dir;
-	} else {
-	  direction = !r->dir;
-	}
-	if (index->S.ratio == 1) {
-	  key = (direction)
-	    ? index->Si.siz - index->Si.vector[j] - len - 1
-	    : index->S.vector[j];
-	} else {
-	  key = (direction)
-	    ? index->Si.siz - getScompValue(j, &index->Si, &index->h_C,
-					    &index->h_Oi) - len - 1
-	    : getScompValue(j, &index->S, &index->h_C, &index->h_O);
-	}
-	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);                        
-	if(key + len <= index->karyotype.offset[idx]) {
-	  //optional_fields = (char *)malloc(sizeof(char)*256);
-	  quality_clipping = (char *)malloc(sizeof(char)*50);
+	  char *quality_clipping = (char *)malloc(sizeof(char)*50);
 	  sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
-	  seq_dup = (char *) malloc(sizeof(char)*(len + 1));
-	  if (error == 0) {
-	    sprintf(cigar, "%lu=\0", len);
-	    num_cigar_ops = 1;
-	    memcpy(seq_dup, seq_strand, len);
-	    seq_dup[len] = '\0';
 
-	  } else if (error == MISMATCH) {
-
-	    if (pos == 0) {
-	      //Positive strand
-	      if(type) { 
-		   sprintf(cigar, "1S%luM\0", len-1); 
-		   start_mapping++;
-	      }
-	      else { 
-		   sprintf(cigar, "%luM1S\0", len-1); 
-	      }
-	      num_cigar_ops = 2;
-	    } else if (pos == len - 1) {
-	      //Positive strand
-	      if(type) { 
-		   sprintf(cigar, "%luM1S\0", len-1); 
-	      }
-	      else{ 
-		   sprintf(cigar, "1S%luM\0", len-1); 
-		   start_mapping++;
-	      }
-	      num_cigar_ops = 2;
-	    } else {
-	      sprintf(cigar, "%luM\0", len);
-	      num_cigar_ops = 1;
-	    }
-	    memcpy(seq_dup, seq_strand, len);
-	    seq_dup[len] = '\0';
-	    //printf("MISMATCH\n");
-
-	  } else if (error == INSERTION) {
-
-	    //printf("INSERTION\n");
-	    if (pos == 0) {
-	      if(type) { 
-		sprintf(cigar, "1H%luM\0", len-1); 
-		memcpy(seq_dup, seq_strand + 1, len - 1);
-		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
-		start_mapping += 2;
-	      }
-	      else{ 
-		sprintf(cigar, "%luM1H\0", len-1); 
-		memcpy(seq_dup, seq_strand, len - 1);
-		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
-		start_mapping--;
-	      }
-	      seq_dup[len - 1] = '\0';
-	      num_cigar_ops = 2;
-	      
-	    } else if (pos == len - 1) {
-	      if(type) { 
-		sprintf(cigar, "%luM1H\0", len-1); 
-		memcpy(seq_dup, seq_strand, len - 1);
-		sprintf(quality_clipping, "%i", END_HARD_CLIPPING);
-		start_mapping--;
-	      }
-	      else{ 
-		sprintf(cigar, "1H%luM\0", len-1); 
-		memcpy(seq_dup, seq_strand + 1, len - 1);
-		sprintf(quality_clipping, "%i", START_HARD_CLIPPING);
-		start_mapping += 2;
-	      }
-	      seq_dup[len - 1] = '\0';
-	      num_cigar_ops = 2;
-	      
-	    } else {
-	      if(type) { sprintf(cigar, "%iM1D%luM\0", pos, len - pos); }
-	      else{ sprintf(cigar, "%luM1D%dM\0", len - pos, pos); }
-	      memcpy(seq_dup, seq_strand , len );
-	      seq_dup[len] = '\0';
-	      num_cigar_ops = 3;
-	    }
-	  } else if (error == DELETION) {	     
-	    //printf("DELETION\n");
-	    if (pos == 0) {
-	      if(type) { sprintf(cigar, "1I%luM\0", len -1); }
-	      else{ 
-		   sprintf(cigar, "%luM1I\0", len -1); 
-		   start_mapping++;
-	      }
-	      
-	      num_cigar_ops = 2;		
-	    } else if (pos == len - 1) {
-	      if(type) { 
-		   sprintf(cigar, "%luM1I\0", len -1); 
-		   start_mapping++;
-	      }
-	      else{ 
-		   sprintf(cigar, "1I%luM\0", len -1); 
-	      }
-	      num_cigar_ops = 2;
-	    } else {
-	      if(type) { 
-		   sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
-//		   printf("cigar = %s\n", cigar);
-//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
-		   if (len - pos - 1 == 1) start_mapping++;
-//		   printf("\tstart_mapping = %lu\n", start_mapping);
-	      }
-	      else{ 
-		   sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
-//		   printf("cigar = %s\n", cigar);
-//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
-		   if (pos == 1) start_mapping++;
-//		   printf("\tstart_mapping = %lu\n", start_mapping);
-	      }
-	      num_cigar_ops = 3;
-	    }
-	    memcpy(seq_dup, seq_strand , len );
-	    seq_dup[len] = '\0';
-	    
-	  }else{
-	    printf("NUM MAPPINGS %lu -> POS %d -> ERROR %d -> (%lu):%s", num_mappings, pos, error, len, seq);
-	    continue;
-	      //exit(-1);
-	      //error_debug = 1;
-	  }
-	  //printf("IN FUNCTION SEQ_DUP %d :: %s\n", strlen(seq_dup), seq_dup);
-
-
-//	  printf("************* start_mapping = %lu, cigar = %s, type = %i, j (k to l) = %lu\n", start_mapping, cigar, type, j);
-
-	  cigar_len = strlen(cigar) + 1;
-	  cigar_dup = (char *)calloc(cigar_len, sizeof(char));
-	  memcpy(cigar_dup, cigar, cigar_len);
-	  //sprintf(optional_fields, "%s%i", "AS:", 255);
-	  //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-	  //memcpy(seq_dup ,seq, len + 1);
-	  //seq_dup[len] = '\0';
-	  //printf("Align chr :%i, start:%lu\n", idx-1, index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]));
-	  // save all into one alignment structure and insert to the list
 	  alignment = alignment_new();
-
-	  alignment_init_single_end(NULL, seq_dup, quality_clipping, !type, 
-				    idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-				    start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
-				    cigar_dup, num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
+	  alignment_init_single_end(NULL,
+				    strdup(seq),
+				    quality_clipping,
+				    0,
+				    -1,
+				    -1,
+				    strdup(aux), 1, 0, 0, 0, 0, NULL, alignment);
 	  array_list_insert((void*) alignment, mapping_list);
-  
-	  num_mappings++;
-	  /*else{
-	      //printf("ERROR: Cigar bad generated\n");
-	      error_debug = 0;
-	      }*/
-	}
-      }//end for k and l
-    }//end if max solutions
-    //free(r);
-    //free_results_list(r_list);
-    //    free(r_list);
-  } // end for type 
+	  return 1;
+     }
  
-  //*********************************************************
-  //Filter alignments [BEST ALIGNMENTS | N HITS | REPORT ALL]
-  //*********************************************************
 
-  num_mappings = alignments_filter(bwt_optarg->report_all, 
-				   bwt_optarg->report_best, 
-				   bwt_optarg->report_n_hits,
-				   mapping_list);
+     //printf("------------>IN FUNCTION INEXACT SEQ...\n");
+     /*unsigned int len = strlen(seq);
+       unsigned int start = 0;
+       unsigned int end = len - 1;*/
+     char *seq_dup, *seq_strand;
+     /*char *codeSeq = (char *) calloc(len, sizeof(char));
+       replaceBases(seq, codeSeq, len);*/
+
+     //return bwt_map_inexact_seq_by_pos(seq, start, end,
+     //					bwt_optarg, index, mapping_list);
   
-  //*********************************************************
+     size_t start = 0;
+     size_t end = len - 1;
+     size_t len_calc = len;
 
-  free(r_list.list);
-  free(code_seq);
-  free(seq_strand);
-  free(k0);
-  free(l0);
-  free(k1);
-  free(l1);
-  free(ki0);
-  free(li0);
-  free(ki1);
-  free(li1);
-  //printf("\tOut function\n");
+     char *code_seq = (char *) malloc(len * sizeof(char));
 
-  return num_mappings;
+     replaceBases(seq, code_seq, len);
+
+     // calculate vectors k and l
+     size_t *k0 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *l0 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *k1 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *l1 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *ki0 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *li0 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *ki1 = (size_t *) malloc(len * sizeof(size_t));
+     size_t *li1 = (size_t *) malloc(len * sizeof(size_t));
+
+     BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_O.siz - 2,
+				 k1, l1, &index->h_C, &index->h_C1, &index->h_O);
+  
+     BWExactSearchVectorForward(code_seq, start, end, 0, index->h_Oi.siz - 2,
+				ki1, li1, &index->h_C, &index->h_C1, &index->h_Oi);
+  
+     BWExactSearchVectorForward(code_seq, start, end, 0, index->h_rO.siz - 2,
+				k0, l0, &index->h_rC, &index->h_rC1, &index->h_rO);
+  
+     BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_rOi.siz - 2,
+				 ki0, li0, &index->h_rC, &index->h_rC1, &index->h_rOi);
+  
+
+     // compare the vectors k and l to get mappings in the genome
+     size_t num_mappings = 0;
+     char plusminus[2] = "-+";
+     size_t idx, key, direction;
+     char error;
+     int pos;
+     //results_list *r_list;
+     results_list r_list;
+     result *r;
+     char error_debug = 0;
+     char *cigar_dup;
+     char cigar[1024];
+     size_t cigar_len, num_cigar_ops;
+     char *quality_clipping;
+     array_list_t *mapping_list_filter;
+     alignment_t *best_alignment, *aux_alignment;
+     size_t best_pos, array_size;
+//  size_t i, j, z;
+     size_t *allocate_pos_alignments;
+     size_t k_start, l_start;
+
+     size_t start_mapping;
+
+     //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
+     seq_strand = strdup(seq);
+     error = MISMATCH;
+
+     new_results_list(&r_list, bwt_optarg->max_alignments_per_read);
+
+     for (int type = 1; type >= 0; type--) {
+
+	  r_list.num_results = 0;
+	  r_list.read_index = 0;
+
+	  //    printf("*** bwt.c: calling BWSearch1 with type = %d...\n", type);
+	  if (type == 1) {
+	       BWSearch1(code_seq, start, end, k1, l1, ki1, li1, 
+			 &index->h_C, &index->h_C1, &index->h_O, &index->h_Oi, &r_list);
+	  } else {
+	       BWSearch1(code_seq, start, end, ki0, li0, k0, l0, 
+			 &index->h_rC, &index->h_rC1, &index->h_rOi, &index->h_rO, &r_list);      
+	       if (r_list.num_results) {
+		    seq_reverse_complementary(seq_strand, len);
+	       }
+	  }
+
+	  //    printf("*** bwt.c: calling BWSearch1 with type = %d (num_results = %d). Done !!\n", type, r_list.num_results);
+    
+	  for (size_t ii = 0; ii < r_list.num_results; ii++) {
+	       //for (size_t ii = 0; ii < r_list->n; ii++) {
+     
+	       r = &r_list.list[ii];
+	       //printf("Errors number %d\n", r->num_mismatches);
+	       //if(r == NULL){printf("ERROR: Result list position null");exit(-1);}
+	       if(!r->num_mismatches)
+		    error = 0;
+	       else
+		    error = r->err_kind[0];
+
+	       pos = r->err_pos[0];
+	       //pos = r->position[0];
+	  
+
+	       if (type) {
+		    direction = r->dir;
+	       } else {
+		    direction = !r->dir;
+	       }
+
+	       len_calc = len;
+	       if (error == DELETION) {
+		    printf("DELETION\n");
+		    len_calc--;
+	       } else if (error == INSERTION) {
+		    printf("INSERTION\n");
+		    len_calc++;
+	       } else if (error == MISMATCH) {
+		    printf("MISMATCH\n");
+	       } else {
+		    printf("MATCH\n");
+	       }
+
+	       if (r->l - r->k + 1 >= bwt_optarg->max_alignments_per_read) {
+		    k_start = r->k;
+		    l_start = k_start + 10;
+	       } else {
+		    //printf("\tk=%d - l=%d\n", r->k, r->l);      
+		    k_start = r->k;
+		    l_start = r->l;
+	       }
+
+	       for (size_t j = k_start; j <= l_start; j++) {
+
+		    if (index->S.ratio == 1) {
+			 key = (direction)
+			      ? index->Si.siz - index->Si.vector[j] - len_calc - 1
+			      : index->S.vector[j];
+		    } else {
+			 key = (direction)
+			      ? index->Si.siz - getScompValue(j, &index->Si, &index->h_C,
+							      &index->h_Oi) - len_calc - 1
+			      : getScompValue(j, &index->S, &index->h_C, &index->h_O);
+		    }
+		    idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+		    if(key + len_calc <= index->karyotype.offset[idx]) {
+			 start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+
+			 printf("\tlen = %lu, len_calc = %lu, start_mapping = %lu, key = %lu, error pos = %i\n", len, len_calc, start_mapping, key, pos);
+			 //optional_fields = (char *)malloc(sizeof(char)*256);
+			 quality_clipping = (char *)malloc(sizeof(char)*50);
+			 sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
+			 seq_dup = (char *) malloc(sizeof(char)*(len + 1));
+			 if (error == 0) {
+			      sprintf(cigar, "%lu=\0", len);
+			      num_cigar_ops = 1;
+			      memcpy(seq_dup, seq_strand, len);
+			      seq_dup[len] = '\0';
+
+			 } else if (error == MISMATCH) {
+			      if (pos == 0) {
+				   //Positive strand
+				   if(type) { 
+					sprintf(cigar, "1S%luM\0", len-1); 
+					start_mapping++;
+				   }
+				   else { 
+					sprintf(cigar, "%luM1S\0", len-1); 
+				   }
+				   num_cigar_ops = 2;
+			      } else if (pos == len - 1) {
+				   //Positive strand
+				   if(type) { 
+					sprintf(cigar, "%luM1S\0", len - 1); 
+				   }
+				   else{ 
+					sprintf(cigar, "1S%luM\0", len-1); 
+					start_mapping++;
+				   }
+				   num_cigar_ops = 2;
+			      } else {
+				   sprintf(cigar, "%luM\0", len);
+				   num_cigar_ops = 1;
+			      }
+			      memcpy(seq_dup, seq_strand, len);
+			      seq_dup[len] = '\0';
+			      //printf("MISMATCH\n");
+	    
+			 } else if (error == INSERTION) {
+			      //printf("INSERTION\n");
+			      if (pos == 0) {
+				   if(type) {
+					sprintf(cigar, "1M1D%luM\0", len - 1); 
+//		start_mapping += 2;
+				   }
+				   else{ 
+					sprintf(cigar, "%luM1D1M\0", len - 1); 
+//		start_mapping--;
+				   }	      
+			      } else if (pos == len - 1) {
+				   if(type) { 
+					sprintf(cigar, "%luM1D1M\0", len - 1); 
+//		start_mapping--;
+				   }
+				   else{ 
+					sprintf(cigar, "1M1D%luM\0", len - 1); 
+//		start_mapping += 2;
+				   }
+			      } else {
+
+				   if(type) {
+					if(r->dir)
+					     sprintf(cigar, "%iM1D%luM\0", pos, len - pos);
+					else
+					     sprintf(cigar, "%iM1D%luM\0", pos + 1, len - pos - 1);
+				   } else { 
+					if(r->dir)
+					     sprintf(cigar, "%luM1D%dM\0", len - pos, pos);
+					else
+					     sprintf(cigar, "%luM1D%dM\0", len - pos - 1, pos + 1);
+				   }
+			      }
+			      num_cigar_ops = 3;
+			      memcpy(seq_dup, seq_strand, len);
+			      seq_dup[len] = '\0';
+			 } else if (error == DELETION) {	     
+			      //printf("DELETION\n");
+			      if (pos == 0) {
+				   if(type) { sprintf(cigar, "1I%luM\0", len -1); }
+				   else{ 
+					sprintf(cigar, "%luM1I\0", len -1); 
+//		   start_mapping++;
+				   }
+	      
+				   num_cigar_ops = 2;		
+			      } else if (pos == len - 1) {
+				   if(type) { 
+					sprintf(cigar, "%luM1I\0", len -1); 
+//		   start_mapping++;
+				   }
+				   else{ 
+					sprintf(cigar, "1I%luM\0", len -1); 
+				   }
+				   num_cigar_ops = 2;
+			      } else {
+				   if(type) { 
+					sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
+//		   printf("cigar = %s\n", cigar);
+//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
+//		   if (len - pos - 1 == 1) start_mapping++;
+//		   printf("\tstart_mapping = %lu\n", start_mapping);
+				   }
+				   else{ 
+					sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
+//		   printf("cigar = %s\n", cigar);
+//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
+//		   if (pos == 1) start_mapping++;
+//		   printf("\tstart_mapping = %lu\n", start_mapping);
+				   }
+				   num_cigar_ops = 3;
+			      }
+			      memcpy(seq_dup, seq_strand , len );
+			      seq_dup[len] = '\0';
+	    
+			 }else{
+			      printf("NUM MAPPINGS %lu -> POS %d -> ERROR %d -> (%lu):%s", num_mappings, pos, error, len, seq);
+			      continue;
+			      //exit(-1);
+			      //error_debug = 1;
+			 }
+			 //printf("IN FUNCTION SEQ_DUP %d :: %s\n", strlen(seq_dup), seq_dup);
+
+
+			 printf("\tstart_mapping = %lu, cigar = %s, type = %i, j (k to l) = %lu\n", start_mapping, cigar, type, j);
+
+			 cigar_len = strlen(cigar) + 1;
+			 cigar_dup = (char *)calloc(cigar_len, sizeof(char));
+			 memcpy(cigar_dup, cigar, cigar_len);
+			 //sprintf(optional_fields, "%s%i", "AS:", 255);
+			 //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
+			 //memcpy(seq_dup ,seq, len + 1);
+			 //seq_dup[len] = '\0';
+			 //printf("Align chr :%i, start:%lu\n", idx-1, index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]));
+			 // save all into one alignment structure and insert to the list
+			 alignment = alignment_new();
+
+			 alignment_init_single_end(NULL, seq_dup, quality_clipping, !type, 
+						   idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
+						   start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+						   cigar_dup, num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
+			 array_list_insert((void*) alignment, mapping_list);
+  
+			 num_mappings++;
+			 /*else{
+			 //printf("ERROR: Cigar bad generated\n");
+			 error_debug = 0;
+			 }*/
+		    }
+	       }//end for k and l
+	  }//end if max solutions
+	  //free(r);
+	  //free_results_list(r_list);
+	  //    free(r_list);
+     } // end for type 
+ 
+     //*********************************************************
+     //Filter alignments [BEST ALIGNMENTS | N HITS | REPORT ALL]
+     //*********************************************************
+
+     num_mappings = alignments_filter(bwt_optarg->report_all, 
+				      bwt_optarg->report_best, 
+				      bwt_optarg->report_n_hits,
+				      mapping_list);
+  
+     //*********************************************************
+
+     free(r_list.list);
+     free(code_seq);
+     free(seq_strand);
+     free(k0);
+     free(l0);
+     free(k1);
+     free(l1);
+     free(ki0);
+     free(li0);
+     free(ki1);
+     free(li1);
+     //printf("\tOut function\n");
+
+     return num_mappings;
 }
 
 //-----------------------------------------------------------------------------
@@ -1799,13 +1812,13 @@ size_t bwt_map_inexact_read(fastq_read_t *read,
       mapping->quality = (char *)malloc(sizeof(char)*(quality_len + 1));
   
       //printf("Read:%s\n", mapping->sequence);
-      if (quality_type == START_HARD_CLIPPING){
+      /*if (quality_type == START_HARD_CLIPPING){
 	if (mapping->seq_strand == 0) {
 	  memcpy(mapping->quality, 
-		 read->quality + 1, 
+		 read->quality, 
 		 quality_len - 1);
 	} else {
-	  reverse_str(read->quality + 1,
+	  reverse_str(read->quality,
 		      mapping->quality, quality_len - 1);
 	}
 	mapping->quality[quality_len - 1] = '\0';	    
@@ -1822,18 +1835,18 @@ size_t bwt_map_inexact_read(fastq_read_t *read,
 	mapping->quality[quality_len - 1] = '\0';
 	//printf("HARD END : %s\n", mapping->quality);
       }else{
-	//printf("ELSE....\n");
-	if (mapping->seq_strand == 0) {
-	  memcpy(mapping->quality, 
-		 read->quality, 
-		 quality_len);
-	} else {
-	  reverse_str(read->quality,
-		      mapping->quality, quality_len);
-	}
+      //printf("ELSE....\n");*/
+      if (mapping->seq_strand == 0) {
+	   memcpy(mapping->quality, 
+		  read->quality, 
+		  quality_len);
+      } else {
+	   reverse_str(read->quality,
+		       mapping->quality, quality_len);
+      }
 	//mapping->quality[quality_len] = '\0';
 	//printf("(%i)NORMAL : %s\n", mapping->seq_strand, mapping->quality);
-      }      
+      //}      
       //mapping->quality = read->quality;
     }else{
       printf("Error to extract item\n");
