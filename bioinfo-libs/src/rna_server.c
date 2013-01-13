@@ -645,11 +645,12 @@ void search_splice_junctions_sw_output(sw_simd_input_t* input_p, sw_simd_output_
 
     //printf("\tEnd process sw %i\n", i);
     //printf("\tStart Search\n");
-    if (end_exceded) { free(read_match); free(quality_match); end_exceded = 0; continue; }
+    if (end_exceded) { free(optional_fields); free(read_match); free(quality_match); end_exceded = 0; continue; }
     //printf("\tEnd Search Splice\n");
     //=============================== MAKE CIGAR & SAM/BAM =====================================
     cigar_generator(cigar_p, &cigar_max_len, &cigar_pos, automata_status, &cigar_value, &distance);
-    if (cigar_pos < 1) { continue; }
+
+    if (cigar_pos < 1) { free(optional_fields); free(read_match); free(quality_match); continue; }
 
     //Generate cigar string
     num_cigar_op = 0;
@@ -833,7 +834,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
    **                                    RNA-SEQ                                       **
    **----------------------------------------------------------------------------------**/
   
-  printf("rna_server (%i): START\n", omp_get_thread_num());
+  LOG_DEBUG_F("rna_server (%i): START\n", omp_get_thread_num());
   unsigned int seed_max_distance = input_p->seed_max_distance;
 
   size_t j, z, k, num_reads, read, bytes, num_cals, cals_positive, cals_negative;
@@ -1406,7 +1407,7 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
   }
   */
   
-  printf("rna_server (%i): END\n", omp_get_thread_num());
+  LOG_DEBUG_F("rna_server (%i): END\n", omp_get_thread_num());
   
   return;
   }

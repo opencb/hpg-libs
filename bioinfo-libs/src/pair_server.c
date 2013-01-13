@@ -33,7 +33,7 @@ void pair_server(pair_server_input_t* input) {
 							(cp_compare_fn) strcasecmp);
   
   
-  printf("pair_server (%i): START\n", omp_get_thread_num());
+  LOG_DEBUG_F("pair_server (%i): START\n", omp_get_thread_num());
 
   size_t total_pairs = 0, num_alignments, num_reads, num_cals;
   alignment_t **alignments, *alig;
@@ -159,7 +159,7 @@ void pair_server(pair_server_input_t* input) {
 void prepare_pair_server(pair_server_input_t* input) {
   list_item_t *pair_item;
   mapping_batch_t *batch;
-  printf("pair_server (%i): START\n", omp_get_thread_num());  
+  LOG_DEBUG_F("pair_server (%i): START\n", omp_get_thread_num());  
   //printfinput->pair_mng->pair_mode
   while ( (pair_item = list_remove_item(input->pair_list)) != NULL ) {
     //printf("------->Extract pair server item ...\n");
@@ -171,7 +171,7 @@ void prepare_pair_server(pair_server_input_t* input) {
     list_insert_item(pair_item, input->write_list);
   }
   list_decr_writers(input->write_list);
-  printf("pair_server : END\n");
+  LOG_DEBUG("pair_server : END\n");
 }
 
 //------------------------------------------------------------------------------------
