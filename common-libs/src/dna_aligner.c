@@ -7,13 +7,26 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
 		     pair_mng_t *pair_mng, options_t *options) {
 
   int path_length = strlen(options->output_name);
-  char reads_results[30] = "/reads_results.bam\0";
-  char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
+  int extend_length = 0;
+  if (options->extend_name) {
+    extend_length = strlen(options->extend_name);
+  }
+
+  char *reads_results = (char *)calloc((60 + extend_length), sizeof(char));
+  char *output_filename = (char *)calloc((path_length + extend_length + 60), sizeof(char));
+
+  if (options->extend_name) {
+    strcat(reads_results, "/");
+    strcat(reads_results, options->extend_name);
+    strcat(reads_results, "_alignments.bam");  
+  } else {
+    strcat(reads_results, "/alignments.bam");
+  }
+
   strcat(output_filename, options->output_name);
   strcat(output_filename, reads_results);
-
-//  validate_options(options, "dna");
-
+  free(reads_results);
+  
   // display selected options
   LOG_DEBUG("Displaying options...\n");
   options_display(options);
@@ -59,9 +72,7 @@ void run_dna_aligner(genome_t *genome, bwt_index_t *bwt_index,
   }
   
   #pragma omp parallel sections num_threads(3) //options->num_cpu_threads)
-  {
-    printf("Principal Sections %d threads\n", omp_get_num_threads());
-    
+  {    
     // fastq batch reader
     #pragma omp section
     {

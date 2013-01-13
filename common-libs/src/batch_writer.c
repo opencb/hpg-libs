@@ -8,7 +8,7 @@
 
 void batch_writer2(batch_writer_input_t* input) {
 
-  printf("START: batch_writer (%i): START, for file %s\n", 
+  LOG_DEBUG_F("START: batch_writer (%i): START, for file %s\n", 
 	 omp_get_thread_num(), input->match_filename);
 
   bam1_t *bam1;
@@ -44,7 +44,7 @@ void batch_writer2(batch_writer_input_t* input) {
   size_t num_reads = 0, num_mapped_reads = 0, num_items = 0;
   size_t total_reads = 0, total_mappings = 0, total_batches = 0;
   size_t reads_mapped = 0;
-  size_t limit_print = 500000;
+  size_t limit_print = 1000000;
   // main loop
   while ( (item = list_remove_item(write_list)) != NULL ) {
     //    if (array_list == NULL) printf("batch_writer.c...\n");
@@ -54,7 +54,7 @@ void batch_writer2(batch_writer_input_t* input) {
 
     num_reads = array_list_size(batch->fq_batch);
     total_reads += num_reads;
-    
+    //printf("Read %i reads\n", num_reads);
     for (size_t i = 0; i < num_reads; i++) {
       array_list = batch->mapping_lists[i];
       num_items = array_list_size(array_list);
@@ -93,7 +93,8 @@ void batch_writer2(batch_writer_input_t* input) {
 
       } else {
 	num_mapped_reads++;
-	//	printf("\tWRITE : read %d (%d items): mapped...\n", i, num_items);
+	//printf("\tWRITE : read %d (%d items): mapped...\n", i, num_items);
+	if (num_items > 1000){alig = (alignment_t *) array_list_get(0, array_list); printf("%s\n", alig->sequence); }
 	for (size_t j = 0; j < num_items; j++) {
 	  alig = (alignment_t *) array_list_get(j, array_list);
 	  //printf("\t%s\n", alig->cigar);
@@ -110,13 +111,13 @@ void batch_writer2(batch_writer_input_t* input) {
       }
       if (array_list) array_list_free(array_list, NULL);
     }
-    /*
+    
     if (total_reads >= limit_print) {
-      printf("TOTAL READS PROCESS: %lu\n", total_reads);
-      printf("\tTotal Reads Mapped: %lu(%.2f%)\n", num_mapped_reads, (float)(num_mapped_reads*100)/(float)(total_reads));
-      limit_print += 500000;
+      LOG_DEBUG_F("TOTAL READS PROCESS: %lu\n", total_reads);
+      LOG_DEBUG_F("\tTotal Reads Mapped: %lu(%.2f%)\n", num_mapped_reads, (float)(num_mapped_reads*100)/(float)(total_reads));
+      limit_print += 1000000;
     }
-    */
+    
     //printf("Batch Write OK!\n");
     
     if (batch != NULL) mapping_batch_free(batch);
@@ -124,9 +125,11 @@ void batch_writer2(batch_writer_input_t* input) {
     
     //if (time_on) { timing_stop(BATCH_WRITER, 0, timing_p); }
   } // end of batch loop                                                                                           
+  
   bam_fclose(bam_file);
 
   basic_statistics_init(total_reads, num_mapped_reads, total_mappings, &basic_st);
+  LOG_DEBUG_F("Batch_writer  (Total batches %lu): END\n", total_batches);
 }
 
 //------------------------------------------------------------------------------------

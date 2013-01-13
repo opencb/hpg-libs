@@ -9,6 +9,7 @@
 #include "aligners/bwt/genome.h"
 #include "timing.h"
 #include "statistics.h"
+#include "commons/log.h"
 
 //#include "bam_commons.h"
 
@@ -79,7 +80,7 @@
 #define TOTAL_ST         	4
 //------------------------------------------------------------------------------------
 
-#define CHROMOSOME_NUMBER 30
+#define CHROMOSOME_NUMBER 100
 
 //------------------------------------------------------------------------------------
 

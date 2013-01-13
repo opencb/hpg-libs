@@ -1,7 +1,7 @@
 #include "bwt_server.h"
 
 void bwt_server_cpu(bwt_server_input_t* input, pair_mng_t *pair_mng) {    
-    printf("bwt_server_cpu(%d): START\n", omp_get_thread_num()); 
+    LOG_DEBUG_F("bwt_server_cpu(%d): START\n", omp_get_thread_num());
     list_item_t *item = NULL;
     array_list_t *fq_batch;
     mapping_batch_t *mapping_batch;
@@ -44,19 +44,7 @@ void bwt_server_cpu(bwt_server_input_t* input, pair_mng_t *pair_mng) {
     
     //list_decr_writers(write_list);
     list_decr_writers(unmapped_read_list);
-    
-    /*    if (statistics_on) { 
-      statistics_set(BWT_SERVER_ST, 0, num_batches, statistics_p);
-      statistics_set(BWT_SERVER_ST, 1, total_reads, statistics_p); 
-      statistics_set(BWT_SERVER_ST, 2, total_reads - reads_no_mapped, statistics_p); 
-      statistics_set(BWT_SERVER_ST, 3, reads_no_mapped, statistics_p); 
-      statistics_set(BWT_SERVER_ST, 4, num_mappings_tot, statistics_p); 
-      
-      //      statistics_add(TOTAL_ST, 1, total_reads - reads_no_mapped, statistics_p); 
-      //statistics_set(TOTAL_ST, 0, total_reads, statistics_p); 
-    }
-    */
-    printf("bwt_server_cpu (Total reads process %lu, Reads unmapped %lu): END\n", 
+    LOG_DEBUG_F("bwt_server_cpu (Total reads process %lu, Reads unmapped %lu): END\n", 
 	   total_reads, reads_no_mapped); 
 }
 

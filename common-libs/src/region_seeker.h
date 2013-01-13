@@ -46,18 +46,10 @@ typedef struct region_seeker_input{
  * 
  * Initialize all @a region_seeker_input_t fields with the input parameters.
  */
-#ifdef HPG_GPU
-   void region_seeker_input_init(list_t *unmapped_read_list_p, cal_optarg_t *cal_optarg_p, 
-   			         bwt_optarg_t *bwt_optarg_p, bwt_index_t *bwt_index_p, 
-			         list_t* region_list_p, unsigned int region_threads, 
-			         unsigned int gpu_enable, gpu_context_t *gpu_context,
-			         region_seeker_input_t *input_p);
-#else
-   void region_seeker_input_init(list_t *unmapped_read_list_p, cal_optarg_t *cal_optarg_p, 
-   			         bwt_optarg_t *bwt_optarg_p, bwt_index_t *bwt_index_p, 
-			         list_t* region_list_p, unsigned int region_threads, 
-			         unsigned int gpu_enable, region_seeker_input_t *input_p);
-#endif
+void region_seeker_input_init(list_t *unmapped_read_list_p, cal_optarg_t *cal_optarg_p, 
+			      bwt_optarg_t *bwt_optarg_p, bwt_index_t *bwt_index_p, 
+			      list_t* region_list_p, unsigned int region_threads, 
+			      unsigned int gpu_enable, region_seeker_input_t *input_p);
 //--------------------------------------------------------------------------------------
 
 /**

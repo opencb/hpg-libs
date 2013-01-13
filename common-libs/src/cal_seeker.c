@@ -9,7 +9,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
   
   unsigned int cal_id = omp_get_thread_num();
 
-  printf("cal_seeker_server(%d): START\n", cal_id); 
+  LOG_DEBUG_F("cal_seeker_server(%d): START\n", cal_id); 
   
   list_item_t *item = NULL;
   list_item_t *write_item = NULL;
@@ -101,17 +101,7 @@ void cal_seeker_server(cal_seeker_input_t* input) {
   }
 
   list_decr_writers(input->sw_list);
-  //list_decr_writers(input->write_list);
-  /*  
-  if (statistics_on) { 
-    statistics_add(CAL_SEEKER_ST, 0, num_batches, statistics_p); 
-    statistics_add(CAL_SEEKER_ST, 1, total_reads, statistics_p); 
-    statistics_add(CAL_SEEKER_ST, 2, num_reads_unmapped, statistics_p); 
-    
-    statistics_add(TOTAL_ST, 2, num_reads_unmapped, statistics_p); 
-  }
-  */
-  printf("cal_seeker_server(%lu reads unmapped): END\n", num_reads_unmapped); 
+  LOG_DEBUG_F("cal_seeker_server(%lu reads unmapped): END\n", num_reads_unmapped); 
   // free memory for mapping list
    
 }
