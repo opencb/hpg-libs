@@ -145,8 +145,21 @@ void validate_options(options_t *options, char *mode) {
     DEFAULT_SEEDS_MAX_DISTANCE = 60;
   }
 
-  if (!value_dir) {
-    create_directory(options->output_name);
+  if (strcmp("dna", mode) == 0 || strcmp("rna", mode) == 0) {
+    if (!value_dir) {
+      create_directory(options->output_name);
+    }
+    
+    if (!options->in_filename) {
+      printf("Not filename input found. Please, insert it with option '-f FILENAME'.\n");
+      usage_cli();
+    }
+
+    
+    if (!options->bwt_dirname) {
+      printf("Not BWT index input found. Please, insert it with option '-i DIRNAME'.\n");
+      usage_cli();
+    }
   }
 
   if (!options->min_cal_size) {
@@ -180,20 +193,18 @@ void options_free(options_t *options) {
      if(options == NULL) { return; }
      //if (options->splice_exact_filename != NULL)	{ free(options->splice_exact_filename); }
      //if (options->splice_extend_filename  != NULL)	{ free(options->splice_extend_filename); }
-     if (options->in_filename  != NULL)		{ free(options->in_filename); }
-     if (options->in_filename2  != NULL)		{ free(options->in_filename2); }
-     if (options->bwt_dirname  != NULL)		{ free(options->bwt_dirname); }
-     
-     if (options->genome_filename  != NULL)		{ free(options->genome_filename); }
-     
-     if (options->output_name  != NULL)		{ free(options->output_name); }
-     
+     if (options->in_filename  != NULL)	{ free(options->in_filename); }
+     if (options->in_filename2  != NULL) { free(options->in_filename2); }
+     if (options->bwt_dirname  != NULL)	{ free(options->bwt_dirname); }     
+     if (options->genome_filename  != NULL) { free(options->genome_filename); }
+     if (options->output_name  != NULL)	{ free(options->output_name); }
+     if (options->extend_name != NULL) {free(options->extend_name); }
+
      free(options);
 }
 
 
 void options_display(options_t *options) {
-
      char* in_filename = strdup(options->in_filename);
      char* in_filename2 = NULL;
      if (options->in_filename2 != NULL) {
@@ -215,7 +226,6 @@ void options_display(options_t *options) {
      char* output_name =  strdup(options->output_name);
      unsigned int num_gpu_threads =  (unsigned int)options->num_gpu_threads;
      unsigned int num_cpu_threads =  (unsigned int)options->num_cpu_threads;
-     unsigned int rna_seq =  (unsigned int)options->rna_seq; 
      unsigned int cal_seeker_errors =  (unsigned int)options->cal_seeker_errors; 
      unsigned int min_cal_size =  (unsigned int)options->min_cal_size; 
      unsigned int seeds_max_distance =  (unsigned int)options->seeds_max_distance; 
@@ -247,7 +257,6 @@ void options_display(options_t *options) {
      printf("Num gpu threads %d\n", num_gpu_threads);
      printf("GPU Process: %s\n",  gpu_process == 0 ? "Disable":"Enable");
      printf("Num cpu threads %d\n",  num_cpu_threads);
-     printf("RNA Server: %s\n",  rna_seq == 0 ? "Disable":"Enable");
      printf("Report all hits: %s\n",  report_all == 0 ? "Disable":"Enable");
      printf("Report best hits: %d\n",  report_best);
      printf("Report n hits: %d\n",  report_n_hits);
@@ -323,7 +332,7 @@ void** argtable_options_new(void) {
      argtable[27] = arg_lit0("t", "time", "Timming mode active");
      argtable[28] = arg_lit0("s", "stats", "Statistics mode active");
      argtable[29] = arg_lit0("h", "help", "Help option");
-     argtable[30] = arg_file0(NULL, "xxxxx", NULL, "xxxxxxxx");
+     argtable[30] = arg_file0("e", "ext", NULL, "File extend name");
      argtable[31] = arg_file0("g", "ref-genome", NULL, "Reference genome");
      argtable[32] = arg_file0("j", "fq2,fastq2", NULL, "Reads file input #2 (for paired mode)");
      argtable[33] = arg_int0(NULL, "paired-mode", NULL, "Pair mode: 0 = single-end, 1 = paired-end, 2 = mate-pair [Default 0]");
@@ -346,7 +355,6 @@ void argtable_options_free(void **argtable) {
 	  free(argtable);
      }
 }
-
 
 
 int read_config_file(const char *filename, options_t *options) {
@@ -413,6 +421,7 @@ options_t *read_CLI_options(void **argtable, options_t *options) {
   if (((struct arg_int*)argtable[27])->count) { options->timming = ((struct arg_int*)argtable[27])->count; }
   if (((struct arg_int*)argtable[28])->count) { options->statistics = ((struct arg_int*)argtable[28])->count; }
   if (((struct arg_int*)argtable[29])->count) { options->help = ((struct arg_int*)argtable[29])->count; }
+  if (((struct arg_file*)argtable[30])->count) { options->extend_name = strdup(*(((struct arg_file*)argtable[30])->filename)); }
   if (((struct arg_file*)argtable[31])->count) { options->genome_filename = strdup(*(((struct arg_file*)argtable[31])->filename)); }
   if (((struct arg_file*)argtable[32])->count) { options->in_filename2 = strdup(*(((struct arg_file*)argtable[32])->filename)); }
   if (((struct arg_int*)argtable[33])->count) { options->pair_mode = *(((struct arg_int*)argtable[33])->ival); }
