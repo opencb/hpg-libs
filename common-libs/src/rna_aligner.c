@@ -1,25 +1,99 @@
 #include "rna_aligner.h"
+#define NUM_SECTIONS_TIME 		7
 
 void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_mng,
 		     bwt_optarg_t *bwt_optarg, cal_optarg_t *cal_optarg, 
 		     options_t *options) {
 
   int path_length = strlen(options->output_name);
-  char reads_results[30] = "/reads_results.bam\0";
-  char *output_filename = (char *)calloc((path_length + 60), sizeof(char));
+  int extend_length = 0;
+  if (options->extend_name) {
+    extend_length = strlen(options->extend_name);
+  }
+
+  char *reads_results = (char *)calloc((60 + extend_length), sizeof(char));
+  char *extend_junctions = (char *)calloc((60 + extend_length), sizeof(char));
+  char *exact_junctions = (char *)calloc((60 + extend_length), sizeof(char));
+
+
+  char *output_filename = (char *)calloc((path_length + extend_length + 60), sizeof(char));
+  char *extend_filename = (char *)calloc((path_length + extend_length + 60), sizeof(char));
+  char *exact_filename = (char *)calloc((path_length + extend_length + 60), sizeof(char));
+
+  if (options->extend_name) {
+    strcat(reads_results, "/");
+    strcat(reads_results, options->extend_name);
+    strcat(reads_results, "_alignments.bam");  
+
+    strcat(extend_junctions, "/");
+    strcat(extend_junctions, options->extend_name);
+    strcat(extend_junctions, "_extend_junctions.bed");
+
+    strcat(exact_junctions, "/");
+    strcat(exact_junctions, options->extend_name);
+    strcat(exact_junctions, "_exact_junctions.bed");
+ 
+  } else {
+    strcat(reads_results, "/alignments.bam");
+    strcat(extend_junctions, "/extend_junctions.bed");
+    strcat(exact_junctions, "/exact_junctions.bed");
+  } 
+
   strcat(output_filename, options->output_name);
   strcat(output_filename, reads_results);
+  free(reads_results);
 
-  char extend_junction[30] = "/extend_junctions.bed\0";
-  char *extend_filename = (char *)calloc((path_length + 60), sizeof(char));
   strcat(extend_filename, options->output_name);
-  strcat(extend_filename, extend_junction);
-  
-  char exact_junction[30] = "/exact_junctions.bed\0";
-  char *exact_filename = (char *)calloc((path_length + 60), sizeof(char));
+  strcat(extend_filename, extend_junctions);
+  free(extend_junctions);
+
   strcat(exact_filename, options->output_name);
-  strcat(exact_filename, exact_junction);
-  
+  strcat(exact_filename, exact_junctions);
+  free(exact_junctions);
+
+
+  //************** Set Threads to sections **************//
+  size_t cpu_threads = options->num_cpu_threads;
+
+  if (!options->bwt_set &&
+      !options->reg_set && 
+      !options->cal_set &&
+      !options->sw_set &&
+      cpu_threads > 4) {
+    LOG_DEBUG("Auto Thread configuration ...");
+    if (cpu_threads == 5) { options->region_threads++; }
+    else if (cpu_threads == 6) { 
+      options->region_threads++; 
+      options->num_sw_servers++; 
+    }
+    else {
+      options->region_threads = options->num_cpu_threads / 2;
+      cpu_threads -= options->region_threads;
+      cpu_threads -= options->bwt_threads;	
+      options->num_sw_servers = (cpu_threads / 2) + 1;
+      cpu_threads -= options->num_sw_servers;
+      options->num_cal_seekers = cpu_threads;
+    }
+  }
+  //****************************************************//
+  LOG_DEBUG("Auto Thread Configuration Done !");
+
+  // timing
+  if (time_on) { 
+    char* labels_time[NUM_SECTIONS_TIME] = {"Index Initialization       ", 
+					    "BWT server                 ", 
+					    "Region Seeker              ", 
+					    "CAL seeker                 ", 
+					    "Rna server                 ", 
+					    "Free main memory           ", 
+					    "Total time                 "};
+    
+    int num_threads[NUM_SECTIONS_TIME] = {1, 1, 1, options->num_cal_seekers, 
+					  options->num_sw_servers, 1, 1};
+    timing_p = timing_new((char**) labels_time, (int*) num_threads, NUM_SECTIONS_TIME);
+    
+  }
+
   // display selected options
   LOG_DEBUG("Displaying options...\n");
   options_display(options);
@@ -52,7 +126,7 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
 
   #pragma omp parallel sections num_threads(7)
   {
-    printf("Principal Sections %d threads\n", omp_get_num_threads());
+    
     #pragma omp section
     {
       fastq_batch_reader_input_t input;
@@ -137,6 +211,11 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
   if (time_on) { 
     timing_stop(MAIN_INDEX, 0, timing_p);
   }
+
+
+  free(output_filename);
+  free(exact_filename);
+  free(extend_filename);
 
 }
 

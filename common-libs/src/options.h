@@ -15,6 +15,7 @@
 #include "libconfig.h"
 #include "commons/log.h"
 #include "commons/system_utils.h"
+#include "commons/file_utils.h"
 
 //============================ DEFAULT VALUES ============================
 #define DEFAULT_GPU_THREADS		32
@@ -83,8 +84,7 @@ typedef struct options {
   double mismatch;
   double gap_open;
   double gap_extend;
-  char* splice_exact_filename;
-  char* splice_extend_filename;
+  char* extend_name;
   char* in_filename;
   char* in_filename2;
   char* bwt_dirname;
@@ -100,6 +100,9 @@ void options_free(options_t *options);
 
 void options_display(options_t *options);
 
+void usage_cli();
+
+void validate_options(options_t *options, char *mode);
 
 /**
  * @brief Initializes an global_options_t structure mandatory members.

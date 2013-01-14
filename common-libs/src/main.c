@@ -13,7 +13,6 @@ double avx1_matrix_t = 0.0f, avx1_tracking_t = 0.0f;
 
 #define OPTIONS 			30
 #define MIN_ARGC  			5
-#define NUM_SECTIONS_TIME 		7
 #define NUM_SECTIONS_STATISTICS 	5
 #define NUM_SECTIONS_STATISTICS_SB	21
 //#define REQUIRED 1
@@ -54,7 +53,7 @@ void run_rna_aligner(genome_t *genome, bwt_index_t *bwt_index, pair_mng_t *pair_
 int main(int argc, char* argv[]) {
   const char HEADER_FILE[1024] = "Human_NCBI37.hbam\0";
 
-  log_level = LOG_DEBUG_LEVEL;
+  //log_level = LOG_DEBUG_LEVEL;
   log_verbose = 1;
 
   if (argc <= 1) {
@@ -66,18 +65,18 @@ int main(int argc, char* argv[]) {
   argc -= 1;
   argv += 1;
 
-  if(!strcmp(command, "dna") != 0 && 
-     !strcmp(command, "rna") != 0 &&
-     !strcmp(command, "bs" ) != 0 && 
-     !strcmp(command, "build-index") != 0) {
+  if(strcmp(command, "dna") != 0 && 
+     strcmp(command, "rna") != 0 &&
+     strcmp(command, "bs" ) != 0 && 
+     strcmp(command, "build-index") != 0) {
     LOG_FATAL("Command Mode Unknown.");
   }
 
-  LOG_DEBUG_F("Command Mode: %s\n", command);
-
   // parsing options
   options_t *options = parse_options(argc, argv);
+  log_level = options->log_level;
   validate_options(options, command);
+  LOG_DEBUG_F("Command Mode: %s\n", command);
 
   if (!strcmp(command, "build-index")) {
        run_index_builder(options->genome_filename, options->bwt_dirname, options->index_ratio);
@@ -85,28 +84,9 @@ int main(int argc, char* argv[]) {
        exit(0);
   }
 
-  // display selected options
-  LOG_DEBUG("Displaying options...\n");
-  options_display(options);
 
   time_on =  (unsigned int) options->timming;
   statistics_on =  (unsigned int) options->statistics;
-
-  // timing
-  if (time_on) { 
-    char* labels_time[NUM_SECTIONS_TIME] = {"Index Initialization       ", 
-					    "BWT server                 ", 
-					    "Region Seeker              ", 
-					    "CAL seeker                 ", 
-					    "Rna server                 ", 
-					    "Free main memory           ", 
-					    "Total time                 "};
-    
-    int num_threads[NUM_SECTIONS_TIME] = {1, 1, 1, options->num_cal_seekers, 
-					  options->num_sw_servers, 1, 1};
-    timing_p = timing_new((char**) labels_time, (int*) num_threads, NUM_SECTIONS_TIME);
-    
-  }
 
   // genome parameters
   LOG_DEBUG("Reading genome...");
@@ -120,7 +100,7 @@ int main(int argc, char* argv[]) {
   LOG_DEBUG("Reading bwt index done !!");
   
   //BWT parameters
-  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 500,
+  bwt_optarg_t *bwt_optarg = bwt_optarg_new(1, options->bwt_threads, 100,
 					    options->report_best,
 					    options->report_n_hits, 
 					    options->report_all);
@@ -140,38 +120,13 @@ int main(int argc, char* argv[]) {
   LOG_DEBUG("init table done !!");
   
   if (!strcmp(command, "rna")) {
-    //************** Set Threads to sections **************//
-    size_t cpu_threads = options->num_cpu_threads;
-    if (!options->bwt_set &&
-	!options->reg_set && 
-	!options->cal_set &&
-	!options->sw_set &&
-	cpu_threads > 4) {
-      LOG_DEBUG("Auto Thread configuration ...");
-      if (cpu_threads == 5) { options->region_threads++; }
-      else if (cpu_threads == 6) { 
-	options->region_threads++; 
-	options->num_sw_servers++; 
-      }
-      else {
-	options->region_threads = options->num_cpu_threads / 2;
-	cpu_threads -= options->region_threads;
-	cpu_threads -= options->bwt_threads;	
-	options->num_sw_servers = (cpu_threads / 2) + 1;
-	cpu_threads -= options->num_sw_servers;
-	options->num_cal_seekers = cpu_threads;
-      }
-      LOG_DEBUG("Set %d Threads successful");
-    }
-    //****************************************************//
-    LOG_DEBUG("Auto Thread Configuration Done !");
     run_rna_aligner(genome, bwt_index, pair_mng, bwt_optarg, cal_optarg, options);
   } else {
     // DNA version
     run_dna_aligner(genome, bwt_index, bwt_optarg, cal_optarg, pair_mng, options);
   }
 
-  LOG_DEBUG("\nmain done !!");
+  LOG_DEBUG("main done !!");
 
   // Free memory
   if (time_on) { 

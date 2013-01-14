@@ -1,27 +1,11 @@
 #include "region_seeker.h"
 
-#ifdef HPG_GPU
-   void region_seeker_input_init(list_t *unmapped_read_list, cal_optarg_t *cal_optarg, 
-			         bwt_optarg_t *bwt_optarg, bwt_index_t *bwt_index, 
-			         list_t* region_list, unsigned int region_threads, 
-			         unsigned int gpu_enable, gpu_context_t *gpu_context,
-			         region_seeker_input_t *input_p) {
 
-  input_p->unmapped_read_list_p = unmapped_read_list;
-  input_p->cal_optarg_p = cal_optarg;
-  input_p->bwt_optarg_p = bwt_optarg;
-  input_p->bwt_index_p = bwt_index;
-  input_p->region_list_p = region_list;
-  input_p->region_threads = region_threads;
-  input_p->gpu_enable = gpu_enable;
-  input_p->gpu_context = gpu_context;
-}
-#else 
-   void region_seeker_input_init(list_t *unmapped_read_list, cal_optarg_t *cal_optarg, 
-			         bwt_optarg_t *bwt_optarg, bwt_index_t *bwt_index, 
-			         list_t* region_list, unsigned int region_threads, 
-			         unsigned int gpu_enable,
-			         region_seeker_input_t *input_p) {
+void region_seeker_input_init(list_t *unmapped_read_list, cal_optarg_t *cal_optarg, 
+			      bwt_optarg_t *bwt_optarg, bwt_index_t *bwt_index, 
+			      list_t* region_list, unsigned int region_threads, 
+			      unsigned int gpu_enable,
+			      region_seeker_input_t *input_p) {
 
   input_p->unmapped_read_list_p = unmapped_read_list;
   input_p->cal_optarg_p = cal_optarg;
@@ -31,11 +15,11 @@
   input_p->region_threads = region_threads;
   input_p->gpu_enable = gpu_enable;
 }
-#endif
+
 //--------------------------------------------------------------------------------------
 
 void region_seeker_server(region_seeker_input_t *input_p){  
-  printf("region_seeker_server(%d): START\n", omp_get_thread_num());  
+  LOG_DEBUG_F("region_seeker_server(%d): START\n", omp_get_thread_num());  
   list_item_t *item = NULL;
   mapping_batch_t *mapping_batch;
   size_t num_reads;
@@ -104,14 +88,7 @@ void region_seeker_server(region_seeker_input_t *input_p){
   } //End of while
   
   list_decr_writers(input_p->region_list_p);
-  /*
-  if (statistics_on) { 
-    statistics_set(REGION_SEEKER_ST, 0, num_batches, statistics_p); 
-    statistics_set(REGION_SEEKER_ST, 1, total_reads, statistics_p); 
-  }
-  */
-  printf("region_seeker_server: END\n");
-  
+  LOG_DEBUG("region_seeker_server: END\n");  
 }
 
 //====================================================================================
