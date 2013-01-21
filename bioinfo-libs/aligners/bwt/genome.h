@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 
 #include "cprops/hashtable.h"
+#include "commons/log.h"
 
 //====================================================================================
 //  structures and prototypes

@@ -293,7 +293,6 @@ void saveUIntCompVector(comp_vector *vector, const char *directory, const char *
 
   size_t err=0;
   FILE *fp;
-
   char path[500];
 
   path[0]='\0';
