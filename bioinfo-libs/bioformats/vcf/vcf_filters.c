@@ -326,8 +326,8 @@ void coverage_filter_free(filter_t *filter) {
 
 filter_t *maf_filter_new(float max_maf) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
-    sprintf(filter->name, "maf%.2f", max_maf);
-    sprintf(filter->description, "MAF <= %.2f", max_maf);
+    sprintf(filter->name, "maf%.0f", max_maf * 100);
+    sprintf(filter->description, "MAF <= %.0f%%", max_maf * 100);
     
     filter->type = MAF;
     filter->filter_func = maf_filter;
@@ -350,8 +350,8 @@ void maf_filter_free(filter_t *filter) {
 
 filter_t* missing_values_filter_new(float max_missing) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
-    sprintf(filter->name, "missign%.2f", max_missing);
-    sprintf(filter->description, "Missing values <= %.2f", max_missing);
+    sprintf(filter->name, "missing%.0f", max_missing * 100);
+    sprintf(filter->description, "Missing values <= %.0f%%", max_missing * 100);
     
     filter->type = MISSING_VALUES;
     filter->filter_func = missing_values_filter;
