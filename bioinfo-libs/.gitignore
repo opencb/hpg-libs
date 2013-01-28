@@ -9,4 +9,4 @@ bin/*
 *sonar*
 *kdev*
 .sconsign.dblite
-bioformats/fastq/test/test.bwa.read*
+#bioformats/fastq/test/test.bwa.read*
