@@ -14,7 +14,7 @@ CFLAGS_DEBUG = -std=c99 -g
 LIBS_ROOT = $(PWD)/..
 
 INCLUDES = -I . -I $(LIBS_ROOT)
-LIBS = -lcprops
+LIBS = -lcprops -lcheck
 
 TEST = test
 
@@ -33,8 +33,8 @@ compile: compile-dependencies linked_list_test
 compile-dependencies:
 	cd $(COMMONS_DIR) && make COMPILER=$(compiler)
 
-linked_list_test: linked_list.o $(TEST)/linked_list_test.h
-	$(CC) $(CFLAGS_DEBUG) linked_list.o $(TEST)/linked_list_test.c -o bin/linked-list-test $(INCLUDES) $(LIBS)
+linked_list_test: linked_list.o
+	$(CC) $(CFLAGS_DEBUG) linked_list.o $(TEST)/linked_list_test.c -o linked-list.test $(INCLUDES) $(LIBS)
 
 list.o: list.h list.c
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
@@ -44,7 +44,7 @@ array_list.o: array_list.h array_list.c
 
 
 linked_list.o: linked_list.h linked_list.c
-	$(CC) $(CFLAGS) -c linked_list.c $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) -c linked_list.c $(INCLUDES) $(LIBS)
 
 
 test-utils:
