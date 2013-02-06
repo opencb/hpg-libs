@@ -34,7 +34,7 @@ compile-dependencies:
 	cd $(COMMONS_DIR) && make COMPILER=$(compiler)
 
 linked_list_test: linked_list.o $(TEST)/linked_list_test.h
-	$(CC) $(CFLAGS_DEBUG) linked_list.o $(TEST)/linked_list_test.c -o bin/linked-list-test $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS_DEBUG) linked_list.o $(TEST)/linked_list_test.c -o linked-list-test $(INCLUDES) $(LIBS)
 
 list.o: list.h list.c
 	$(CC) $(CFLAGS) -c list.c $(INCLUDES) $(LIBS)
