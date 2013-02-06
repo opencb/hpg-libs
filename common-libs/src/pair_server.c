@@ -464,6 +464,8 @@ inline void update_mispaired_pair(int pair_num, size_t num_items, array_list_t *
     alig->is_mate_mapped = 0;
     alig->mate_strand = 0;
     alig->pair_num = pair_num;
+
+//    printf("update_mispaired_pair = %i\n", alig->template_length);
   }
 }
 
@@ -480,6 +482,8 @@ inline void update_mispaired_alignment(int pair_num, alignment_t *alig) {
     alig->is_mate_mapped = 0;
     alig->mate_strand = 0;
     alig->pair_num = pair_num;
+
+//    printf("update_mispaired_alignment = %i\n", alig->template_length);
 }
 
 //------------------------------------------------------------------------------------
@@ -496,28 +500,36 @@ inline void update_mispaired_pairs(size_t num_items1, size_t num_items2,
     // set pair1 fields
     alig->mate_position = first2->position;
     alig->mate_chromosome = first2->chromosome;
-    alig->template_length = first2->position - alig->position;;
+    alig->template_length = 0;
+//    alig->template_length = first2->position - alig->position;;
      
     alig->is_paired_end = 1;
     alig->is_paired_end_mapped = 0;
     alig->is_mate_mapped = 1;
     alig->mate_strand = first2->seq_strand;
     alig->pair_num = 1;
+
+//    printf("update_mispaired_pairs, set pair1 fields, distance  = %i\n", alig->template_length);
+
   }
 
   for (size_t i = 0; i < num_items2; i++) {
     alig = (alignment_t *) array_list_get(i, list2);
 
-    // set pair1 fields
+    // set pair2 fields
     alig->mate_position = first1->position;
     alig->mate_chromosome = first1->chromosome;
-    alig->template_length = first1->position - alig->position;;
+//    alig->template_length = first1->position - alig->position;
+    alig->template_length = 0;
      
     alig->is_paired_end = 1;
     alig->is_paired_end_mapped = 0;
     alig->is_mate_mapped = 1;
     alig->mate_strand = first1->seq_strand;
     alig->pair_num = 2;
+
+//    printf("update_mispaired_pairs, set pair2 fields, distance  = %i\n", alig->template_length);
+
   }
 }
 
@@ -598,10 +610,14 @@ void prepare_paired_alignments(pair_server_input_t *input, mapping_batch_t *batc
 	  // computes distance between alignments,
 	  // is a valid distance ?
 	  distance = (start2 > end1 ? start2 - end1 : end1 - start2); // abs                                      
+//	  printf("*** distance = %lu, min_distance = %i, max_distance = %i, strand1 = %i, strand2 = %i, pair_mode = %i\n", distance, min_distance, max_distance, strand1, strand2, pair_mode);
+
 	  if ( (chr1 == chr2) &&
 	       (distance >= min_distance) && (distance <= max_distance) &&
 	       ((strand1 != strand2 && pair_mode == PAIRED_END_MODE) ||
 		(strand1 == strand2 && pair_mode == MATE_PAIR_MODE )   ) ) {
+	       
+//	       printf("\t\t pair OK\n");
 	    
             mapped1[j1] = 1;
 	    mapped2[j2] = 1;
@@ -613,6 +629,7 @@ void prepare_paired_alignments(pair_server_input_t *input, mapping_batch_t *batc
 	    alig1->mate_position = alig2->position;
 	    alig1->mate_chromosome = alig2->chromosome;
 	    alig1->template_length = alig2->position - alig1->position;
+//	    printf("--- alig1->template_length = %i\n", alig1->template_length);
      
 	    alig1->is_paired_end = 1;
 	    alig1->is_paired_end_mapped = 1;
@@ -624,6 +641,7 @@ void prepare_paired_alignments(pair_server_input_t *input, mapping_batch_t *batc
 	    alig2->mate_position = alig1->position;
 	    alig2->mate_chromosome = alig1->chromosome;
 	    alig2->template_length = alig1->position - alig2->position;
+//	    printf("--- alig2->template_length = %i\n", alig1->template_length);
 	    
 	    alig2->is_paired_end = 1;
 	    alig2->is_paired_end_mapped = 1;
