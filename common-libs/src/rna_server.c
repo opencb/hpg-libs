@@ -1014,13 +1014,33 @@ void rna_server_omp_smith_waterman(sw_server_input_t* input_p, allocate_splice_e
       //CALs actualization and extend 
       j = 0;
       cal_prev = (cal_t *)array_list_get(j, cals_list);
-      cal_prev->start -= flank_length;
+      
+      if (cal_prev->start <= flank_length) {
+        cal_prev->start = 0;
+      }else {
+        cal_prev->start -= flank_length;
+      }
+
       cal_prev->end += flank_length;
+      if (cal_prev->end >= genome_p->chr_size[cal_prev->chromosome_id - 1]) {
+	cal_prev->end = genome_p->chr_size[cal_prev->chromosome_id - 1] - 1;
+      }
+
       j++;
       while(j < num_cals){	  
 	cal_next = (cal_t *)array_list_get(j, cals_list);
-	cal_next->start -= flank_length;
-	cal_next->end += flank_length;
+
+	if (cal_next->start <= flank_length) {
+          cal_next->start = 0;
+        }else {
+          cal_next->start -= flank_length;
+        }
+
+        cal_next->end += flank_length;
+        if (cal_next->end >= genome_p->chr_size[cal_next->chromosome_id - 1]) {
+          cal_next->end = genome_p->chr_size[cal_next->chromosome_id - 1] - 1;
+        }
+
 	if((cal_next->chromosome_id == cal_prev->chromosome_id) && 
 	   (cal_next->strand == cal_prev->strand) && 
 	   (cal_next->start <= (cal_prev->end + seed_max_distance))){
