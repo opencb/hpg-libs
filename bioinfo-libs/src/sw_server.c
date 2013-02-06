@@ -505,8 +505,17 @@ void apply_sw(sw_server_input_t* input, mapping_batch_t *batch) {
       cal = array_list_get(j, cal_list);
       read_indices[sw_count] = read_index;
 
-      start = cal->start - flank_length;
+
+      if (flank_length >= cal->start) {
+        start = 0;
+      } else {
+        start = cal->start - flank_length;
+      }
+
       end = cal->end + flank_length;
+      if (end >= genome->chr_size[cal->chromosome_id - 1]) {
+        end = genome->chr_size[cal->chromosome_id - 1] - 1;
+      }
 
       ref_len = end - start + 2;
       //      if (ref_len < max_ref_len) {
