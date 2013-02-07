@@ -12,6 +12,10 @@ void fastq_batch_reader_input_init(char *filename1, char *filename2,
   input->flags = flags;
   input->batch_size = batch_size;
   input->list = list;
+
+  // internal
+  input->fq_file1 = NULL;
+  input->fq_file2 = NULL;
 }
 
 //------------------------------------------------------------------------------------
