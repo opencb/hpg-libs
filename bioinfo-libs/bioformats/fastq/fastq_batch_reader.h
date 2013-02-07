@@ -43,6 +43,10 @@ typedef struct fastq_batch_reader_input {
   int flags;
   int batch_size;
   list_t *list;
+
+  // internal
+  fastq_file_t *fq_file1;
+  fastq_file_t *fq_file2;
 } fastq_batch_reader_input_t;
 
 
