@@ -146,13 +146,13 @@ static ped_batch_t *current_batch;
     record_pheno    = number ;
     record_genotype = (bases | digit | "." )+ ;
 
-    record      = (record_family >family_begin %family_end $err(family_error) space 
-                    record_indiv >indiv_begin %indiv_end $err(indiv_error) space
-                    record_parent >father_begin %father_end $err(father_error) space
-                    record_parent >mother_begin %mother_end $err(mother_error) space
-                    record_sex >sex_begin %sex_end $err(sex_error) space 
+    record      = (record_family >family_begin %family_end $err(family_error) [\t ] 
+                    record_indiv >indiv_begin %indiv_end $err(indiv_error) [\t ]
+                    record_parent >father_begin %father_end $err(father_error) [\t ]
+                    record_parent >mother_begin %mother_end $err(mother_error) [\t ]
+                    record_sex >sex_begin %sex_end $err(sex_error) [\t ] 
                     record_pheno >pheno_begin %pheno_end $err(pheno_error) 
-                    ((space)+ record_genotype (space)*)+ ) 
+                    (([\t ])+ record_genotype ([\t ])*)+ ) 
                     >record_begin %record_end ;
     records     =  record ("\n" >linebreak record)* ;
 
