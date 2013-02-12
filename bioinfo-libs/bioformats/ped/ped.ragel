@@ -152,7 +152,8 @@ static ped_batch_t *current_batch;
                     record_parent >mother_begin %mother_end $err(mother_error) [\t ]
                     record_sex >sex_begin %sex_end $err(sex_error) [\t ] 
                     record_pheno >pheno_begin %pheno_end $err(pheno_error) 
-                    (([\t ])+ record_genotype ([\t ])*)+ ) 
+                    ([\t ]+ record_genotype)* 
+                    (space)* )
                     >record_begin %record_end ;
     records     =  record ("\n" >linebreak record)* ;
 
