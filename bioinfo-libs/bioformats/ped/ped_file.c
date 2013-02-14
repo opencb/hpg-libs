@@ -142,6 +142,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     int result = 0;
+    individual_t *father = NULL, *mother = NULL, *individual = NULL;
     enum Condition condition = MISSING;
     char *aux_buffer;
     
@@ -154,14 +155,19 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         }
     }
     
-    LOG_DEBUG_F("family id = %s\tindiv id = %s\n", record->family_id, record->individual_id);
-    LOG_DEBUG_F("father id = %s\tmother id = %s\n", record->father_id, record->mother_id);
+    LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", record->family_id, record->individual_id, record->father_id, record->mother_id);
+    
+    // If it is an ancestor with no sex defined, add to the list of unknown members
+    if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
+        condition = get_condition_from_phenotype(record->phenotype);
+        individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, NULL, NULL, family);
+        return family_add_unknown(individual, family);
+    }
     
     // Get parents from family or, should they not exist yet, create them
-    individual_t *father = NULL, *mother = NULL, *individual = NULL;
-    if (family->father == NULL) {
+    if (!family->father) {
         // Non-existing father, set his ID from the record (if available)
-        if (record->father_id != NULL) {
+        if (record->father_id) {
             LOG_DEBUG_F("Set family %s father", family->id);
             father = individual_new(record->father_id, -9, MALE, MISSING, NULL, NULL, family);
             family_set_parent(father, family);
@@ -186,9 +192,9 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         return 0;   // Nothing more to do, he already belongs to the family
     }
     
-    if (family->mother == NULL) {
+    if (!family->mother) {
         // Non-existing mother, set his ID from the record (if available)
-        if (record->mother_id != NULL) {
+        if (record->mother_id) {
             LOG_DEBUG_F("Set family %s mother", family->id);
             mother = individual_new(record->mother_id, -9, FEMALE, MISSING, NULL, NULL, family);
             family_set_parent(mother, family);
@@ -216,7 +222,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     // Create individual with the information extracted from the PED record
     condition = get_condition_from_phenotype(record->phenotype);
     individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, father, mother, family);
-    if (father != NULL || mother != NULL) {
+    if (father || mother) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);
     } else {
