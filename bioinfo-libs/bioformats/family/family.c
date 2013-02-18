@@ -64,54 +64,75 @@ family_t *family_new(char *id) {
                                            NULL,
                                            (cp_destructor_fn) individual_free
                                           );
+    family->unknown = cp_list_create_list(COLLECTION_MODE_DEEP,
+                                           (cp_compare_fn) individual_compare,
+                                           NULL,
+                                           (cp_destructor_fn) individual_free
+                                          );
     return family;
 }
 
 int family_set_parent(individual_t *parent, family_t *family) {
-    if (parent == NULL) {
+    if (!parent) {
         return -1;
     }
-    if (family == NULL) {
+    if (!family) {
         return -2;
     }
     if (parent->sex == UNKNOWN_SEX) {
         return -3;
     }
-    if (family_contains_individual(parent, family) != NULL) {
+    if (family_contains_individual(parent, family)) {
         return -4;
     }
     
     if (parent->sex == MALE) {
-        if (family->father != NULL) {
+        if (family->father) {
             return 1;
         } else {
             family->father = parent;
         }
-        assert(family->father != NULL);
+        assert(family->father);
     } else if (parent->sex == FEMALE) {
-        if (family->mother != NULL) {
+        if (family->mother) {
             return 2;
         } else {
             family->mother = parent;
         }
-        assert(family->mother != NULL);
+        assert(family->mother);
     }
     return 0;
 }
 
 int family_add_child(individual_t *child, family_t *family) {
-    if (child == NULL) {
+    if (!child) {
         return -1;
     }
-    if (family == NULL) {
+    if (!family) {
         return -2;
     }
     if (family_contains_individual(child, family)) {
         return -3;
     }
     
-    assert(family->children != NULL);
+    assert(family->children);
     void *ret = cp_list_insert(family->children, child);
+    return ret == NULL;
+}
+
+int family_add_unknown(individual_t *individual, family_t *family) {
+    if (!individual) {
+        return -1;
+    }
+    if (!family) {
+        return -2;
+    }
+    if (family_contains_individual(individual, family)) {
+        return -3;
+    }
+    
+    assert(family->unknown);
+    void *ret = cp_list_insert(family->unknown, individual);
     return ret == NULL;
 }
 
@@ -143,6 +164,17 @@ individual_t *family_contains_individual(individual_t *individual, family_t *fam
             LOG_DEBUG_F("Individual %s:%s found as child\n", family->id, individual->id);
             cp_list_iterator_destroy(iterator);
             return child;
+        }
+    }
+    cp_list_iterator_destroy(iterator);
+    
+    iterator = cp_list_create_iterator(family->unknown, COLLECTION_LOCK_READ);
+    individual_t *unknown = NULL;
+    while ((unknown = cp_list_iterator_next(iterator)) != NULL) {
+        if (individual_compare(individual, unknown) == 0) {
+            LOG_DEBUG_F("Individual %s:%s found as unknown member\n", family->id, individual->id);
+            cp_list_iterator_destroy(iterator);
+            return unknown;
         }
     }
     cp_list_iterator_destroy(iterator);
