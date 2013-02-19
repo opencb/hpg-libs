@@ -662,7 +662,7 @@ static void annotate_failed_record(char *filter_name, size_t filter_name_len, vc
         char *aux = calloc(record->filter_len + filter_name_len + 2, sizeof(char));
         if (aux) {
             strncat(aux, record->filter, record->filter_len);
-            strncat(aux, ",", 1);
+            strncat(aux, ";", 1);
             strncat(aux, filter_name, filter_name_len);
             record->filter = aux;
             record->filter_len = record->filter_len + filter_name_len + 2;
