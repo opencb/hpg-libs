@@ -1,6 +1,6 @@
 #include "vcf_reader.h"
 
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines) {
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines, size_t current_batch_id) {
     vcf_reader_status *status = (vcf_reader_status *) malloc (sizeof(vcf_reader_status));
     status->current_record = NULL;
     status->current_header_entry = vcf_header_entry_new();
@@ -12,6 +12,7 @@ vcf_reader_status *vcf_reader_status_new(size_t batch_lines) {
 
     status->num_samples = 0;
     status->num_records = 0;
+    status->num_batches = current_batch_id;
     
     return status;
 }
@@ -43,7 +44,7 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_lines);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines, 0);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
@@ -118,7 +119,7 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0);
+    vcf_reader_status *status = vcf_reader_status_new(0, 0);
     
     if (mmap_vcf) {
         LOG_DEBUG("Using mmap for file loading\n");
@@ -196,7 +197,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(batch_lines);
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines, 0);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
@@ -319,7 +320,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     int cs = 0;
     char *p, *pe;
 
-    vcf_reader_status *status = vcf_reader_status_new(0);
+    vcf_reader_status *status = vcf_reader_status_new(0, 0);
     
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
