@@ -170,13 +170,13 @@ size_t get_num_vcf_batches(vcf_file_t *file) {
  * ********************************************************/
 
 vcf_batch_t* vcf_batch_new(size_t size) {
-    vcf_batch_t *vcf_batch = calloc (1, sizeof(vcf_batch_t));
+    vcf_batch_t *vcf_batch = malloc(sizeof(vcf_batch_t));
     vcf_batch->text = NULL;
-    if (size > 0) {
-        vcf_batch->records = array_list_new(size, 1.2, COLLECTION_MODE_ASYNCHRONIZED);
-    } else {
-        vcf_batch->records = array_list_new(100, 1.2, COLLECTION_MODE_ASYNCHRONIZED);
+    
+    if (size < 1) {
+        size = 100;
     }
+    vcf_batch->records = array_list_new(size, 1.2, COLLECTION_MODE_ASYNCHRONIZED);
     
     return vcf_batch;
 }

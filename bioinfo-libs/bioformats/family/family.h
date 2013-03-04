@@ -37,10 +37,11 @@ typedef struct individual {
  * Family described in a PED document
  */
 typedef struct family {
-    char *id;   /**< Unique ID of the family **/
-    individual_t *father;  /**< Man in the root of the genealogical tree */
-    individual_t *mother;  /**< Woman in the root of the genealogical tree */
-    cp_list *children;  /**< Children of the main roots in the genealogical tree */
+    char *id;               /**< Unique ID of the family **/
+    individual_t *father;   /**< Man in the root of the genealogical tree */
+    individual_t *mother;   /**< Woman in the root of the genealogical tree */
+    cp_list *children;      /**< Children of the main roots in the genealogical tree */
+    cp_list *unknown;       /**< Unclassified samples because they have no parents and no sex */
 } family_t;
 
 
@@ -118,6 +119,10 @@ int family_set_parent(individual_t *parent, family_t *family);
  * 3 if the family already contains the individual
  */
 int family_add_child(individual_t *child, family_t *family);
+
+
+int family_add_unknown(individual_t *individual, family_t *family);
+
 
 /**
  * Free memory associated to a family and its individuals.

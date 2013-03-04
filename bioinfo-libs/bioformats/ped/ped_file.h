@@ -1,6 +1,8 @@
 #ifndef PED_FILE_H
 #define PED_FILE_H
 
+#include <assert.h>
+
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
