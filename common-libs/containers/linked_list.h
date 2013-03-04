@@ -8,6 +8,7 @@
 #ifndef LINKED_LIST_H_
 #define LINKED_LIST_H_
 
+#include <assert.h>
 #include <stdio.h>
 #include <pthread.h>
 
@@ -42,6 +43,9 @@ typedef struct linked_list_iterator {
   linked_list_item_t *curr_pos;
 } linked_list_iterator_t;
 
+
+
+void print_item(void *item);
 
 /*********************************************************************/
 /***             LinkedList Iterator Implementation               ***/
