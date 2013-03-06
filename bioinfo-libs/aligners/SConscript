@@ -1,14 +1,15 @@
 import os
 
 
-Import('env', 'aligners')
+#Import('env', 'aligners')
+Import('env')
 
 aligners_env = env.Clone()
 aligners_env['objects'] = []
 
 # Targets
-if not aligners:
-   aligners = ['bwt', 'sw']
+#if not aligners:
+aligners = ['bwt', 'sw']
 
 for dir in aligners:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'aligners_env'])

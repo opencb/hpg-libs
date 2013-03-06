@@ -1,14 +1,15 @@
 import os
 
-Import('env', 'formats')
+#Import('env', 'formats')
+Import('env')
 
 formats_env = env.Clone()
 formats_env['objects'] = []
 
 
 # Targets
-if not formats:
-   formats = ['family', 'fastq', 'bam-sam', 'gff', 'ped', 'features', 'vcf']
+#if not formats:
+formats = ['family', 'fastq', 'bam-sam', 'gff', 'ped', 'features', 'vcf']
 
 for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env'])

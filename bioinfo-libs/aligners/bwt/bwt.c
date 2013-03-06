@@ -2591,7 +2591,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 // CAL functions
 //-----------------------------------------------------------------------------
 
-int print_item(void *item, void *dummy){
+int print_short_cal(void *item, void *dummy){
         short_cal_t *coordenate_p = (short_cal_t *)item;
 	printf("[%lu-%lu]-> ",  coordenate_p->start, coordenate_p->end);
 

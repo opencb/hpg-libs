@@ -1,6 +1,6 @@
 import os
 
-Import('debug', 'formats', 'aligners', 'compiler')
+Import('debug', 'compiler')
 
 # Initialize environment
 vars = Variables('buildvars.py')
@@ -24,11 +24,8 @@ else:
 env['objects'] = []
 
 # Targets
-SConscript(['bioformats/SConscript',
-            ], exports = ['env', 'formats'])
-
-SConscript(['aligners/SConscript',
-            ], exports = ['env', 'aligners'])
+SConscript(['bioformats/SConscript',], exports = ['env'])
+SConscript(['aligners/SConscript',], exports = ['env'])
 
 env.Library('bioinfo', env['objects'])
 

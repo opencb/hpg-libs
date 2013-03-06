@@ -32,7 +32,7 @@ bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mod
         //bam_file->bam_header_p = NULL;
         bam_file->bam_header_p = bam_header_p;
     }
-    
+    /*    
     if (num_of_chromosomes == 0) {
         if (bam_file->bam_header_p != NULL) {
             num_of_chromosomes = bam_file->bam_header_p->n_targets;
@@ -40,7 +40,7 @@ bam_file_t* bam_fopen_mode(char* filename, bam_header_t* bam_header_p, char* mod
             num_of_chromosomes = DEFAULT_NUM_OF_CHROMOSOMES;
         }
     }
-
+    */
     return bam_file;
 }
 
