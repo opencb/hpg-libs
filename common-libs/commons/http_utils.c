@@ -9,7 +9,7 @@ int init_http_environment(int ssl) {
     }
 }
 
-int http_get(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*)) {
+int http_get(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer) {
     CURL *curl;
     CURLcode ret_code = CURLE_OK;
 
@@ -40,6 +40,11 @@ int http_get(char *url, char **params, char **params_values, int num_params, siz
         
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+	// TODO CURLOPT_WRITEDATA
+	
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
+
+	
         // Option for avoiding a segfault caused by a signal in libcurl
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
