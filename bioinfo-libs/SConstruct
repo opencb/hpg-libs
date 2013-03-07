@@ -8,12 +8,4 @@ debug = int(ARGUMENTS.get('debug', '0'))
 
 compiler = ARGUMENTS.get('compiler', 'gcc')
 
-formats = []
-aligners = []
-for key, value in ARGLIST:
-    if key == 'formats':
-       formats = value.split(',')
-    if key == 'aligners':
-       aligners = value.split(',')
-     
-SConscript('SConscript', exports = ['debug', 'formats', 'aligners', 'compiler'])
+SConscript('SConscript', exports = ['debug', 'compiler'])
