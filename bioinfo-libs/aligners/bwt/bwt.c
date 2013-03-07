@@ -2994,7 +2994,7 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
       //					    (cp_compare_fn) cal_location_compare,
       //					    NULL/*(cp_copy_fn) cal_location_dup*/,
       //					    (cp_destructor_fn) short_cal_free);
-      cals_list[i][j] = linked_list_new(COLLECTION_MODE_SYNCHRONIZED);
+      cals_list[i][j] = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
     }
   }
     
@@ -3004,6 +3004,7 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 
     chromosome_id = region->chromosome_id;
     strand = region->strand;
+
     //my_cp_list_append(cals_list[strand][chromosome_id], start, end, max_cal_distance);
     //printf("Region strand:%i - chromosome:%i\n", strand, chromosome_id);
     // removing cprops dependencies
@@ -3011,7 +3012,7 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
     //printf("Insert ok!\n");
   }
- 
+
   //Store CALs in Array List for return results
   cal_t *cal;
   for (unsigned int j = 0; j < nchromosomes; j++) {
