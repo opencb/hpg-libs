@@ -16,8 +16,4 @@ for key, value in ARGLIST:
     if key == 'aligners':
        aligners = value.split(',')
      
-
-
-
-
 SConscript('SConscript', exports = ['debug', 'formats', 'aligners', 'compiler'])

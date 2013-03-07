@@ -50,6 +50,7 @@ typedef struct {
     
     size_t num_samples;                         /**< Number of sample subjects. */
     size_t num_records;                         /**< Number of records read. */
+    size_t num_batches;                         /**< Number of batches read (used for error notification). */
 } vcf_reader_status;
 
 
@@ -63,7 +64,7 @@ typedef struct {
  * @param batch_lines The initial number of lines in a batch
  * @return A new vcf_reader_status structure
  **/
-vcf_reader_status *vcf_reader_status_new(size_t batch_lines);
+vcf_reader_status *vcf_reader_status_new(size_t batch_lines, size_t current_batch_id);
 
 /**
  * @brief Deallocates memory associated to a vcf_reader_status structure.

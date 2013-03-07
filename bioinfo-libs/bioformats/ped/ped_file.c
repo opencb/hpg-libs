@@ -87,7 +87,7 @@ int ped_read(ped_file_t *ped_file) {
             ped_batch_t *batch = (ped_batch_t*) item->data_p;
             while ((record_item = list_remove_item_async(batch)) != NULL) {
                 ret_code &= add_ped_record(record_item->data_p, ped_file);
-                ped_record_free(record_item->data_p);
+//                 ped_record_free(record_item->data_p);
                 list_item_free(record_item);
             }
             ped_batch_free(batch);
@@ -142,83 +142,87 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     int result = 0;
+    individual_t *father = NULL, *mother = NULL, *individual = NULL;
     enum Condition condition = MISSING;
     char *aux_buffer;
     
     // Get family or, should it not exist yet, create it
     family_t *family = cp_hashtable_get(ped_file->families, record->family_id);
     if (family == NULL) {
-        aux_buffer = strdup(record->family_id);
-        family = family_new(aux_buffer);
+        family = family_new(record->family_id);
         if (add_family(family, ped_file)) {
             return ALREADY_EXISTING_FAMILY;
         }
     }
     
-    LOG_DEBUG_F("family id = %s\tindiv id = %s\n", record->family_id, record->individual_id);
-    LOG_DEBUG_F("father id = %s\tmother id = %s\n", record->father_id, record->mother_id);
+    LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", record->family_id, record->individual_id, record->father_id, record->mother_id);
+    
+    // If it is an ancestor with no sex defined, add to the list of unknown members
+    if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
+        condition = get_condition_from_phenotype(record->phenotype);
+        individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, NULL, NULL, family);
+        return family_add_unknown(individual, family);
+    }
     
     // Get parents from family or, should they not exist yet, create them
-    individual_t *father = NULL, *mother = NULL, *individual = NULL;
-    if (record->father_id != NULL) {
-        if (family->father != NULL) {
-            if (strcasecmp(family->father->id, record->father_id) == 0) {
-                father = family->father;
-            } else {
-                return FATHER_APPEARS_MORE_THAN_ONCE;
-            }
-        } else {
-            aux_buffer = strdup(record->father_id);
-            father = individual_new(aux_buffer, -9, MALE, MISSING, NULL, NULL, family);
+    if (!family->father) {
+        // Non-existing father, set his ID from the record (if available)
+        if (record->father_id) {
+            LOG_DEBUG_F("Set family %s father", family->id);
+            father = individual_new(record->father_id, -9, MALE, MISSING, NULL, NULL, family);
             family_set_parent(father, family);
         }
-    } else if(strcasecmp(family->father->id, record->individual_id) == 0) {
+    
+    } else if (record->father_id && strcasecmp(family->father->id, record->father_id)) {
+        // Father already exists and IDs do not match, error!
+        return FATHER_APPEARS_MORE_THAN_ONCE;
+    
+    } else if (!strcasecmp(family->father->id, record->individual_id)) {
         // The father was created while reading one of his children
         // Should his status be 'missing', fill the phenotypical information
-        individual = family->father;
-        LOG_DEBUG_F("Father already found, condition = %d\n", individual->condition);
+        father = family->father;
+        LOG_DEBUG_F("Father already found, condition = %d\n", father->condition);
+        
         // If the father struct members are missing, fill them
-        if (individual->condition == MISSING) {
-            individual->phenotype = record->phenotype;
-            individual->condition = get_condition_from_phenotype(individual->phenotype);
-            LOG_DEBUG_F("Father modified, condition = %d\n", individual->condition);
+        if (father->condition == MISSING) {
+            father->phenotype = record->phenotype;
+            father->condition = get_condition_from_phenotype(father->phenotype);
+            LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
         }
-        return 0;   // Nothing more to do, it already belongs to the family
-    } 
+        return 0;   // Nothing more to do, he already belongs to the family
+    }
     
-    
-    if (record->mother_id != NULL) {
-        if (family->mother != NULL) {
-            if (strcasecmp(family->mother->id, record->mother_id) == 0) {
-                mother = family->mother;
-            } else {
-                return MOTHER_APPEARS_MORE_THAN_ONCE;
-            }
-        } else {
-            aux_buffer = strdup(record->mother_id);
-            mother = individual_new(aux_buffer, -9, FEMALE, MISSING, NULL, NULL, family);
+    if (!family->mother) {
+        // Non-existing mother, set his ID from the record (if available)
+        if (record->mother_id) {
+            LOG_DEBUG_F("Set family %s mother", family->id);
+            mother = individual_new(record->mother_id, -9, FEMALE, MISSING, NULL, NULL, family);
             family_set_parent(mother, family);
         }
-    } else if(strcasecmp(family->mother->id, record->individual_id) == 0) {
-        // The mother was created while reading one of her children
-        // Should her status be 'missing', fill the phenotypical information
-        individual = family->mother;
-        LOG_DEBUG_F("Mother already found, condition = %d\n", individual->condition);
+    
+    } else if (record->mother_id && strcasecmp(family->mother->id, record->mother_id)) {
+        // Mother already exists and IDs do not match, error!
+        return MOTHER_APPEARS_MORE_THAN_ONCE;
+    
+    } else if (!strcasecmp(family->mother->id, record->individual_id)) {
+        // The mother was created while reading one of his children
+        // Should his status be 'missing', fill the phenotypical information
+        mother = family->mother;
+        LOG_DEBUG_F("Mother already found, condition = %d\n", mother->condition);
+        
         // If the mother struct members are missing, fill them
-        if (individual->condition == MISSING) {
-            individual->phenotype = record->phenotype;
-            individual->condition = get_condition_from_phenotype(individual->phenotype);
-            LOG_DEBUG_F("Mother modified, condition = %d\n", individual->condition);
+        if (mother->condition == MISSING) {
+            mother->phenotype = record->phenotype;
+            mother->condition = get_condition_from_phenotype(mother->phenotype);
+            LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
         }
-        return 0;   // Nothing more to do, it already belongs to the family
-    } 
+        return 0;   // Nothing more to do, he already belongs to the family
+    }
     
     // Create individual with the information extracted from the PED record
-    aux_buffer = strdup(record->individual_id);
     condition = get_condition_from_phenotype(record->phenotype);
-    
-    individual = individual_new(aux_buffer, record->phenotype, record->sex, condition, father, mother, family);
-    if (father != NULL || mother != NULL) {
+    individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, father, mother, family);
+    if (father || mother) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);
     } else {
