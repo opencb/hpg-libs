@@ -59,6 +59,8 @@ void linked_list_iterator_free(linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_curr(linked_list_iterator_t *iterator_p);
 
+linked_list_item_t* linked_list_iterator_list_item_curr(linked_list_iterator_t *iterator_p);
+
 void* linked_list_iterator_next(linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_prev(linked_list_iterator_t *iterator_p);
