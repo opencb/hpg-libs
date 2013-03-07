@@ -31,7 +31,7 @@ void genome_free(genome_t* genome_p);
 
 void genome_read_sequence(char* sequence, unsigned int strand, char* chromosome, unsigned long int* start_p, unsigned long int* end_p, genome_t* genome_p);
 
-void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand, unsigned int chr, unsigned long int* start_p, unsigned long int* end_p, genome_t* genome_p);
+void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand, unsigned int chr, size_t* start_p, size_t* end_p, genome_t* genome_p);
 
 char* genome_get_chr_name(unsigned int chr, unsigned int* len, genome_t* genome_p);
 

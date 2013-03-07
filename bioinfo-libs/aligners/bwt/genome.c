@@ -48,7 +48,7 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   while (fgets(line, MAXLINE, fd) ) {
     //printf("%s\n", line);
     i = 0; j= 1;
-    while(line[j] != ' ' ){genome_p->chr_name[num_chromosomes][i++] = line[j++];}
+    while(line[j] != ' ' ){ genome_p->chr_name[num_chromosomes][i++] = line[j++]; }
     genome_p->chr_name[num_chromosomes][i] = '\0';
     //printf("--> (%d):: %s\n", strlen(genome_p->chr_name[num_chromosomes]), genome_p->chr_name[num_chromosomes]);
     genome_p->chr_name_length[num_chromosomes] = strlen(genome_p->chr_name[num_chromosomes]);
@@ -394,7 +394,7 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
   
   char nt_code[4];
   unsigned char id;
-  
+  //printf("Genome start %lu and genome end %lu = %lu\n", s, e, e - s);
   for(unsigned int i = nucleotide_start; i < 3; i++){
     sequence[seq_pos++] = genome_p->code_table[genome_p->X[group_start]][i];
   }
