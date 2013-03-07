@@ -3008,6 +3008,7 @@ void my_cp_list_append(cp_list* list_p, region_t *region, size_t max_cal_distanc
 size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
+					size_t nchromosomes,
 					array_list_t *cal_list){
 
   short_cal_t *short_cal_p;
@@ -3026,7 +3027,6 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   *min_seeds = 1000;
 
   const unsigned char nstrands = 2;
-  const unsigned char nchromosomes = 100;
   cp_list ***cals_list = (cp_list ***)malloc(sizeof(cp_list **)*nstrands);
 
   for (unsigned int i = 0; i < nstrands; i++) {

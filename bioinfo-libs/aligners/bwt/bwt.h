@@ -329,6 +329,7 @@ size_t bwt_generate_cal_list_rna_linkedlist(array_list_t *mapping_list,
 size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
+					size_t nchromosomes,
 					array_list_t *cal_list);
 
 
