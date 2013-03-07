@@ -502,6 +502,11 @@ void* linked_list_iterator_curr(linked_list_iterator_t *iterator_p) {
 	else { return NULL; }
 }
 
+linked_list_item_t* linked_list_iterator_list_item_curr(linked_list_iterator_t *iterator_p) {
+  if (iterator_p && iterator_p->curr_pos) { return iterator_p->curr_pos; }
+  else { return NULL; }
+}
+
 void* linked_list_iterator_next(linked_list_iterator_t *iterator_p) {
 	void* item = NULL;
 
