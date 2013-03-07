@@ -50,9 +50,9 @@ fastq_read_stats_options_t *fastq_read_stats_options_new(int min_qual, int max_q
 void fastq_read_stats_options_free(fastq_read_stats_options_t *read_stats);
 
 
-int fastq_read_stats_se(fastq_read_t *fq_read, fastq_read_stats_options_t *fq_read_stats_options, fastq_read_stats_t *read_stats);
+int fastq_read_stats(fastq_read_t *fq_read, fastq_read_stats_options_t *fq_read_stats_options, fastq_read_stats_t *read_stats);
 
-int fastq_reads_stats_se(array_list_t *fq_reads, fastq_read_stats_options_t *fq_read_stats_options, array_list_t *reads_stats);
+int fastq_reads_stats(array_list_t *fq_reads, fastq_read_stats_options_t *fq_read_stats_options, array_list_t *reads_stats);
 
 void fastq_read_stats_print(fastq_read_stats_t *fq_read_stats);
 

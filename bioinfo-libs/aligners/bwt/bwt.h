@@ -7,14 +7,12 @@
 #include <math.h>
 #include <pthread.h> 
 
-#include "cprops/linked_list.h"
-
 #include "commons/string_utils.h"
 #include "containers/array_list.h"
 #include "containers/linked_list.h"
 #include "bioformats/fastq/fastq_read.h"
 #include "bioformats/fastq/fastq_batch.h"
-#include "bioformats/bam-sam/alignment.h"
+#include "bioformats/bam/alignment.h"
 
 #include "BW_io.h"
 #include "BW_search.h"

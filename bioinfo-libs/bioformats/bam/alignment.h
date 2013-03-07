@@ -7,7 +7,7 @@
 
 #include "commons/commons.h"
 
-#include "bam_commons.h"
+//#include "bam_commons.h"
 
 #define MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING  	5
 #define HUMAN      				1 //Specie: Human
