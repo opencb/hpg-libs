@@ -8,7 +8,7 @@ vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops librar
 
 env = Environment(variables = vars,
                   CC = compiler,
-		  CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
+		  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
                   CPPPATH = ['#', '/usr/include/libxml2', '.', '$CPROPS_INCLUDE_PATH' ],
                   LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH' ])
 
