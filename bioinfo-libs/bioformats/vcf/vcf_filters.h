@@ -332,6 +332,26 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
  **/
 void region_filter_free(filter_t *filter);
 
+/**
+ * @brief Creates a new filter by gene(s), considering them as regions.
+ * @details Creates a new filter by gene(s), considering them as regions.
+ *
+ * @param region_descriptor List of regions where to extract the list from
+ * @param use_region_file Whether to use a file containing regions
+ * @param url URL of the web service to check for chromosomes order
+ * @param species Species against the filter is applied
+ * @param version Version of the web service to check for chromosome order
+ * @return The new filter
+ **/
+filter_t *gene_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
+
+/**
+ * @brief Deallocates memory of a filter by gene(s).
+ * @details Deallocates memory of a filter by gene(s).
+ *
+ * @param filter The filter to deallocate
+ **/
+void gene_filter_free(filter_t *filter);
 
 /**
  * @brief Creates a new filter by SNP.
