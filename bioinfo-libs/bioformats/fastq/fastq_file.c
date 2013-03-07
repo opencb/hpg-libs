@@ -77,7 +77,6 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
 		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
 		quality_length = strlen(qualities);
