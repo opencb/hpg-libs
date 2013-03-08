@@ -7,14 +7,12 @@
 #include <math.h>
 #include <pthread.h> 
 
-#include "cprops/linked_list.h"
-
 #include "commons/string_utils.h"
 #include "containers/array_list.h"
 #include "containers/linked_list.h"
 #include "bioformats/fastq/fastq_read.h"
 #include "bioformats/fastq/fastq_batch.h"
-#include "bioformats/bam-sam/alignment.h"
+#include "bioformats/bam/alignment.h"
 
 #include "BW_io.h"
 #include "BW_search.h"
@@ -23,6 +21,10 @@
 #define NONE_HARD_CLIPPING 0
 #define START_HARD_CLIPPING 1
 #define END_HARD_CLIPPING 2
+
+#define NO_CALS 1
+#define EXTRA_CALS 2
+
 
 #ifndef MAX
   #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -64,13 +66,17 @@ typedef struct cal {
   size_t start;
   size_t end;
   size_t num_seeds;
+  size_t flank_start;
+  size_t flank_end;
 } cal_t;
 
 cal_t *cal_new(const size_t chromosome_id, 
 	       const short int strand,
 	       const size_t start, 
 	       const size_t end,
-	       const size_t num_seeds);
+	       const size_t num_seeds,
+	       const size_t f_start,
+	       const size_t f_end);
 
 void cal_free(cal_t *cal);
 
@@ -254,10 +260,12 @@ size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 // seed functions
 //-----------------------------------------------------------------------------
 
-size_t bwt_map_exact_seeds_seq(char *seq, 
+size_t bwt_map_exact_seeds_seq(int padding_left,
+			       int padding_right,
+			       char *seq, 
 			       size_t seed_size, size_t min_seed_size,
 			       bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
-			       array_list_t *mapping_list);
+			       array_list_t *mapping_list, unsigned char step_id);
 
 size_t bwt_map_exact_seeds_seq_by_num(char *seq, 
 				      size_t min_num_seeds, size_t max_num_seeds, 
@@ -309,14 +317,17 @@ size_t bwt_find_cals_from_batch(fastq_batch_t *batch,
 				cal_optarg_t *cal_optarg, 
 				array_list_t *cal_list);
 
+
 size_t bwt_generate_cal_list_rna_linkedlist(array_list_t *mapping_list,
 					    cal_optarg_t *cal_optarg,
-					    array_list_t *cal_list);
+					    array_list_t *cal_list,
+					    size_t read_length, size_t nchromosomes);
 
 
 size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 					cal_optarg_t *cal_optarg,
 					size_t *min_seeds, size_t *max_seeds,
+					size_t nchromosomes,
 					array_list_t *cal_list);
 
 
@@ -341,8 +352,10 @@ void bwt_map_inexact_array_list_by_filter(array_list_t *reads,
 					  size_t *unmapped_indices);
 
 size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
-					    cal_optarg_t *cal_optarg,
-					     array_list_t *cal_list);
+					     cal_optarg_t *cal_optarg,
+					     array_list_t *cal_list,
+					     size_t read_length,
+					     size_t nchromosomes);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

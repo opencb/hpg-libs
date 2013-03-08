@@ -494,6 +494,20 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
+filter_t *gene_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
+    assert(region_descriptor);
+    assert(url);
+    assert(species);
+    assert(version);
+    
+    filter_t *filter = region_filter_new(region_descriptor, use_region_file, url, species, version);
+
+    return filter;
+}
+
+void gene_filter_free(filter_t *filter) {
+    region_filter_free(filter);
+}
 
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
@@ -662,7 +676,7 @@ static void annotate_failed_record(char *filter_name, size_t filter_name_len, vc
         char *aux = calloc(record->filter_len + filter_name_len + 2, sizeof(char));
         if (aux) {
             strncat(aux, record->filter, record->filter_len);
-            strncat(aux, ",", 1);
+            strncat(aux, ";", 1);
             strncat(aux, filter_name, filter_name_len);
             record->filter = aux;
             record->filter_len = record->filter_len + filter_name_len + 2;

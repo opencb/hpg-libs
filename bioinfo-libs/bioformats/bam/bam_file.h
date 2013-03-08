@@ -21,7 +21,7 @@
 #include "commons/system_utils.h"
 
 #include "alignment.h"
-#include "bam_commons.h"
+//#include "bam_commons.h"
 
 #define MAX_NUM_PRODUCERS  	10
 #define BAM_BATCH_READ_SIZE   	50000000

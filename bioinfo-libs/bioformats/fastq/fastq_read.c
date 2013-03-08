@@ -21,6 +21,16 @@ fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
 	return fq_read;
 }
 
+fastq_read_t *fastq_read_dup(fastq_read_t *fq) {
+  fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
+  fq_read->id = strdup(fq->id);
+  fq_read->sequence = strdup(fq->sequence);
+  fq_read->quality = strdup(fq->quality);
+  fq_read->length = fq->length;
+
+  return fq_read;
+}
+
 fastq_read_pe_t *fastq_read_pe_new(char *id1, char *id2, char *sequence1, char *quality1, char *sequence2, char *quality2, int mode) {
 	fastq_read_pe_t *fq_read_pe = (fastq_read_pe_t *) calloc(1, sizeof(fastq_read_pe_t));
 
