@@ -245,7 +245,7 @@ void workflow_insert_item_at(int stage_id, void *data, workflow_t *wf) {
 	  item->context = (void *) wf;
      }
      
-     pthread_cond_broadcast(&wf->workers_cond);
+     //     pthread_cond_broadcast(&wf->workers_cond);
 
      pthread_mutex_unlock(&wf->main_mutex);
 }
@@ -378,13 +378,14 @@ void workflow_schedule(workflow_t *wf) {
      work_item_t *item = NULL;
 
      pthread_mutex_lock(&wf->main_mutex);
+     /*
      //printf("Workflow schedule mutex lock\n");
      while (wf->num_pending_items <= 0 && 
 	    !wf->completed_producer) {
        //printf("Waitign in workflow...\n");
        pthread_cond_wait(&wf->workers_cond, &wf->main_mutex);
      }
-
+     */
 //     for (int i = wf->num_stages - 1; i >= 0; i--) {
      for (int i = 0 ; i <= wf->num_stages - 1; i++) {
 	  item = array_list_remove_at(0, wf->pending_items[i]);
@@ -550,7 +551,6 @@ void workflow_run_with(int num_threads, void *input, workflow_t *wf) {
 
      wf->num_threads = num_threads;
      wf->max_num_work_items = num_threads * 3;
-     printf("num. threads = %i\n", num_threads);
      
      pthread_t threads[num_threads];
      pthread_attr_t attr;
@@ -597,10 +597,11 @@ void workflow_run_with(int num_threads, void *input, workflow_t *wf) {
      }
 
      gettimeofday(&stop_time, NULL);
+     /*
      printf("\t\t---------------> Workflow time = %0.4f sec\n", 
 	    (stop_time.tv_sec - start_time.tv_sec) + 
 	    ((stop_time.tv_usec - start_time.tv_usec) / 1000000.0));
-     
+     */
      workflow_context_free(wf_context);
      //     Extrae_fini();
 }
