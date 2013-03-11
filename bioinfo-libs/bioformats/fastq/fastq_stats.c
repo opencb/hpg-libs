@@ -57,6 +57,7 @@ int fastq_read_stats(fastq_read_t *fq_read,
 		     fastq_read_stats_t *fq_read_stats) {
   if (fq_read != NULL) {
     fastq_read_stats_init(fq_read_stats);
+    fq_read_stats->length = fq_read->length;
     for (size_t i=0; i<fq_read->length; i++) {
       if (fq_read->sequence[i] == 'N' || fq_read->sequence[i] == 'n') {
 	fq_read_stats->Ns++;
@@ -98,6 +99,7 @@ int fastq_reads_stats(array_list_t *fq_reads,
       fq_read = array_list_get(r, fq_reads);
       if (fq_read != NULL) {
 	fq_read_stats = fastq_read_stats_new();
+	fq_read_stats->length = fq_read->length;
 	for (size_t i = 0; i < fq_read->length; i++) {
 	  if (fq_read->sequence[i] == 'N' || fq_read->sequence[i] == 'n') {
 	    fq_read_stats->Ns++;
@@ -120,7 +122,7 @@ int fastq_reads_stats(array_list_t *fq_reads,
 	  fq_read_stats->quality_average += fq_read->quality[i];
 	}
 	fq_read_stats->quality_average /= (float) fq_read->length;
-	array_list_insert_at(r, (void *) fq_read_stats, reads_stats);
+	array_list_insert((void *) fq_read_stats, reads_stats);
       }
     }
   }
