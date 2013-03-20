@@ -7,6 +7,7 @@
 #include <stdlib.h>
 //#include <omp.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "containers/array_list.h"
 //#include "extrae_user_events.h"

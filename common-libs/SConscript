@@ -1,19 +1,11 @@
 Import('debug', 'compiler')
 
 # Initialize environment
-# Current folder is needed in CPPPATH order to compile containers using commons
-vars = Variables('buildvars.py')
-vars.Add(PathVariable('CPROPS_INCLUDE_PATH', 'Path to the headers of cprops library', '', PathVariable.PathAccept))
-vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops library', '', PathVariable.PathAccept))
+env = Environment(CC = compiler,
+		  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 -DCP_HAS_PTHREAD_H -DCP_HAS___BUILTIN_CLZ -DCP_HAS_PTHREAD_H -DCP_HAS___BUILTIN_CLZ -DCP_HAS_STRDUP -DCP_HAS_STRNDUP -DCP_HAS_INET_NTOP -DCP_HAS_SYS_TIME_H -DCP_HAS_GETOPT -DCP_HAS_LONG_LONG -DCP_HAS_DLFCN_H -DCP_DBMS_STATIC ',
+                  CPPPATH = ['#', '/usr/include/libxml2', '#/containers' ],
+                  LIBPATH = ['/usr/lib' ])
 
-env = Environment(variables = vars,
-                  CC = compiler,
-		  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
-                  CPPPATH = ['#', '/usr/include/libxml2', '.', '$CPROPS_INCLUDE_PATH' ],
-                  LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH' ])
-
-#env = Environment(CFLAGS='-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
-#                  CPPPATH = ['#', '/usr/include/libxml2', '.' ])
 env.Decider('MD5-timestamp')
 
 if debug == 1:
@@ -26,5 +18,7 @@ else:
 # Targets
 commons_obj = env.Object(Glob('commons/*.c'))
 containers_obj = env.Object(Glob('containers/*.c'))
+cprops_obj = env.Object(['containers/cprops/avl.c', 'containers/cprops/hashtable.c', 'containers/cprops/linked_list.c'])
 
-env.Library('common', commons_obj + containers_obj)
+
+env.Library('common', commons_obj + containers_obj + cprops_obj)
