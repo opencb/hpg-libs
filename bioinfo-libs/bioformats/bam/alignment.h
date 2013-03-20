@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 
-#include "bam.h"
-
 #include "commons/commons.h"
+
+#include "samtools/bam.h"
 
 //#include "bam_commons.h"
 

@@ -5,9 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cprops/linked_list.h>
-
 #include <containers/list.h>
+#include <containers/cprops/linked_list.h>
 
 #include "ped_error.h"
 #include "ped_file_structure.h"

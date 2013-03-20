@@ -9,12 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cprops/heap.h>
+#include <commons/log.h>
 
-#include <bioformats/features/region/region_table_utils.h>
 #include <containers/array_list.h>
 #include <containers/list.h>
-#include <commons/log.h>
+#include <containers/cprops/heap.h>
+
+#include <bioformats/features/region/region_table_utils.h>
 
 #include "vcf_file_structure.h"
 #include "vcf_stats.h"
