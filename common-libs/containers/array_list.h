@@ -7,10 +7,10 @@
 #include <math.h>
 #include <limits.h>
 
-#include <cprops/hashtable.h>
+#include "containers/cprops/hashtable.h"
 
-#include <commons/string_utils.h>
-#include <commons/log.h>
+#include "commons/string_utils.h"
+#include "commons/log.h"
 
 #include "containers.h"
 
