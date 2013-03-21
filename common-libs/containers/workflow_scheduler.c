@@ -245,8 +245,6 @@ void workflow_insert_item_at(int stage_id, void *data, workflow_t *wf) {
 	  item->context = (void *) wf;
      }
      
-     //     pthread_cond_broadcast(&wf->workers_cond);
-
      pthread_mutex_unlock(&wf->main_mutex);
 }
 
@@ -354,6 +352,7 @@ int workflow_get_status(workflow_t *wf) {
 void workflow_producer_finished(workflow_t *wf) {
      pthread_mutex_lock(&wf->main_mutex);
      wf->completed_producer = 1;
+     pthread_cond_broadcast(&wf->workers_cond);
      pthread_mutex_unlock(&wf->main_mutex);
 }
 
@@ -378,14 +377,14 @@ void workflow_schedule(workflow_t *wf) {
      work_item_t *item = NULL;
 
      pthread_mutex_lock(&wf->main_mutex);
-     /*
+
      //printf("Workflow schedule mutex lock\n");
      while (wf->num_pending_items <= 0 && 
 	    !wf->completed_producer) {
        //printf("Waitign in workflow...\n");
        pthread_cond_wait(&wf->workers_cond, &wf->main_mutex);
      }
-     */
+
 //     for (int i = wf->num_stages - 1; i >= 0; i--) {
      for (int i = 0 ; i <= wf->num_stages - 1; i++) {
 	  item = array_list_remove_at(0, wf->pending_items[i]);
