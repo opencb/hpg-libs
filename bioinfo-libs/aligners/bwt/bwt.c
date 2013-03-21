@@ -2869,7 +2869,8 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
   }
 
-  printf("num. seed mappings: %i\n", array_list_size(mapping_list));
+  // for debugging
+  //  printf("num. seed mappings: %i\n", array_list_size(mapping_list));
 
   //Store CALs in Array List for return results
   cal_t *cal;
@@ -2878,9 +2879,10 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
       linked_list_iterator_init(cals_list[i][j], &itr);
       list_item = linked_list_iterator_list_item_curr(&itr);
 
-      if (list_item != NULL) {
-	printf("\t: strand %c\t chrom. %i: num. cals = %i\n", (i == 0 ? '-' : '+'), j, linked_list_size(cals_list[i][j]));
-      }
+      // for debugging
+      //      if (list_item != NULL) {
+      //	printf("\t: strand %c\t chrom. %i: num. cals = %i\n", (i == 0 ? '-' : '+'), j, linked_list_size(cals_list[i][j]));
+      //      }
       while (list_item != NULL) {
 	short_cal_p = (short_cal_t *)list_item->item;
 	if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
@@ -2918,7 +2920,8 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
 
   free(cals_list);
 
-  printf("--->final num. cals = %i\n", array_list_size(cal_list));
+  // for debugging
+  //  printf("--->final num. cals = %i\n", array_list_size(cal_list));
 
   return array_list_size(cal_list);  
 }
