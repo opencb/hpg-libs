@@ -2616,17 +2616,18 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 
   num_mappings = seeding(code_seq, seq_len, min_num_seeds, seed_size, min_seed_size,
 			 bwt_optarg, index, mapping_list);
-  //printf("\tfirst, num_mappings = %d\n", num_mappings);
+  //  printf("\tfirst, num_mappings = %d\n", num_mappings);
 
   if (num_mappings < 10) {
     num_mappings += seeding(code_seq, seq_len, max_num_seeds, seed_size - 4, min_seed_size - 4,
 			    bwt_optarg, index, mapping_list);
-    //printf("\tthird, num_mappings = %d\n", num_mappings);
+    //    printf("\tsecond -4, num_mappings (include first) = %d\n", num_mappings);
   } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
     array_list_clear(mapping_list, (void *) region_bwt_free);
     num_mappings = seeding(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
-			   bwt_optarg, index, mapping_list);
-  }
+			   bwt_optarg, index, mapping_list); 
+    //    printf("\tthird +2, num_mappings = %d\n", num_mappings);
+ }
 
   free(code_seq);
   return num_mappings;
@@ -2857,7 +2858,7 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
       cals_list[i][j] = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
     }
   }
-    
+  
   // from the results mappings, generates CALs
   for (unsigned int m = 0; m < num_mappings; m++) {
     region = array_list_get(m, mapping_list);
@@ -2868,13 +2869,18 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
     my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
   }
 
+  printf("num. seed mappings: %i\n", array_list_size(mapping_list));
+
   //Store CALs in Array List for return results
   cal_t *cal;
   for (unsigned int j = 0; j < nchromosomes; j++) {
     for (unsigned int i = 0; i < nstrands; i++) {
       linked_list_iterator_init(cals_list[i][j], &itr);
       list_item = linked_list_iterator_list_item_curr(&itr);
-      
+
+      if (list_item != NULL) {
+	printf("\t: strand %c\t chrom. %i: num. cals = %i\n", (i == 0 ? '-' : '+'), j, linked_list_size(cals_list[i][j]));
+      }
       while (list_item != NULL) {
 	short_cal_p = (short_cal_t *)list_item->item;
 	if (short_cal_p->end - short_cal_p->start + 1 >= min_cal_size) {
@@ -2911,6 +2917,8 @@ size_t bwt_generate_cal_list_linkedlist(array_list_t *mapping_list,
   }
 
   free(cals_list);
+
+  printf("--->final num. cals = %i\n", array_list_size(cal_list));
 
   return array_list_size(cal_list);  
 }
