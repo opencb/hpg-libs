@@ -127,7 +127,7 @@ CPROPS_DLL
 unsigned long get_current_ip();
 
 /**
- * Retrieve the ip-address of thes system with the 'hostname'.
+ * Retrieve the ip-address of the system with the 'hostname'.
  */
 CPROPS_DLL
 unsigned long get_host_ip(char *hostname);
