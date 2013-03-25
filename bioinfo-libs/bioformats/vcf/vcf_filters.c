@@ -1,6 +1,15 @@
 #include "vcf_filters.h"
 
+static size_t buffer_size;
+
 static void annotate_failed_record(char *filter_name, size_t filter_name_len, vcf_record_t *record);
+
+static char *gene_ws_geturl(const char *host_url, const char *species, const char *version, const char* genes);
+
+static char* gene_ws_output_to_regions(char *buffer);
+
+static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, void *userdata);
+
 
 //====================================================================================
 //  Filtering functions
@@ -494,14 +503,31 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
-filter_t *gene_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
-    assert(region_descriptor);
+filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *url, const char *species, const char *version) {
+    assert(gene_descriptor);
     assert(url);
     assert(species);
     assert(version);
     
-    filter_t *filter = region_filter_new(region_descriptor, use_region_file, url, species, version);
+    // Convert genes to regions
+    char* full_url = gene_ws_geturl(url, species, version, gene_descriptor);
+    init_http_environment(0);
 
+    // Output buffer
+    buffer_size = CURL_MAX_WRITE_SIZE;
+    char *buffer = NULL;
+    http_get(full_url, NULL, NULL, 0, gene_ws_get_output, &buffer);
+
+    assert(buffer);
+
+    char* values_str = gene_ws_output_to_regions(buffer);
+    //printf("values_str = %s \n",values_str); 
+
+    filter_t *filter = region_exact_filter_new(strdup(values_str), 0, url, species, version);
+    
+    free(values_str);
+    free(full_url);
+    
     return filter;
 }
 
@@ -685,4 +711,126 @@ static void annotate_failed_record(char *filter_name, size_t filter_name_len, vc
                         record->chromosome_len, record->chromosome, record->position);
         }
     }
+}
+
+
+static char *gene_ws_geturl(const char *host_url, const char *species, const char *version, const char* genes) {
+    if (host_url == NULL || version == NULL || species == NULL) {
+        return NULL;
+    }
+    
+    // URL Constants
+    // Full URL: ws.bioinfo.cipf.es/cellbase/rest/latest/hsa/feature/gene/<gene_name>/info?header=false
+    const char *ws_root_url = "cellbase/rest/";
+    const char *ws_name_url = "feature/gene/";
+    const char *ws_info = "info?header=false";
+    
+    // Length of URL parts
+    const int host_url_len = strlen(host_url);
+    const int ws_root_len = strlen(ws_root_url);
+    const int version_len = strlen(version);
+    const int species_len = strlen(species);
+    const int ws_name_len = strlen(ws_name_url);
+    const int genes_len = strlen(genes);
+    const int ws_info_len = strlen(ws_info);
+    const int result_len = host_url_len + ws_root_len + version_len + species_len + ws_name_len + genes_len + ws_info_len + 5; // Extra for 4*('/') and blank
+    
+    char *result_url = (char*) calloc (result_len, sizeof(char));
+    
+    // Host URL
+    strncat(result_url, host_url, host_url_len);
+    if (result_url[host_url_len - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Root of the web service
+    strncat(result_url, ws_root_url, ws_root_len);
+    
+    // Version
+    strncat(result_url, version, version_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Species
+    strncat(result_url, species, species_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_name_url, ws_name_len);
+    
+    // Genes
+    strncat(result_url, genes, genes_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_info, ws_info_len);
+    
+    return result_url;
+}
+
+static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, void *userdata) {
+    char **buffer_ptr = (char**) userdata;
+    if (buffer_size == CURL_MAX_WRITE_SIZE) { // First call
+        *buffer_ptr = calloc(buffer_size, sizeof(char));
+    }
+
+    // Concatenate contents to already existing buffer
+    strncat(*buffer_ptr, contents, size * nmemb); 
+
+    // In each call it is necessary to resize the buffer
+    char *buffer = realloc (*buffer_ptr, buffer_size + size * nmemb);
+    if (buffer) {
+        *buffer_ptr = buffer;
+        buffer_size += size * nmemb;
+    } else {
+        LOG_FATAL("Error while allocating memory for genes position (web service request)");
+    }
+
+    return size * nmemb;
+}
+
+static char* gene_ws_output_to_regions(char *buffer) {
+    int num_substrings;
+    int len = 64, curr_len = 0;
+    char *dup = strdup(buffer);
+    char *regions = (char*) calloc (len, sizeof(char));
+    char **contents_split = split(dup, "\n\t", &num_substrings);
+
+    // Get fields 5-7 (chr:start-end) from each line
+    // They are separated by 11 fields
+    for (int i = 5; i < num_substrings; i += 11) {
+        curr_len += strlen(contents_split[i]) + strlen(contents_split[i+1]) + strlen(contents_split[i+2]) + 4; // Extra for : - , and blank
+
+        if (curr_len > len) {
+            char *aux_values = (char*) realloc (regions, curr_len);
+            if (aux_values) {
+                free(regions);
+                regions = aux_values;
+            } else {
+                LOG_FATAL("Error while allocating memory for genes position");
+            }
+        }
+
+        strcat(regions, contents_split[i]);
+        strncat(regions, ":", 1);
+
+        strcat(regions, contents_split[i+1]);
+        strncat(regions, "-", 1);
+
+        strcat(regions, contents_split[i+2]);
+
+        if (i+11 < num_substrings) {
+            strncat(regions, ",", 1);
+        }
+    }
+
+    free(dup);
+    free(contents_split);
+
+    return regions;
 }
