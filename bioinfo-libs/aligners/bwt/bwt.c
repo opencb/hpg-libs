@@ -2549,7 +2549,7 @@ inline size_t seeding(char *code_seq, size_t seq_len, size_t num_seeds,
     if (end >= seq_len) end = seq_len;
     num_mappings += bwt_map_exact_seed(code_seq, seq_len, start, end - 1,
 					 bwt_optarg, index, mapping_list);
-    printf("\nseed [%i - %i], length read = %i, num. mappings = %i\n", start, end, seq_len, num_mappings);
+    //    printf("\nseed [%i - %i], length read = %i, num. mappings = %i\n", start, end, seq_len, num_mappings);
     start += offset_inc;
     if (start > offset_end) {
       offset++;
@@ -2582,8 +2582,8 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
     num_mappings += seeding(code_seq, seq_len, max_num_seeds, seed_size - 4, min_seed_size - 4,
 			    bwt_optarg, index, mapping_list);
     //    printf("\tsecond -4, num_mappings (include first) = %d\n", num_mappings);
-  } else if (num_mappings >= 10000) {
-    //  } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
+    //  } else if (num_mappings >= 10000) {
+  } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
     array_list_clear(mapping_list, (void *) region_bwt_free);
     num_mappings = seeding(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
 			   bwt_optarg, index, mapping_list); 
