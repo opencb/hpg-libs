@@ -1257,18 +1257,17 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
   size_t *ki1 = (size_t *) malloc(len * sizeof(size_t));
   size_t *li1 = (size_t *) malloc(len * sizeof(size_t));
   
-  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_O.m_count - 2,
+  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_O.siz - 2,
 			      k1, l1, &index->h_C, &index->h_C1, &index->h_O);
-
-  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_Oi.m_count - 2,
-			     ki1, li1, &index->h_C, &index->h_C1, &index->h_Oi);
-
-  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_rO.m_count - 2,
-			     k0, l0, &index->h_rC, &index->h_rC1, &index->h_rO);
-
-  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_rOi.m_count - 2,
-			      ki0, li0, &index->h_rC, &index->h_rC1, &index->h_rOi);
   
+  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_Oi.siz - 2,
+			     ki1, li1, &index->h_C, &index->h_C1, &index->h_Oi);
+  
+  BWExactSearchVectorForward(code_seq, start, end, 0, index->h_rO.siz - 2,
+			     k0, l0, &index->h_rC, &index->h_rC1, &index->h_rO);
+  
+  BWExactSearchVectorBackward(code_seq, start, end, 0, index->h_rOi.siz - 2,
+			      ki0, li0, &index->h_rC, &index->h_rC1, &index->h_rOi);
 
   // compare the vectors k and l to get mappings in the genome
   unsigned int num_mappings = 0;
@@ -1280,11 +1279,12 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
   alignment_t *alignment;
   size_t k_start, l_start;
 
+  new_results_list(&r_list, 20000);
+
   for (int type = 1; type >= 0; type--) {
 
     //    r_list = (results_list *) calloc(1, sizeof(results_list));
     //new_results_list(r_list, 2000);
-    new_results_list(&r_list, 2000);
     r_list.num_results = 0;
     //r_list->n = 0;
     r_list.read_index = 0;
@@ -1350,11 +1350,11 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
       }
     }
     //free_results_list(r_list);
-    free(r_list.list);
     //    free(r_list);
   } // end for type 
 
   //free(code_seq);
+  free(r_list.list);
   free(k0);
   free(l0);
   free(k1);
@@ -1365,7 +1365,6 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
   free(li1);
 
   return num_mappings;
-
 }
 
 //-----------------------------------------------------------------------------
@@ -2548,55 +2547,16 @@ inline size_t seeding(char *code_seq, size_t seq_len, size_t num_seeds,
   for (size_t i = 0; i < n_seeds; i++) {
     end = start + seed_size;
     if (end >= seq_len) end = seq_len;
-    //    printf("\nseed [%i - %i], length read = %i\n", start, end, seq_len);
     num_mappings += bwt_map_exact_seed(code_seq, seq_len, start, end - 1,
-				       bwt_optarg, index, mapping_list);
+					 bwt_optarg, index, mapping_list);
+    printf("\nseed [%i - %i], length read = %i, num. mappings = %i\n", start, end, seq_len, num_mappings);
     start += offset_inc;
     if (start > offset_end) {
       offset++;
       start = offset;
     }
   }
-  /*
-  //  offset = 0.0;
-  for (offset = 0.0; offset < offset_end; offset += offset_inc) {
-    start = round(offset);
-    end = start + seed_size;
-    if (end >= seq_len) end = seq_len;
-    printf("\nseed offset = %0.2f, [%i - %i], length read = %i\n", offset, start, end, seq_len);
-    num_mappings += bwt_map_exact_seed(code_seq, seq_len, start, end - 1,
-				       bwt_optarg, index, mapping_list);
-    //    offset += offset_inc;
-  }
-  */
 
-  //  exit(-1);
-  /*
-  if (seed_size * num_seeds > seq_len) {
-    //    offset_inc = seed_size - (((seed_size * num_seeds) - seq_len) / num_seeds);
-    offset_inc = (seq_len - seed_size) / num_seeds;
-  } else {
-    offset_inc = seq_len / num_seeds;
-
-    offset = 0;
-    for (size_t i = 0; i < n_seeds; i++) {
-    //printf("%s\n", &seq[offset]);
-    //printf("1, seed %d: start = %d, end = %d\n", i, offset, offset + seed_size - 1);
-    bwt_map_exact_seed(code_seq, len, offset, offset + seed_size - 1,
-			 bwt_optarg, index, mapping_list);
-    offset += seed_size;
-  }
-
-  }
-
-//  offset_inc = seq_len / num_seeds;
-
-  for (offset = 0; offset < offset_end; offset += offset_inc) {
-    //printf("\nseed [%i - %i]\n", offset, offset + seed_size - 1);
-    num_mappings += bwt_map_exact_seed(code_seq, seq_len, offset, offset + seed_size - 1,
-				       bwt_optarg, index, mapping_list);
-  }
-  */
   return num_mappings;
 }
 
@@ -2622,7 +2582,8 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
     num_mappings += seeding(code_seq, seq_len, max_num_seeds, seed_size - 4, min_seed_size - 4,
 			    bwt_optarg, index, mapping_list);
     //    printf("\tsecond -4, num_mappings (include first) = %d\n", num_mappings);
-  } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
+  } else if (num_mappings >= 10000) {
+    //  } else if (num_mappings >= bwt_optarg->max_alignments_per_read) {
     array_list_clear(mapping_list, (void *) region_bwt_free);
     num_mappings = seeding(code_seq, seq_len, max_num_seeds, seed_size + 2, min_seed_size + 2,
 			   bwt_optarg, index, mapping_list); 
