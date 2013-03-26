@@ -1,0 +1,10 @@
+Import('env')
+
+penv = env.Clone()
+penv['LIBS'] = ['check']
+
+check_linked_list = penv.Program('linked_list.test', 
+                                 source = ['linked_list_test.c', 
+                                           '#containers/linked_list.o'
+                                          ]
+                                )
