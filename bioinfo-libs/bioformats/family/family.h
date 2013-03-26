@@ -7,7 +7,8 @@
 
 #include <commons/log.h>
 #include <commons/string_utils.h>
-#include <containers/cprops/linked_list.h>
+#include <containers/linked_list.h>
+//#include <containers/cprops/linked_list.h>
 
 
 enum Sex { MALE, FEMALE, UNKNOWN_SEX };
@@ -40,8 +41,10 @@ typedef struct family {
     char *id;               /**< Unique ID of the family **/
     individual_t *father;   /**< Man in the root of the genealogical tree */
     individual_t *mother;   /**< Woman in the root of the genealogical tree */
-    cp_list *children;      /**< Children of the main roots in the genealogical tree */
-    cp_list *unknown;       /**< Unclassified samples because they have no parents and no sex */
+//    cp_list *children;      /**< Children of the main roots in the genealogical tree */
+//    cp_list *unknown;       /**< Unclassified samples because they have no parents and no sex */
+    linked_list_t *children;      /**< Children of the main roots in the genealogical tree */
+    linked_list_t *unknown;       /**< Unclassified samples because they have no parents and no sex */
 } family_t;
 
 
