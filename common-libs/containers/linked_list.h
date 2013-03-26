@@ -2,14 +2,16 @@
  * linked_list.h
  *
  *  Created on: Nov 7, 2012
- *      Author: imedina, hmartinez
+ *  Last modified: Mar 26, 2013
+ *      Author: imedina, hmartinez, cgonzalez
  */
 
-#ifndef LINKED_LIST_H_
-#define LINKED_LIST_H_
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
 #include "containers.h"
