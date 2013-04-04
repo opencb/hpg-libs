@@ -244,7 +244,9 @@ void workflow_insert_item_at(int stage_id, void *data, workflow_t *wf) {
 	  wf->num_pending_items++;
 	  item->context = (void *) wf;
      }
-     
+
+     pthread_cond_broadcast(&wf->workers_cond);
+
      pthread_mutex_unlock(&wf->main_mutex);
 }
 
