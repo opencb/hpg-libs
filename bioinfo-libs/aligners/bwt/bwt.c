@@ -857,24 +857,15 @@ size_t bwt_map_exact_seq(char *seq,
       } else {
 	key = getScompValue(j, &index->S, &index->h_C, &index->h_O);
       }
-      //printf("----> key value: %d\n", key);
       
       idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-      //printf("----> idx value: %d\n", idx);
       //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
       
       if(key + len <= index->karyotype.offset[idx]) {
 	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
-	/*printf("\tStrand:%c\tchromosome:%d\tStart:%u\n",plusminus[type],
-	    idx,
-	    start_mapping);*/
 	
 	cigar_p = (char *)malloc(sizeof(char)*len);
 	sprintf(cigar_p, "%d=\0", len);
-	
-	/*seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-	  memcpy(seq_dup, seq, len + 1);
-	  */
 	
 	// save all into one alignment structure and insert to the list
 	alignment = alignment_new();
@@ -1398,17 +1389,7 @@ size_t bwt_map_inexact_seq(char *seq,
      }
  
 
-     //printf("------------>IN FUNCTION INEXACT SEQ...\n");
-     /*unsigned int len = strlen(seq);
-       unsigned int start = 0;
-       unsigned int end = len - 1;*/
      char *seq_dup, *seq_strand;
-     /*char *codeSeq = (char *) calloc(len, sizeof(char));
-       replaceBases(seq, codeSeq, len);*/
-
-     //return bwt_map_inexact_seq_by_pos(seq, start, end,
-     //					bwt_optarg, index, mapping_list);
-  
      size_t start = 0;
      size_t end = len - 1;
      size_t len_calc = len;
@@ -1587,20 +1568,16 @@ size_t bwt_map_inexact_seq(char *seq,
 			      if (pos == 0) {
 				   if(type) {
 					sprintf(cigar, "1M1D%luM\0", len - 1); 
-//		start_mapping += 2;
 				   }
 				   else{ 
 					sprintf(cigar, "%luM1D1M\0", len - 1); 
-//		start_mapping--;
 				   }	      
 			      } else if (pos == len - 1) {
 				   if(type) { 
 					sprintf(cigar, "%luM1D1M\0", len - 1); 
-//		start_mapping--;
 				   }
 				   else{ 
 					sprintf(cigar, "1M1D%luM\0", len - 1); 
-//		start_mapping += 2;
 				   }
 			      } else {
 
@@ -1641,17 +1618,9 @@ size_t bwt_map_inexact_seq(char *seq,
 			      } else {
 				   if(type) { 
 					sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
-//		   printf("cigar = %s\n", cigar);
-//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
-//		   if (len - pos - 1 == 1) start_mapping++;
-//		   printf("\tstart_mapping = %lu\n", start_mapping);
 				   }
 				   else{ 
 					sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
-//		   printf("cigar = %s\n", cigar);
-//		   printf("\tstart_mapping = %lu, pos = %i\n", start_mapping, pos);
-//		   if (pos == 1) start_mapping++;
-//		   printf("\tstart_mapping = %lu\n", start_mapping);
 				   }
 				   num_cigar_ops = 3;
 			      }
@@ -1672,11 +1641,7 @@ size_t bwt_map_inexact_seq(char *seq,
 			 cigar_len = strlen(cigar) + 1;
 			 cigar_dup = (char *)calloc(cigar_len, sizeof(char));
 			 memcpy(cigar_dup, cigar, cigar_len);
-			 //sprintf(optional_fields, "%s%i", "AS:", 255);
-			 //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-			 //memcpy(seq_dup ,seq, len + 1);
-			 //seq_dup[len] = '\0';
-			 //printf("Align chr :%i, start:%lu\n", idx-1, index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]));
+
 			 // save all into one alignment structure and insert to the list
 			 alignment = alignment_new();
 
@@ -1687,10 +1652,7 @@ size_t bwt_map_inexact_seq(char *seq,
 			 array_list_insert((void*) alignment, mapping_list);
   
 			 num_mappings++;
-			 /*else{
-			 //printf("ERROR: Cigar bad generated\n");
-			 error_debug = 0;
-			 }*/
+
 		    }
 	       }//end for k and l
 	       if (tot_alignments >=  MAX_BWT_ALIGNMENTS) {
@@ -1698,20 +1660,57 @@ size_t bwt_map_inexact_seq(char *seq,
 		 break;
 	       }
 	  }//end for 
-	  //free(r);
-	  //free_results_list(r_list);
-	  //    free(r_list);
      } // end for type 
  
+     //
+     //
+     //Search for equal BWT mappings and set the mappings that will be delete
+     int n_mappings = array_list_size(mapping_list);
+     alignment_t *alig_1, *alig_2;
+     unsigned int *delete_mark = (unsigned int *)calloc(n_mappings, sizeof(unsigned int));
+     //printf("------------------Num mappings %i---------------\n", n_mappings);
+     
+     for (int a1 = n_mappings - 1; a1 >= 1; a1--) {
+       if (!delete_mark[a1]) {
+	 alig_1 = array_list_get(a1, mapping_list);
+	 //printf("Alig1(%i): %i chromosome, %i seq_strand, %s cigar:\n", a1, alig_1->chromosome, alig_1->seq_strand, alig_1->cigar);
+	 for (int a2 = a1 - 1; a2 >= 0; a2--) {
+	   alig_2 = array_list_get(a2, mapping_list);
+	   size_t dist = abs(alig_1->position - alig_2->position);
+	   //printf("\t Alig2(%i): %i chromosome, %i seq_strand, %i dist, %i delete mark, %s cigar\n", a2, alig_2->chromosome, alig_2->seq_strand, dist, delete_mark[a2],alig_2->cigar );
+	   if (alig_1->chromosome == alig_2->chromosome  &&
+	       alig_1->seq_strand == alig_2->seq_strand &&
+	       dist < len && 
+	       !delete_mark[a2]) {
+	     //Same chromosome && same position
+	     if (alig_1->num_cigar_operations < alig_2->num_cigar_operations) {
+	       //printf("\tSet read %i\n", a2);
+	       delete_mark[a2] = 1;
+	     } else {
+	       //printf("\tSet read %i\n", a2);
+	       delete_mark[a1] = 1;
+	     }
+	   }
+	 }
+       }
+     }
+
+     //Delete all set mappings
+     for (int m = n_mappings - 1; m >= 0; m--) {
+       if (delete_mark[m]) {
+	 alig_1 = array_list_remove_at(m, mapping_list);
+	 alignment_free(alig_1);
+       }
+     }
+     free(delete_mark);
+     
      //*********************************************************
      //Filter alignments [BEST ALIGNMENTS | N HITS | REPORT ALL]
      //*********************************************************
-
      num_mappings = alignments_filter(bwt_optarg->report_all, 
 				      bwt_optarg->report_best, 
 				      bwt_optarg->report_n_hits,
 				      mapping_list);
-  
      //*********************************************************
 
      free(r_list.list);
