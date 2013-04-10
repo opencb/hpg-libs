@@ -344,3 +344,106 @@ void add_vcf_record_sample(char* sample, int length, vcf_record_t* record) {
 //         LOG_DEBUG_F("sample %s not inserted\n", sample);
 //     }
 }
+
+
+/* *******************
+ *      Sorting      *
+ * *******************/
+
+individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped) {
+    family_t *family;
+    family_t **families = (family_t**) cp_hashtable_get_values(ped->families);
+    int num_families = get_num_families(ped);
+
+    individual_t **individuals = calloc (get_num_vcf_samples(vcf), sizeof(individual_t*));
+    khash_t(ids) *positions = associate_samples_and_positions(vcf);
+    int pos = 0;
+
+    for (int f = 0; f < num_families; f++) {
+        family = families[f];
+        individual_t *father = family->father;
+        individual_t *mother = family->mother;
+
+        if (father != NULL) {
+            pos = 0;
+            LOG_DEBUG_F("father ID = %s\n", father->id);
+            khiter_t iter = kh_get(ids, positions, father->id);
+            if (iter != kh_end(positions)) {
+                pos = kh_value(positions, iter);
+                individuals[pos] = father;
+            }
+        }
+
+        if (mother != NULL) {
+            pos = 0;
+            LOG_DEBUG_F("mother ID = %s\n", mother->id);
+            khiter_t iter = kh_get(ids, positions, mother->id);
+            if (iter != kh_end(positions)) {
+                pos = kh_value(positions, iter);
+                individuals[pos] = mother;
+            }
+        }
+
+        linked_list_iterator_t *iterator = linked_list_iterator_new(family->children);
+        individual_t *child = NULL;
+        while (child = linked_list_iterator_curr(iterator)) {
+            pos = 0;
+            LOG_DEBUG_F("child ID = %s\n", child->id);
+            khiter_t iter = kh_get(ids, positions, child->id);
+            if (iter != kh_end(positions)) {
+                pos = kh_value(positions, iter);
+                individuals[pos] = child;
+            }
+            linked_list_iterator_next(iterator);
+        }
+        linked_list_iterator_free(iterator);
+        
+        iterator = linked_list_iterator_new(family->unknown);
+        individual_t *unknown = NULL;
+        while (unknown = linked_list_iterator_curr(iterator)) {
+            pos = 0;
+            LOG_DEBUG_F("unknown ID = %s\n", unknown->id);
+            khiter_t iter = kh_get(ids, positions, unknown->id);
+            if (iter != kh_end(positions)) {
+                pos = kh_value(positions, iter);
+                individuals[pos] = unknown;
+            }
+            linked_list_iterator_next(iterator);
+        }
+        linked_list_iterator_free(iterator);
+        
+        assert(father || mother || linked_list_size(family->unknown) > 0);
+    }
+
+    kh_destroy(ids, positions);
+
+    return individuals;
+}
+
+khash_t(ids)* associate_samples_and_positions(vcf_file_t* file) {
+    LOG_DEBUG_F("** %zu sample names read\n", file->samples_names->size);
+    array_list_t *sample_names = file->samples_names;
+    khash_t(ids) *sample_ids = kh_init(ids);
+    
+    for (int i = 0; i < sample_names->size; i++) {
+        char *name = sample_names->items[i];
+        int ret;
+        khiter_t iter = kh_get(ids, sample_ids, name);
+        if (iter != kh_end(sample_ids)) {
+            LOG_FATAL_F("Sample %s appears more than once. File can not be analyzed.\n", name);
+        } else {
+            iter = kh_put(ids, sample_ids, strdup(name), &ret);
+            if (ret) {
+                kh_value(sample_ids, iter) = i;
+            }
+        }
+    }
+    
+//     char **keys = (char**) cp_hashtable_get_keys(sample_names);
+//     int num_keys = cp_hashtable_count(sample_names);
+//     for (int i = 0; i < num_keys; i++) {
+//         printf("%s\t%d\n", keys[i], *((int*) cp_hashtable_get(sample_ids, keys[i])));
+//     }
+    
+    return sample_ids;
+}
