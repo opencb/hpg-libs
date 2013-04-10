@@ -37,3 +37,4 @@ stats = env.Program('stats_vcf.test',
                        "%s/libhpgmath.a" % math_path
                       ]
            )
+
