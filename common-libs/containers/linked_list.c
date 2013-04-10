@@ -284,14 +284,12 @@ void* linked_list_remove_first(linked_list_t *linked_list_p) {
 		if (linked_list_p->first) {
 			linked_list_item_t *list_item = linked_list_p->first;
 			linked_list_p->first = linked_list_p->first->next;
-			/*printf("%i->%i\n", (int)linked_list_p->first->item,
-	     (int)linked_list_p->first->next->item);
-			 */
-			 linked_list_p->first->prev = NULL;
-			 linked_list_p->size--;
-
-			 item = list_item->item;
-			 linked_list_item_free(list_item, NULL);
+			if (linked_list_p->first) {
+			  linked_list_p->first->prev = NULL;
+			}
+			linked_list_p->size--;			
+			item = list_item->item;
+			linked_list_item_free(list_item, NULL);
 		}
 
 		if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
@@ -315,9 +313,10 @@ void* linked_list_remove_last(linked_list_t *linked_list_p) {
 		if (linked_list_p->last) {
 			linked_list_item_t *list_item = linked_list_p->last;
 			linked_list_p->last = linked_list_p->last->prev;
-			linked_list_p->last->next = NULL;
+			if (linked_list_p->last) {
+			  linked_list_p->last->next = NULL;
+			}
 			linked_list_p->size--;
-
 			item = list_item->item;
 			linked_list_item_free(list_item, NULL);
 		}
