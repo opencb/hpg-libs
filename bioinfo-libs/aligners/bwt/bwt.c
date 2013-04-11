@@ -1665,7 +1665,7 @@ size_t bwt_map_inexact_seq(char *seq,
      //
      //
      //Search for equal BWT mappings and set the mappings that will be delete
-     int n_mappings = array_list_size(mapping_list);
+     /*   int n_mappings = array_list_size(mapping_list);
      alignment_t *alig_1, *alig_2;
      unsigned int *delete_mark = (unsigned int *)calloc(n_mappings, sizeof(unsigned int));
      //printf("------------------Num mappings %i---------------\n", n_mappings);
@@ -1703,7 +1703,7 @@ size_t bwt_map_inexact_seq(char *seq,
        }
      }
      free(delete_mark);
-     
+*/     
      //*********************************************************
      //Filter alignments [BEST ALIGNMENTS | N HITS | REPORT ALL]
      //*********************************************************
