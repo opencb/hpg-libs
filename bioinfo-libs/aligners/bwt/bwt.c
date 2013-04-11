@@ -205,19 +205,13 @@ void read_cals_free(read_cals_t *read_cals){
 
 bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
 			     const size_t num_threads,
-			     const size_t max_alginments_per_read,
-			     const size_t report_best,
-			     const size_t report_n_hits,
-			     const size_t report_all) {
+			     const size_t max_alginments_per_read) {
   
   bwt_optarg_t *bwt_optarg = (bwt_optarg_t *) calloc(1, sizeof(bwt_optarg_t));
   
   bwt_optarg->num_errors = num_errors;
   bwt_optarg->num_threads = num_threads;
   bwt_optarg->max_alignments_per_read = max_alginments_per_read;
-  bwt_optarg->report_best = report_best;
-  bwt_optarg->report_n_hits = report_n_hits;
-  bwt_optarg->report_all = report_all;
 
   return bwt_optarg;
 }

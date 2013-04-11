@@ -144,17 +144,11 @@ typedef struct bwt_optarg {
   size_t num_errors;
   size_t num_threads;
   size_t max_alignments_per_read;
-  size_t report_best;
-  size_t report_n_hits;
-  char report_all;
 } bwt_optarg_t;
 
 bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
 			     const size_t num_threads,
-			     const size_t max_alginments_per_read,
-			     const size_t report_best,
-			     const size_t report_n_hits,
-			     const size_t report_all
+			     const size_t max_alginments_per_read
 			     );
 
 void bwt_optarg_free(bwt_optarg_t *optarg);
@@ -243,11 +237,6 @@ size_t bwt_map_batch(fastq_batch_t *batch,
 		     bwt_index_t *index, 
 		     fastq_batch_t *unmapped_batch,
 		     array_list_t *mapping_list);
-
-size_t alignments_filter(char report_all, 
-			 size_t report_best, 
-			 size_t report_n_hits,
-			 array_list_t *mapping_list);
 
 size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 			     bwt_optarg_t *bwt_optarg, 
