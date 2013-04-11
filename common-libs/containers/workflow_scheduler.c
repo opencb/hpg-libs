@@ -525,16 +525,15 @@ void *thread_function(void *wf_context) {
     } else if (consumer_function                         &&
 	       workflow_get_num_completed_items_(wf) > 0 && 
 	       workflow_lock_consumer(wf)) {	 
-	 if (data = workflow_remove_item(wf)) {
-	   if (array_list_size(wf->completed_items) == 0 && 
-	       !wf->num_pending_items && wf->completed_producer) {
-	     global_status = WORKFLOW_STATUS_FINISHED;
-	   }
-	   consumer_function(data);
-	 }
-	 workflow_unlock_consumer(wf);
+      if (data = workflow_remove_item(wf)) {
+	if (array_list_size(wf->completed_items) == 0 && 
+	    !wf->num_pending_items && wf->completed_producer) {
+	  global_status = WORKFLOW_STATUS_FINISHED;
+	}
+	consumer_function(data);
+      }
+      workflow_unlock_consumer(wf);
     } else {
-      //printf("Worker\n");
       workflow_schedule(wf);
     }
   }
