@@ -143,13 +143,14 @@ void read_cals_free(read_cals_t *read_cals);
 typedef struct bwt_optarg {
   size_t num_errors;
   size_t num_threads;
-  size_t max_alignments_per_read;
+  int filter_read_mappings;
+  int filter_seed_mappings;
 } bwt_optarg_t;
 
 bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
 			     const size_t num_threads,
-			     const size_t max_alginments_per_read
-			     );
+			     const int filter_read_mappings, 
+			     const int filter_seed_mappings);
 
 void bwt_optarg_free(bwt_optarg_t *optarg);
 
