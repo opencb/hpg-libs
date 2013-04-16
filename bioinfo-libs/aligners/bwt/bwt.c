@@ -2479,8 +2479,6 @@ inline size_t seeding(char *code_seq, size_t seq_len, size_t num_seeds,
     start += offset_inc;
     if (start > offset_end) {
       if (offset_inc == 1) break;
-      //      offset_inc = offset_inc / 2;
-      //      if (offset_inc <= 0) offset_inc = 1;
       start = offset_inc / 2;
     }
     /*
