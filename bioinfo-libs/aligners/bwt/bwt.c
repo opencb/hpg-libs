@@ -74,8 +74,8 @@ char *bwt_error_type(char error_kind);
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
-			     const size_t min_num_seeds,
-			     const size_t max_num_seeds,
+			     const size_t num_seeds,
+			     const size_t min_num_seeds_in_cal,
 			     const size_t seed_size,
 			     const size_t min_seed_size,
 			     const size_t num_errors){
@@ -83,8 +83,8 @@ cal_optarg_t *cal_optarg_new(const size_t min_cal_size,
   cal_optarg_t *cal_optarg_p = (cal_optarg_t *)malloc(sizeof(cal_optarg_t));
   cal_optarg_p->min_cal_size = min_cal_size;
   cal_optarg_p->max_cal_distance = max_cal_distance;
-  cal_optarg_p->min_num_seeds = min_num_seeds;
-  cal_optarg_p->max_num_seeds = max_num_seeds;
+  cal_optarg_p->num_seeds = num_seeds;
+  cal_optarg_p->min_num_seeds_in_cal = min_num_seeds_in_cal;
   cal_optarg_p->min_seed_size = min_seed_size;
   cal_optarg_p->seed_size = seed_size;
   cal_optarg_p->num_errors = num_errors;
@@ -1203,6 +1203,7 @@ size_t bwt_map_inexact_seed(char *seq, size_t seq_len,
     for (size_t ii = 0; ii < r_list.num_results; ii++) {
       //for (size_t ii = 0; ii < r_list->n; ii++) {
       r = &r_list.list[ii];
+
       if (r->l - r->k + 1 < bwt_optarg->filter_read_mappings) {
 	k_start = r->k;
 	l_start = r->l;
@@ -1537,9 +1538,12 @@ size_t bwt_map_inexact_seq(char *seq,
 	       l_start = r->l;
 		 //}
 
+
 	       tot_alignments += (l_start - k_start);
 	       if (tot_alignments >  bwt_optarg->filter_read_mappings) {
 		 filter_exceeded = 1;
+		 LOG_DEBUG_F("Filter exceeded: num. read mappings: %i (total: %i > filter %i)\n", 
+			     l_start - k_start, tot_alignments, bwt_optarg->filter_read_mappings);
 		 break;
 	       }
 
@@ -2474,8 +2478,8 @@ inline size_t seeding(char *code_seq, size_t seq_len, size_t num_seeds,
     num_mappings = bwt_map_exact_seed(code_seq, seq_len, start, end - 1,
 				      bwt_optarg, index, mapping_list);
     total_mappings += num_mappings;
-    LOG_DEBUG_F("\tseed %i\t[%i - %i], length read = %i, num. mappings = %i\n", 
-		i + 1, start, end, seq_len, num_mappings);
+    //    LOG_DEBUG_F("\tseed %i\t[%i - %i], length read = %i, num. mappings = %i\n", 
+    //		i + 1, start, end, seq_len, num_mappings);
     start += offset_inc;
     if (start > offset_end) {
       if (offset_inc == 1) break;
@@ -2489,15 +2493,14 @@ inline size_t seeding(char *code_seq, size_t seq_len, size_t num_seeds,
     */
   }
 
-  LOG_DEBUG_F("\t\ttotal mappings = %i\n", total_mappings);
+  //  LOG_DEBUG_F("\t\ttotal mappings = %i\n", total_mappings);
 
   return total_mappings;
 }
 
 //-----------------------------------------------------------------------------
 
-size_t bwt_map_exact_seeds_seq_by_num(char *seq, 
-				      size_t min_num_seeds, size_t max_num_seeds,
+size_t bwt_map_exact_seeds_seq_by_num(char *seq, size_t num_seeds, 
 				      size_t seed_size, size_t min_seed_size,
 				      bwt_optarg_t *bwt_optarg, bwt_index_t *index,
 				      array_list_t *mapping_list) {
@@ -2508,7 +2511,7 @@ size_t bwt_map_exact_seeds_seq_by_num(char *seq,
 
   replaceBases(seq, code_seq, seq_len);
 
-  num_mappings = seeding(code_seq, seq_len, min_num_seeds, seed_size, min_seed_size,
+  num_mappings = seeding(code_seq, seq_len, num_seeds, seed_size, min_seed_size,
 			 bwt_optarg, index, mapping_list);
   //  printf("\tfirst, num_mappings = %d\n", num_mappings);
   /*
