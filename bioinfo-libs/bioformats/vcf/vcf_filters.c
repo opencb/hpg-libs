@@ -304,6 +304,51 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char
     return passed;
 }
 
+array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    int include_indels = ((indel_filter_args*)f_args)->include_indels;
+
+    LOG_DEBUG_F("indel_filter (preserve indels = %d) over %zu records\n", include_indels, input_records->size);
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        
+        /* 
+         * 3 possibilities for being an INDEL:
+         * - The value of the ALT field is <DEL> or <INS>
+         * - The REF allele is not . but the ALT is
+         * - The REF allele is . but the ALT is not
+         * - The REF field length is different than the ALT field length
+         */
+        if ((strncmp(".", record->reference, 1) && !strncmp(".", record->alternate, 1)) ||
+            (strncmp(".", record->alternate, 1) && !strncmp(".", record->reference, 1)) ||
+            !strncmp("<INS>", record->alternate, record->alternate_len) ||
+            !strncmp("<DEL>", record->alternate, record->alternate_len) ||
+            record->reference_len != record->alternate_len) {
+            if (include_indels) {
+                array_list_insert(record, passed);
+            } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            }
+        } else {
+            if (include_indels) {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            } else {
+                array_list_insert(record, passed);
+            }
+        }
+    }
+
+    return passed;
+}
+
 
 //====================================================================================
 //  Filter management (creation, comparison...) functions
@@ -562,6 +607,33 @@ void snp_filter_free(filter_t *filter) {
     free(filter);
 }
 
+filter_t *indel_filter_new(int include_indels) {
+    filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
+    if (include_indels) {
+        snprintf(filter->name, 9, "INDELyes");
+        snprintf(filter->description, 15, "To be an indel");
+    } else {
+        snprintf(filter->name, 8, "INDELno");
+        snprintf(filter->description, 19, "Not to be an indel");
+    }
+    filter->type = INDEL;
+    filter->filter_func = indel_filter;
+    filter->free_func = indel_filter_free;
+    filter->priority = 4;
+
+    indel_filter_args *filter_args = (indel_filter_args*) malloc (sizeof(indel_filter_args));
+    filter_args->include_indels = include_indels;
+    filter->args = filter_args;
+
+    return filter;
+}
+
+void indel_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
 
 int filter_compare(const void *filter1, const void *filter2) {
     assert(filter1);
@@ -712,6 +784,11 @@ static void annotate_failed_record(char *filter_name, size_t filter_name_len, vc
         }
     }
 }
+
+
+//====================================================================================
+//  Gene filter auxiliary functions
+//====================================================================================
 
 
 static char *gene_ws_geturl(const char *host_url, const char *species, const char *version, const char* genes) {

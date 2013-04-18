@@ -35,7 +35,7 @@
 /**
  * @brief The type of the filter to apply
  **/
-enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP  };
+enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP, INDEL  };
 
 /**
  * @brief Arguments for the filter by coverage
@@ -95,6 +95,16 @@ typedef struct {
 typedef struct {
     int include_snps;   /**< Whether to include (1) or exclude (0) a SNP */
 } snp_filter_args;
+
+
+/**
+ * @brief Arguments for the filter by indel (insertion/deletion)
+ * @details The only argument of a filter by indel specifies whether to include or exclude an indel.
+ **/
+typedef struct {
+    int include_indels;   /**< Whether to include (1) or exclude (0) an indel */
+} indel_filter_args;
+
 
 /**
  * @brief A filter selects a subcollection of records which fulfill some condition.
@@ -203,6 +213,17 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, c
  * @return Records that passed the filter's test
  */
 array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
+
+/**
+ * @brief Given a list of records, check which ones represent an indel.
+ * @details Given a list of records, check which ones represent an indel.
+ * 
+ * @param input_records List of records to filter
+ * @param[out] failed Records that failed the filter's test
+ * @param args Filter arguments
+ * @return Records that passed the filter's test
+ */
+array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 
 //====================================================================================
@@ -370,6 +391,24 @@ filter_t *snp_filter_new(int include_snps);
  * @param filter The filter to deallocate
  **/
 void snp_filter_free(filter_t *filter);
+
+/**
+ * @brief Creates a new filter by indel.
+ * @details Creates a new filter by indel.
+ *
+ * @param include_indels Whether to include or exclude an indel.
+ * @return The new filter
+ **/
+filter_t *indel_filter_new(int include_indels);
+
+/**
+ * @brief Deallocates memory of a filter by indel.
+ * @details Deallocates memory of a filter by indel.
+ *
+ * @param filter The filter to deallocate
+ **/
+void indel_filter_free(filter_t *filter);
+
 
 
 /**
