@@ -66,3 +66,6 @@ config_obj = configenv.Object(Glob('commons/config/*.c'))
 
 # Objects
 env.Library('common', commons_obj + containers_obj + cprops_obj + argtable_obj + config_obj)
+
+# Run tests
+containers_test = SConscript("containers/test/SConscript", exports = ['env', 'debug'] )
