@@ -6,8 +6,10 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <bioformats/ped/ped_file.h>
 #include <commons/log.h>
 #include <containers/array_list.h>
+#include <containers/khash.h>
 #include <containers/list.h>
 
 #include "vcf_util.h"
@@ -477,5 +479,13 @@ void set_vcf_record_format(char* format, int length, vcf_record_t* record);
  * @param record The record to add the sample to
  **/
 void add_vcf_record_sample(char* sample, int length, vcf_record_t* record);
+
+
+
+KHASH_MAP_INIT_STR(ids, int);
+
+individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped);
+
+khash_t(ids)* associate_samples_and_positions(vcf_file_t* file);
 
 #endif

@@ -5,9 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <containers/array_list.h>
-#include <containers/list.h>
+#include <bioformats/family/checks_family.h>
+#include <bioformats/family/family.h>
 #include <commons/log.h>
+#include <containers/array_list.h>
+#include <containers/khash.h>
+#include <containers/list.h>
 
 #include "vcf_file_structure.h"
 #include "vcf_util.h"
@@ -163,20 +166,25 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file
- * @details 
+ * @details Given a list of variants, gets the statistics that apply to samples and to the whole VCF file. The statistics 
+ * per sample are stored in a sample_stats_t structure, and the one about the file are in the file_stats structure.
+ * The individuals and sample_ids arguments must be retrieved by using the 'sort_individuals' and 'associate_samples_and_positions'
+ * functions in vcf_file_structure.h, respectively.
  * 
- * @param variants The list of variants whose samples' statistics will be got
+ * @param variants The list of variants whose samples statistics will be got
  * @param num_variants The number of variants
+ * @param individuals The list of samples whose statistics will be got
+ * @param sample_ids Relationship between the name of a sample and its position in the VCF file
  * @param sample_stats [in,out] The statistics of the samples
- * @param num_samples Number of samples
  * @param file_stats [in,out] The statistics of the VCF file
  * @return Whether the statistics were successfully retrieved
  **/
-int get_sample_stats(vcf_record_t **variants, int num_variants, sample_stats_t **sample_stats, file_stats_t *file_stats);
+int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                     sample_stats_t **sample_stats, file_stats_t *file_stats);
 
 /**
- * @brief Given the statistics of a file (supposedly not full-processed), updates the value of its statistics
- * @details Given the statistics of a file (supposedly not full-processed), updates the value of its statistics. The variants, 
+ * @brief Given the statistics of a file (supposedly not fully-processed), updates the value of its statistics
+ * @details Given the statistics of a file (supposedly not fully-processed), updates the value of its statistics. The variants, 
  * samples, SNPs, transition, transversion, indels, biallelic, multiallelic and PASS count will be accumulated to the 
  * previous values. The accumulated quality will also be summed, and as a result its mean will be recalculated.
  *

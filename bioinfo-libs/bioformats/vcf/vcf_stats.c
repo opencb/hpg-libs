@@ -1,4 +1,5 @@
 #include "vcf_stats.h"
+#include "bioformats/family/family.h"
 
 
 /* ******************************
@@ -284,41 +285,99 @@ void sample_stats_free(sample_stats_t* stats) {
     free(stats);
 }
 
-int get_sample_stats(vcf_record_t **variants, int num_variants, sample_stats_t **sample_stats, file_stats_t *file_stats) {
+int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                     sample_stats_t **sample_stats, file_stats_t *file_stats) {
     assert(variants);
     assert(sample_stats);
     assert(file_stats);
     
     char *copy_buf, *token, *sample;
-    char *save_strtok;
+    char **sample_data;
     
-    int num_alternates, gt_pos, cur_pos;
+    int gt_position;
+    int father_allele1, father_allele2;
+    int mother_allele1, mother_allele2;
     int allele1, allele2, alleles_code;
     
-    // Variant stats management
+    // Sample stats management
     vcf_record_t *record;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
         
-        // Traverse samples and find the missing alleles
         for(int j = 0; j < record->samples->size; j++) {
             sample = (char*) array_list_get(j, record->samples);
+            sample_data = (char**) record->samples->items;
+            char *format_dup = strndup(record->format, record->format_len);
+            gt_position = get_field_position_in_format("GT", format_dup);
+            free(format_dup);
             
             // Get to GT position
             copy_buf = strdup(sample);
-            alleles_code = get_alleles(copy_buf, gt_pos, &allele1, &allele2);
+            alleles_code = get_alleles(copy_buf, gt_position, &allele1, &allele2);
             if (copy_buf) {
                 free(copy_buf);
             }
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
+            // Find the missing alleles
             if (alleles_code > 0) {
                 // Missing genotype (one or both alleles missing)
                 (sample_stats[j]->missing_genotypes)++;
+                continue;
             }
             
+            assert(individuals[j]);
+            
             // TODO check mendelian errors
+            individual_t *father = individuals[j]->father;
+            individual_t *mother = individuals[j]->mother;
+            
+            if (!father || !mother) {
+                continue;
+            }
+            
+            //printf("Father = %s\tMother = %s\tChild = %s\n", father->id, mother->id, individuals[j]->id);
+            
+            int father_pos = -1, mother_pos = -1;
+            khiter_t iter = kh_get(ids, sample_ids, father->id);
+            if (iter != kh_end(sample_ids)) {
+                father_pos = kh_value(sample_ids, iter);
+            }
+            iter = kh_get(ids, sample_ids, mother->id);
+            if (iter != kh_end(sample_ids)) {
+                mother_pos = kh_value(sample_ids, iter);
+            }
+            
+            if (father_pos < 0 || mother_pos < 0) {
+                continue;
+            }
+            
+            char *father_sample = strdup(sample_data[father_pos]);
+            char *mother_sample = strdup(sample_data[mother_pos]);
+
+            //LOG_DEBUG_F("Samples: Father = %s\tMother = %s\tChild = %s\n", sample_data[father_pos], sample_data[mother_pos], sample);
+            
+            // If any parent's alleles can't be read or is missing, go to next family
+            if (get_alleles(father_sample, gt_position, &father_allele1, &father_allele2) ||
+                get_alleles(mother_sample, gt_position, &mother_allele1, &mother_allele2)) {
+                free(father_sample);
+                free(mother_sample);
+                continue;
+            }
+            
+            // Increment mendel counter when impossible combination is found
+            char *aux_chromosome = strndup(record->chromosome, record->chromosome_len);
+            if (check_mendel(aux_chromosome, father_allele1, father_allele2, mother_allele1, mother_allele2, 
+                allele1, allele2, individuals[j]->sex)) {
+                LOG_DEBUG_F("* Samples: Father = %s\tMother = %s\tChild = %s\n", sample_data[father_pos], sample_data[mother_pos], sample);
+                (sample_stats[j]->mendelian_errors)++;
+            }
+            
+            free(father_sample);
+            free(mother_sample);
+            free(aux_chromosome);
         }
+        
     }
     
     return 0;
