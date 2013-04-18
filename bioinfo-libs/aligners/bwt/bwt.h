@@ -41,8 +41,8 @@ double time_bwt, time_search, time_bwt_seed, time_search_seed;
 typedef struct cal_optarg {
   size_t min_cal_size;
   size_t max_cal_distance;
-  size_t min_num_seeds;
-  size_t max_num_seeds;
+  size_t num_seeds;
+  size_t min_num_seeds_in_cal;
   size_t seed_size;
   size_t min_seed_size;
   size_t num_errors;
@@ -50,8 +50,8 @@ typedef struct cal_optarg {
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
 			     const size_t max_cal_distance, 
-			     const size_t min_num_seeds,
-			     const size_t max_num_seeds,
+			     const size_t num_seeds,
+			     const size_t min_num_seeds_in_cal,
 			     const size_t seed_size,
 			     const size_t min_seed_size,
 			     const size_t num_errors);
@@ -143,19 +143,14 @@ void read_cals_free(read_cals_t *read_cals);
 typedef struct bwt_optarg {
   size_t num_errors;
   size_t num_threads;
-  size_t max_alignments_per_read;
-  size_t report_best;
-  size_t report_n_hits;
-  char report_all;
+  int filter_read_mappings;
+  int filter_seed_mappings;
 } bwt_optarg_t;
 
 bwt_optarg_t *bwt_optarg_new(const size_t num_errors,
 			     const size_t num_threads,
-			     const size_t max_alginments_per_read,
-			     const size_t report_best,
-			     const size_t report_n_hits,
-			     const size_t report_all
-			     );
+			     const int filter_read_mappings, 
+			     const int filter_seed_mappings);
 
 void bwt_optarg_free(bwt_optarg_t *optarg);
 
@@ -244,11 +239,6 @@ size_t bwt_map_batch(fastq_batch_t *batch,
 		     fastq_batch_t *unmapped_batch,
 		     array_list_t *mapping_list);
 
-size_t alignments_filter(char report_all, 
-			 size_t report_best, 
-			 size_t report_n_hits,
-			 array_list_t *mapping_list);
-
 size_t bwt_map_inexact_batch(fastq_batch_t *batch,
 			     bwt_optarg_t *bwt_optarg, 
 			     bwt_index_t *index, 
@@ -267,8 +257,7 @@ size_t bwt_map_exact_seeds_seq(int padding_left,
 			       bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
 			       array_list_t *mapping_list, unsigned char step_id);
 
-size_t bwt_map_exact_seeds_seq_by_num(char *seq, 
-				      size_t min_num_seeds, size_t max_num_seeds, 
+size_t bwt_map_exact_seeds_seq_by_num(char *seq, size_t num_seeds,
 				      size_t seed_size, size_t min_seed_size,
 				      bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
 				      array_list_t *mapping_list);

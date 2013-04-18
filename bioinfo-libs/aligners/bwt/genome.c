@@ -11,7 +11,7 @@ const unsigned char TOTAL_CODES = NUCLEOTIDES_NUM*NUCLEOTIDES_NUM*NUCLEOTIDES_NU
 //------------------------------------------------------------------------------------
 
 genome_t* genome_new(char* sequence_filename, char* directory) {
-  const int MAXLINE = 1024;
+  const int MAXLINE = 4096;
   genome_t* genome_p = (genome_t*) calloc(1, sizeof(genome_t));
   
   // genome file
@@ -21,8 +21,7 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   char path[strlen(directory) + 512];
   
   // read compressed genome file
-  strcpy(path, directory);
-  strcat(path, sequence_filename);
+  sprintf(path, "%s/%s", directory, sequence_filename);
 
   LOG_DEBUG("Loading Binary DNA File");
   genome_p->X = load_binary_dna(path, &dna_size);
@@ -31,9 +30,8 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   genome_p->code_table = load_array_codes();
 
   // read index file
-  strcpy(path, directory);
-  strcat(path, "/index");
-  unsigned int num_chromosomes = 0;
+  sprintf(path, "%s/index", directory);
+  unsigned int chromosome, num_chromosomes = 0;
   unsigned int offset = 0;
   char* p;
   char line[MAXLINE];
@@ -43,15 +41,32 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
   if(fd == NULL) { 
     LOG_FATAL_F("FILE: '%s' not found", path);
   }
+
+  int ch, number_of_lines = 0;
+  do {
+    ch = fgetc(fd);
+    if (ch == '\n')
+      num_chromosomes++;
+  } while (ch != EOF);
+
+  fseek(fd, 0, SEEK_SET);
+
+  genome_p->num_chromosomes = num_chromosomes;
+  genome_p->chr_name = (char **) calloc(num_chromosomes, sizeof(char *));
+  genome_p->chr_name_length = (size_t *) calloc(num_chromosomes, sizeof(size_t));
+  genome_p->chr_size = (size_t *) calloc(num_chromosomes, sizeof(size_t));
+  genome_p->chr_offset = (size_t *) calloc(num_chromosomes, sizeof(size_t));
+
   //printf("%s\n", path);
   //FILE *fd = fopen("/home/hmartinez/BenchMarks/HomoSapiens_BWT_Index/chromosome_index.txt", "r");
-  while (fgets(line, MAXLINE, fd) ) {
-    //printf("%s\n", line);
+  chromosome = 0;
+  while (fgets(line, MAXLINE, fd)) {
     i = 0; j= 1;
-    while(line[j] != ' ' ){ genome_p->chr_name[num_chromosomes][i++] = line[j++]; }
-    genome_p->chr_name[num_chromosomes][i] = '\0';
+    genome_p->chr_name[chromosome] = (char *) calloc(strlen(line) + 10, sizeof(char));
+    while(line[j] != ' ' ){ genome_p->chr_name[chromosome][i++] = line[j++]; }
+    genome_p->chr_name[chromosome][i] = '\0';
     //printf("--> (%d):: %s\n", strlen(genome_p->chr_name[num_chromosomes]), genome_p->chr_name[num_chromosomes]);
-    genome_p->chr_name_length[num_chromosomes] = strlen(genome_p->chr_name[num_chromosomes]);
+    genome_p->chr_name_length[chromosome] = strlen(genome_p->chr_name[chromosome]);
     
     j++;
     while(line[j] != ' '){j++;}
@@ -62,38 +77,45 @@ genome_t* genome_new(char* sequence_filename, char* directory) {
     while(line[j] != '\n'){value[i++] = line[j++];}
     value[i] = '\0';
     
-    sscanf(value, "%lu", &genome_p->chr_size[num_chromosomes]);
-    genome_p->chr_offset[num_chromosomes] = offset;
-    offset += (genome_p->chr_size[num_chromosomes] + 1);
+    sscanf(value, "%lu", &genome_p->chr_size[chromosome]);
+    genome_p->chr_offset[chromosome] = offset;
+    offset += (genome_p->chr_size[chromosome] + 1);
     //printf("%i\n", genome_p->chr_size[num_chromosomes]);
-    num_chromosomes++;
+    chromosome++;
   }
 
   fclose(fd);
   
-  //printf("In genome %d chromosome and %d\n", num_chromosomes, offset);
-  genome_p->num_chromosomes = num_chromosomes;
-
   return genome_p;
 }
 
 //-----------------------------------------------------
 
-void genome_free(genome_t* genome_p) {
-  if (genome_p == NULL) {
+void genome_free(genome_t* p) {
+  if (p == NULL) {
     return;
   }
 
-  if (genome_p->code_table != NULL){
-    for (unsigned int i = 0; i < TOTAL_CODES; i++){
-      free(genome_p->code_table[i]);
+  if (p->code_table != NULL){
+    for (unsigned int i = 0; i < TOTAL_CODES; i++) {
+      free(p->code_table[i]);
     }
-    free(genome_p->code_table);
+    free(p->code_table);
   }
 
-  if (genome_p->X != NULL) free(genome_p->X);
+  if (p->chr_name != NULL) {
+    for (unsigned int i = 0; i < p->num_chromosomes; i++) {
+      free(p->chr_name[i]);
+    }
+    free(p->chr_name);
+  }
 
-  free(genome_p);
+  if (p->chr_name_length) free(p->chr_name_length);
+  if (p->chr_size) free(p->chr_size);
+  if (p->chr_offset) free(p->chr_offset);
+  if (p->X) free(p->X);
+
+  free(p);
 }
 
 //------------------------------------------------------------------------------------
