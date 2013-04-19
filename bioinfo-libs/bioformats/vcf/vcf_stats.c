@@ -187,10 +187,11 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             }
             
             // Check mendelian errors (pedigree data must be given)
-            if (individuals && sample_ids && !alleles_code && 
-                is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
-                                allele1, allele2, gt_position, record, sample_ids) > 0) {
-                stats->mendelian_errors++;
+            if (individuals && sample_ids && !alleles_code) {
+                if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
+                                       allele1, allele2, gt_position, record, sample_ids) > 0) {
+                    (stats->mendelian_errors)++;
+                }
             }
             
         }
