@@ -272,21 +272,12 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, va
 
     LOG_DEBUG_F("indel_filter (preserve indels = %d) over %zu records\n", include_indels, input_records->size);
     vcf_record_t *record;
+    variant_stats_t *variant_stats;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
+        variant_stats = input_stats[i];
         
-        /* 
-         * 3 possibilities for being an INDEL:
-         * - The value of the ALT field is <DEL> or <INS>
-         * - The REF allele is not . but the ALT is
-         * - The REF allele is . but the ALT is not
-         * - The REF field length is different than the ALT field length
-         */
-        if ((strncmp(".", record->reference, 1) && !strncmp(".", record->alternate, 1)) ||
-            (strncmp(".", record->alternate, 1) && !strncmp(".", record->reference, 1)) ||
-            !strncmp("<INS>", record->alternate, record->alternate_len) ||
-            !strncmp("<DEL>", record->alternate, record->alternate_len) ||
-            record->reference_len != record->alternate_len) {
+        if (variant_stats->is_indel) {
             if (include_indels) {
                 array_list_insert(record, passed);
             } else {

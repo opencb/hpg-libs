@@ -69,13 +69,14 @@ typedef struct variant_stats {
     
     int missing_alleles;        /**< Number of alleles whose information is missing. */
     int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
+    int is_indel;               /**< Whether this variant is an indel or not. */
 } variant_stats_t;
 
 /**
  * @brief Statistics of a sample of a VCF file
  * 
  * @details Statistics of a samples of a VCF file. These are, among others, the number of missing 
- * genotypes and menderial errors.
+ * genotypes and mendelian errors.
  **/
 typedef struct sample_stats {
     char *name;                 /**< Name of the sample. */

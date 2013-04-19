@@ -55,6 +55,7 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     
     stats->missing_alleles = 0;
     stats->missing_genotypes = 0;
+    stats->is_indel = 0;
     
     return stats;
 }
@@ -83,7 +84,6 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     assert(file_stats);
     
     char *copy_buf, *copy_buf2, *token, *sample;
-    char *save_strtok;
     
     int num_alternates, gt_pos, cur_pos;
     int allele1, allele2, alleles_code;
@@ -214,9 +214,26 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         for (int j = 0; j < num_alternates; j++) {
             alt_len = strlen(stats->alternates[j]);
             
-            if (ref_len != alt_len) {
+            /* 
+             * 3 possibilities for being an INDEL:
+             * - The value of the ALT field is <DEL> or <INS>
+             * - The REF allele is not . but the ALT is
+             * - The REF allele is . but the ALT is not
+             * - The REF field length is different than the ALT field length
+             */
+            if ((strncmp(".", record->reference, 1) && !strncmp(".", record->alternate, 1)) ||
+                (strncmp(".", record->alternate, 1) && !strncmp(".", record->reference, 1)) ||
+                !strncmp("<INS>", record->alternate, record->alternate_len) ||
+                !strncmp("<DEL>", record->alternate, record->alternate_len) ||
+                 record->reference_len != record->alternate_len) {
+                stats->is_indel = 1;
                 indels_count++;
-            } else if (ref_len == 1 && alt_len == 1) {
+            } else {
+                stats->is_indel = 0;
+            }
+            
+            // Transitions and transversions
+            if (ref_len == 1 && alt_len == 1) {
                 switch (stats->ref_allele[0]) {
                     case 'C':
                         if (stats->alternates[j][0] == 'T') {
