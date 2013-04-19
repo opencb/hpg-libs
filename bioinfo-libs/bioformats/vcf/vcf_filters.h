@@ -35,7 +35,9 @@
 /**
  * @brief The type of the filter to apply
  **/
-enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP, INDEL  };
+enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP, INDEL, INHERITANCE_PATTERN };
+
+enum inheritance_pattern { DOMINANT, RECESSIVE };
 
 /**
  * @brief Arguments for the filter by coverage
@@ -96,7 +98,6 @@ typedef struct {
     int include_snps;   /**< Whether to include (1) or exclude (0) a SNP */
 } snp_filter_args;
 
-
 /**
  * @brief Arguments for the filter by indel (insertion/deletion)
  * @details The only argument of a filter by indel specifies whether to include or exclude an indel.
@@ -105,10 +106,20 @@ typedef struct {
     int include_indels;   /**< Whether to include (1) or exclude (0) an indel */
 } indel_filter_args;
 
+/**
+ * @brief Arguments for the filter by percentage of samples following an inheritance pattern
+ * @details The arguments of a filter by inheritance pattern are the pattern itself and the 
+ * percentage of samples that must follow it.
+ **/
+typedef struct {
+    enum inheritance_pattern pattern;
+    float min_following_pattern;      /**< Minimum percentage of samples that must follow the inheritance model */
+} inheritance_pattern_filter_args;
+
 
 /**
- * @brief A filter selects a subcollection of records which fulfill some condition.
- * @details A filter selects a subcollection of records which fulfill some condition.
+ * @brief A filter selects a subset of records which fulfill some condition.
+ * @details A filter selects a subset of records which fulfill some condition.
  * It is mandatory to provide the list of records to filter and a list to store in 
  * the records that failed the filter's test.
  * 
@@ -224,6 +235,17 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char
  * @return Records that passed the filter's test
  */
 array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
+
+/**
+ * @brief Given a list of records, check which ones follow an inheritance pattern.
+ * @details Given a list of records, check which ones follow an inheritance pattern (dominant or recessive).
+ * 
+ * @param input_records List of records to filter
+ * @param[out] failed Records that failed the filter's test
+ * @param args Filter arguments
+ * @return Records that passed the filter's test
+ */
+array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
 
 
 //====================================================================================
@@ -354,6 +376,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
  **/
 void region_filter_free(filter_t *filter);
 
+
 /**
  * @brief Creates a new filter by gene(s), considering them as regions.
  * @details Creates a new filter by gene(s), considering them as regions.
@@ -375,6 +398,7 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
  **/
 void gene_filter_free(filter_t *filter);
 
+
 /**
  * @brief Creates a new filter by SNP.
  * @details Creates a new filter by SNP.
@@ -391,6 +415,7 @@ filter_t *snp_filter_new(int include_snps);
  * @param filter The filter to deallocate
  **/
 void snp_filter_free(filter_t *filter);
+
 
 /**
  * @brief Creates a new filter by indel.
@@ -409,6 +434,24 @@ filter_t *indel_filter_new(int include_indels);
  **/
 void indel_filter_free(filter_t *filter);
 
+
+/**
+ * @brief Creates a new filter by minimum percentage of samples following an inheritance pattern.
+ * @details Creates a new filter by minimum percentage of samples following an inheritance pattern.
+ *
+ * @param pattern Inheritance pattern the samples must follow
+ * @param min_following_pattern Minimum percentage of samples following the inheritance pattern
+ * @return The new filter
+ **/
+filter_t *inheritance_pattern_filter_new(enum inheritance_pattern pattern, float min_following_pattern);
+
+/**
+ * @brief Deallocates memory of a filter by inheritance pattern.
+ * @details Deallocates memory of a filter by inheritance pattern.
+ *
+ * @param filter The filter to deallocate
+ **/
+void inheritance_pattern_filter_free(filter_t *filter);
 
 
 /**

@@ -232,7 +232,6 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, c
     assert(input_records);
     assert(failed);
     
-    char *field;
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
 
@@ -349,6 +348,74 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, ch
     return passed;
 }
 
+array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    enum inheritance_pattern pattern = ((inheritance_pattern_filter_args*)f_args)->pattern;
+    float min_following_pattern = ((inheritance_pattern_filter_args*)f_args)->min_following_pattern;
+    
+    if (pattern == DOMINANT) {
+        LOG_DEBUG_F("inheritance_pattern_filter (dominant in %.1f% of samples) over %zu records\n", 
+                    min_following_pattern * 100, input_records->size);
+    } else {
+        LOG_DEBUG_F("inheritance_pattern_filter (recessive in %.1f% of samples) over %zu records\n", 
+                    min_following_pattern * 100, input_records->size);
+    }
+    
+    vcf_record_t *record;
+    int num_samples_in_pattern;
+    char *format, *sample;
+    int allele_ret, gt_position, allele1, allele2;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        format = strndup(record->format, record->format_len);
+        gt_position = get_field_position_in_format("GT", format);
+        free(format);
+        num_samples_in_pattern = 0;
+        
+        if (pattern == DOMINANT) {
+            for (int j = 0; j < record->samples->size; j++) {
+                sample = record->samples->items[j];
+                allele_ret = get_alleles(sample, gt_position, &allele1, &allele2);
+                if (!allele_ret) {
+                    
+                }
+            }
+        } else {
+            for (int j = 0; j < record->samples->size; j++) {
+            
+            }
+        }
+        
+        if (((float) num_samples_in_pattern / record->samples->size) >= min_following_pattern) {
+            
+        }
+        
+/*
+        if (record->id_len == 1 && strncmp(".", record->id, 1) == 0) {
+            if (include_snps) {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            } else {
+                array_list_insert(record, passed);
+            }
+        } else {
+            if (include_snps) {
+                array_list_insert(record, passed);
+            } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            }
+        }
+*/
+    }
+
+    return passed;
+}
 
 //====================================================================================
 //  Filter management (creation, comparison...) functions
@@ -410,7 +477,7 @@ filter_t* missing_values_filter_new(float max_missing) {
     filter->type = MISSING_VALUES;
     filter->filter_func = missing_values_filter;
     filter->free_func = missing_values_filter_free;
-    filter->priority = 5;
+    filter->priority = 3;
     
     missing_values_filter_args *filter_args = (missing_values_filter_args*) malloc (sizeof(missing_values_filter_args));
     filter_args->max_missing = max_missing;
@@ -434,7 +501,7 @@ filter_t* num_alleles_filter_new(int num_alleles) {
     filter->type = NUM_ALLELES;
     filter->filter_func = num_alleles_filter;
     filter->free_func = num_alleles_filter_free;
-    filter->priority = 4;
+    filter->priority = 3;
     
     num_alleles_filter_args *filter_args = (num_alleles_filter_args*) malloc (sizeof(num_alleles_filter_args));
     filter_args->num_alleles = num_alleles;
@@ -458,7 +525,7 @@ filter_t *quality_filter_new(int min_quality) {
     filter->type = QUALITY;
     filter->filter_func = quality_filter;
     filter->free_func = quality_filter_free;
-    filter->priority = 4;
+    filter->priority = 6;
     
     quality_filter_args *filter_args = (quality_filter_args*) malloc (sizeof(quality_filter_args));
     filter_args->min_quality = min_quality;
@@ -548,6 +615,7 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *url, const char *species, const char *version) {
     assert(gene_descriptor);
     assert(url);
@@ -566,8 +634,6 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
     assert(buffer);
 
     char* values_str = gene_ws_output_to_regions(buffer);
-    //printf("values_str = %s \n",values_str); 
-
     filter_t *filter = region_exact_filter_new(strdup(values_str), 0, url, species, version);
     
     free(values_str);
@@ -579,6 +645,7 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
 void gene_filter_free(filter_t *filter) {
     region_filter_free(filter);
 }
+
 
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
@@ -607,6 +674,7 @@ void snp_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *indel_filter_new(int include_indels) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
     if (include_indels) {
@@ -629,6 +697,36 @@ filter_t *indel_filter_new(int include_indels) {
 }
 
 void indel_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+
+filter_t* inheritance_pattern_filter_new(enum inheritance_pattern pattern, float min_following_pattern) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    if (pattern == DOMINANT) {
+        sprintf(filter->name, "InheritDom%.0f", min_following_pattern * 100);
+        sprintf(filter->description, "Samples with dominant inheritance >= %.0f%%", min_following_pattern * 100);
+    } else {
+        sprintf(filter->name, "InheritRec%.0f", min_following_pattern * 100);
+        sprintf(filter->description, "Samples with recessive inheritance >= %.0f%%", min_following_pattern * 100);
+    }
+    
+    filter->type = inheritance_pattern;
+    filter->filter_func = inheritance_pattern_filter;
+    filter->free_func = inheritance_pattern_filter_free;
+    filter->priority = 3;
+    
+    inheritance_pattern_filter_args *filter_args = (inheritance_pattern_filter_args*) malloc (sizeof(inheritance_pattern_filter_args));
+    filter_args->pattern = pattern;
+    filter_args->min_following_pattern = min_following_pattern;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void inheritance_pattern_filter_free(filter_t* filter) {
     assert(filter);
     free(filter->args);
     free(filter);
