@@ -69,6 +69,7 @@ typedef struct variant_stats {
     
     int missing_alleles;        /**< Number of alleles whose information is missing. */
     int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
+    int mendelian_errors;       /**< Number of mendelian errors found. */
     int is_indel;               /**< Whether this variant is an indel or not. */
 } variant_stats_t;
 
@@ -159,11 +160,14 @@ void sample_stats_free(sample_stats_t *stats);
  *
  * @param variants The list of variants whose statistics will be got
  * @param num_variants The number of variants
+ * @param individuals The list of samples that will be used to retrieve some statistics
+ * @param sample_ids Relationship between the name of a sample and its position in the VCF file
  * @param output_list [out] The list where the statistics per variant will be stored
  * @param file_stats [in,out] The statistics of the VCF file
  * @return Whether the statistics were successfully retrieved
  **/
-int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats);
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                       list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file

@@ -638,8 +638,8 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
     file_stats_t *file_stats = file_stats_new();
     list_t *input_stats = (list_t*) malloc (sizeof(list_t));
     list_init("stats", 1, input_records->size + 1, input_stats);
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
-    variant_stats_t **input_stats_array = list_to_array(input_stats);
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, NULL, NULL, input_stats, file_stats);
+    variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(input_stats);
     
     // Apply each filter with the arguments provided
     for (int i = 0; i < num_filters; i++) {
