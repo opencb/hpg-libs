@@ -61,6 +61,11 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->mendelian_errors = 0;
     stats->is_indel = 0;
     
+    stats->cases_percent_dominant = 0.0f;
+    stats->controls_percent_dominant = 0.0f;
+    stats->cases_percent_recessive = 0.0f;
+    stats->controls_percent_recessive = 0.0f;
+    
     return stats;
 }
 
@@ -88,7 +93,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     assert(output_list);
     assert(file_stats);
     
-    char *copy_buf, *copy_buf2, *token, *sample;
+    char *copy_buf, *copy_buf2, *sample;
     
     int num_alternates, gt_position, curr_position;
     int allele1, allele2, alleles_code;
@@ -99,6 +104,10 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     float accum_quality = 0;
     // Temporary variables for variant stats updating
     int total_alleles_count = 0, total_genotypes_count = 0;
+    int cases_dominant = 0;     // Number of cases that follow a dominant inheritance pattern
+    int controls_dominant = 0;  // Number of controls that follow a dominant inheritance pattern
+    int cases_recessive = 0;    // Number of cases that follow a recessive inheritance pattern
+    int controls_recessive = 0; // Number of controls that follow a recessive inheritance pattern
     
     // Variant stats management
     vcf_record_t *record;
@@ -110,8 +119,8 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                                   strndup(record->reference, record->reference_len));
         
         // Reset counters
-        total_alleles_count = 0;
-        total_genotypes_count = 0;
+        total_alleles_count = total_genotypes_count = 0;
+        cases_dominant = controls_dominant = cases_recessive = controls_recessive = 0;
         
         // Create list of alternates
         copy_buf = strndup(record->alternate, record->alternate_len);
@@ -186,15 +195,40 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                 }
             }
             
-            // Check mendelian errors (pedigree data must be given)
-            if (individuals && sample_ids && !alleles_code) {
-                if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
-                                       allele1, allele2, gt_position, record, sample_ids) > 0) {
-                    (stats->mendelian_errors)++;
+            // Include statistics that depend on pedigree information
+            if (individuals) {
+                // Check mendelian errors (pedigree data must be given)
+                if (sample_ids && !alleles_code) {
+                    if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
+                                        allele1, allele2, gt_position, record, sample_ids) > 0) {
+                        (stats->mendelian_errors)++;
+                    }
+                }
+
+                // Check inheritance models
+                if (individuals[j]->condition == UNAFFECTED) {
+                    if (!allele1 && !allele2) { // 0|0
+                        controls_dominant++;
+                        controls_recessive++;
+                    } else if ((!allele1 && allele2) || (allele1 && !allele2)) { // 0|1 or 1|0
+                        controls_recessive++;
+                    }
+                } else if (individuals[j]->condition == AFFECTED) {
+                    if (allele1 && allele2 && allele1 == allele2) { // 1|1, 2|2, and so on
+                        cases_recessive++;
+                        cases_dominant++;
+                    } else if (allele1 || allele2) { // 0|1, 1|0, 1|2, 2|1, 1|3, and so on
+                        cases_dominant++;
+                    }
                 }
             }
-            
         }
+        
+        // Once all samples have been traverse, calculate % that follow inheritance model
+        stats->controls_percent_dominant = (float) controls_dominant * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->cases_percent_dominant = (float) cases_dominant * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->controls_percent_recessive = (float) controls_recessive * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->cases_percent_recessive = (float) cases_recessive * 100 / (record->samples->size - stats->missing_genotypes);
         
         // Get allele and genotype frequencies
         for (int j = 0; j < stats->num_alleles; j++) {
