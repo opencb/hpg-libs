@@ -5,6 +5,5 @@ penv['CFLAGS'] += ' -D_GNU_SOURCE'
 
 formats_env['objects'] += penv.Object(Glob('vcf_*.c'))
 
-if 'test' in ARGLIST:
-  t = SConscript("test/SConscript", exports = ['penv'] )
+#t = SConscript("test/SConscript", exports = ['penv'] )
 

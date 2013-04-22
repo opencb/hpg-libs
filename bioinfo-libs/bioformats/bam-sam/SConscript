@@ -1,7 +1,0 @@
-Import('formats_env')
-
-penv = formats_env.Clone()
-penv['CFLAGS'] += ' -D_XOPEN_SOURCE=600'
-
-# TODO: Remove fastq_batch_reader_omp so Glob can be used
-formats_env['objects'] += penv.Object(Split('alignment.c bam_file.c'))

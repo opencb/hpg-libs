@@ -3,10 +3,12 @@
 
 #include <sys/types.h>
 
-#include <cprops/hashtable.h>
+
+#include <commons/file_utils.h>
+
+#include <containers/cprops/hashtable.h>
 
 #include <bioformats/family/family.h>
-#include <commons/file_utils.h>
 
 /**
  * Entry in the PED document body.

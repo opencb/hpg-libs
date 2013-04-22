@@ -46,6 +46,8 @@ typedef struct fastq_read_pe {
  *  		Functions		*
  * *************************************/
 
+fastq_read_t *fastq_read_dup(fastq_read_t *fq);
+
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality);
 
 fastq_read_pe_t *fastq_read_pe_new(char *id1, char *id2, char *sequence1, char *quality1, char *sequence2, char *quality2, int mode);

@@ -20,7 +20,9 @@ char *get_field_value_in_info(const char *field, char *info) {
     
     // Search for field in info (must begin with '<field>=')
     token = strtok_r(info, ";", &save_strtok);
-    while (token != NULL && !starts_with(token, field) && strlen(token) > strlen(field)+1 && token[strlen(field)] == '=') {
+    while (token != NULL && 
+	   (!starts_with(token, field) || // Field is completely different than the requested one
+	   (strlen(token) > strlen(field) && token[strlen(field)] != '='))) { // Same beginning, but longer than the requested one
         token = strtok_r(NULL, ";", &save_strtok);
     }
     
