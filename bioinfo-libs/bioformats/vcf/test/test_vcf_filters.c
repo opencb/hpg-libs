@@ -216,10 +216,10 @@ START_TEST (coverage_all_included) {
 END_TEST
 
 START_TEST (missing_values) {
-    ((missing_values_filter_args*) missing_values_f->args)->max_missing = 0.2;
+    ((missing_values_filter_args*) missing_values_f->args)->max_missing = 0.15;
     passed = missing_values_f->filter_func(missing_values_datasuite, failed, missing_values_f->name, missing_values_f->args);
     
-    fail_unless(passed->size == 16, "Missing0.2: The number of missing valuess found is not correct");
+    fail_unless(passed->size == 16, "Missing0.2: The number of missing values found is not correct");
     // size(accepted + rejected) = size(whole input)
     fail_unless(passed->size + failed->size == missing_values_datasuite->size,
             "Missing0.2: The sum of the number of accepted and rejected records must be the same as the input records");
@@ -227,7 +227,7 @@ START_TEST (missing_values) {
     // no rejected ID > max_miss
     for (int i = 0; i < failed->size; i++) {
         vcf_record_t *record = failed->items[i];
-        fail_if(record->position != 1105366 && record->position != 1105411 && record->position != 11633148,
+        fail_if(record->position != 1105366 && record->position != 1105411 && record->position != 3537996,
                 "Failed records must be in chromosome 1, positions (1105366, 1105411, 11633148)");
     }
 }
@@ -571,37 +571,37 @@ END_TEST
 
 
 START_TEST (snpinclude_regionchromstartend_chain) {
-	int num_filters;
-	filter_t **filters = sort_filter_chain(chain, &num_filters);
-	
-	fail_unless(filters[0]->type == SNP, "The first filter to apply must be a SNP filter");
-	fail_unless(filters[1]->type == REGION, "The second filter to apply must be a region filter");
-	
-	passed = run_filter_chain(datasuite, failed, filters, num_filters);
-	
-	// accepted = 5
-	fail_unless(passed->size == 5, "5 records must be accepted");
-	// size(accepted + rejected) = size(whole input)
-	fail_unless(passed->size + failed->size == datasuite->size,
-		    "The sum of the number of accepted and rejected records must be the same as the input records");
-	
-	// all accepted records must be a SNP in chr1 pos in (1M, 5M)
-	int snp_ok, region_ok;
+    int num_filters;
+    filter_t **filters = sort_filter_chain(chain, &num_filters);
+
+    fail_unless(filters[0]->type == SNP, "The first filter to apply must be a SNP filter");
+    fail_unless(filters[1]->type == REGION, "The second filter to apply must be a region filter");
+
+    passed = run_filter_chain(datasuite, failed, filters, num_filters);
+
+    // accepted = 5
+    fail_unless(passed->size == 5, "5 records must be accepted");
+    // size(accepted + rejected) = size(whole input)
+    fail_unless(passed->size + failed->size == datasuite->size,
+                "The sum of the number of accepted and rejected records must be the same as the input records");
+
+    // all accepted records must be a SNP in chr1 pos in (1M, 5M)
+    int snp_ok, region_ok;
     for (int i = 0; i < passed->size; i++) {
         vcf_record_t *record = passed->items[i];
-		snp_ok = strncmp(".", record->id, record->id_len) != 0;
-		region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
-		fail_unless(region_ok && snp_ok, 
-			"The record must be a SNP in chr1 pos in (1M, 5M)");
+            snp_ok = strncmp(".", record->id, record->id_len) != 0;
+            region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
+            fail_unless(region_ok && snp_ok, 
+                    "The record must be a SNP in chr1 pos in (1M, 5M)");
 	}
 	
 	// all rejected records must not be a SNP in chr1 pos in (1M, 5M)
     for (int i = 0; i < failed->size; i++) {
         vcf_record_t *record = failed->items[i];
-		snp_ok = strncmp(".", record->id, record->id_len) != 0;
-		region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
-		fail_if(region_ok && snp_ok, 
-			"The record must not be a SNP in chr1 pos in (1M, 5M)");
+            snp_ok = strncmp(".", record->id, record->id_len) != 0;
+            region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
+            fail_if(region_ok && snp_ok, 
+                    "The record must not be a SNP in chr1 pos in (1M, 5M)");
 	}
 }
 END_TEST
@@ -630,17 +630,17 @@ int main (int argc, char *argv) {
     read_test_datasuite(missing_values_file);
     missing_values_datasuite = ((vcf_batch_t*) missing_values_file->record_batches->first_p->data_p)->records;
     
-	Suite *fs = create_test_suite();
-	SRunner *fs_runner = srunner_create(fs);
-	srunner_run_all(fs_runner, CK_NORMAL);
-	int number_failed = srunner_ntests_failed (fs_runner);
-	srunner_free (fs_runner);
-	
-	vcf_close(file);
+    Suite *fs = create_test_suite();
+    SRunner *fs_runner = srunner_create(fs);
+    srunner_run_all(fs_runner, CK_NORMAL);
+    int number_failed = srunner_ntests_failed (fs_runner);
+    srunner_free (fs_runner);
+
+    vcf_close(file);
     vcf_close(quality_file);
     vcf_close(num_alleles_file);
 	
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 
@@ -677,14 +677,14 @@ Suite *create_test_suite() {
     tcase_add_test(tc_quality, quality_all_included);
     tcase_add_test(tc_quality, quality_all_excluded);
     
-	// Region filter (chromosome, chrom+start position, chrom+start+end position)
-	TCase *tc_region = tcase_create("Region filters");
-	tcase_add_unchecked_fixture(tc_region, setup_region, teardown_region);
-	tcase_add_checked_fixture(tc_region, create_passed_failed, free_passed_failed);
-	tcase_add_test(tc_region, region_chrom_1);
-	tcase_add_test(tc_region, region_chrom_1_2);
-	tcase_add_test(tc_region, region_chrom_start);
-	tcase_add_test(tc_region, region_chrom_start_end);
+    // Region filter (chromosome, chrom+start position, chrom+start+end position)
+    TCase *tc_region = tcase_create("Region filters");
+    tcase_add_unchecked_fixture(tc_region, setup_region, teardown_region);
+    tcase_add_checked_fixture(tc_region, create_passed_failed, free_passed_failed);
+    tcase_add_test(tc_region, region_chrom_1);
+    tcase_add_test(tc_region, region_chrom_1_2);
+    tcase_add_test(tc_region, region_chrom_start);
+    tcase_add_test(tc_region, region_chrom_start_end);
 	
     // SNP filter (include and exclude)
     TCase *tc_snp = tcase_create("SNP filters");
@@ -693,31 +693,31 @@ Suite *create_test_suite() {
     tcase_add_test(tc_snp, snp_include);
     tcase_add_test(tc_snp, snp_exclude);
     
-	// Chains of filter (SNP+region...)
-	TCase *tc_filterchain = tcase_create("Filter chains");
-	tcase_add_unchecked_fixture(tc_filterchain, setup_snp_region, teardown_snp_region);
-	tcase_add_checked_fixture(tc_filterchain, create_passed_failed, free_passed_failed);
-	tcase_add_test(tc_filterchain, snpinclude_regionchromstartend_chain);
-	
-	// Add test cases to a test suite
-	Suite *fs = suite_create("VCF filters");
+    // Chains of filter (SNP+region...)
+    TCase *tc_filterchain = tcase_create("Filter chains");
+    tcase_add_unchecked_fixture(tc_filterchain, setup_snp_region, teardown_snp_region);
+    tcase_add_checked_fixture(tc_filterchain, create_passed_failed, free_passed_failed);
+    tcase_add_test(tc_filterchain, snpinclude_regionchromstartend_chain);
+
+    // Add test cases to a test suite
+    Suite *fs = suite_create("VCF filters");
     suite_add_tcase(fs, tc_coverage);
     suite_add_tcase(fs, tc_missing_values);
     suite_add_tcase(fs, tc_num_alleles);
     suite_add_tcase(fs, tc_quality);
     suite_add_tcase(fs, tc_region);
-	suite_add_tcase(fs, tc_snp);
-	suite_add_tcase(fs, tc_filterchain);
-	
-	return fs;
+    suite_add_tcase(fs, tc_snp);
+    suite_add_tcase(fs, tc_filterchain);
+
+    return fs;
 }
 
 void read_test_datasuite(vcf_file_t *file) {
-	if (vcf_parse_batches(400, file)) {
-		fprintf(stderr, "Error reading file\n");
-	}
-	
-	printf("Read %zu/%zu batches\n", file->record_batches->length, file->record_batches->max_length);
+    if (vcf_parse_batches(400, file)) {
+            fprintf(stderr, "Error reading file\n");
+    }
+
+    printf("Read %zu/%zu batches\n", file->record_batches->length, file->record_batches->max_length);
     printf("Batch contains %zu records\n", ((vcf_batch_t*) file->record_batches->first_p->data_p)->records->size);
     
 }

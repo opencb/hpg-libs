@@ -17,12 +17,12 @@
 //#include "commons/system_utils.h"
 //#include "commons/file_utils.h"
 
+#include "commons/sqlite/sqlite3.h"
 #include "commons/workflow_scheduler.h"
 #include "containers/array_list.h"
-#include "bioformats/bam-sam/bam_file.h"
+#include "bioformats/bam/bam_file.h"
 #include "bioformats/features/region/region_table.h"
 
-#include "sqlite3.h"
 
 //------------------------------------------------------------------------
 

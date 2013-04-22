@@ -1,12 +1,21 @@
 #include "vcf_filters.h"
 
+static size_t buffer_size;
+
 static void annotate_failed_record(char *filter_name, size_t filter_name_len, vcf_record_t *record);
+
+static char *gene_ws_geturl(const char *host_url, const char *species, const char *version, const char* genes);
+
+static char* gene_ws_output_to_regions(char *buffer);
+
+static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, void *userdata);
+
 
 //====================================================================================
 //  Filtering functions
 //====================================================================================
 
-array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* f_args) {
+array_list_t* coverage_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* f_args) {
     assert(input_records);
     assert(failed);
     
@@ -47,13 +56,9 @@ array_list_t* coverage_filter(array_list_t* input_records, array_list_t* failed,
     return passed;
 }
 
-array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* args) {
+array_list_t* maf_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
-    
-    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
-    list_init("stats", 1, input_records->size + 1, input_stats);
-    file_stats_t *file_stats = file_stats_new();
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
@@ -61,9 +66,6 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char
     float max_maf = ((maf_filter_args*) args)->max_maf;
     float record_maf = 1.0;
 
-    // TODO candidate for parallelization
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
-    
     list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
@@ -72,8 +74,7 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char
     vcf_record_t *record;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
-        stats_item = list_remove_item(input_stats);
-        variant_stats = stats_item->data_p;
+        variant_stats = input_stats[i];
         
         record_maf = 1.0;
         for (int j = 0; j < variant_stats->num_alleles; j++) {
@@ -86,24 +87,14 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t* failed, char
             annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
-        
-        variant_stats_free(variant_stats);
-        list_item_free(stats_item);
     }
-    
-    list_decr_writers(input_stats);
-    file_stats_free(file_stats);
     
     return passed;
 }
 
-array_list_t* missing_values_filter(array_list_t* input_records, array_list_t* failed, char* filter_name, void* args) {
+array_list_t* missing_values_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
-    
-    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
-    list_init("stats", 1, input_records->size + 1, input_stats);
-    file_stats_t *file_stats = file_stats_new();
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
@@ -112,9 +103,6 @@ array_list_t* missing_values_filter(array_list_t* input_records, array_list_t* f
     float record_missing;
     float allele_count;
 
-    // TODO candidate for parallelization
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
-    
     list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
@@ -123,8 +111,7 @@ array_list_t* missing_values_filter(array_list_t* input_records, array_list_t* f
     vcf_record_t *record;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
-        stats_item = list_remove_item(input_stats);
-        variant_stats = stats_item->data_p;
+        variant_stats = input_stats[i];
         allele_count = 0;
         
         for (int j = 0; j < variant_stats->num_alleles; j++) {
@@ -138,34 +125,21 @@ array_list_t* missing_values_filter(array_list_t* input_records, array_list_t* f
             annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
-        
-        variant_stats_free(variant_stats);
-        list_item_free(stats_item);
     }
-    
-    list_decr_writers(input_stats);
-    file_stats_free(file_stats);
     
     return passed;
 }
 
 
-array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* args) {
+array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
-    
-    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
-    list_init("stats", 1, input_records->size + 1, input_stats);
-    file_stats_t *file_stats = file_stats_new();
     
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
 
     int num_alleles = ((num_alleles_filter_args*)args)->num_alleles;
 
-    // TODO candidate for parallelization
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, input_stats, file_stats);
-    
     list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
@@ -174,8 +148,7 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
     vcf_record_t *record;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
-        stats_item = list_remove_item(input_stats);
-        variant_stats = stats_item->data_p;
+        variant_stats = input_stats[i];
         
         if (variant_stats->num_alleles == num_alleles) {
             array_list_insert(record, passed);
@@ -183,19 +156,13 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t* fail
             annotate_failed_record(filter_name, filter_name_len, record);
             array_list_insert(record, failed);
         }
-        
-        variant_stats_free(variant_stats);
-        list_item_free(stats_item);
     }
-    
-    list_decr_writers(input_stats);
-    file_stats_free(file_stats);
     
     return passed;
 }
 
 
-array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, char *filter_name, void* f_args) {
+array_list_t* quality_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* f_args) {
     assert(input_records);
     assert(failed);
     
@@ -219,7 +186,7 @@ array_list_t* quality_filter(array_list_t* input_records, array_list_t* failed, 
     return passed;
 }
 
-array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
+array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
     
@@ -232,7 +199,6 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, c
 
     LOG_DEBUG_F("region_filter over %zu records\n", input_records->size);
 
-    int i = 0;
     vcf_record_t *record;
     region_t *region = (region_t*) malloc (sizeof(region_t));
     for (int i = 0; i < input_records->size; i++) {
@@ -262,7 +228,7 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, c
     return passed;
 }
 
-array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
+array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
     
@@ -288,6 +254,42 @@ array_list_t *snp_filter(array_list_t *input_records, array_list_t *failed, char
             } else {
                 annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
+            }
+        }
+    }
+
+    return passed;
+}
+
+array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    int include_indels = ((indel_filter_args*)f_args)->include_indels;
+
+    LOG_DEBUG_F("indel_filter (preserve indels = %d) over %zu records\n", include_indels, input_records->size);
+    vcf_record_t *record;
+    variant_stats_t *variant_stats;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        variant_stats = input_stats[i];
+        
+        if (variant_stats->is_indel) {
+            if (include_indels) {
+                array_list_insert(record, passed);
+            } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            }
+        } else {
+            if (include_indels) {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            } else {
+                array_list_insert(record, passed);
             }
         }
     }
@@ -494,6 +496,37 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
+filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *url, const char *species, const char *version) {
+    assert(gene_descriptor);
+    assert(url);
+    assert(species);
+    assert(version);
+    
+    // Convert genes to regions
+    char* full_url = gene_ws_geturl(url, species, version, gene_descriptor);
+    init_http_environment(0);
+
+    // Output buffer
+    buffer_size = CURL_MAX_WRITE_SIZE;
+    char *buffer = NULL;
+    http_get(full_url, NULL, NULL, 0, gene_ws_get_output, &buffer);
+
+    assert(buffer);
+
+    char* values_str = gene_ws_output_to_regions(buffer);
+    //printf("values_str = %s \n",values_str); 
+
+    filter_t *filter = region_exact_filter_new(strdup(values_str), 0, url, species, version);
+    
+    free(values_str);
+    free(full_url);
+    
+    return filter;
+}
+
+void gene_filter_free(filter_t *filter) {
+    region_filter_free(filter);
+}
 
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
@@ -517,6 +550,33 @@ filter_t *snp_filter_new(int include_snps) {
 }
 
 void snp_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+filter_t *indel_filter_new(int include_indels) {
+    filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
+    if (include_indels) {
+        snprintf(filter->name, 9, "INDELyes");
+        snprintf(filter->description, 15, "To be an indel");
+    } else {
+        snprintf(filter->name, 8, "INDELno");
+        snprintf(filter->description, 19, "Not to be an indel");
+    }
+    filter->type = INDEL;
+    filter->filter_func = indel_filter;
+    filter->free_func = indel_filter_free;
+    filter->priority = 4;
+
+    indel_filter_args *filter_args = (indel_filter_args*) malloc (sizeof(indel_filter_args));
+    filter_args->include_indels = include_indels;
+    filter->args = filter_args;
+
+    return filter;
+}
+
+void indel_filter_free(filter_t *filter) {
     assert(filter);
     free(filter->args);
     free(filter);
@@ -575,10 +635,16 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
 
     LOG_DEBUG_F("Applying filter chain of %d filters\n", num_filters);
 
+    file_stats_t *file_stats = file_stats_new();
+    list_t *input_stats = (list_t*) malloc (sizeof(list_t));
+    list_init("stats", 1, input_records->size + 1, input_stats);
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, NULL, NULL, input_stats, file_stats);
+    variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(input_stats);
+    
     // Apply each filter with the arguments provided
     for (int i = 0; i < num_filters; i++) {
         filter_t *filter = filters[i];
-        aux_passed = filter->filter_func(passed, failed, filter->name, filter->args);
+        aux_passed = filter->filter_func(passed, failed, input_stats_array, filter->name, filter->args);
     // 		free(passed);
         passed = aux_passed;
     }
@@ -592,6 +658,16 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
             set_vcf_record_filter("PASS", 4, record);
         }
     }
+    
+        
+    for (int i = 0; i < input_records->size; i++) {
+        list_item_t *stats_item = list_remove_item(input_stats);
+        variant_stats_free(stats_item->data_p);
+        list_item_free(stats_item);
+    }
+    list_decr_writers(input_stats);
+    file_stats_free(file_stats);
+    free(input_stats_array);
     
     return passed;
 }
@@ -671,4 +747,131 @@ static void annotate_failed_record(char *filter_name, size_t filter_name_len, vc
                         record->chromosome_len, record->chromosome, record->position);
         }
     }
+}
+
+
+//====================================================================================
+//  Gene filter auxiliary functions
+//====================================================================================
+
+
+static char *gene_ws_geturl(const char *host_url, const char *species, const char *version, const char* genes) {
+    if (host_url == NULL || version == NULL || species == NULL) {
+        return NULL;
+    }
+    
+    // URL Constants
+    // Full URL: ws.bioinfo.cipf.es/cellbase/rest/latest/hsa/feature/gene/<gene_name>/info?header=false
+    const char *ws_root_url = "cellbase/rest/";
+    const char *ws_name_url = "feature/gene/";
+    const char *ws_info = "info?header=false";
+    
+    // Length of URL parts
+    const int host_url_len = strlen(host_url);
+    const int ws_root_len = strlen(ws_root_url);
+    const int version_len = strlen(version);
+    const int species_len = strlen(species);
+    const int ws_name_len = strlen(ws_name_url);
+    const int genes_len = strlen(genes);
+    const int ws_info_len = strlen(ws_info);
+    const int result_len = host_url_len + ws_root_len + version_len + species_len + ws_name_len + genes_len + ws_info_len + 5; // Extra for 4*('/') and blank
+    
+    char *result_url = (char*) calloc (result_len, sizeof(char));
+    
+    // Host URL
+    strncat(result_url, host_url, host_url_len);
+    if (result_url[host_url_len - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Root of the web service
+    strncat(result_url, ws_root_url, ws_root_len);
+    
+    // Version
+    strncat(result_url, version, version_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Species
+    strncat(result_url, species, species_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_name_url, ws_name_len);
+    
+    // Genes
+    strncat(result_url, genes, genes_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_info, ws_info_len);
+    
+    return result_url;
+}
+
+static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, void *userdata) {
+    char **buffer_ptr = (char**) userdata;
+    if (buffer_size == CURL_MAX_WRITE_SIZE) { // First call
+        *buffer_ptr = calloc(buffer_size, sizeof(char));
+    }
+
+    // Concatenate contents to already existing buffer
+    strncat(*buffer_ptr, contents, size * nmemb); 
+
+    // In each call it is necessary to resize the buffer
+    char *buffer = realloc (*buffer_ptr, buffer_size + size * nmemb);
+    if (buffer) {
+        *buffer_ptr = buffer;
+        buffer_size += size * nmemb;
+    } else {
+        LOG_FATAL("Error while allocating memory for genes position (web service request)");
+    }
+
+    return size * nmemb;
+}
+
+static char* gene_ws_output_to_regions(char *buffer) {
+    int num_substrings;
+    int len = 64, curr_len = 0;
+    char *dup = strdup(buffer);
+    char *regions = (char*) calloc (len, sizeof(char));
+    char **contents_split = split(dup, "\n\t", &num_substrings);
+
+    // Get fields 5-7 (chr:start-end) from each line
+    // They are separated by 11 fields
+    for (int i = 5; i < num_substrings; i += 11) {
+        curr_len += strlen(contents_split[i]) + strlen(contents_split[i+1]) + strlen(contents_split[i+2]) + 4; // Extra for : - , and blank
+
+        if (curr_len > len) {
+            char *aux_values = (char*) realloc (regions, curr_len);
+            if (aux_values) {
+                free(regions);
+                regions = aux_values;
+            } else {
+                LOG_FATAL("Error while allocating memory for genes position");
+            }
+        }
+
+        strcat(regions, contents_split[i]);
+        strncat(regions, ":", 1);
+
+        strcat(regions, contents_split[i+1]);
+        strncat(regions, "-", 1);
+
+        strcat(regions, contents_split[i+2]);
+
+        if (i+11 < num_substrings) {
+            strncat(regions, ",", 1);
+        }
+    }
+
+    free(dup);
+    free(contents_split);
+
+    return regions;
 }

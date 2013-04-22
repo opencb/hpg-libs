@@ -4,14 +4,14 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include <cprops/avl.h>
-#include <cprops/hashtable.h>
-#include <cprops/vector.h>
-
-#include <bioformats/features/region/region.h>
 #include <commons/log.h>
 #include <commons/string_utils.h>
 
+#include <containers/cprops/avl.h>
+#include <containers/cprops/hashtable.h>
+#include <containers/cprops/vector.h>
+
+#include <bioformats/features/region/region.h>
 
 /**
  * @struct region_table

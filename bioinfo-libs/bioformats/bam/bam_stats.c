@@ -218,7 +218,7 @@ void *bam_stats_producer(void *input) {
   } else {
     new_batch = bam_stats_wf_batch_new(wf_input->in_stats,
 				       bam1_list,  
-				       new_bam_stats_output(),
+				       bam_stats_output_new(),
 				       wf_input->out_stats);				      
   }
     

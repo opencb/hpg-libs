@@ -13,15 +13,16 @@
 #endif 
 
 
-#include "bam.h"
 
 #include "commons/commons.h"
 #include "commons/file_utils.h"
 #include "commons/string_utils.h"
 #include "commons/system_utils.h"
 
+#include "samtools/bam.h"
+
 #include "alignment.h"
-#include "bam_commons.h"
+//#include "bam_commons.h"
 
 #define MAX_NUM_PRODUCERS  	10
 #define BAM_BATCH_READ_SIZE   	50000000

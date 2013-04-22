@@ -20,7 +20,7 @@
 #include "commons/workflow_scheduler.h"
 #include "containers/khash.h"
 #include "containers/array_list.h"
-#include "bioformats/bam-sam/bam_file.h"
+#include "bioformats/bam/bam_file.h"
 #include "bioformats/features/region/region_table.h"
 
 //------------------------------------------------------------------------
@@ -101,12 +101,12 @@ typedef struct bam_stats_output {
   //  khash_t(32) *gc_hash;
 } bam_stats_output_t;
 
-bam_stats_output_t *new_bam_stats_output();
-void free_bam_stats_output(bam_stats_output_t *output);
+bam_stats_output_t *bam_stats_output_new();
+void bam_stats_output_free(bam_stats_output_t *output);
 
 //------------------------------------------------------------------------
 
-void stats_bam(bam_stats_input_t *input, bam_stats_output_t *output);
+void bam_stats(bam_stats_input_t *input, bam_stats_output_t *output);
 
 //------------------------------------------------------------------------
 

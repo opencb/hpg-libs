@@ -400,7 +400,8 @@ void filter_bam(bam_filter_input_t *input) {
   // check if the output file must be post-processed
   int count = count_rows("unmapped", db);
   if (count) {
-
+    int rc;
+    char sql[1024];
     sqlite3_stmt *stmt;
 
     char tmp[strlen(path) + 100];

@@ -143,7 +143,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     
     int result = 0;
     individual_t *father = NULL, *mother = NULL, *individual = NULL;
-    enum Condition condition = MISSING;
+    enum Condition condition = MISSING_CONDITION;
     char *aux_buffer;
     
     // Get family or, should it not exist yet, create it
@@ -169,7 +169,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         // Non-existing father, set his ID from the record (if available)
         if (record->father_id) {
             LOG_DEBUG_F("Set family %s father", family->id);
-            father = individual_new(record->father_id, -9, MALE, MISSING, NULL, NULL, family);
+            father = individual_new(record->father_id, -9, MALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(father, family);
         }
     
@@ -184,7 +184,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         LOG_DEBUG_F("Father already found, condition = %d\n", father->condition);
         
         // If the father struct members are missing, fill them
-        if (father->condition == MISSING) {
+        if (father->condition == MISSING_CONDITION) {
             father->phenotype = record->phenotype;
             father->condition = get_condition_from_phenotype(father->phenotype);
             LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
@@ -196,7 +196,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         // Non-existing mother, set his ID from the record (if available)
         if (record->mother_id) {
             LOG_DEBUG_F("Set family %s mother", family->id);
-            mother = individual_new(record->mother_id, -9, FEMALE, MISSING, NULL, NULL, family);
+            mother = individual_new(record->mother_id, -9, FEMALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(mother, family);
         }
     
@@ -211,7 +211,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         LOG_DEBUG_F("Mother already found, condition = %d\n", mother->condition);
         
         // If the mother struct members are missing, fill them
-        if (mother->condition == MISSING) {
+        if (mother->condition == MISSING_CONDITION) {
             mother->phenotype = record->phenotype;
             mother->condition = get_condition_from_phenotype(mother->phenotype);
             LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
