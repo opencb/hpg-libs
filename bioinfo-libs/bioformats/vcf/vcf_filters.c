@@ -296,7 +296,7 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, va
     return passed;
 }
 
-array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *f_args) {
+array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
     
@@ -307,59 +307,36 @@ array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list
     float min_following_pattern = ((inheritance_pattern_filter_args*)f_args)->min_following_pattern;
     
     if (pattern == DOMINANT) {
-        LOG_DEBUG_F("inheritance_pattern_filter (dominant in %.1f% of samples) over %zu records\n", 
+        LOG_DEBUG_F("inheritance_pattern_filter (dominant in %.2f% of samples) over %zu records\n", 
                     min_following_pattern * 100, input_records->size);
     } else {
-        LOG_DEBUG_F("inheritance_pattern_filter (recessive in %.1f% of samples) over %zu records\n", 
+        LOG_DEBUG_F("inheritance_pattern_filter (recessive in %.2f% of samples) over %zu records\n", 
                     min_following_pattern * 100, input_records->size);
     }
     
     vcf_record_t *record;
-    int num_samples_in_pattern;
-    char *format, *sample;
-    int allele_ret, gt_position, allele1, allele2;
+    variant_stats_t *stats;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
-        format = strndup(record->format, record->format_len);
-        gt_position = get_field_position_in_format("GT", format);
-        free(format);
-        num_samples_in_pattern = 0;
+        stats = input_stats[i];
         
         if (pattern == DOMINANT) {
-            for (int j = 0; j < record->samples->size; j++) {
-                sample = record->samples->items[j];
-                allele_ret = get_alleles(sample, gt_position, &allele1, &allele2);
-                if (!allele_ret) {
-                    
-                }
-            }
-        } else {
-            for (int j = 0; j < record->samples->size; j++) {
-            
-            }
-        }
-        
-        if (((float) num_samples_in_pattern / record->samples->size) >= min_following_pattern) {
-            
-        }
-        
-/*
-        if (record->id_len == 1 && strncmp(".", record->id, 1) == 0) {
-            if (include_snps) {
+            if (stats->cases_percent_dominant >= min_following_pattern &&
+                stats->controls_percent_dominant >= min_following_pattern) {
+                array_list_insert(record, passed);
+            } else {
                 annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
-            } else {
-                array_list_insert(record, passed);
             }
-        } else {
-            if (include_snps) {
+        } else if (pattern == RECESSIVE) {
+            if (stats->cases_percent_recessive >= min_following_pattern &&
+                   stats->controls_percent_recessive >= min_following_pattern) {
                 array_list_insert(record, passed);
             } else {
                 annotate_failed_record(filter_name, filter_name_len, record);
                 array_list_insert(record, failed);
             }
         }
-*/
     }
 
     return passed;
@@ -661,14 +638,14 @@ filter_t* inheritance_pattern_filter_new(enum inheritance_pattern pattern, float
         sprintf(filter->description, "Samples with recessive inheritance >= %.0f%%", min_following_pattern * 100);
     }
     
-    filter->type = inheritance_pattern;
+    filter->type = INHERITANCE_PATTERN;
     filter->filter_func = inheritance_pattern_filter;
     filter->free_func = inheritance_pattern_filter_free;
     filter->priority = 3;
     
     inheritance_pattern_filter_args *filter_args = (inheritance_pattern_filter_args*) malloc (sizeof(inheritance_pattern_filter_args));
     filter_args->pattern = pattern;
-    filter_args->min_following_pattern = min_following_pattern;
+    filter_args->min_following_pattern = min_following_pattern * 100;
     filter->args = filter_args;
     
     return filter;
@@ -723,7 +700,8 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters) {
     return filters;
 }
 
-array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters) {
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, individual_t **individuals, 
+                               khash_t(ids) *individuals_ids, filter_t **filters, int num_filters) {
     assert(input_records);
     assert(failed);
     assert(filters);
@@ -736,7 +714,7 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
     file_stats_t *file_stats = file_stats_new();
     list_t *input_stats = (list_t*) malloc (sizeof(list_t));
     list_init("stats", 1, input_records->size + 1, input_stats);
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, NULL, NULL, input_stats, file_stats);
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, individuals, individuals_ids, input_stats, file_stats);
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(input_stats);
     
     // Apply each filter with the arguments provided

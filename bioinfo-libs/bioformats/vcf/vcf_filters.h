@@ -245,7 +245,7 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, va
  * @param args Filter arguments
  * @return Records that passed the filter's test
  */
-array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, char *filter_name, void *args);
+array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *args);
 
 
 //====================================================================================
@@ -498,11 +498,15 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
  * 
  * @param input_records List of records to filter
  * @param[out] failed Records that failed the filter's test
+ * @param individuals List of individuals, used in case statistics based on pedigree are requested
+ * @param individuals_ids Relationship between the name of the individuals and their position in the VCF file
  * @param filters Filters to apply
  * @param num_filters Number of filters to apply
  * @return Records that passed the filters' tests
  */
-array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
+//array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, individual_t **individuals, 
+                               khash_t(ids) *individuals_ids, filter_t **filters, int num_filters);
 
 /**
  * @brief Deallocates memory allocated to store a filter chain
