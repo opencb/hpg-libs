@@ -71,6 +71,11 @@ typedef struct variant_stats {
     int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
     int mendelian_errors;       /**< Number of mendelian errors found. */
     int is_indel;               /**< Whether this variant is an indel or not. */
+    
+    float cases_percent_dominant;       /**< Percentage of cases that follow a dominant inheritance pattern */
+    float controls_percent_dominant;    /**< Percentage of controls that follow a dominant inheritance pattern */
+    float cases_percent_recessive;      /**< Percentage of cases that follow a recessive inheritance pattern */
+    float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
 } variant_stats_t;
 
 /**
