@@ -341,6 +341,7 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
             // Find the missing alleles
             if (alleles_code > 0) {
                 // Missing genotype (one or both alleles missing)
+                #pragma omp atomic
                 (sample_stats[j]->missing_genotypes)++;
                 continue;
             }
@@ -348,8 +349,10 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
             assert(individuals[j]);
             
             // Check mendelian errors
-            if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
+            if (individuals && sample_ids && !alleles_code &&
+                    is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
                                    allele1, allele2, gt_position, record, sample_ids) > 0) {
+                #pragma omp atomic
                 (sample_stats[j]->mendelian_errors)++;
             }
         }
