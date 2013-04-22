@@ -17,11 +17,8 @@ else:
 env['objects'] = []
 
 # Targets
-SConscript(['bioformats/SConscript',
-            ], exports = ['env'])
-
-SConscript(['aligners/SConscript',
-            ], exports = ['env'])
+SConscript(['bioformats/SConscript',], exports = ['env'])
+SConscript(['aligners/SConscript',], exports = ['env'])
 
 env.Library('bioinfo', env['objects'])
 
