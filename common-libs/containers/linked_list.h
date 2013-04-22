@@ -2,14 +2,16 @@
  * linked_list.h
  *
  *  Created on: Nov 7, 2012
- *      Author: imedina, hmartinez
+ *  Last modified: Mar 26, 2013
+ *      Author: imedina, hmartinez, cgonzalez
  */
 
-#ifndef LINKED_LIST_H_
-#define LINKED_LIST_H_
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
 #include "containers.h"
@@ -58,6 +60,8 @@ linked_list_iterator_t* linked_list_iterator_init(linked_list_t *linked_list_p, 
 void linked_list_iterator_free(linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_curr(linked_list_iterator_t *iterator_p);
+
+linked_list_item_t* linked_list_iterator_list_item_curr(linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_next(linked_list_iterator_t *iterator_p);
 

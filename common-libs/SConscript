@@ -1,19 +1,11 @@
 Import('debug', 'compiler')
 
 # Initialize environment
-# Current folder is needed in CPPPATH order to compile containers using commons
-vars = Variables('buildvars.py')
-vars.Add(PathVariable('CPROPS_INCLUDE_PATH', 'Path to the headers of cprops library', '', PathVariable.PathAccept))
-vars.Add(PathVariable('CPROPS_LIBRARY_PATH', 'Path to the compiled cprops library', '', PathVariable.PathAccept))
+env = Environment(CC = compiler,
+                  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 ',
+                  CPPPATH = ['#', '/usr/include/libxml2', '.' ],
+                  LIBPATH = ['/usr/lib' ])
 
-env = Environment(variables = vars,
-                  CC = compiler,
-		  CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
-                  CPPPATH = ['#', '/usr/include/libxml2', '.', '$CPROPS_INCLUDE_PATH' ],
-                  LIBPATH = ['/usr/lib', '$CPROPS_LIBRARY_PATH' ])
-
-#env = Environment(CFLAGS='-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
-#                  CPPPATH = ['#', '/usr/include/libxml2', '.' ])
 env.Decider('MD5-timestamp')
 
 if debug == 1:
@@ -27,4 +19,53 @@ else:
 commons_obj = env.Object(Glob('commons/*.c'))
 containers_obj = env.Object(Glob('containers/*.c'))
 
-env.Library('common', commons_obj + containers_obj)
+
+# Compile containers/cprops objects but ONLY those used for our libraries
+cpropsenv = Environment(CC = compiler,
+                        CFLAGS = '-D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H ',
+                        CPPPATH = ['#', '/usr/include/libxml2', '.' ],
+                        LIBPATH = ['/usr/lib' ])
+
+cpropsenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    cpropsenv['CFLAGS'] += '-O0 -g'
+else:
+    cpropsenv['CFLAGS'] += '-O3'
+cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c'])
+
+
+# Compile commons/argtable objects
+argtableenv = Environment(CC = compiler,
+                        CFLAGS = '-DHAVE_CONFIG_H -fPIC -DPIC ',
+                        CPPPATH = ['#', '.' ],
+                        LIBPATH = ['/usr/lib' ])
+
+argtableenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    argtableenv['CFLAGS'] += '-O0 -g'
+else:
+    argtableenv['CFLAGS'] += '-O2 -g'
+argtable_obj = argtableenv.Object(Glob('commons/argtable/*.c'))
+
+
+# Compile commons/config objects
+configenv = Environment(CC = compiler,
+                        CFLAGS = '-DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter ',
+                        CPPPATH = ['#', '.' ],
+                        LIBPATH = ['/usr/lib' ])
+
+configenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    configenv['CFLAGS'] += '-O0 -g'
+else:
+    configenv['CFLAGS'] += '-O2 -g'
+config_obj = configenv.Object(Glob('commons/config/*.c'))
+
+# Objects
+env.Library('common', commons_obj + containers_obj + cprops_obj + argtable_obj + config_obj)
+
+# Run tests
+containers_test = SConscript("containers/test/SConscript", exports = ['env', 'debug'] )
