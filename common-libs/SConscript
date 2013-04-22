@@ -34,6 +34,20 @@ else:
     cpropsenv['CFLAGS'] += '-O3'
 cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c'])
 
+# Compile commons/sqlite objects
+sqliteenv = Environment(CC = compiler,
+                        CFLAGS = '-DHAVE_CONFIG_H -fPIC -DPIC ',
+                        CPPPATH = ['#', '.' ],
+                        LIBPATH = ['/usr/lib' ])
+
+sqliteenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    sqliteenv['CFLAGS'] += '-O0 -g'
+else:
+    sqliteenv['CFLAGS'] += '-O2 -g'
+sqlite_obj = sqliteenv.Object(Glob('commons/sqlite/*.c'))
+
 
 # Compile commons/argtable objects
 argtableenv = Environment(CC = compiler,
@@ -65,7 +79,7 @@ else:
 config_obj = configenv.Object(Glob('commons/config/*.c'))
 
 # Objects
-env.Library('common', commons_obj + containers_obj + cprops_obj + argtable_obj + config_obj)
+env.Library('common', commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj)
 
 # Run tests
 containers_test = SConscript("containers/test/SConscript", exports = ['env', 'debug'] )
