@@ -52,7 +52,7 @@ typedef struct alignment {
     uint8_t seq_strand;			/**< 0 (forward) or 1 (reverse). */
     uint8_t mate_strand;		/**< Strand of the mate read, same values. */
     uint8_t pair_num;			/**< Paired-end number 1 or 2. */
-    uint8_t primary_alignment;		/**< 0: not primary, 1 primary. */
+    uint8_t secondary_alignment;		/**< 0: not primary, 1 primary. */
     uint8_t fails_quality_check;	/**< 0: meet quality checks, 1: quality checks not meeted. */ 
     uint8_t pc_optical_duplicate;	/**< 0: not duplicate, 1: duplicate. */
     uint8_t large_hard_clipping;        /**< 0: CIGAR contains a hard clipping, 1: CIGAR not contains 
@@ -102,13 +102,13 @@ alignment_t* alignment_new();
 *  @param num_cigar_operations number of cigar operations
 *  @param map_quality quality of the mapping 
 *  @param is_seq_mapped flag indicating if sequence is mapped
-*  @param primary_alignment flag indicating if alignment is primary
+*  @param secondary_alignment flag indicating if alignment is primary
 *  @param[in,out] alignment_p pointer to the alignment to init
 *  @return pointer to the created qc hash list item
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, int optional_fields_length, char *optional_fields, short int large_hard_clipping, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, short int large_hard_clipping, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -129,15 +129,15 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 *  @param num_cigar_operations2 number of cigar operations for paired end 2
 *  @param map_quality1 quality of the mapping for paired end 1
 *  @param map_quality2 quality of the mapping for paired end 2
-*  @param primary_alignment1 flag indicating if alignment is primary for paired end 1
-*  @param primary_alignment1 flag indicating if alignment is primary for paired end 2
+*  @param secondary_alignment1 flag indicating if alignment is primary for paired end 1
+*  @param secondary_alignment1 flag indicating if alignment is primary for paired end 2
 *  @param[in,out] alignment1_p pointer to the alignment to init for paired end 1
 *  @param[in,out] alignment2_p pointer to the alignment to init for paired end 2
 *  @return pointer to the created qc hash list item
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int secondary_alignment1, short int secondary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
 
 void alignment_update_paired_end(alignment_t* alignment1_p, alignment_t* alignment2_p);
 
@@ -201,6 +201,10 @@ void bam_print(bam1_t* bam_p, int base_quality);
 bam_header_t* bam_header_new(int specie, int assembly, char* file_path);
 
 void bam_header_free(bam_header_t *header);
+
+short int is_secondary_alignment(alignment_t *alignment);
+
+void set_secondary_alignment(short int set, alignment_t *alignment);
 
 /* **********************************************************************
  *      	Functions to manage bam1_t coded fields    		*

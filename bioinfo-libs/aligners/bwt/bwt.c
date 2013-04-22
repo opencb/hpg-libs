@@ -1613,17 +1613,17 @@ size_t bwt_map_inexact_seq(char *seq,
 	  for (int m = n_mappings - 1; m >= 0; m--) {
 	    alig_1 = array_list_remove_at(m, tmp_mapping_list);
 	    if (delete_mark[m]) {
-	      if (alig_1->primary_alignment) { primary_delete = 1; }
+	      if (!is_secondary_alignment(alig_1)) { primary_delete = 1; }
 	      alignment_free(alig_1);
 	    } else {
 	      array_list_insert((void*) alig_1, mapping_list);
-	      alig_1->primary_alignment = (num_mappings > 0);
+	      set_secondary_alignment(num_mappings > 0, alig_1);
 	      num_mappings++;
 	    }
 	  }
 	  if (primary_delete) { 
 	    alig_1 = array_list_get(0, mapping_list); 
-	    alig_1->primary_alignment = 1;
+	    set_secondary_alignment(0, alig_1);
 	  }
 	  free(delete_mark);
      } // end for type 

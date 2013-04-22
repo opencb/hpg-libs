@@ -9,7 +9,7 @@ alignment_t* alignment_new() {
     return alignment_p;
 }
 
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int primary_alignment, int optional_fields_length, char *optional_fields, short int large_hard_clipping, alignment_t* alignment_p) {
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, short int large_hard_clipping, alignment_t* alignment_p) {
     alignment_p->query_name = query_name;
     alignment_p->sequence = sequence;
     alignment_p->quality = quality;
@@ -30,7 +30,7 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
     alignment_p->seq_strand = strand;
     alignment_p->mate_strand = 0; //unused value in single end
     alignment_p->pair_num = 0;    //unused value in single end
-    alignment_p->primary_alignment = primary_alignment;
+    alignment_p->secondary_alignment = secondary_alignment;
     alignment_p->fails_quality_check = 0;
     alignment_p->pc_optical_duplicate = 0;
     
@@ -40,7 +40,7 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
     alignment_p->large_hard_clipping = large_hard_clipping;
 }
 
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int primary_alignment1, short int primary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p) {
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int secondary_alignment1, short int secondary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p) {
     //pair 1 init
     alignment1_p->query_name = query_name;
     alignment1_p->sequence = sequence1;
@@ -78,7 +78,7 @@ void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence
     alignment1_p->seq_strand = strand1;
     alignment1_p->mate_strand = strand2;
     alignment1_p->pair_num = 1;
-    alignment1_p->primary_alignment = primary_alignment1;
+    alignment1_p->secondary_alignment = secondary_alignment1;
     alignment1_p->fails_quality_check = 0;
     alignment1_p->pc_optical_duplicate = 0;
 
@@ -119,7 +119,7 @@ void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence
     alignment2_p->seq_strand = strand2;
     alignment2_p->mate_strand = strand1;
     alignment2_p->pair_num = 2;
-    alignment2_p->primary_alignment = primary_alignment2;
+    alignment2_p->secondary_alignment = secondary_alignment2;
     alignment2_p->fails_quality_check = 0;
     alignment2_p->pc_optical_duplicate = 0;
 }
@@ -238,7 +238,7 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
         alignment_p->pair_num = 0;
     }
 
-    alignment_p->primary_alignment = (flag & BAM_FSECONDARY) ? 1 : 0;
+    alignment_p->secondary_alignment = (flag & BAM_FSECONDARY) ? 1 : 0;
     alignment_p->fails_quality_check = (flag & BAM_FQCFAIL) ? 1 : 0;
     alignment_p->pc_optical_duplicate = (flag & BAM_FDUP) ? 1 : 0;
 
@@ -331,7 +331,7 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
         bam_p->core.flag += BAM_FREAD2;
     }
 
-    if (alignment_p->primary_alignment)    bam_p->core.flag += BAM_FSECONDARY;
+    if (alignment_p->secondary_alignment)    bam_p->core.flag += BAM_FSECONDARY;
     if (alignment_p->fails_quality_check)  bam_p->core.flag += BAM_FQCFAIL;
     if (alignment_p->pc_optical_duplicate) bam_p->core.flag += BAM_FDUP;
 
@@ -370,7 +370,7 @@ void alignment_print(alignment_t* alignment_p) {
     printf("alignment_p->seq_strand: %i\n", alignment_p->seq_strand);
     printf("alignment_p->mate_strand: %i\n", alignment_p->mate_strand);
     printf("alignment_p->pair_num: %i\n", alignment_p->pair_num);
-    printf("alignment_p->primary_alignment: %i\n", alignment_p->primary_alignment);
+    printf("alignment_p->secondary_alignment: %i\n", alignment_p->secondary_alignment);
     printf("alignment_p->fails_quality_check: %i\n", alignment_p->fails_quality_check);
     printf("alignment_p->pc_optical_duplicate: %i\n", alignment_p->pc_optical_duplicate);
 }
@@ -430,7 +430,7 @@ void bam_print(bam1_t* bam_p, int base_quality) {
     printf("flag (mate_strand): %i\n", (bam_p->core.flag & BAM_FMREVERSE) ? 1 : 0);
     printf("flag (pair_num_1): %i\n", (bam_p->core.flag & BAM_FREAD1) ? 1 : 0);
     printf("flag (pair_num_2): %i\n", (bam_p->core.flag & BAM_FREAD2) ? 1 : 0);
-    printf("flag (primary_alignment): %i\n", (bam_p->core.flag & BAM_FSECONDARY) ? 1 : 0);
+    printf("flag (secondary_alignment): %i\n", (bam_p->core.flag & BAM_FSECONDARY) ? 1 : 0);
     printf("flag (fails_quality_check): %i\n", (bam_p->core.flag & BAM_FQCFAIL) ? 1 : 0);
     printf("flag (pc_optical_duplicate): %i\n", (bam_p->core.flag & BAM_FDUP) ? 1 : 0);
 }
@@ -452,6 +452,13 @@ void bam_header_free(bam_header_t *header) {
     bam_header_destroy(header);
 }
 
+short int is_secondary_alignment(alignment_t *alignment) {
+  return alignment->secondary_alignment;
+}
+
+void set_secondary_alignment(short int set, alignment_t *alignment) {
+  alignment->secondary_alignment = set;
+} 
 
 /* **********************************************************************
  *      	Functions to manage bam1_t coded fields    		*
