@@ -1,6 +1,9 @@
 #include "vcf_stats.h"
-#include "bioformats/family/family.h"
 
+
+static int is_mendelian_error(individual_t *father, individual_t *mother, individual_t *child, 
+                              int child_allele1, int child_allele2, int gt_position, 
+                              vcf_record_t *record, khash_t(ids) *sample_ids);
 
 /* ******************************
  *      Whole file statistics   *
@@ -55,6 +58,13 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     
     stats->missing_alleles = 0;
     stats->missing_genotypes = 0;
+    stats->mendelian_errors = 0;
+    stats->is_indel = 0;
+    
+    stats->cases_percent_dominant = 0.0f;
+    stats->controls_percent_dominant = 0.0f;
+    stats->cases_percent_recessive = 0.0f;
+    stats->controls_percent_recessive = 0.0f;
     
     return stats;
 }
@@ -77,15 +87,15 @@ void variant_stats_free(variant_stats_t* stats) {
     free(stats);
 }
 
-int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output_list, file_stats_t *file_stats) {
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                       list_t *output_list, file_stats_t *file_stats) {
     assert(variants);
     assert(output_list);
     assert(file_stats);
     
-    char *copy_buf, *copy_buf2, *token, *sample;
-    char *save_strtok;
+    char *copy_buf, *copy_buf2, *sample;
     
-    int num_alternates, gt_pos, cur_pos;
+    int num_alternates, gt_position, curr_position;
     int allele1, allele2, alleles_code;
     
     // Temporary variables for file stats updating
@@ -94,6 +104,10 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
     float accum_quality = 0;
     // Temporary variables for variant stats updating
     int total_alleles_count = 0, total_genotypes_count = 0;
+    int cases_dominant = 0;     // Number of cases that follow a dominant inheritance pattern
+    int controls_dominant = 0;  // Number of controls that follow a dominant inheritance pattern
+    int cases_recessive = 0;    // Number of cases that follow a recessive inheritance pattern
+    int controls_recessive = 0; // Number of controls that follow a recessive inheritance pattern
     
     // Variant stats management
     vcf_record_t *record;
@@ -105,8 +119,8 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
                                   strndup(record->reference, record->reference_len));
         
         // Reset counters
-        total_alleles_count = 0;
-        total_genotypes_count = 0;
+        total_alleles_count = total_genotypes_count = 0;
+        cases_dominant = controls_dominant = cases_recessive = controls_recessive = 0;
         
         // Create list of alternates
         copy_buf = strndup(record->alternate, record->alternate_len);
@@ -116,11 +130,6 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         }
         
         stats->num_alleles = num_alternates + 1;
-//         if (!strncmp(stats->alternates[0], ".", 1)) {
-//             stats->num_alleles = 1;
-//         } else {
-//             stats->num_alleles = num_alternates + 1;
-//         }
         LOG_DEBUG_F("num alternates = %d\tnum_alleles = %d\n", num_alternates, stats->num_alleles);
         
         // Create lists of allele and genotypes counters and frequencies
@@ -131,28 +140,44 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         
         // Get position where GT is in sample
         copy_buf2 = strndup(record->format, record->format_len);
-        gt_pos = get_field_position_in_format("GT", copy_buf2);
+        gt_position = get_field_position_in_format("GT", copy_buf2);
         if (copy_buf2) {
             free(copy_buf2);
         }
         
-        LOG_DEBUG_F("Genotype position = %d\n", gt_pos);
-        if (gt_pos < 0) { continue; }   // This variant has no GT field
+        LOG_DEBUG_F("Genotype position = %d\n", gt_position);
+        if (gt_position < 0) { continue; }   // This variant has no GT field
         
-        // Traverse samples and find the present and missing alleles
-        for(int j = 0; j < record->samples->size; j++) {
+        /* Traverse samples and find:
+         * - Present and missing alleles
+         * - Mendelian errors
+         * - (Dis)agreements with inheritance models
+         */
+        for (int j = 0; j < record->samples->size; j++) {
             sample = (char*) array_list_get(j, record->samples);
             
             // Get to GT position
             copy_buf2 = strdup(sample);
-            alleles_code = get_alleles(copy_buf2, gt_pos, &allele1, &allele2);
+            alleles_code = get_alleles(copy_buf2, gt_position, &allele1, &allele2);
             if (copy_buf2) {
                 free(copy_buf2);
             }
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
-                        
-            if (allele1 < 0 || allele2 < 0) {
+            // Check missing alleles and genotypes
+            if (!alleles_code) {
+                // Both alleles set
+                curr_position = allele1 * (stats->num_alleles) + allele2;
+                assert(allele1 <= stats->num_alleles);
+                assert(allele2 <= stats->num_alleles);
+                assert(curr_position <= stats->num_alleles * stats->num_alleles);
+                
+                stats->alleles_count[allele1] += 1;
+                stats->alleles_count[allele2] += 1;
+                stats->genotypes_count[curr_position] += 1;
+                total_alleles_count += 2;
+                total_genotypes_count++;
+            } else {
                 // Missing genotype (one or both alleles missing)
                 stats->missing_genotypes++;
                 if (allele1 < 0) { 
@@ -168,25 +193,42 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
                     stats->alleles_count[allele2]++;
                     total_alleles_count++;
                 }
-            } else {
-                // Both alleles set
-                cur_pos = allele1 * (stats->num_alleles) + allele2;
-                if (allele1 > stats->num_alleles) {
-                    printf("num alleles = %d\tallele_1 = %d\n", stats->num_alleles, allele1);
+            }
+            
+            // Include statistics that depend on pedigree information
+            if (individuals) {
+                // Check mendelian errors (pedigree data must be given)
+                if (sample_ids && !alleles_code) {
+                    if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
+                                        allele1, allele2, gt_position, record, sample_ids) > 0) {
+                        (stats->mendelian_errors)++;
+                    }
                 }
-                if (allele2 > stats->num_alleles) {
-                    printf("num alleles = %d\tallele_2 = %d\n", stats->num_alleles, allele2);
+
+                // Check inheritance models
+                if (individuals[j]->condition == UNAFFECTED) {
+                    if (!allele1 && !allele2) { // 0|0
+                        controls_dominant++;
+                        controls_recessive++;
+                    } else if ((!allele1 && allele2) || (allele1 && !allele2)) { // 0|1 or 1|0
+                        controls_recessive++;
+                    }
+                } else if (individuals[j]->condition == AFFECTED) {
+                    if (allele1 && allele2 && allele1 == allele2) { // 1|1, 2|2, and so on
+                        cases_recessive++;
+                        cases_dominant++;
+                    } else if (allele1 || allele2) { // 0|1, 1|0, 1|2, 2|1, 1|3, and so on
+                        cases_dominant++;
+                    }
                 }
-                if (cur_pos > stats->num_alleles * stats->num_alleles) {
-                    printf("num alleles = %d\tcur_pos = %d\n", stats->num_alleles, cur_pos);
-                }
-                stats->alleles_count[allele1] += 1;
-                stats->alleles_count[allele2] += 1;
-                stats->genotypes_count[cur_pos] += 1;
-                total_alleles_count += 2;
-                total_genotypes_count++;
             }
         }
+        
+        // Once all samples have been traverse, calculate % that follow inheritance model
+        stats->controls_percent_dominant = (float) controls_dominant * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->cases_percent_dominant = (float) cases_dominant * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->controls_percent_recessive = (float) controls_recessive * 100 / (record->samples->size - stats->missing_genotypes);
+        stats->cases_percent_recessive = (float) cases_recessive * 100 / (record->samples->size - stats->missing_genotypes);
         
         // Get allele and genotype frequencies
         for (int j = 0; j < stats->num_alleles; j++) {
@@ -214,9 +256,26 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, list_t *output
         for (int j = 0; j < num_alternates; j++) {
             alt_len = strlen(stats->alternates[j]);
             
-            if (ref_len != alt_len) {
+            /* 
+             * 3 possibilities for being an INDEL:
+             * - The value of the ALT field is <DEL> or <INS>
+             * - The REF allele is not . but the ALT is
+             * - The REF allele is . but the ALT is not
+             * - The REF field length is different than the ALT field length
+             */
+            if ((strncmp(".", record->reference, 1) && !strncmp(".", record->alternate, 1)) ||
+                (strncmp(".", record->alternate, 1) && !strncmp(".", record->reference, 1)) ||
+                !strncmp("<INS>", record->alternate, record->alternate_len) ||
+                !strncmp("<DEL>", record->alternate, record->alternate_len) ||
+                 record->reference_len != record->alternate_len) {
+                stats->is_indel = 1;
                 indels_count++;
-            } else if (ref_len == 1 && alt_len == 1) {
+            } else {
+                stats->is_indel = 0;
+            }
+            
+            // Transitions and transversions
+            if (ref_len == 1 && alt_len == 1) {
                 switch (stats->ref_allele[0]) {
                     case 'C':
                         if (stats->alternates[j][0] == 'T') {
@@ -291,22 +350,16 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
     assert(sample_stats);
     assert(file_stats);
     
-    char *copy_buf, *token, *sample;
-    char **sample_data;
-    
     int gt_position;
-    int father_allele1, father_allele2;
-    int mother_allele1, mother_allele2;
     int allele1, allele2, alleles_code;
+    char *copy_buf, *sample;
     
     // Sample stats management
     vcf_record_t *record;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
-        
         for(int j = 0; j < record->samples->size; j++) {
             sample = (char*) array_list_get(j, record->samples);
-            sample_data = (char**) record->samples->items;
             char *format_dup = strndup(record->format, record->format_len);
             gt_position = get_field_position_in_format("GT", format_dup);
             free(format_dup);
@@ -322,63 +375,76 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
             // Find the missing alleles
             if (alleles_code > 0) {
                 // Missing genotype (one or both alleles missing)
+                #pragma omp atomic
                 (sample_stats[j]->missing_genotypes)++;
                 continue;
             }
             
             assert(individuals[j]);
             
-            // TODO check mendelian errors
-            individual_t *father = individuals[j]->father;
-            individual_t *mother = individuals[j]->mother;
-            
-            if (!father || !mother) {
-                continue;
-            }
-            
-            //printf("Father = %s\tMother = %s\tChild = %s\n", father->id, mother->id, individuals[j]->id);
-            
-            int father_pos = -1, mother_pos = -1;
-            khiter_t iter = kh_get(ids, sample_ids, father->id);
-            if (iter != kh_end(sample_ids)) {
-                father_pos = kh_value(sample_ids, iter);
-            }
-            iter = kh_get(ids, sample_ids, mother->id);
-            if (iter != kh_end(sample_ids)) {
-                mother_pos = kh_value(sample_ids, iter);
-            }
-            
-            if (father_pos < 0 || mother_pos < 0) {
-                continue;
-            }
-            
-            char *father_sample = strdup(sample_data[father_pos]);
-            char *mother_sample = strdup(sample_data[mother_pos]);
-
-            //LOG_DEBUG_F("Samples: Father = %s\tMother = %s\tChild = %s\n", sample_data[father_pos], sample_data[mother_pos], sample);
-            
-            // If any parent's alleles can't be read or is missing, go to next family
-            if (get_alleles(father_sample, gt_position, &father_allele1, &father_allele2) ||
-                get_alleles(mother_sample, gt_position, &mother_allele1, &mother_allele2)) {
-                free(father_sample);
-                free(mother_sample);
-                continue;
-            }
-            
-            // Increment mendel counter when impossible combination is found
-            char *aux_chromosome = strndup(record->chromosome, record->chromosome_len);
-            if (check_mendel(aux_chromosome, father_allele1, father_allele2, mother_allele1, mother_allele2, 
-                allele1, allele2, individuals[j]->sex)) {
-                LOG_DEBUG_F("* Samples: Father = %s\tMother = %s\tChild = %s\n", sample_data[father_pos], sample_data[mother_pos], sample);
+            // Check mendelian errors
+            if (individuals && sample_ids && !alleles_code &&
+                    is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
+                                   allele1, allele2, gt_position, record, sample_ids) > 0) {
+                #pragma omp atomic
                 (sample_stats[j]->mendelian_errors)++;
             }
-            
-            free(father_sample);
-            free(mother_sample);
-            free(aux_chromosome);
         }
         
     }
     
     return 0;
+}
+
+static int is_mendelian_error(individual_t *father, individual_t *mother, individual_t *child, 
+                              int child_allele1, int child_allele2, int gt_position, 
+                              vcf_record_t *record, khash_t(ids) *sample_ids) {
+    int is_error = 0;
+    int father_allele1, father_allele2;
+    int mother_allele1, mother_allele2;
+    
+    if (!father || !mother) {
+        return -1;
+    }
+            
+    int father_pos = -1, mother_pos = -1;
+    khiter_t iter = kh_get(ids, sample_ids, father->id);
+    if (iter != kh_end(sample_ids)) {
+        father_pos = kh_value(sample_ids, iter);
+    }
+    iter = kh_get(ids, sample_ids, mother->id);
+    if (iter != kh_end(sample_ids)) {
+        mother_pos = kh_value(sample_ids, iter);
+    }
+
+    if (father_pos < 0 || mother_pos < 0) {
+        return -1;
+    }
+
+    char **sample_data = (char**) record->samples->items;
+    char *father_sample = strdup(sample_data[father_pos]);
+    char *mother_sample = strdup(sample_data[mother_pos]);
+
+    //LOG_DEBUG_F("Samples: Father = %s\tMother = %s\tChild = %s\n", sample_data[father_pos], sample_data[mother_pos], sample);
+
+    // If any parent's alleles can't be read or is missing, can't decide
+    if (get_alleles(father_sample, gt_position, &father_allele1, &father_allele2) ||
+        get_alleles(mother_sample, gt_position, &mother_allele1, &mother_allele2)) {
+        free(father_sample);
+        free(mother_sample);
+        return -1;
+    }
+
+    // Increment mendelian errors counter when impossible combination is found
+    char *aux_chromosome = strndup(record->chromosome, record->chromosome_len);
+    if (check_mendel(aux_chromosome, father_allele1, father_allele2, mother_allele1, mother_allele2, 
+                     child_allele1, child_allele2, child->sex)) {
+        is_error = 1;
+    }
+
+    free(father_sample);
+    free(mother_sample);
+    free(aux_chromosome);
+    
+    return is_error;
 }
