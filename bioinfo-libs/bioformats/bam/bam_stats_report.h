@@ -62,7 +62,7 @@ typedef struct report_graph {
 //------------------------------------------------------------------------
 
 void report_bam_stats_output(char *bam_filename, char *outdir, 
-			     bam_stats_output_t *stats);
+			     void *db, bam_stats_output_t *stats);
 
 //------------------------------------------------------------------------
 

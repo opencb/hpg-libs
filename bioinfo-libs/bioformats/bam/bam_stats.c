@@ -10,13 +10,14 @@
 //------------------------------------------------------------------------
 
 bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads,int batch_size) {
+				       int num_threads,int batch_size, void *db) {
   bam_stats_input_t *input = (bam_stats_input_t *) calloc(1, sizeof(bam_stats_input_t));
   
   input->in_filename = strdup(in_filename);
   input->region_table = region_table;
   input->num_threads = num_threads;
   input->batch_size = batch_size;
+  input->db = db;
   
   return input;
 }
