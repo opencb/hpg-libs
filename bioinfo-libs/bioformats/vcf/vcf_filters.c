@@ -735,13 +735,9 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
         }
     }
     
-        
-    for (int i = 0; i < input_records->size; i++) {
-        list_item_t *stats_item = list_remove_item(input_stats);
-        variant_stats_free(stats_item->data_p);
-        list_item_free(stats_item);
-    }
     list_decr_writers(input_stats);
+    
+    list_free_deep(input_stats, variant_stats_free);
     file_stats_free(file_stats);
     free(input_stats_array);
     

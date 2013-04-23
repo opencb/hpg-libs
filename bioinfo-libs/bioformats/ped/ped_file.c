@@ -92,6 +92,8 @@ int ped_read(ped_file_t *ped_file) {
         }
     }
 }
+    list_free_deep(ped_batches, NULL);
+    
     return ret_code;
 }
 
