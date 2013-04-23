@@ -38,10 +38,7 @@ ped_file_t *ped_open(char *filename) {
 //-----------------------------------------------------
 
 void ped_close(ped_file_t *ped_file, int free_families) {
-    // Free string members
-    free(ped_file->filename);
-   
-    // Free records list if asked to
+    // Free families if asked to
     if (free_families) {
         cp_hashtable_destroy(ped_file->families);
     }
@@ -53,8 +50,8 @@ void ped_close(ped_file_t *ped_file, int free_families) {
 void ped_record_free(ped_record_t* ped_record) {
     free(ped_record->family_id);
     free(ped_record->individual_id);
-    free(ped_record->father_id);
-    free(ped_record->mother_id);
+    if (ped_record->father_id) { free(ped_record->father_id); }
+    if (ped_record->mother_id) { free(ped_record->mother_id); }
     free(ped_record);
 }
 
@@ -85,12 +82,13 @@ int ped_read(ped_file_t *ped_file) {
         list_item_t *record_item = NULL;
         while ((item = list_remove_item(ped_batches)) != NULL) {
             ped_batch_t *batch = (ped_batch_t*) item->data_p;
-            while ((record_item = list_remove_item_async(batch)) != NULL) {
+            record_item = batch->first_p;
+            while (record_item) {
                 ret_code &= add_ped_record(record_item->data_p, ped_file);
-//                 ped_record_free(record_item->data_p);
-                list_item_free(record_item);
+                record_item = record_item->next_p;
             }
             ped_batch_free(batch);
+            list_item_free(item);
         }
     }
 }
@@ -127,29 +125,22 @@ int add_family(family_t* family, ped_file_t* ped_file) {
 }
 
 int get_num_families(ped_file_t* ped_file) {
-    if (ped_file == NULL) {
-        return -1;
-    }
+    assert(ped_file);
     return cp_hashtable_count(ped_file->families);
 }
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
-    if (record == NULL) {
-        return -1;
-    }
-    if (ped_file == NULL) {
-        return -2;
-    }
+    assert(record);
+    assert(ped_file);
     
     int result = 0;
     individual_t *father = NULL, *mother = NULL, *individual = NULL;
     enum Condition condition = MISSING_CONDITION;
-    char *aux_buffer;
     
     // Get family or, should it not exist yet, create it
     family_t *family = cp_hashtable_get(ped_file->families, record->family_id);
     if (family == NULL) {
-        family = family_new(record->family_id);
+        family = family_new(strdup(record->family_id));
         if (add_family(family, ped_file)) {
             return ALREADY_EXISTING_FAMILY;
         }
@@ -160,7 +151,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     // If it is an ancestor with no sex defined, add to the list of unknown members
     if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
         condition = get_condition_from_phenotype(record->phenotype);
-        individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, NULL, NULL, family);
+        individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, NULL, NULL, family);
         return family_add_unknown(individual, family);
     }
     
@@ -169,7 +160,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         // Non-existing father, set his ID from the record (if available)
         if (record->father_id) {
             LOG_DEBUG_F("Set family %s father", family->id);
-            father = individual_new(record->father_id, -9, MALE, MISSING_CONDITION, NULL, NULL, family);
+            father = individual_new(strdup(record->father_id), -9, MALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(father, family);
         }
     
@@ -196,7 +187,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         // Non-existing mother, set his ID from the record (if available)
         if (record->mother_id) {
             LOG_DEBUG_F("Set family %s mother", family->id);
-            mother = individual_new(record->mother_id, -9, FEMALE, MISSING_CONDITION, NULL, NULL, family);
+            mother = individual_new(strdup(record->mother_id), -9, FEMALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(mother, family);
         }
     
@@ -221,7 +212,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     
     // Create individual with the information extracted from the PED record
     condition = get_condition_from_phenotype(record->phenotype);
-    individual = individual_new(record->individual_id, record->phenotype, record->sex, condition, father, mother, family);
+    individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, father, mother, family);
     if (father || mother) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);
