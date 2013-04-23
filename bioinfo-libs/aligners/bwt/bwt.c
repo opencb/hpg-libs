@@ -2858,7 +2858,6 @@ size_t bwt_generate_cal_list_rna_linked_list(array_list_t *mapping_list,
     region = array_list_get(m, mapping_list);
     chromosome_id = region->chromosome_id;
     strand = region->strand;
-
     my_cp_list_append_linked_list(cals_list[strand][chromosome_id], region, max_cal_distance);
   }
 
