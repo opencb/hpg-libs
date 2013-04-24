@@ -1,50 +1,47 @@
 #include "gff_write.h"
 
 int gff_write_to_file(gff_file_t *gff_file, FILE *fd) {
-    if(gff_file == NULL || fd == NULL) {
-        return -1;
-    }
+    assert(gff_file);
+    assert(fd);
 
     // Write header entries
     cp_list_iterator *headers_iter = cp_list_create_iterator(gff_file->header_entries, COLLECTION_LOCK_READ);
-//     cp_list_iterator_init(headers_iter, gff_file->header_entries, COLLECTION_LOCK_READ);
     gff_header_entry_t *entry = NULL;
     while ((entry = cp_list_iterator_next(headers_iter)) != NULL) {
         write_gff_header_entry(entry, fd);
     }
+    cp_list_iterator_destroy(headers_iter);
     
     // Write records
     cp_list_iterator *records_iter = cp_list_create_iterator(gff_file->records, COLLECTION_LOCK_READ);
-//     cp_list_iterator_init(records_iter, gff_file->records, COLLECTION_LOCK_READ);
     gff_record_t *record = NULL;
     while ((record = cp_list_iterator_next(records_iter)) != NULL) {
         write_gff_record(record, fd);
     }
+    cp_list_iterator_destroy(records_iter);
 
     return 0;
 }
 
 void write_gff_header_entry(gff_header_entry_t *entry, FILE *fd) {
-    if (entry == NULL || fd == NULL) {
-        return;
-    }
+    assert(entry);
+    assert(fd);
 
     fprintf(fd, "##%s\n", entry->text);
 }
 
 void write_gff_batch(gff_batch_t *gff_batch, FILE *fd) {
-    if(gff_batch == NULL || fd == NULL) {
-        return;
-    }
-    for (list_item_t *i = gff_batch->first_p; i != NULL; i = i->next_p) {
-        write_gff_record(i->data_p, fd);
+    assert(gff_batch);
+    assert(fd);
+    
+    for (int i = 0; i < gff_batch->records->size; i++) {
+        write_gff_record(gff_batch->records->items[i], fd);
     }
 }
 
 void write_gff_record(gff_record_t* gff_record, FILE *fd) {
-    if(gff_record == NULL || fd == NULL) {
-        return;
-    }
+    assert(gff_record);
+    assert(fd);
     
     fprintf(fd, "%s\t%s\t%s\t%ld\t%ld\t", gff_record->sequence, gff_record->source, gff_record->feature, gff_record->start, gff_record->end);
     if (gff_record->score < 0) {

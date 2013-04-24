@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <containers/cprops/linked_list.h>
+
 #include "gff_file_structure.h"
 #include "gff_batch.h"
 

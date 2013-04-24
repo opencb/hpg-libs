@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <assert.h>
 
-#include <containers/list.h>
+#include <containers/array_list.h>
 
 #include "gff_file_structure.h"
 
@@ -20,12 +21,10 @@
  * Struct which represents a batch of GFF records whose fields have been 
  * already loaded.
  */
-typedef list_t gff_batch_t;
-// typedef struct gff_batch {
-//        size_t num_records;	// Number of records read
-//        size_t size;             // Max buffer size (can be greater than num_records)
-//        gff_record_t **records;	// Records read
-// } gff_batch_t;
+typedef struct gff_batch {
+    array_list_t *records;      /**< Records in the block */
+    char *text;                 /**< Input buffer with the data for the records */
+} gff_batch_t;
 
 gff_batch_t* gff_batch_new(size_t size);
 

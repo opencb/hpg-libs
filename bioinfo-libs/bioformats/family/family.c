@@ -104,8 +104,7 @@ int family_add_child(individual_t *child, family_t *family) {
     
     assert(family->children);
     
-    void *ret = linked_list_insert(child, family->children);
-    return ret == NULL;
+    return linked_list_insert(child, family->children) == 0;
 }
 
 int family_add_unknown(individual_t *individual, family_t *family) {
@@ -121,8 +120,7 @@ int family_add_unknown(individual_t *individual, family_t *family) {
     
     assert(family->unknown);
     
-    void *ret = linked_list_insert(individual, family->unknown);
-    return ret == NULL;
+    return linked_list_insert(individual, family->unknown) == 0;
 }
 
 void family_free(family_t *family) {
