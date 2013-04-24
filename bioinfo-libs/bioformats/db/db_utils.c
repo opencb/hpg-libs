@@ -46,18 +46,13 @@ int create_stats_db(const char *db_name, int chunksize,
   sprintf(sql, "CREATE TABLE global_stats (name TEXT PRIMARY KEY, title TEXT, value TEXT)");
   rc = exec_sql(sql, *db);
 
-  //  sprintf(sql, "CREATE INDEX id_idx ON global_stats (id)");
-  //  rc = exec_sql(sql, *db);
 
   sprintf(sql, "%i", chunksize);
   rc = insert_global_stats("CHUNK_SIZE", "Chunk size", sql, *db);
   rc = insert_global_stats("CHR_PREFIX", "Chromosome prefix", "", *db);
 
-  // create chunks table and index
+  // create chunks table
   sprintf(sql, "CREATE TABLE chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
-  rc = exec_sql(sql, *db);
-
-  sprintf(sql, "CREATE INDEX chunk_chromosome_chunk_id_idx ON chunk (chromosome, chunk_id)");
   rc = exec_sql(sql, *db);
 
   // create record_query_fields table for bam, vcf.. files
@@ -67,6 +62,27 @@ int create_stats_db(const char *db_name, int chunksize,
   
   sprintf(sql, "END TRANSACTION");
   rc = exec_sql(sql, *db);
+
+  return rc;
+}
+
+//------------------------------------------------------------------------
+
+int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
+  //  sprintf(sql, "CREATE INDEX id_idx ON global_stats (id)");
+  //  rc = exec_sql(sql, *db);
+
+  int rc;
+  char sql[128];
+
+  // create chunks index
+  sprintf(sql, "CREATE INDEX chunk_chromosome_chunk_id_idx ON chunk (chromosome, chunk_id)");
+  rc = exec_sql(sql, db);
+
+  // create custeom index (for the record_query_fields table)
+  if (create_custom_index) {
+    rc = create_custom_index(db);
+  }
 
   return rc;
 }
@@ -129,20 +145,20 @@ int finalize_statement_global_stats(sqlite3_stmt *stmt) {
 //------------------------------------------------------------------------
 
 int insert_statement_global_stats(const char *name, const char *title, 
-				  const char *value, sqlite3_stmt *insert_stmt, 
+				  const char *value, sqlite3_stmt *stmt, 
 				  sqlite3 *db) {  
   int rc;
 
-  sqlite3_bind_text(insert_stmt, 1, name, strlen(name), SQLITE_TRANSIENT);
-  sqlite3_bind_text(insert_stmt, 2, title, strlen(title), SQLITE_TRANSIENT);
-  sqlite3_bind_text(insert_stmt, 3, value, strlen(value), SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 1, name, strlen(name), SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, title, strlen(title), SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 3, value, strlen(value), SQLITE_TRANSIENT);
 
-  if (rc = sqlite3_step(insert_stmt) != SQLITE_DONE) {
+  if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
     LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
   }
-  sqlite3_reset(insert_stmt);
+  sqlite3_reset(stmt);
 
   return rc;
 }
@@ -155,22 +171,22 @@ int insert_chunk(const char *chr, int chunk_id, int start, int end,
 		 int features_count, sqlite3 *db) {
 
   int rc;
-  sqlite3_stmt* insert_stmt;
+  sqlite3_stmt* stmt;
   char sql[] = "INSERT INTO chunk VALUES(?1, ?2, ?3, ?4, ?5)";
 
-  sqlite3_prepare_v2(db, sql, strlen(sql) + strlen(chr), &insert_stmt, NULL);
-  sqlite3_bind_text(insert_stmt, 1, chr, strlen(chr), SQLITE_STATIC);
-  sqlite3_bind_int(insert_stmt, 2, chunk_id);
-  sqlite3_bind_int(insert_stmt, 3, start);
-  sqlite3_bind_int(insert_stmt, 4, end);
-  sqlite3_bind_int(insert_stmt, 5, features_count);
+  sqlite3_prepare_v2(db, sql, strlen(sql) + strlen(chr), &stmt, NULL);
+  sqlite3_bind_text(stmt, 1, chr, strlen(chr), SQLITE_STATIC);
+  sqlite3_bind_int(stmt, 2, chunk_id);
+  sqlite3_bind_int(stmt, 3, start);
+  sqlite3_bind_int(stmt, 4, end);
+  sqlite3_bind_int(stmt, 5, features_count);
 
-  if (rc = sqlite3_step(insert_stmt) != SQLITE_DONE) {
+  if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
     LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
   }
-  sqlite3_finalize(insert_stmt);
+  sqlite3_finalize(stmt);
 
   return rc;
 }
@@ -204,7 +220,7 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end, sql
 }
 
 //------------------------------------------------------------------------
-//             S T A T S    T A B L E
+//         R E C O R D     Q U E R Y     F I E L D S    T A B L E
 //------------------------------------------------------------------------
 
 int insert_record_query_fields(const char *chr, int chr_length, int chunksize, 
@@ -216,6 +232,7 @@ int insert_record_query_fields(const char *chr, int chr_length, int chunksize,
   if (rc = insert_custom_fields(fields, db)) {
     LOG_DEBUG_F("Stats database failed: %s\n", sqlite3_errmsg(db));
   } else {
+    /*
     // if custom fields insertion succeeded then
     // update features counter for "touched" chunks
     int chunk_start, chunk_end;
@@ -231,6 +248,42 @@ int insert_record_query_fields(const char *chr, int chr_length, int chunksize,
 
       rc += inc_chunk(chr, chunk_id, chunk_start, chunk_end, db);
     }
+    */
+  }
+
+  return rc;
+}
+
+//------------------------------------------------------------------------
+
+int insert_statement_record_query_fields(const char *chr, int chr_length, int chunksize, 
+					 int start, int end, void *fields,
+					 int (*insert_statement_custom_fields)(void *, sqlite3_stmt *, sqlite3 *), 
+					 sqlite3_stmt *custom_stmt,
+					 sqlite3* db) {
+  int rc;
+
+
+  if (rc = insert_statement_custom_fields(fields, custom_stmt, db)) {
+    LOG_DEBUG_F("Stats database failed: %s\n", sqlite3_errmsg(db));
+  } else {
+    /*
+    // if custom fields insertion succeeded then
+    // update features counter for "touched" chunks
+    int chunk_start, chunk_end;
+    int chunk_id_start = start / chunksize;
+    int chunk_id_end = end / chunksize;
+
+    for (int chunk_id = chunk_id_start; chunk_id <= chunk_id_end; chunk_id++) {
+      chunk_start = chunk_id * chunksize;
+      chunk_end = chunk_start + chunksize - 1;
+      if (chunk_end > chr_length) {
+	chunk_end = chr_length - 1;
+      }
+
+      rc += inc_chunk(chr, chunk_id, chunk_start, chunk_end, db);
+    }
+    */
   }
 
   return rc;

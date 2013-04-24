@@ -223,6 +223,9 @@ void report_summary_sqlite3(sqlite3 *db, bam_stats_output_t *output) {
 
   prepare_statement_global_stats(db, &stmt);
   
+  char* errorMessage;
+  sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage);
+
   sprintf(aux, "%lu", output->ref_length);
   insert_statement_global_stats("REF_LENGTH", "Reference length", aux, stmt, db);
 
@@ -420,6 +423,8 @@ void report_summary_sqlite3(sqlite3 *db, bam_stats_output_t *output) {
     sprintf(aux2, "Chromosome %s coverage", output->sequence_labels[i]);
     insert_statement_global_stats(aux1, aux2, aux, stmt, db);
   }
+
+  sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage);
 
   finalize_statement_global_stats(stmt);
 }

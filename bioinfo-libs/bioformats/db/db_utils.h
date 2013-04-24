@@ -12,11 +12,12 @@
 
 #include "commons/sqlite/sqlite3.h"
 
-
 //------------------------------------------------------------------------
 
 int create_stats_db(const char *db_name, int chunksize, 
 		    int (*record_stats_creation)(sqlite3 *), sqlite3** db);
+
+int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db);
 
 //------------------------------------------------------------------------
 
@@ -41,8 +42,16 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end,
 
 //------------------------------------------------------------------------
 
-int insert_record_stats(const char *chr, int chunk, void *stats,
-			int (*insert_format_fn)(void *, sqlite3 *), sqlite3* db);
+int insert_record_query_fields(const char *chr, int chr_length, int chunksize, 
+			       int start, int end, void *fields,
+			       int (*insert_custom_fields)(void *, sqlite3 *), 
+			       sqlite3* db);
+
+int insert_statement_record_query_fields(const char *chr, int chr_length, int chunksize, 
+					 int start, int end, void *fields,
+					 int (*insert_statement_custom_fields)(void *, sqlite3_stmt *, sqlite3 *), 
+					 sqlite3_stmt *custom_stmt,
+					 sqlite3* db);
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------

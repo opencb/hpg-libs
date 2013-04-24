@@ -18,10 +18,14 @@
 //#include "commons/file_utils.h"
 
 #include "commons/workflow_scheduler.h"
+#include "commons/sqlite/sqlite3.h"
 #include "containers/khash.h"
 #include "containers/array_list.h"
-#include "bioformats/bam/bam_file.h"
 #include "bioformats/features/region/region_table.h"
+#include "bioformats/db/db_utils.h"
+#include "bioformats/bam/bam_file.h"
+#include "bioformats/bam/bam_db.h"
+
 
 //------------------------------------------------------------------------
 
@@ -36,10 +40,11 @@ typedef struct bam_stats_input {
   region_table_t *region_table;
   char *in_filename;
   void *db;
+  void *stmt;
 } bam_stats_input_t;
 
 bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads, int batch_size, void *db);
+				       int num_threads, int batch_size, void *db, void *stmt);
 void bam_stats_input_free(bam_stats_input_t *input);
 
 //------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------
 
 bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads,int batch_size, void *db) {
+				       int num_threads,int batch_size, void *db, void *stmt) {
   bam_stats_input_t *input = (bam_stats_input_t *) calloc(1, sizeof(bam_stats_input_t));
   
   input->in_filename = strdup(in_filename);
@@ -18,6 +18,7 @@ bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region
   input->num_threads = num_threads;
   input->batch_size = batch_size;
   input->db = db;
+  input->stmt = stmt;
   
   return input;
 }
@@ -140,6 +141,7 @@ void bam_stats_output_free(bam_stats_output_t *output) {
 typedef struct bam_stats_wf_batch {
   bam_stats_input_t *in_stats;
   array_list_t *bam1_list;
+  array_list_t *stats_list;
   bam_stats_output_t *tmp_stats;
   bam_stats_output_t *out_stats;
 } bam_stats_wf_batch_t;
@@ -153,6 +155,7 @@ bam_stats_wf_batch_t *bam_stats_wf_batch_new(bam_stats_input_t *in_stats,
   
   b->in_stats = in_stats;
   b->bam1_list = bam1_list;
+  b->stats_list = NULL;
   b->tmp_stats = tmp_stats;
   b->out_stats = out_stats;
   
@@ -229,12 +232,15 @@ void *bam_stats_producer(void *input) {
 //--------------------------------------------------------------------
 // workflow consumer
 //--------------------------------------------------------------------
+int bam_progress = 0;
 
 int bam_stats_consumer(void *data) {
   bam_stats_wf_batch_t *batch = (bam_stats_wf_batch_t *) data;
   
   bam_stats_output_t *tmp = batch->tmp_stats;
   bam_stats_output_t *out = batch->out_stats;
+
+  bam_progress += tmp->num_reads;
 
   // merge tmp stats into "final" stats
   out->num_reads += tmp->num_reads;
@@ -316,6 +322,39 @@ int bam_stats_consumer(void *data) {
   }
   array_list_free(bam1_list, NULL);
 
+  // stats
+  if (batch->in_stats->db && batch->stats_list) {
+
+    char* errorMessage;
+ 
+    sqlite3 *db = (sqlite3 *) batch->in_stats->db;
+    sqlite3_stmt *stmt = (sqlite3_stmt *) batch->in_stats->stmt;
+    bam_query_fields_t *fields;
+    array_list_t *stats_list = batch->stats_list;
+    num_items = array_list_size(stats_list);
+
+    sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage);
+
+    for (int i = 0; i < num_items; i++) {
+      fields = (bam_query_fields_t *) array_list_get(i, stats_list);
+      insert_statement_bam_query_fields((void *) fields, stmt, db);
+      /*
+      insert_statement_record_query_fields(fields->chr, fields->chr_length, BAM_CHUNKSIZE, 
+					   fields->start, fields->end, (void *) fields,
+					   insert_statement_bam_query_fields, stmt, db);
+      */
+      bam_query_fields_free(fields);
+    }
+
+    sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage);
+
+    array_list_free(stats_list, NULL);
+  }
+
+  if (bam_progress % 500000 == 0) {
+    LOG_INFO_F("%i reads processed !\n", bam_progress);
+  }
+
   // free memory
   bam_stats_output_free(tmp);
   bam_stats_wf_batch_free(batch);
@@ -334,21 +373,45 @@ int bam_stats_worker(void *data) {
 
   region_t region;
   char **sequence_labels = batch->out_stats->sequence_labels;
+  size_t *sequence_lengths = batch->out_stats->sequence_lengths;
   
   bam1_t *bam1;
   int bam_seq_len, num_cigar_ops, gc_content;
   uint8_t* bam_seq;
   uint32_t bam_flag, cigar_int, *cigar;
-  int isize, strand, num_errors;
-  size_t num_items = array_list_size(bam1_list);
+  int isize, strand, num_errors, num_indels, indels_length;
+  size_t chr_length, num_items = array_list_size(bam1_list);
+  char *chr, *qname;
+
+
+  sqlite3 *db;
+  bam_query_fields_t *fields;
+  array_list_t *stats_list = NULL;
+  if (batch->in_stats->db) {
+    //    db = (sqlite3 *) batch->in_stats->db;
+    stats_list = array_list_new(num_items, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);  
+  }
 
   for (int i = 0; i < num_items; i++) {
     
     bam1 = array_list_get(i, bam1_list);
     bam_flag = (uint32_t) bam1->core.flag;
+    isize = 0;
+    num_errors = 0;
+    num_indels = 0;
+    indels_length = 0;
+    chr = sequence_labels[bam1->core.tid];
+    chr_length = sequence_lengths[bam1->core.tid];
+    qname = bam1_qname(bam1);
+    strand = 0;
+    /*
+    printf("qname = %s\n", qname);
+    printf("\tcore.tid = %i\n", bam1->core.tid);
+    printf("\tchr = %s\n", chr);
+    */
 
     if (region_table) {
-      region.chromosome = sequence_labels[bam1->core.tid];
+      region.chromosome = chr;
       region.start_position = bam1->core.pos;
       region.end_position = region.start_position + bam1->core.l_qseq;
     }
@@ -370,18 +433,20 @@ int bam_stats_worker(void *data) {
 	  }
 
 	  cigar = bam1_cigar(bam1);
-	  
+	  num_cigar_ops = (int) bam1->core.n_cigar; 
 	  for (int j = 0; j < num_cigar_ops; j++) {
-	    cigar_int = cigar[i];
+	    cigar_int = cigar[j];
 	    switch (cigar_int & BAM_CIGAR_MASK) {
 	    case BAM_CINS:  //I: insertion to the reference
 	    case BAM_CDEL:  //D: deletion from the reference
-	      tmp->num_indels++;
-	      tmp->indels_acc += (cigar_int >> BAM_CIGAR_SHIFT);
+	      num_indels++;
+	      indels_length += (cigar_int >> BAM_CIGAR_SHIFT);
 	      break;
 	    }
 	  }
-	  
+	  tmp->num_indels += num_indels;
+	  tmp->indels_acc += indels_length;
+
 	  if (!(bam_flag & BAM_FSECONDARY)) {
 	    tmp->num_unique_alignments++;
 	    tmp->num_unique_alignments_strand[strand]++;
@@ -452,11 +517,24 @@ int bam_stats_worker(void *data) {
 	}
 	gc_content = round(100.0 * gc_content / bam_seq_len);
 	tmp->GC_content[gc_content]++;
+
+	if (stats_list) {
+	  fields = bam_query_fields_new(qname, chr, chr_length, strand, bam1->core.pos + 1, 
+					bam1->core.pos + bam1->core.l_qseq + 1, bam_flag,
+					bam1->core.qual, num_errors, num_indels, indels_length,
+					isize);
+
+	  array_list_insert(fields, stats_list);
+	}
     }
 	
     tmp->single_end = (bam_flag & BAM_FPAIRED ? 0 : 1);
   } // end for num_items
-      
+
+  if (stats_list) {
+    batch->stats_list = stats_list;
+  }
+
   return CONSUMER_STAGE;
 }
 
