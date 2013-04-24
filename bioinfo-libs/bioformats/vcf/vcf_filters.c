@@ -482,7 +482,13 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
     if (use_region_file) {
         snprintf(filter->name, 11, "RegionFile");
         snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        if (ends_with(region_descriptor, ".gff")) {
+            filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        } else if (ends_with(region_descriptor, ".bed")) {
+            filter_args->regions = parse_regions_from_bed_file(region_descriptor, url, species, version);
+        } else {
+            LOG_FATAL_F("Region file %s format not supported! Please use BED or GFF formats\n", region_descriptor);
+        }
     } else {
         snprintf(filter->name, 11, "RegionList");
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
@@ -509,7 +515,13 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
     if (use_region_file) {
         snprintf(filter->name, 11, "RegionFile");
         snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        if (ends_with(region_descriptor, ".gff")) {
+            filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        } else if (ends_with(region_descriptor, ".bed")) {
+            filter_args->regions = parse_regions_from_bed_file(region_descriptor, url, species, version);
+        } else {
+            LOG_FATAL_F("Region file %s format not supported! Please use BED or GFF formats\n", region_descriptor);
+        }
     } else {
         snprintf(filter->name, 11, "RegionList");
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);

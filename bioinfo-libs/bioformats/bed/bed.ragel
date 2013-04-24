@@ -254,15 +254,15 @@ static bed_batch_t *current_batch;
     record	    = (record_chrom >chrom_begin %chrom_end $err(chrom_error) "\t" 
                        record_start >start_begin %start_end $err(start_error) "\t" 
                        record_end >end_begin %end_end $err(end_error) "\t"  
-                       record_name >name_begin %name_end $err(name_error) "\t" 
-                       record_score >score_begin %score_end $err(score_error) "\t" 
-                       record_strand >strand_begin %strand_end $err(strand_error) "\t" 
-                       record_thickstart >thickstart_begin %thickstart_end $err(thickstart_error) "\t" 
-                       record_thickend >thickend_begin %thickend_end $err(thickend_error) "\t"  
-                       record_itemrgb >itemrgb_begin %itemrgb_end $err(itemrgb_error) "\t" 
-                       record_blockcount >blockcount_begin %blockcount_end $err(blockcount_error) "\t" 
-                       record_blocksizes >blocksizes_begin %blocksizes_end $err(blocksizes_error) "\t" 
-                       record_blockstarts >blockstarts_begin %blockstarts_end $err(blockstarts_error) )
+                       (record_name >name_begin %name_end $err(name_error) "\t" )? 
+                       (record_score >score_begin %score_end $err(score_error) "\t" )?
+                       (record_strand >strand_begin %strand_end $err(strand_error) "\t" )?
+                       (record_thickstart >thickstart_begin %thickstart_end $err(thickstart_error) "\t" )?
+                       (record_thickend >thickend_begin %thickend_end $err(thickend_error) "\t" )?
+                       (record_itemrgb >itemrgb_begin %itemrgb_end $err(itemrgb_error) "\t" )?
+                       (record_blockcount >blockcount_begin %blockcount_end $err(blockcount_error) "\t" )?
+                       (record_blocksizes >blocksizes_begin %blocksizes_end $err(blocksizes_error) "\t" )?
+                       (record_blockstarts >blockstarts_begin %blockstarts_end $err(blockstarts_error) )? )
                        >record_begin %record_end ;
     records         = record ("\n" >linebreak (record | comment))* ;
 

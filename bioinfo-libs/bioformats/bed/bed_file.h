@@ -12,7 +12,7 @@
 
 #include <commons/file_utils.h>
 #include <commons/log.h>
-
+#include <containers/linked_list.h>
 #include <containers/cprops/linked_list.h>
 
 #include "bed_file_structure.h"

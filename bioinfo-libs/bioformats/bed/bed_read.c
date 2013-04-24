@@ -74,14 +74,14 @@ void set_bed_record_strand(char strand, bed_record_t* bed_record) {
     LOG_DEBUG_F("set strand: %c\n", bed_record->strand);
 }
 
-void set_bed_record_block_count(unsigned long block_count, bed_record_t* bed_record) {
-    bed_record->block_count = block_count;
-    LOG_DEBUG_F("set start: %ld\n", bed_record->block_count);
+void set_bed_record_thickstart(unsigned long thickstart, bed_record_t* bed_record) {
+    bed_record->thickstart = thickstart;
+    LOG_DEBUG_F("set thick start: %ld\n", bed_record->thickstart);
 }
 
 void set_bed_record_thickend(unsigned long thickend, bed_record_t* bed_record) {
     bed_record->thickend = thickend;
-    LOG_DEBUG_F("set end: %ld\n", bed_record->thickend);
+    LOG_DEBUG_F("set thick end: %ld\n", bed_record->thickend);
 }
 
 void set_bed_record_itemrgb(char* item_rgb, size_t length, bed_record_t* bed_record) {
@@ -98,17 +98,17 @@ void set_bed_record_blockcount(int block_count, bed_record_t* bed_record) {
 }
 
 void set_bed_record_blocksizes(char* block_sizes, size_t length, bed_record_t* bed_record) {
-    assert(attribute);
+    assert(block_sizes);
     assert(bed_record);
     bed_record->block_sizes = block_sizes;
     bed_record->block_sizes_len = length;
-    LOG_DEBUG_F("set attribute: %.*s\n", bed_record->block_sizes_len, bed_record->block_sizes);
+    LOG_DEBUG_F("set block_sizes: %.*s\n", bed_record->block_sizes_len, bed_record->block_sizes);
 }
 
 void set_bed_record_blockstarts(char* block_starts, size_t length, bed_record_t* bed_record) {
-    assert(attribute);
+    assert(block_starts);
     assert(bed_record);
     bed_record->block_starts = block_starts;
     bed_record->block_starts_len = length;
-    LOG_DEBUG_F("set attribute: %.*s\n", bed_record->block_starts_len, bed_record->block_starts);
+    LOG_DEBUG_F("set block_starts: %.*s\n", bed_record->block_starts_len, bed_record->block_starts);
 }

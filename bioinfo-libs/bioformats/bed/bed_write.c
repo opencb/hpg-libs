@@ -45,17 +45,50 @@ void write_bed_record(bed_record_t* bed_record, FILE *fd) {
     assert(bed_record);
     assert(fd);
     
-    fprintf(fd, "%s\t%s\t%s\t%ld\t%ld\t", bed_record->sequence, bed_record->source, bed_record->feature, bed_record->start, bed_record->end);
-    if (bed_record->score < 0) {
-        fprintf(fd, ".\t");
+    fprintf(fd, "%.*s\t%ld\t%ld", bed_record->sequence_len, bed_record->sequence, bed_record->start, bed_record->end);
+    if (bed_record->name) {
+        fprintf(fd, "\t%.*s", bed_record->name_len, bed_record->name);
     } else {
-        fprintf(fd, "%d\t", bed_record->score);
+        fprintf(fd, "\t.");
     }
-    fprintf(fd, "%c\t", bed_record->strand);
-    if (bed_record->frame < 0) {
-        fprintf(fd, ".\t");
+    if (bed_record->score >= 0) {
+        fprintf(fd, "\t%d", bed_record->score);
     } else {
-        fprintf(fd, "%d\t", bed_record->frame);
+        fprintf(fd, "\t.");
     }
-    fprintf(fd, "%s\t\n", bed_record->attribute);
+    if (bed_record->strand) {
+        fprintf(fd, "\t%c", bed_record->strand);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->thickstart >= 0) {
+        fprintf(fd, "\t%d", bed_record->thickstart);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->thickend >= 0) {
+        fprintf(fd, "\t%d", bed_record->thickend);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->item_rgb) {
+        fprintf(fd, "\t%.*s", bed_record->item_rgb_len, bed_record->item_rgb);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->block_count >= 0) {
+        fprintf(fd, "\t%d", bed_record->block_count);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->block_sizes) {
+        fprintf(fd, "\t%.*s", bed_record->block_sizes_len, bed_record->block_sizes);
+    } else {
+        fprintf(fd, "\t.");
+    }
+    if (bed_record->block_starts) {
+        fprintf(fd, "\t%.*s", bed_record->block_starts_len, bed_record->block_starts);
+    } else {
+        fprintf(fd, "\t.");
+    }
 }

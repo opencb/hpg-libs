@@ -1,5 +1,4 @@
 #include "bed_file.h"
-#include "containers/linked_list.h"
 
 
 //====================================================================================
@@ -56,10 +55,11 @@ void bed_record_free(bed_record_t *bed_record) {
 
 void bed_record_free_deep(bed_record_t *bed_record) {
     assert(bed_record);
-    if (bed_record->sequence) { free(bed_record->sequence); }
-    if (bed_record->source) { free(bed_record->source); }
-    if (bed_record->feature) { free(bed_record->feature); }
-    if (bed_record->attribute) { free(bed_record->attribute); }
+    if (bed_record->sequence)   { free(bed_record->sequence); }
+    if (bed_record->name)       { free(bed_record->name); }
+    if (bed_record->item_rgb)   { free(bed_record->item_rgb); }
+    if (bed_record->block_sizes) { free(bed_record->block_sizes); }
+    if (bed_record->block_starts) { free(bed_record->block_starts); }
     free(bed_record);
 }
 

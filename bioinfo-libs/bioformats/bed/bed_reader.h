@@ -13,8 +13,6 @@
 #include "bed_read.h"
 #include "bed_batch.h"
 
-enum BED_Field { SEQUENCE, SOURCE, FEATURE, START, END, SCORE, STRAND, FRAME, ATTRIBUTE };
-
 int bed_ragel_read(list_t *batches_list, size_t batch_size, bed_file_t *file);
 
 #endif
