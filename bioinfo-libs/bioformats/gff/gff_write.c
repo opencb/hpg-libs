@@ -5,20 +5,22 @@ int gff_write_to_file(gff_file_t *gff_file, FILE *fd) {
     assert(fd);
 
     // Write header entries
-    cp_list_iterator *headers_iter = cp_list_create_iterator(gff_file->header_entries, COLLECTION_LOCK_READ);
+    linked_list_iterator_t *headers_iter = linked_list_iterator_new(gff_file->header_entries);
     gff_header_entry_t *entry = NULL;
-    while ((entry = cp_list_iterator_next(headers_iter)) != NULL) {
+    while ((entry = linked_list_iterator_curr(headers_iter))) {
         write_gff_header_entry(entry, fd);
+        linked_list_iterator_next(headers_iter);
     }
-    cp_list_iterator_destroy(headers_iter);
+    linked_list_iterator_free(headers_iter);
     
     // Write records
-    cp_list_iterator *records_iter = cp_list_create_iterator(gff_file->records, COLLECTION_LOCK_READ);
+    linked_list_iterator_t *records_iter = linked_list_iterator_new(gff_file->records);
     gff_record_t *record = NULL;
-    while ((record = cp_list_iterator_next(records_iter)) != NULL) {
+    while ((entry = linked_list_iterator_curr(records_iter))) {
         write_gff_record(record, fd);
+        linked_list_iterator_next(records_iter);
     }
-    cp_list_iterator_destroy(records_iter);
+    linked_list_iterator_free(records_iter);
 
     return 0;
 }
