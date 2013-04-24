@@ -7,7 +7,7 @@ formats_env['objects'] = []
 
 
 # Targets
-formats = ['family', 'fastq', 'bam', 'gff', 'ped', 'features', 'vcf']
+formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf']
 
 for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env'])
