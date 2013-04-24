@@ -199,7 +199,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
                 cs, %%{ write first_final; }%%);
     } 
 
-    LOG_INFO_F("Records read = %zu\n", num_records);
+    LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < %%{ write first_final; }%%;
 }

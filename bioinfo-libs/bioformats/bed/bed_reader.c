@@ -19,7 +19,7 @@ static const int bed_error = 0;
 static const int bed_en_main = 35;
 
 
-#line 288 "bed.ragel"
+#line 273 "bed.ragel"
 
 
 
@@ -57,381 +57,381 @@ case 35:
 		goto tr51;
 	goto tr3;
 tr0:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
 	goto st0;
 tr3:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 75 "bed.ragel"
+#line 71 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'chrom' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr8:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 90 "bed.ragel"
+#line 85 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'start' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr13:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 105 "bed.ragel"
+#line 99 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'end' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr25:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 150 "bed.ragel"
+#line 141 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'strand' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr27:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr30:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr33:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr35:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr38:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr40:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr42:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr44:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 137 "bed.ragel"
+#line 129 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'score' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr46:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 118 "bed.ragel"
+#line 111 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'name' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr56:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 118 "bed.ragel"
+#line 111 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'name' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 137 "bed.ragel"
+#line 129 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'score' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 150 "bed.ragel"
+#line 141 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'strand' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr98:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 137 "bed.ragel"
+#line 129 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'score' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 150 "bed.ragel"
+#line 141 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'strand' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr102:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 150 "bed.ragel"
+#line 141 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'strand' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
 tr108:
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 118 "bed.ragel"
+#line 111 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'name' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 137 "bed.ragel"
+#line 129 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'score' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
@@ -460,7 +460,6 @@ case 1:
 tr2:
 #line 29 "bed.ragel"
 	{
-        printf("header\n");
         set_bed_header_entry_text(ts, p-ts, current_header_entry);
         add_bed_header_entry(current_header_entry, file);
     }
@@ -473,7 +472,6 @@ tr2:
 tr55:
 #line 29 "bed.ragel"
 	{
-        printf("header\n");
         set_bed_header_entry_text(ts, p-ts, current_header_entry);
         add_bed_header_entry(current_header_entry, file);
     }
@@ -492,7 +490,7 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 496 "bed_reader.c"
+#line 494 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr55;
 		case 99: goto tr53;
@@ -507,23 +505,21 @@ tr53:
         current_header_entry = bed_header_entry_new();
         ts = p;
     }
-#line 39 "bed.ragel"
+#line 38 "bed.ragel"
 	{
-        printf("record begin\n");
         current_record = bed_record_new();
     }
-#line 66 "bed.ragel"
+#line 63 "bed.ragel"
 	{
         ts = p;
     }
 	goto st2;
 tr111:
-#line 39 "bed.ragel"
+#line 38 "bed.ragel"
 	{
-        printf("record begin\n");
         current_record = bed_record_new();
     }
-#line 66 "bed.ragel"
+#line 63 "bed.ragel"
 	{
         ts = p;
     }
@@ -532,7 +528,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 536 "bed_reader.c"
+#line 532 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 104: goto st3;
@@ -611,9 +607,8 @@ case 5:
 		goto st5;
 	goto tr3;
 tr7:
-#line 70 "bed.ragel"
+#line 67 "bed.ragel"
 	{
-        printf("chrom\n");
         set_bed_record_chromosome(ts, p-ts, current_record);
     }
 	goto st6;
@@ -621,7 +616,7 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 625 "bed_reader.c"
+#line 620 "bed_reader.c"
 	if ( (*p) == 10 )
 		goto tr2;
 	if ( (*p) < 48 ) {
@@ -634,7 +629,7 @@ case 6:
 		goto tr9;
 	goto tr8;
 tr9:
-#line 79 "bed.ragel"
+#line 75 "bed.ragel"
 	{
         ts = p;
     }
@@ -643,7 +638,7 @@ st7:
 	if ( ++p == pe )
 		goto _test_eof7;
 case 7:
-#line 647 "bed_reader.c"
+#line 642 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr10;
 		case 10: goto tr2;
@@ -659,9 +654,8 @@ case 7:
 		goto st7;
 	goto tr8;
 tr10:
-#line 83 "bed.ragel"
+#line 79 "bed.ragel"
 	{
-        printf("start\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_start(atol(field), current_record);
         free(field);
@@ -671,7 +665,7 @@ st8:
 	if ( ++p == pe )
 		goto _test_eof8;
 case 8:
-#line 675 "bed_reader.c"
+#line 669 "bed_reader.c"
 	if ( (*p) == 10 )
 		goto tr2;
 	if ( (*p) < 48 ) {
@@ -684,7 +678,7 @@ case 8:
 		goto tr14;
 	goto tr13;
 tr14:
-#line 94 "bed.ragel"
+#line 89 "bed.ragel"
 	{
         ts = p;
     }
@@ -693,7 +687,7 @@ st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-#line 697 "bed_reader.c"
+#line 691 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr15;
 		case 10: goto tr2;
@@ -709,9 +703,8 @@ case 9:
 		goto st9;
 	goto tr13;
 tr15:
-#line 98 "bed.ragel"
+#line 93 "bed.ragel"
 	{
-        printf("end\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_end(atol(field), current_record);
         free(field);
@@ -721,7 +714,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 725 "bed_reader.c"
+#line 718 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 43: goto tr58;
@@ -753,7 +746,6 @@ case 37:
 tr63:
 #line 29 "bed.ragel"
 	{
-        printf("header\n");
         set_bed_header_entry_text(ts, p-ts, current_header_entry);
         add_bed_header_entry(current_header_entry, file);
     }
@@ -766,7 +758,6 @@ tr63:
 tr57:
 #line 29 "bed.ragel"
 	{
-        printf("header\n");
         set_bed_header_entry_text(ts, p-ts, current_header_entry);
         add_bed_header_entry(current_header_entry, file);
     }
@@ -775,9 +766,8 @@ tr57:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-#line 44 "bed.ragel"
+#line 42 "bed.ragel"
 	{
-        printf("record end\n");
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && current_batch->records->size == batch_size) {
             list_item_t *item = list_item_new(num_records, 1, current_batch); 
@@ -801,7 +791,6 @@ tr57:
 tr67:
 #line 29 "bed.ragel"
 	{
-        printf("header\n");
         set_bed_header_entry_text(ts, p-ts, current_header_entry);
         add_bed_header_entry(current_header_entry, file);
     }
@@ -810,14 +799,12 @@ tr67:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-#line 229 "bed.ragel"
+#line 215 "bed.ragel"
 	{
-        printf("blockstarts\n");
         set_bed_record_blockstarts(ts, p-ts, current_record);
     }
-#line 44 "bed.ragel"
+#line 42 "bed.ragel"
 	{
-        printf("record end\n");
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && current_batch->records->size == batch_size) {
             list_item_t *item = list_item_new(num_records, 1, current_batch); 
@@ -842,7 +829,7 @@ st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-#line 846 "bed_reader.c"
+#line 833 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr55;
 		case 35: goto tr62;
@@ -863,7 +850,7 @@ st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
-#line 867 "bed_reader.c"
+#line 854 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 127: goto st1;
@@ -894,23 +881,21 @@ tr54:
         current_header_entry = bed_header_entry_new();
         ts = p;
     }
-#line 39 "bed.ragel"
+#line 38 "bed.ragel"
 	{
-        printf("record begin\n");
         current_record = bed_record_new();
     }
-#line 66 "bed.ragel"
+#line 63 "bed.ragel"
 	{
         ts = p;
     }
 	goto st11;
 tr112:
-#line 39 "bed.ragel"
+#line 38 "bed.ragel"
 	{
-        printf("record begin\n");
         current_record = bed_record_new();
     }
-#line 66 "bed.ragel"
+#line 63 "bed.ragel"
 	{
         ts = p;
     }
@@ -919,7 +904,7 @@ st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-#line 923 "bed_reader.c"
+#line 908 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 99: goto st12;
@@ -994,7 +979,7 @@ case 17:
 		goto st1;
 	goto tr3;
 tr58:
-#line 141 "bed.ragel"
+#line 133 "bed.ragel"
 	{
         ts = p;
     }
@@ -1003,7 +988,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 1007 "bed_reader.c"
+#line 992 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr26;
 		case 10: goto tr2;
@@ -1012,47 +997,40 @@ case 18:
 		goto st1;
 	goto tr25;
 tr26:
-#line 145 "bed.ragel"
+#line 137 "bed.ragel"
 	{
-        printf("strand\n");
         set_bed_record_strand(*ts, current_record);
     }
 	goto st40;
 tr104:
-#line 145 "bed.ragel"
+#line 137 "bed.ragel"
 	{
-        printf("strand\n");
         set_bed_record_strand(*ts, current_record);
     }
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st40;
@@ -1060,7 +1038,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1064 "bed_reader.c"
+#line 1042 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr64;
@@ -1075,27 +1053,27 @@ case 40:
 		goto tr65;
 	goto tr42;
 tr64:
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1104,7 +1082,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1108 "bed_reader.c"
+#line 1086 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr66;
 		case 10: goto tr67;
@@ -1113,35 +1091,30 @@ case 41:
 		goto st1;
 	goto tr42;
 tr66:
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st42;
@@ -1149,7 +1122,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1153 "bed_reader.c"
+#line 1126 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr68;
@@ -1164,23 +1137,23 @@ case 42:
 		goto tr69;
 	goto tr40;
 tr68:
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1189,7 +1162,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 1193 "bed_reader.c"
+#line 1166 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr70;
 		case 10: goto tr67;
@@ -1198,28 +1171,24 @@ case 43:
 		goto st1;
 	goto tr40;
 tr70:
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st44;
@@ -1227,7 +1196,7 @@ st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-#line 1231 "bed_reader.c"
+#line 1200 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr71;
@@ -1242,19 +1211,19 @@ case 44:
 		goto tr72;
 	goto tr38;
 tr71:
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1263,7 +1232,7 @@ st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-#line 1267 "bed_reader.c"
+#line 1236 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr73;
 		case 10: goto tr67;
@@ -1272,33 +1241,28 @@ case 45:
 		goto st1;
 	goto tr38;
 tr73:
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st46;
 tr91:
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st46;
@@ -1306,7 +1270,7 @@ st46:
 	if ( ++p == pe )
 		goto _test_eof46;
 case 46:
-#line 1310 "bed_reader.c"
+#line 1274 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr74;
@@ -1321,15 +1285,15 @@ case 46:
 		goto tr75;
 	goto tr33;
 tr74:
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1338,7 +1302,7 @@ st47:
 	if ( ++p == pe )
 		goto _test_eof47;
 case 47:
-#line 1342 "bed_reader.c"
+#line 1306 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr76;
 		case 10: goto tr67;
@@ -1347,16 +1311,14 @@ case 47:
 		goto st1;
 	goto tr33;
 tr76:
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st48;
@@ -1364,7 +1326,7 @@ st48:
 	if ( ++p == pe )
 		goto _test_eof48;
 case 48:
-#line 1368 "bed_reader.c"
+#line 1330 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr77;
@@ -1379,11 +1341,11 @@ case 48:
 		goto tr78;
 	goto tr30;
 tr77:
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1392,7 +1354,7 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 1396 "bed_reader.c"
+#line 1358 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr79;
 		case 10: goto tr67;
@@ -1401,9 +1363,8 @@ case 49:
 		goto st1;
 	goto tr30;
 tr79:
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st50;
@@ -1411,7 +1372,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 1415 "bed_reader.c"
+#line 1376 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 46: goto tr80;
@@ -1426,7 +1387,7 @@ case 50:
 		goto tr81;
 	goto tr27;
 tr80:
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1435,14 +1396,14 @@ st51:
 	if ( ++p == pe )
 		goto _test_eof51;
 case 51:
-#line 1439 "bed_reader.c"
+#line 1400 "bed_reader.c"
 	if ( (*p) == 10 )
 		goto tr67;
 	if ( 0 <= (*p) )
 		goto st1;
 	goto tr27;
 tr81:
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1451,7 +1412,7 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 1455 "bed_reader.c"
+#line 1416 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr67;
 		case 44: goto st19;
@@ -1514,11 +1475,11 @@ case 53:
 		goto st53;
 	goto tr27;
 tr78:
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1527,7 +1488,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 1531 "bed_reader.c"
+#line 1492 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr79;
 		case 10: goto tr67;
@@ -1592,15 +1553,15 @@ case 55:
 		goto st55;
 	goto tr30;
 tr75:
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1609,7 +1570,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 1613 "bed_reader.c"
+#line 1574 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr76;
 		case 10: goto tr67;
@@ -1659,19 +1620,19 @@ case 57:
 		goto st57;
 	goto tr33;
 tr72:
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1680,7 +1641,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 1684 "bed_reader.c"
+#line 1645 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr73;
 		case 10: goto tr67;
@@ -1797,23 +1758,23 @@ case 61:
 		goto st61;
 	goto tr38;
 tr69:
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1822,7 +1783,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 1826 "bed_reader.c"
+#line 1787 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr70;
 		case 10: goto tr67;
@@ -1872,27 +1833,27 @@ case 63:
 		goto st63;
 	goto tr40;
 tr65:
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1901,7 +1862,7 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 1905 "bed_reader.c"
+#line 1866 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr66;
 		case 10: goto tr67;
@@ -1951,39 +1912,39 @@ case 65:
 		goto st65;
 	goto tr42;
 tr59:
-#line 109 "bed.ragel"
+#line 103 "bed.ragel"
 	{
         ts = p;
     }
-#line 122 "bed.ragel"
+#line 115 "bed.ragel"
 	{
         ts = p;
     }
-#line 141 "bed.ragel"
+#line 133 "bed.ragel"
 	{
         ts = p;
     }
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -1992,7 +1953,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 1996 "bed_reader.c"
+#line 1957 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr97;
 		case 10: goto tr67;
@@ -2001,21 +1962,18 @@ case 66:
 		goto st1;
 	goto tr56;
 tr47:
-#line 113 "bed.ragel"
+#line 107 "bed.ragel"
 	{
-        printf("name\n");
         set_bed_record_name(ts, p-ts, current_record);
     }
 	goto st67;
 tr97:
-#line 113 "bed.ragel"
+#line 107 "bed.ragel"
 	{
-        printf("name\n");
         set_bed_record_name(ts, p-ts, current_record);
     }
-#line 126 "bed.ragel"
+#line 119 "bed.ragel"
 	{
-        printf("score\n");
         float score = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
             char *field = strndup(ts, p-ts);
@@ -2024,52 +1982,44 @@ tr97:
         }
         set_bed_record_score(score, current_record);
     }
-#line 145 "bed.ragel"
+#line 137 "bed.ragel"
 	{
-        printf("strand\n");
         set_bed_record_strand(*ts, current_record);
     }
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st67;
 tr109:
-#line 113 "bed.ragel"
+#line 107 "bed.ragel"
 	{
-        printf("name\n");
         set_bed_record_name(ts, p-ts, current_record);
     }
-#line 126 "bed.ragel"
+#line 119 "bed.ragel"
 	{
-        printf("score\n");
         float score = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
             char *field = strndup(ts, p-ts);
@@ -2078,35 +2028,30 @@ tr109:
         }
         set_bed_record_score(score, current_record);
     }
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st67;
@@ -2114,7 +2059,7 @@ st67:
 	if ( ++p == pe )
 		goto _test_eof67;
 case 67:
-#line 2118 "bed_reader.c"
+#line 2063 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 43: goto tr58;
@@ -2131,35 +2076,35 @@ case 67:
 		goto tr100;
 	goto tr98;
 tr99:
-#line 122 "bed.ragel"
+#line 115 "bed.ragel"
 	{
         ts = p;
     }
-#line 141 "bed.ragel"
+#line 133 "bed.ragel"
 	{
         ts = p;
     }
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -2168,7 +2113,7 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 2172 "bed_reader.c"
+#line 2117 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr101;
 		case 10: goto tr67;
@@ -2177,9 +2122,8 @@ case 68:
 		goto st1;
 	goto tr98;
 tr101:
-#line 126 "bed.ragel"
+#line 119 "bed.ragel"
 	{
-        printf("score\n");
         float score = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
             char *field = strndup(ts, p-ts);
@@ -2188,47 +2132,40 @@ tr101:
         }
         set_bed_record_score(score, current_record);
     }
-#line 145 "bed.ragel"
+#line 137 "bed.ragel"
 	{
-        printf("strand\n");
         set_bed_record_strand(*ts, current_record);
     }
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st69;
 tr105:
-#line 126 "bed.ragel"
+#line 119 "bed.ragel"
 	{
-        printf("score\n");
         float score = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
             char *field = strndup(ts, p-ts);
@@ -2237,35 +2174,30 @@ tr105:
         }
         set_bed_record_score(score, current_record);
     }
-#line 158 "bed.ragel"
+#line 149 "bed.ragel"
 	{
-        printf("thickstart\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickstart(atol(field), current_record);
         free(field);
     }
-#line 173 "bed.ragel"
+#line 163 "bed.ragel"
 	{
-        printf("thickend\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_thickend(atol(field), current_record);
         free(field);
     }
-#line 188 "bed.ragel"
+#line 177 "bed.ragel"
 	{
-        printf("itemrgb\n");
         set_bed_record_itemrgb(ts, p-ts, current_record);
     }
-#line 201 "bed.ragel"
+#line 189 "bed.ragel"
 	{
-        printf("blockcount\n");
         char *field = strndup(ts, p-ts);
         set_bed_record_blockcount(atoi(field), current_record);
         free(field);
     }
-#line 216 "bed.ragel"
+#line 203 "bed.ragel"
 	{
-        printf("blocksizez\n");
         set_bed_record_blocksizes(ts, p-ts, current_record);
     }
 	goto st69;
@@ -2273,7 +2205,7 @@ st69:
 	if ( ++p == pe )
 		goto _test_eof69;
 case 69:
-#line 2277 "bed_reader.c"
+#line 2209 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 43: goto tr58;
@@ -2290,31 +2222,31 @@ case 69:
 		goto tr65;
 	goto tr102;
 tr103:
-#line 141 "bed.ragel"
+#line 133 "bed.ragel"
 	{
         ts = p;
     }
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -2323,7 +2255,7 @@ st70:
 	if ( ++p == pe )
 		goto _test_eof70;
 case 70:
-#line 2327 "bed_reader.c"
+#line 2259 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr104;
 		case 10: goto tr67;
@@ -2332,31 +2264,31 @@ case 70:
 		goto st1;
 	goto tr102;
 tr100:
-#line 122 "bed.ragel"
+#line 115 "bed.ragel"
 	{
         ts = p;
     }
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -2365,7 +2297,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 2369 "bed_reader.c"
+#line 2301 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr105;
 		case 10: goto tr67;
@@ -2415,35 +2347,35 @@ case 72:
 		goto st72;
 	goto tr44;
 tr60:
-#line 109 "bed.ragel"
+#line 103 "bed.ragel"
 	{
         ts = p;
     }
-#line 122 "bed.ragel"
+#line 115 "bed.ragel"
 	{
         ts = p;
     }
-#line 154 "bed.ragel"
+#line 145 "bed.ragel"
 	{
         ts = p;
     }
-#line 169 "bed.ragel"
+#line 159 "bed.ragel"
 	{
         ts = p;
     }
-#line 184 "bed.ragel"
+#line 173 "bed.ragel"
 	{
         ts = p;
     }
-#line 197 "bed.ragel"
+#line 185 "bed.ragel"
 	{
         ts = p;
     }
-#line 212 "bed.ragel"
+#line 199 "bed.ragel"
 	{
         ts = p;
     }
-#line 225 "bed.ragel"
+#line 211 "bed.ragel"
 	{
         ts = p;
     }
@@ -2452,7 +2384,7 @@ st73:
 	if ( ++p == pe )
 		goto _test_eof73;
 case 73:
-#line 2456 "bed_reader.c"
+#line 2388 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr109;
 		case 10: goto tr67;
@@ -2482,7 +2414,7 @@ case 73:
 		goto st30;
 	goto tr108;
 tr61:
-#line 109 "bed.ragel"
+#line 103 "bed.ragel"
 	{
         ts = p;
     }
@@ -2491,7 +2423,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 2495 "bed_reader.c"
+#line 2427 "bed_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr47;
 		case 10: goto tr2;
@@ -2593,7 +2525,7 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-#line 2597 "bed_reader.c"
+#line 2529 "bed_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr2;
 		case 99: goto tr111;
@@ -2683,7 +2615,7 @@ case 74:
 	switch ( cs ) {
 	case 1: 
 	case 10: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
@@ -2697,9 +2629,8 @@ case 74:
 	case 50: 
 	case 67: 
 	case 69: 
-#line 44 "bed.ragel"
+#line 42 "bed.ragel"
 	{
-        printf("record end\n");
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && current_batch->records->size == batch_size) {
             list_item_t *item = list_item_new(num_records, 1, current_batch); 
@@ -2731,11 +2662,11 @@ case 74:
 	case 15: 
 	case 16: 
 	case 17: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 75 "bed.ragel"
+#line 71 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'chrom' field\n", num_batches * batch_size + num_records, file->filename);
     }
@@ -2744,11 +2675,11 @@ case 74:
 	case 7: 
 	case 33: 
 	case 34: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 90 "bed.ragel"
+#line 85 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'start' field\n", num_batches * batch_size + num_records, file->filename);
     }
@@ -2757,42 +2688,42 @@ case 74:
 	case 9: 
 	case 31: 
 	case 32: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 105 "bed.ragel"
+#line 99 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'end' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 30: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 118 "bed.ragel"
+#line 111 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'name' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 18: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 150 "bed.ragel"
+#line 141 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'strand' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 19: 
 	case 20: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
@@ -2823,14 +2754,12 @@ case 74:
 	case 71: 
 	case 72: 
 	case 73: 
-#line 229 "bed.ragel"
+#line 215 "bed.ragel"
 	{
-        printf("blockstarts\n");
         set_bed_record_blockstarts(ts, p-ts, current_record);
     }
-#line 44 "bed.ragel"
+#line 42 "bed.ragel"
 	{
-        printf("record end\n");
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && current_batch->records->size == batch_size) {
             list_item_t *item = list_item_new(num_records, 1, current_batch); 
@@ -2853,176 +2782,176 @@ case 74:
 	break;
 	case 21: 
 	case 22: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 24: 
 	case 25: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 23: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 26: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 27: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 28: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
 	case 29: 
-#line 35 "bed.ragel"
+#line 34 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
-#line 137 "bed.ragel"
+#line 129 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'score' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 165 "bed.ragel"
+#line 155 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickStart' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 180 "bed.ragel"
+#line 169 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'thickEnd' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 193 "bed.ragel"
+#line 181 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'itemRgb' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 208 "bed.ragel"
+#line 195 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockCount' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 221 "bed.ragel"
+#line 207 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockSizes' field\n", num_batches * batch_size + num_records, file->filename);
     }
-#line 234 "bed.ragel"
+#line 219 "bed.ragel"
 	{
         printf("Line %zu (%s): Error in 'blockStarts' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
-#line 3019 "bed_reader.c"
+#line 2948 "bed_reader.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 306 "bed.ragel"
+#line 291 "bed.ragel"
  
 
     // Insert the last batch
@@ -3033,15 +2962,15 @@ case 74:
     }
 
     if ( cs < 
-#line 3037 "bed_reader.c"
+#line 2966 "bed_reader.c"
 35
-#line 315 "bed.ragel"
+#line 300 "bed.ragel"
  ) {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 3043 "bed_reader.c"
+#line 2972 "bed_reader.c"
 35
-#line 317 "bed.ragel"
+#line 302 "bed.ragel"
 );
     } 
 
@@ -3051,8 +2980,8 @@ case 74:
     //bed_header_entry_free(current_header_entry);
 
     return cs < 
-#line 3055 "bed_reader.c"
+#line 2984 "bed_reader.c"
 35
-#line 325 "bed.ragel"
+#line 310 "bed.ragel"
 ;
 }

@@ -727,7 +727,7 @@ case 16:
 );
     } 
 
-    LOG_INFO_F("Records read = %zu\n", num_records);
+    LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < 
 #line 734 "ped_reader.c"
