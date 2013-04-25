@@ -27,7 +27,7 @@ void report_vcf_variant_stats_header(FILE *stats_fd);
 
 char *get_sample_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir);
 
-void report_sample_stats(char *stats_fd, void *db, size_t num_samples, sample_stats_t **stats);
+void report_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats);
 
 void report_sample_variant_stats_header(FILE *stats_fd);
 

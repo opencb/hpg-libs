@@ -201,7 +201,7 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, variant_stats_t *stats) 
 
     // Write to database (optional)
     if (db) {
-        report_summary_sqlite3((sqlite3 *) db, stats);
+        //report_summary_sqlite3((sqlite3 *) db, stats);
     }
 }
 
@@ -232,7 +232,7 @@ char *get_sample_stats_output_filename(char *vcf_filename, char *out_filename, c
     return stats_filename;
 }
 
-void report_sample_stats(char *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
+void report_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
     sample_stats_t *sam_stats;
     for (int i = 0; i < num_samples; i++) {
         sam_stats = stats[i];

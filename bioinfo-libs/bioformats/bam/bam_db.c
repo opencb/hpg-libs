@@ -42,7 +42,8 @@ void bam_query_fields_free(bam_query_fields_t *p) {
 }
 
 void print_bam_query_fields(bam_query_fields_t *p) {
-  printf("id = %s, chr = %s, chr_length = %i, strand = %i, start = %i, end = %i, flag = %i, mquality = %u, num_erros = %i, num_indels = %i, indels_length = %i, template_length = %i\n", p->id, p->chr, p->chr_length, p->strand, p->start, p->end, p->flag, p->mapping_quality, p->num_errors, p->num_indels, p->indels_length, p->template_length);
+  printf("id = %s, chr = %s, chr_length = %i, strand = %i, start = %i, end = %i, flag = %i, mquality = %u, num_erros = %i, num_indels = %i, indels_length = %i, template_length = %i\n", 
+          p->id, p->chr, p->chr_length, p->strand, p->start, p->end, p->flag, p->mapping_quality, p->num_errors, p->num_indels, p->indels_length, p->template_length);
 }
 
 //------------------------------------------------------------------------
