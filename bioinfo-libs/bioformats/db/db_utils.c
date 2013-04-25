@@ -5,17 +5,11 @@
  *      Author: jtarraga
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "commons/log.h"
-#include "containers/khash.h"
-
 #include "db_utils.h"
 
 //------------------------------------------------------------------------
 
-inline int exec_sql(char *sql, sqlite3* db) {
+static inline int exec_sql(char *sql, sqlite3* db) {
   int rc;
   char *error_msg;
   if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {

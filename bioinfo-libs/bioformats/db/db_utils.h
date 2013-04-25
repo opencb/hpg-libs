@@ -10,8 +10,12 @@
 
 //------------------------------------------------------------------------
 
-#include "commons/sqlite/sqlite3.h"
-#include "containers/khash.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <commons/log.h>
+#include <commons/sqlite/sqlite3.h>
+#include <containers/khash.h>
 
 //------------------------------------------------------------------------
 
