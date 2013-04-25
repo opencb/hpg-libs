@@ -101,6 +101,51 @@ int insert_bam_query_fields(void *custom_fields, sqlite3 *db) {
 
 //------------------------------------------------------------------------
 
+int insert_bam_query_fields_list(array_list_t *list, sqlite3 *db) {
+
+  int rc;
+  sqlite3_stmt *stmt;
+  bam_query_fields_t *fields;
+  char *errorMessage;
+
+  prepare_statement_bam_query_fields(db, &stmt);
+
+  if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
+    LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+  }
+
+  int num_items = array_list_size(list);
+  for (int i = 0; i < num_items; i++) {
+    fields = array_list_get(i, list);
+
+    sqlite3_bind_text(stmt, 1, fields->chr, strlen(fields->chr), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, fields->strand);
+    sqlite3_bind_int(stmt, 3, fields->start);
+    sqlite3_bind_int(stmt, 4, fields->end);
+    sqlite3_bind_int(stmt, 5, fields->flag);
+    sqlite3_bind_int(stmt, 6, fields->mapping_quality);
+    sqlite3_bind_int(stmt, 7, fields->num_errors);
+    sqlite3_bind_int(stmt, 8, fields->num_indels);
+    sqlite3_bind_int(stmt, 9, fields->indels_length);
+    sqlite3_bind_int(stmt, 10, fields->template_length);
+    sqlite3_bind_text(stmt, 11, fields->id, strlen(fields->id), SQLITE_STATIC);
+
+    if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+      LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+    }
+
+    sqlite3_reset(stmt);
+  }
+
+  if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
+    LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+  }
+
+  sqlite3_finalize(stmt);
+}
+
+//------------------------------------------------------------------------
+
 int prepare_statement_bam_query_fields(sqlite3 *db, sqlite3_stmt **stmt) {
   //char sql[] = "INSERT INTO record_query_fields (chromosome) VALUES (?1)";
   char sql[] = "INSERT INTO record_query_fields VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)";
@@ -134,6 +179,7 @@ int insert_statement_bam_query_fields(void *custom_fields,
 
   return rc;
 }
+
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 

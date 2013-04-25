@@ -11,6 +11,11 @@
 //------------------------------------------------------------------------
 
 #include "commons/sqlite/sqlite3.h"
+#include "containers/khash.h"
+
+//------------------------------------------------------------------------
+
+KHASH_MAP_INIT_STR(str, int)
 
 //------------------------------------------------------------------------
 
@@ -39,6 +44,11 @@ int insert_chunk(const char *chromosome, int chunk_id, int start, int end,
 
 int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end, 
 	      sqlite3 *db);
+
+int update_chunks_hash(const char *chr, int chr_length, int chunksize, 
+		       int start, int end, khash_t(str) *hash);
+
+int insert_chunk_hash(int chunksize, khash_t(str) *hash, sqlite3 *db);
 
 //------------------------------------------------------------------------
 

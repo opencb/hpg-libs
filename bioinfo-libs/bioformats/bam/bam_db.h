@@ -15,6 +15,7 @@
 
 #include "commons/log.h"
 #include "commons/sqlite/sqlite3.h"
+#include "containers/array_list.h"
 
 //------------------------------------------------------------------------
 
@@ -59,9 +60,13 @@ int create_bam_index(sqlite3 *db);
 //------------------------------------------------------------------------
 
 int insert_bam_query_fields(void *custom_fields, sqlite3 *db);
+
+int insert_bam_query_fields_list(array_list_t *list, sqlite3 *db);
+
 int prepare_statement_bam_query_files(sqlite3 *db, sqlite3_stmt **stmt);
 int insert_statement_bam_query_fields(void *custom_fields, 
 				      sqlite3_stmt *stmt, sqlite3 *db);
+
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------

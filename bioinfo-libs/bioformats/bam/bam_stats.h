@@ -40,11 +40,11 @@ typedef struct bam_stats_input {
   region_table_t *region_table;
   char *in_filename;
   void *db;
-  void *stmt;
+  void *hash;
 } bam_stats_input_t;
 
 bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads, int batch_size, void *db, void *stmt);
+				       int num_threads, int batch_size, void *db, void *hash);
 void bam_stats_input_free(bam_stats_input_t *input);
 
 //------------------------------------------------------------------------

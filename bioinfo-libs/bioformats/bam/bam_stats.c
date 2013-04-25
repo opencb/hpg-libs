@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------
 
 bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads,int batch_size, void *db, void *stmt) {
+				       int num_threads,int batch_size, void *db, void *hash) {
   bam_stats_input_t *input = (bam_stats_input_t *) calloc(1, sizeof(bam_stats_input_t));
   
   input->in_filename = strdup(in_filename);
@@ -18,7 +18,7 @@ bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region
   input->num_threads = num_threads;
   input->batch_size = batch_size;
   input->db = db;
-  input->stmt = stmt;
+  input->hash = hash;
   
   return input;
 }
@@ -324,31 +324,25 @@ int bam_stats_consumer(void *data) {
 
   // stats
   if (batch->in_stats->db && batch->stats_list) {
-
-    char* errorMessage;
- 
-    sqlite3 *db = (sqlite3 *) batch->in_stats->db;
-    sqlite3_stmt *stmt = (sqlite3_stmt *) batch->in_stats->stmt;
-    bam_query_fields_t *fields;
+    khash_t(str) *hash = batch->in_stats->hash;
+    sqlite3 *db = batch->in_stats->db;
     array_list_t *stats_list = batch->stats_list;
-    num_items = array_list_size(stats_list);
 
-    sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage);
+    // insert stats-list into the db record-query-fields table
+    insert_bam_query_fields_list(stats_list, db);
 
+    bam_query_fields_t *fields;
+    size_t num_items = array_list_size(stats_list);
     for (int i = 0; i < num_items; i++) {
-      fields = (bam_query_fields_t *) array_list_get(i, stats_list);
-      insert_statement_bam_query_fields((void *) fields, stmt, db);
-      /*
-      insert_statement_record_query_fields(fields->chr, fields->chr_length, BAM_CHUNKSIZE, 
-					   fields->start, fields->end, (void *) fields,
-					   insert_statement_bam_query_fields, stmt, db);
-      */
+      fields = array_list_get(i, stats_list);
+
+      // update chunks hash and free bam query fields
+      update_chunks_hash(fields->chr, fields->chr_length, BAM_CHUNKSIZE,
+			 fields->start, fields->end, hash);
       bam_query_fields_free(fields);
     }
 
-    sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage);
-
-    array_list_free(stats_list, NULL);
+    array_list_free(batch->stats_list, NULL);
   }
 
   if (bam_progress % 500000 == 0) {
