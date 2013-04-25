@@ -4,14 +4,14 @@
 #include <sys/types.h>
 
 #include <commons/file_utils.h>
-
-#include <containers/cprops/linked_list.h>
+#include <containers/linked_list.h>
 
 /**
  * Entry in the GFF document header.
  */
 typedef struct gff_header_entry {
     char *text;
+    int text_len;
 } gff_header_entry_t;
 
 
@@ -25,9 +25,14 @@ typedef struct gff_record {
     char *attribute;
     unsigned long start;
     unsigned long end;
-    int16_t score;
-    int8_t frame;
+    float score;
+    char frame;
     char strand;
+    
+    int sequence_len;           /**< Length of the seqname field */
+    int source_len;             /**< Length of the source field */
+    int feature_len;            /**< Length of the feature field */
+    int attribute_len;          /**< Length of the attributes field */
 } gff_record_t;
 
 
@@ -44,8 +49,8 @@ typedef struct gff_file {
     char *data;
     size_t data_len;
     
-    cp_list *header_entries;
-    cp_list *records;
+    linked_list_t *header_entries;
+    linked_list_t *records;
 } gff_file_t;
 
 #endif

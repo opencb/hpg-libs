@@ -2,23 +2,23 @@
 
 region_table_t *create_table(const char *url, const char *species, const char *version)
 {
-	int num_chromosomes;
-	region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
+    int num_chromosomes;
+    region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
 	
     table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
-	table->max_chromosomes = num_chromosomes;
-	
-	table->storage = cp_hashtable_create_by_option( COLLECTION_MODE_NOSYNC | COLLECTION_MODE_DEEP,
-							num_chromosomes * 2,
-							cp_hash_istring,			// Hash function
-							(cp_compare_fn) strcasecmp,		// Key comparison function
-							NULL,					// Key copy function
-							(cp_destructor_fn) free_chromosome,	// Key destructor function
-							NULL,					// Value copy function
-							(cp_destructor_fn) free_chromosome_tree	// Value destructor function
-	);
-	
-	return table;
+    table->max_chromosomes = num_chromosomes;
+
+    table->storage = cp_hashtable_create_by_option( COLLECTION_MODE_NOSYNC | COLLECTION_MODE_DEEP,
+                                                    num_chromosomes * 2,
+                                                    cp_hash_istring,			// Hash function
+                                                    (cp_compare_fn) strcasecmp,		// Key comparison function
+                                                    NULL,					// Key copy function
+                                                    (cp_destructor_fn) free_chromosome,	// Key destructor function
+                                                    NULL,					// Value copy function
+                                                    (cp_destructor_fn) free_chromosome_tree	// Value destructor function
+    );
+
+    return table;
 }
 
 void free_table(region_table_t* regions) {
@@ -32,6 +32,7 @@ void free_table(region_table_t* regions) {
     // Free hashtable
     cp_hashtable *table = regions->storage;
     cp_hashtable_destroy(table);
+    free(regions);
 }
 
 

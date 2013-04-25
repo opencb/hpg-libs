@@ -35,9 +35,11 @@ static ped_batch_t *current_batch;
         }
 
         // Add current record to current batch
-        add_record_to_ped_batch(current_record, current_batch);
-
-        num_records++;
+        if (current_record) {
+            add_record_to_ped_batch(current_record, current_batch);
+            num_records++;
+        }
+        current_record = NULL;
     }
 
     action family_begin {
@@ -197,7 +199,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
                 cs, %%{ write first_final; }%%);
     } 
 
-    LOG_INFO_F("Records read = %zu\n", num_records);
+    LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < %%{ write first_final; }%%;
 }

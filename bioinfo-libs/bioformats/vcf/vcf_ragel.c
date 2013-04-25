@@ -11,7 +11,7 @@ static const int vcf_error = 0;
 static const int vcf_en_main = 122;
 
 
-#line 296 "vcf.ragel"
+#line 295 "vcf.ragel"
 
 
 
@@ -60,62 +60,61 @@ case 122:
 tr55:
 #line 105 "vcf.ragel"
 	{
-        printf("Num batches = %zu\n", status->num_batches);
-        printf("Line %d (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr58:
-#line 120 "vcf.ragel"
+#line 119 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr62:
-#line 132 "vcf.ragel"
+#line 131 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr66:
-#line 144 "vcf.ragel"
+#line 143 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr70:
-#line 162 "vcf.ragel"
+#line 161 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr75:
-#line 180 "vcf.ragel"
+#line 179 "vcf.ragel"
 	{
-        printf("Line %d: Error in 'quality' field\n", status->num_batches * batch_size + status->num_records);
+        printf("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr79:
-#line 192 "vcf.ragel"
+#line 191 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr84:
-#line 204 "vcf.ragel"
+#line 203 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr90:
-#line 216 "vcf.ragel"
+#line 215 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr95:
-#line 228 "vcf.ragel"
+#line 227 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in sample\n", lines, file->filename);
+        printf("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	goto st0;
 tr146:
@@ -124,7 +123,7 @@ tr146:
         printf("Line %d (%s): Error in file format\n", lines, file->filename);
     }
 	goto st0;
-#line 128 "vcf_ragel.c"
+#line 127 "vcf_ragel.c"
 st0:
 cs = 0;
 	goto _out;
@@ -157,7 +156,7 @@ st123:
 	if ( ++p == pe )
 		goto _test_eof123;
 case 123:
-#line 161 "vcf_ragel.c"
+#line 160 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st123;
 		case 35: goto tr156;
@@ -184,7 +183,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 188 "vcf_ragel.c"
+#line 187 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st2;
 		case 67: goto st5;
@@ -225,7 +224,7 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 229 "vcf_ragel.c"
+#line 228 "vcf_ragel.c"
 	if ( (*p) == 10 )
 		goto tr5;
 	if ( 32 <= (*p) && (*p) <= 126 )
@@ -256,7 +255,7 @@ st124:
 	if ( ++p == pe )
 		goto _test_eof124;
 case 124:
-#line 260 "vcf_ragel.c"
+#line 259 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st125;
 		case 35: goto tr156;
@@ -618,7 +617,7 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 622 "vcf_ragel.c"
+#line 621 "vcf_ragel.c"
 	if ( 32 <= (*p) && (*p) <= 126 )
 		goto tr51;
 	goto st0;
@@ -632,7 +631,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 636 "vcf_ragel.c"
+#line 635 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr52;
 		case 10: goto tr53;
@@ -655,7 +654,7 @@ st126:
 	if ( ++p == pe )
 		goto _test_eof126;
 case 126:
-#line 659 "vcf_ragel.c"
+#line 658 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st126;
 		case 44: goto tr155;
@@ -685,7 +684,7 @@ st51:
 	if ( ++p == pe )
 		goto _test_eof51;
 case 51:
-#line 689 "vcf_ragel.c"
+#line 688 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr56;
 		case 44: goto st51;
@@ -711,12 +710,12 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 715 "vcf_ragel.c"
+#line 714 "vcf_ragel.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr59;
 	goto tr58;
 tr59:
-#line 110 "vcf.ragel"
+#line 109 "vcf.ragel"
 	{
         ts = p;
     }
@@ -725,14 +724,14 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 729 "vcf_ragel.c"
+#line 728 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr60;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st53;
 	goto tr58;
 tr60:
-#line 114 "vcf.ragel"
+#line 113 "vcf.ragel"
 	{
         char *field = strndup(ts, p-ts);
         set_vcf_record_position(atol(field), status->current_record);
@@ -743,7 +742,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 747 "vcf_ragel.c"
+#line 746 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr63;
 		case 95: goto tr64;
@@ -758,7 +757,7 @@ case 54:
 		goto tr64;
 	goto tr62;
 tr63:
-#line 124 "vcf.ragel"
+#line 123 "vcf.ragel"
 	{
         ts = p;
     }
@@ -767,12 +766,12 @@ st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-#line 771 "vcf_ragel.c"
+#line 770 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr65;
 	goto tr62;
 tr65:
-#line 128 "vcf.ragel"
+#line 127 "vcf.ragel"
 	{
         set_vcf_record_id(ts, p-ts, status->current_record);
     }
@@ -781,7 +780,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 785 "vcf_ragel.c"
+#line 784 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 65: goto tr67;
 		case 67: goto tr67;
@@ -791,7 +790,7 @@ case 56:
 	}
 	goto tr66;
 tr67:
-#line 136 "vcf.ragel"
+#line 135 "vcf.ragel"
 	{
         ts = p;
     }
@@ -800,7 +799,7 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 804 "vcf_ragel.c"
+#line 803 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr68;
 		case 65: goto st57;
@@ -811,7 +810,7 @@ case 57:
 	}
 	goto tr66;
 tr68:
-#line 140 "vcf.ragel"
+#line 139 "vcf.ragel"
 	{
         set_vcf_record_reference(ts, p-ts, status->current_record);
     }
@@ -820,7 +819,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 824 "vcf_ragel.c"
+#line 823 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr71;
 		case 48: goto tr71;
@@ -833,7 +832,7 @@ case 58:
 	}
 	goto tr70;
 tr71:
-#line 148 "vcf.ragel"
+#line 147 "vcf.ragel"
 	{
         ts = p;
     }
@@ -842,12 +841,12 @@ st59:
 	if ( ++p == pe )
 		goto _test_eof59;
 case 59:
-#line 846 "vcf_ragel.c"
+#line 845 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr74;
 	goto tr70;
 tr74:
-#line 152 "vcf.ragel"
+#line 151 "vcf.ragel"
 	{
         if (!strncmp("0",     ts, 1) || !strncmp("<DEL>", ts, 5) || !strncmp("<INS>", ts, 5) ||
             !strncmp("<DUP>", ts, 5) || !strncmp("<INV>", ts, 5) || !strncmp("<CNV>", ts, 5) ||
@@ -862,14 +861,14 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 866 "vcf_ragel.c"
+#line 865 "vcf_ragel.c"
 	if ( (*p) == 46 )
 		goto tr76;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr77;
 	goto tr75;
 tr76:
-#line 166 "vcf.ragel"
+#line 165 "vcf.ragel"
 	{
         ts = p;
     }
@@ -878,12 +877,12 @@ st61:
 	if ( ++p == pe )
 		goto _test_eof61;
 case 61:
-#line 882 "vcf_ragel.c"
+#line 881 "vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr78;
 	goto tr75;
 tr78:
-#line 170 "vcf.ragel"
+#line 169 "vcf.ragel"
 	{
         float quality = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
@@ -898,7 +897,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 902 "vcf_ragel.c"
+#line 901 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 44: goto tr80;
 		case 46: goto tr80;
@@ -914,7 +913,7 @@ case 62:
 		goto tr80;
 	goto tr79;
 tr80:
-#line 184 "vcf.ragel"
+#line 183 "vcf.ragel"
 	{
         ts = p;
     }
@@ -923,7 +922,7 @@ st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-#line 927 "vcf_ragel.c"
+#line 926 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr81;
 		case 44: goto st63;
@@ -941,7 +940,7 @@ case 63:
 		goto st63;
 	goto tr79;
 tr81:
-#line 188 "vcf.ragel"
+#line 187 "vcf.ragel"
 	{
         set_vcf_record_filter(ts, p-ts, status->current_record);
     }
@@ -950,7 +949,7 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 954 "vcf_ragel.c"
+#line 953 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 46: goto tr85;
 		case 95: goto tr86;
@@ -965,7 +964,7 @@ case 64:
 		goto tr86;
 	goto tr84;
 tr85:
-#line 196 "vcf.ragel"
+#line 195 "vcf.ragel"
 	{
         ts = p;
     }
@@ -974,7 +973,7 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 978 "vcf_ragel.c"
+#line 977 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr87;
 		case 59: goto st70;
@@ -982,7 +981,7 @@ case 65:
 	}
 	goto tr84;
 tr87:
-#line 200 "vcf.ragel"
+#line 199 "vcf.ragel"
 	{
         set_vcf_record_info(ts, p-ts, status->current_record);
     }
@@ -991,7 +990,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 995 "vcf_ragel.c"
+#line 994 "vcf_ragel.c"
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr91;
@@ -1002,7 +1001,7 @@ case 66:
 		goto tr91;
 	goto tr90;
 tr91:
-#line 208 "vcf.ragel"
+#line 207 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1011,7 +1010,7 @@ st67:
 	if ( ++p == pe )
 		goto _test_eof67;
 case 67:
-#line 1015 "vcf_ragel.c"
+#line 1014 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr92;
 		case 58: goto st69;
@@ -1026,13 +1025,13 @@ case 67:
 		goto st67;
 	goto tr90;
 tr92:
-#line 212 "vcf.ragel"
+#line 211 "vcf.ragel"
 	{
         set_vcf_record_format(ts, p-ts, status->current_record);
     }
 	goto st68;
 tr160:
-#line 224 "vcf.ragel"
+#line 223 "vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
@@ -1041,12 +1040,12 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 1045 "vcf_ragel.c"
+#line 1044 "vcf_ragel.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto tr96;
 	goto tr95;
 tr96:
-#line 220 "vcf.ragel"
+#line 219 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1055,7 +1054,7 @@ st127:
 	if ( ++p == pe )
 		goto _test_eof127;
 case 127:
-#line 1059 "vcf_ragel.c"
+#line 1058 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr160;
 		case 10: goto tr161;
@@ -1064,7 +1063,7 @@ case 127:
 		goto st127;
 	goto tr95;
 tr161:
-#line 224 "vcf.ragel"
+#line 223 "vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
@@ -1100,7 +1099,7 @@ st128:
 	if ( ++p == pe )
 		goto _test_eof128;
 case 128:
-#line 1104 "vcf_ragel.c"
+#line 1103 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st129;
 		case 44: goto tr155;
@@ -1154,7 +1153,7 @@ case 70:
 		goto st71;
 	goto tr84;
 tr86:
-#line 196 "vcf.ragel"
+#line 195 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1163,7 +1162,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 1167 "vcf_ragel.c"
+#line 1166 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr87;
 		case 59: goto st70;
@@ -1214,7 +1213,7 @@ case 74:
 		goto st63;
 	goto tr79;
 tr77:
-#line 166 "vcf.ragel"
+#line 165 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1223,7 +1222,7 @@ st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-#line 1227 "vcf_ragel.c"
+#line 1226 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr78;
 		case 46: goto st76;
@@ -1248,7 +1247,7 @@ case 77:
 		goto st77;
 	goto tr75;
 tr72:
-#line 148 "vcf.ragel"
+#line 147 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1257,7 +1256,7 @@ st78:
 	if ( ++p == pe )
 		goto _test_eof78;
 case 78:
-#line 1261 "vcf_ragel.c"
+#line 1260 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 67: goto st79;
 		case 68: goto st82;
@@ -1434,7 +1433,7 @@ case 99:
 	}
 	goto tr70;
 tr73:
-#line 148 "vcf.ragel"
+#line 147 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1443,7 +1442,7 @@ st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1447 "vcf_ragel.c"
+#line 1446 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr74;
 		case 44: goto st101;
@@ -1467,7 +1466,7 @@ case 101:
 	}
 	goto tr70;
 tr64:
-#line 124 "vcf.ragel"
+#line 123 "vcf.ragel"
 	{
         ts = p;
     }
@@ -1476,7 +1475,7 @@ st102:
 	if ( ++p == pe )
 		goto _test_eof102;
 case 102:
-#line 1480 "vcf_ragel.c"
+#line 1479 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr65;
 		case 95: goto st102;
@@ -1504,7 +1503,7 @@ st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1508 "vcf_ragel.c"
+#line 1507 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr129;
@@ -1540,7 +1539,7 @@ st104:
 	if ( ++p == pe )
 		goto _test_eof104;
 case 104:
-#line 1544 "vcf_ragel.c"
+#line 1543 "vcf_ragel.c"
 	if ( (*p) == 10 )
 		goto tr5;
 	if ( 32 <= (*p) && (*p) <= 126 )
@@ -1556,7 +1555,7 @@ st105:
 	if ( ++p == pe )
 		goto _test_eof105;
 case 105:
-#line 1560 "vcf_ragel.c"
+#line 1559 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr132;
@@ -1596,7 +1595,7 @@ st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1600 "vcf_ragel.c"
+#line 1599 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr133;
@@ -1614,7 +1613,7 @@ st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1618 "vcf_ragel.c"
+#line 1617 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st108;
 		case 67: goto st5;
@@ -1661,7 +1660,7 @@ st109:
 	if ( ++p == pe )
 		goto _test_eof109;
 case 109:
-#line 1665 "vcf_ragel.c"
+#line 1664 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr129;
@@ -1967,7 +1966,7 @@ st119:
 	if ( ++p == pe )
 		goto _test_eof119;
 case 119:
-#line 1971 "vcf_ragel.c"
+#line 1970 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 32: goto tr130;
@@ -1995,7 +1994,7 @@ st120:
 	if ( ++p == pe )
 		goto _test_eof120;
 case 120:
-#line 1999 "vcf_ragel.c"
+#line 1998 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr148;
 		case 32: goto st105;
@@ -2036,7 +2035,7 @@ st121:
 	if ( ++p == pe )
 		goto _test_eof121;
 case 121:
-#line 2040 "vcf_ragel.c"
+#line 2039 "vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr148;
 		case 32: goto tr130;
@@ -2190,30 +2189,29 @@ case 121:
 	case 51: 
 #line 105 "vcf.ragel"
 	{
-        printf("Num batches = %zu\n", status->num_batches);
-        printf("Line %d (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 52: 
 	case 53: 
-#line 120 "vcf.ragel"
+#line 119 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 54: 
 	case 55: 
 	case 102: 
-#line 132 "vcf.ragel"
+#line 131 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 56: 
 	case 57: 
-#line 144 "vcf.ragel"
+#line 143 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 58: 
@@ -2242,9 +2240,9 @@ case 121:
 	case 99: 
 	case 100: 
 	case 101: 
-#line 162 "vcf.ragel"
+#line 161 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 60: 
@@ -2252,17 +2250,17 @@ case 121:
 	case 75: 
 	case 76: 
 	case 77: 
-#line 180 "vcf.ragel"
+#line 179 "vcf.ragel"
 	{
-        printf("Line %d: Error in 'quality' field\n", status->num_batches * batch_size + status->num_records);
+        printf("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 62: 
 	case 63: 
 	case 74: 
-#line 192 "vcf.ragel"
+#line 191 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 64: 
@@ -2271,27 +2269,27 @@ case 121:
 	case 71: 
 	case 72: 
 	case 73: 
-#line 204 "vcf.ragel"
+#line 203 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 66: 
 	case 67: 
 	case 69: 
-#line 216 "vcf.ragel"
+#line 215 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 68: 
-#line 228 "vcf.ragel"
+#line 227 "vcf.ragel"
 	{
-        printf("Line %d (%s): Error in sample\n", lines, file->filename);
+        printf("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 	break;
 	case 127: 
-#line 224 "vcf.ragel"
+#line 223 "vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
@@ -2318,14 +2316,14 @@ case 121:
         
     }
 	break;
-#line 2322 "vcf_ragel.c"
+#line 2320 "vcf_ragel.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 315 "vcf.ragel"
+#line 314 "vcf.ragel"
 
     
     if (!vcf_batch_is_empty(status->current_batch)) {
@@ -2335,8 +2333,8 @@ case 121:
 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < 
-#line 2339 "vcf_ragel.c"
+#line 2337 "vcf_ragel.c"
 122
-#line 323 "vcf.ragel"
+#line 322 "vcf.ragel"
 ;
 }
