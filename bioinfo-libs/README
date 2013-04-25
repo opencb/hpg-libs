@@ -1,7 +1,7 @@
 
 Welcome OpenCB 'bioinfo-libs' library
 
-'bioinfo-lib' is a C library with bioinformatic data format parsers and BWT and SW aligners. It's part of HPG project.
+'bioinfo-libs' is a C library with bioinformatic data format parsers and BWT and SW aligners. It's part of HPG project.
 
 
 COMPONENTS
