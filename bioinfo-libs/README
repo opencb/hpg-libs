@@ -1,7 +1,7 @@
 
 Welcome OpenCB 'bioinfo-libs' library
 
-C library with bioinformatic data format parsers and BWT and SW aligners
+'bioinfo-lib' is a C library with bioinformatic data format parsers and BWT and SW aligners. It's part of HPG project.
 
 
 COMPONENTS
@@ -18,7 +18,7 @@ You can contact any of the following developers:
 
 
 BUILDING
-Scons is used as building system, to build the library execute:
+Scons is used as building system, to build the library download 'next' branch (for the most recent library) and execute:
 
  $ scons
 
@@ -26,7 +26,7 @@ GCC4.4+ is the only requirement.
 
 
 DOCUMENTATION
-You can find more info at:
+You can find more info about HPG project and bioinfo-libs at:
 
  http://wiki.opencb.org/projects/hpg/doku.php
 
