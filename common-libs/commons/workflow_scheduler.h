@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "array_list.h"
+#include "containers/array_list.h"
 //#include "extrae_user_events.h"
 
 //----------------------------------------------------------------------------------------
