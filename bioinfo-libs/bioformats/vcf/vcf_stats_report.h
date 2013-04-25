@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include <bioformats/db/db_utils.h>
 #include <commons/file_utils.h>
@@ -24,7 +25,11 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, variant_stats_t *stats);
 void report_vcf_variant_stats_header(FILE *stats_fd);
 
 
-void report_sample_stats_output(char *stats_fd, void *db, sample_stats_t *stats);
+char *get_sample_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir);
+
+void report_sample_stats(char *stats_fd, void *db, size_t num_samples, sample_stats_t **stats);
+
+void report_sample_variant_stats_header(FILE *stats_fd);
 
 #endif
 

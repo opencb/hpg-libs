@@ -215,3 +215,32 @@ inline void report_vcf_variant_stats_header(FILE *stats_fd) {
  *                 Samples report                *
  * ***********************************************/
 
+char *get_sample_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir) {
+    char *stats_filename;
+    
+    if (out_filename == NULL || strlen(out_filename) == 0) {
+        char suffix_filename[strlen(vcf_filename) + 1];
+        get_filename_from_path(vcf_filename, suffix_filename);
+        
+        stats_filename = (char*) calloc ((strlen(outdir) + strlen(suffix_filename) + strlen(".stats-samples") + 2), sizeof(char));
+        sprintf(stats_filename, "%s/%s.stats-samples", outdir, suffix_filename);
+    } else {
+        stats_filename = (char*) calloc ((strlen(outdir) + strlen(out_filename) + strlen(".stats-variants") + 2), sizeof(char));
+        sprintf(stats_filename, "%s/%s.stats-samples", outdir, out_filename);
+    }
+    
+    return stats_filename;
+}
+
+void report_sample_stats(char *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
+    sample_stats_t *sam_stats;
+    for (int i = 0; i < num_samples; i++) {
+        sam_stats = stats[i];
+        fprintf(stats_fd, "%s\t\t%zu\t\t%zu\n", sam_stats->name, sam_stats->missing_genotypes, sam_stats->mendelian_errors);
+        sample_stats_free(sam_stats);
+    }
+}
+
+inline void report_sample_variant_stats_header(FILE *stats_fd) {
+    fprintf(stats_fd, "#SAMPLE\t\tMISS GT\t\tMENDEL ERR\n");
+}
