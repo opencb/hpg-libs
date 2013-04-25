@@ -18,7 +18,7 @@ static const int ped_error = 0;
 static const int ped_en_main = 17;
 
 
-#line 164 "ped.ragel"
+#line 166 "ped.ragel"
 
 
 
@@ -54,37 +54,37 @@ case 17:
 		goto tr28;
 	goto tr0;
 tr0:
-#line 51 "ped.ragel"
+#line 53 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'family' field\n", lines, file->filename);
     }
 	goto st0;
 tr3:
-#line 63 "ped.ragel"
+#line 65 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'individual' field\n", lines, file->filename);
     }
 	goto st0;
 tr7:
-#line 77 "ped.ragel"
+#line 79 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'father' field\n", lines, file->filename);
     }
 	goto st0;
 tr11:
-#line 91 "ped.ragel"
+#line 93 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'mother' field\n", lines, file->filename);
     }
 	goto st0;
 tr15:
-#line 111 "ped.ragel"
+#line 113 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'sex' field\n", lines, file->filename);
     }
 	goto st0;
 tr19:
-#line 128 "ped.ragel"
+#line 130 "ped.ragel"
 	{
         printf("Line %zu: Error in 'phenotype' field\n", lines);
     }
@@ -106,7 +106,7 @@ tr28:
         current_record = create_ped_record();
         genotype = 0;
     }
-#line 43 "ped.ragel"
+#line 45 "ped.ragel"
 	{
         ts = p;
     }
@@ -124,7 +124,7 @@ case 1:
 		goto st1;
 	goto tr0;
 tr1:
-#line 47 "ped.ragel"
+#line 49 "ped.ragel"
 	{
         set_ped_record_family_id(strndup(ts, p-ts), current_record);
     }
@@ -146,7 +146,7 @@ case 2:
 		goto tr4;
 	goto tr3;
 tr4:
-#line 55 "ped.ragel"
+#line 57 "ped.ragel"
 	{
         ts = p;
     }
@@ -171,7 +171,7 @@ case 3:
 		goto st3;
 	goto tr3;
 tr5:
-#line 59 "ped.ragel"
+#line 61 "ped.ragel"
 	{
         set_ped_record_individual_id(strndup(ts, p-ts), current_record);
     }
@@ -195,7 +195,7 @@ case 4:
 		goto tr9;
 	goto tr7;
 tr8:
-#line 67 "ped.ragel"
+#line 69 "ped.ragel"
 	{
         ts = p;
     }
@@ -211,7 +211,7 @@ case 5:
 	}
 	goto tr7;
 tr10:
-#line 71 "ped.ragel"
+#line 73 "ped.ragel"
 	{
         if (strncmp("0", ts, 1)) {
             set_ped_record_father_id(strndup(ts, p-ts), current_record);
@@ -237,7 +237,7 @@ case 6:
 		goto tr13;
 	goto tr11;
 tr12:
-#line 81 "ped.ragel"
+#line 83 "ped.ragel"
 	{
         ts = p;
     }
@@ -253,7 +253,7 @@ case 7:
 	}
 	goto tr11;
 tr14:
-#line 85 "ped.ragel"
+#line 87 "ped.ragel"
 	{
         if (strncmp("0", ts, 1)) {
             set_ped_record_mother_id(strndup(ts, p-ts), current_record);
@@ -271,7 +271,7 @@ case 8:
 		goto tr17;
 	goto tr15;
 tr16:
-#line 95 "ped.ragel"
+#line 97 "ped.ragel"
 	{
         ts = p;
     }
@@ -287,7 +287,7 @@ case 9:
 	}
 	goto tr15;
 tr18:
-#line 99 "ped.ragel"
+#line 101 "ped.ragel"
 	{
         char *field = strndup(ts, p-ts);
         enum Sex sex = UNKNOWN_SEX;
@@ -309,7 +309,7 @@ case 10:
 		goto tr20;
 	goto tr19;
 tr20:
-#line 115 "ped.ragel"
+#line 117 "ped.ragel"
 	{
         ts = p;
     }
@@ -332,7 +332,7 @@ case 19:
 		goto tr32;
 	goto tr19;
 tr30:
-#line 119 "ped.ragel"
+#line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
@@ -365,7 +365,7 @@ case 20:
 		goto st22;
 	goto st0;
 tr31:
-#line 119 "ped.ragel"
+#line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
@@ -386,9 +386,11 @@ tr31:
         }
 
         // Add current record to current batch
-        add_record_to_ped_batch(current_record, current_batch);
-
-        num_records++;
+        if (current_record) {
+            add_record_to_ped_batch(current_record, current_batch);
+            num_records++;
+        }
+        current_record = NULL;
     }
 #line 18 "ped.ragel"
 	{
@@ -408,9 +410,11 @@ tr36:
         }
 
         // Add current record to current batch
-        add_record_to_ped_batch(current_record, current_batch);
-
-        num_records++;
+        if (current_record) {
+            add_record_to_ped_batch(current_record, current_batch);
+            num_records++;
+        }
+        current_record = NULL;
     }
 #line 18 "ped.ragel"
 	{
@@ -421,7 +425,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 425 "ped_reader.c"
+#line 429 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr36;
 		case 32: goto st22;
@@ -433,7 +437,7 @@ case 21:
 		goto st22;
 	goto tr0;
 tr32:
-#line 119 "ped.ragel"
+#line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
@@ -447,7 +451,7 @@ st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
-#line 451 "ped_reader.c"
+#line 455 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr36;
 		case 32: goto st22;
@@ -478,7 +482,7 @@ case 23:
 		goto tr32;
 	goto tr19;
 tr17:
-#line 95 "ped.ragel"
+#line 97 "ped.ragel"
 	{
         ts = p;
     }
@@ -487,7 +491,7 @@ st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
-#line 491 "ped_reader.c"
+#line 495 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr18;
 		case 32: goto tr18;
@@ -515,7 +519,7 @@ case 14:
 		goto st14;
 	goto tr15;
 tr13:
-#line 81 "ped.ragel"
+#line 83 "ped.ragel"
 	{
         ts = p;
     }
@@ -524,7 +528,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 528 "ped_reader.c"
+#line 532 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr14;
 		case 32: goto tr14;
@@ -540,7 +544,7 @@ case 15:
 		goto st15;
 	goto tr11;
 tr9:
-#line 67 "ped.ragel"
+#line 69 "ped.ragel"
 	{
         ts = p;
     }
@@ -549,7 +553,7 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 553 "ped_reader.c"
+#line 557 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr10;
 		case 32: goto tr10;
@@ -607,20 +611,22 @@ case 16:
         }
 
         // Add current record to current batch
-        add_record_to_ped_batch(current_record, current_batch);
-
-        num_records++;
+        if (current_record) {
+            add_record_to_ped_batch(current_record, current_batch);
+            num_records++;
+        }
+        current_record = NULL;
     }
 	break;
 	case 1: 
-#line 51 "ped.ragel"
+#line 53 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'family' field\n", lines, file->filename);
     }
 	break;
 	case 2: 
 	case 3: 
-#line 63 "ped.ragel"
+#line 65 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'individual' field\n", lines, file->filename);
     }
@@ -628,7 +634,7 @@ case 16:
 	case 4: 
 	case 5: 
 	case 16: 
-#line 77 "ped.ragel"
+#line 79 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'father' field\n", lines, file->filename);
     }
@@ -636,7 +642,7 @@ case 16:
 	case 6: 
 	case 7: 
 	case 15: 
-#line 91 "ped.ragel"
+#line 93 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'mother' field\n", lines, file->filename);
     }
@@ -646,21 +652,21 @@ case 16:
 	case 12: 
 	case 13: 
 	case 14: 
-#line 111 "ped.ragel"
+#line 113 "ped.ragel"
 	{
         printf("Line %zu (%s): Error in 'sex' field\n", lines, file->filename);
     }
 	break;
 	case 10: 
 	case 11: 
-#line 128 "ped.ragel"
+#line 130 "ped.ragel"
 	{
         printf("Line %zu: Error in 'phenotype' field\n", lines);
     }
 	break;
 	case 19: 
 	case 23: 
-#line 119 "ped.ragel"
+#line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
@@ -681,19 +687,21 @@ case 16:
         }
 
         // Add current record to current batch
-        add_record_to_ped_batch(current_record, current_batch);
-
-        num_records++;
+        if (current_record) {
+            add_record_to_ped_batch(current_record, current_batch);
+            num_records++;
+        }
+        current_record = NULL;
     }
 	break;
-#line 690 "ped_reader.c"
+#line 698 "ped_reader.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 183 "ped.ragel"
+#line 185 "ped.ragel"
  
 
     // Insert the last batch
@@ -705,25 +713,25 @@ case 16:
     }
 
     if ( cs < 
-#line 709 "ped_reader.c"
+#line 717 "ped_reader.c"
 17
-#line 193 "ped.ragel"
+#line 195 "ped.ragel"
  ) 
     {
         LOG_ERROR("The file was not successfully read\n");
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 717 "ped_reader.c"
+#line 725 "ped_reader.c"
 17
-#line 197 "ped.ragel"
+#line 199 "ped.ragel"
 );
     } 
 
-    LOG_INFO_F("Records read = %zu\n", num_records);
+    LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < 
-#line 726 "ped_reader.c"
+#line 734 "ped_reader.c"
 17
-#line 202 "ped.ragel"
+#line 204 "ped.ragel"
 ;
 }

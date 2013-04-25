@@ -35,7 +35,7 @@
     }
 
     action header_error {
-        printf("Line %d (%s): Error in header\n", lines, file->filename);
+        printf("Line %zu (%s): Error in header\n", lines, file->filename);
     }
 
     action header_id_begin {
@@ -103,7 +103,7 @@
     }
 
     action chrom_error {
-        printf("Line %d (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action pos_begin {
@@ -117,7 +117,7 @@
     }
 
     action pos_error {
-        printf("Line %d (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action id_begin {
@@ -129,7 +129,7 @@
     }
 
     action id_error {
-        printf("Line %d (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action ref_begin {
@@ -141,7 +141,7 @@
     }
 
     action ref_error {
-        printf("Line %d (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action alt_begin {
@@ -159,7 +159,7 @@
     }
 
     action alt_error {
-        printf("Line %d (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action qual_begin {
@@ -177,7 +177,7 @@
     }
 
     action qual_error {
-        printf("Line %d: Error in 'quality' field\n", status->num_batches * batch_size + status->num_records);
+        printf("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action filter_begin {
@@ -189,7 +189,7 @@
     }
 
     action filter_error {
-        printf("Line %d (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action info_begin {
@@ -201,7 +201,7 @@
     }
 
     action info_error {
-        printf("Line %d (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action format_begin {
@@ -213,7 +213,7 @@
     }
 
     action format_error {
-        printf("Line %d (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        printf("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     action sample_begin {
@@ -225,7 +225,7 @@
     }
 
     action sample_error {
-        printf("Line %d (%s): Error in sample\n", lines, file->filename);
+        printf("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
     }
 
     #################################################

@@ -20,8 +20,7 @@
  * structures, one for guaranteing access to each chromosome in O(1) time, 
  * and another one for preserving the order among chromosomes.
  */
-typedef struct region_table
-{
+typedef struct region_table {
 	int max_chromosomes; /**< Number of chromosomes registered in the 'ordering' variable, which should be the maximum to keep in 'storage' */
 	char **ordering; /**< Order among chromosomes */
 	cp_hashtable *storage; /**< Chromosomes and a collection of regions contained in them */

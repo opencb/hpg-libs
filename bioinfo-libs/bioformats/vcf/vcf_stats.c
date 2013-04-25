@@ -224,6 +224,9 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             }
         }
         
+        assert(cases_dominant >= cases_recessive);
+        assert(controls_recessive >= controls_dominant);
+        
         // Once all samples have been traverse, calculate % that follow inheritance model
         stats->controls_percent_dominant = (float) controls_dominant * 100 / (record->samples->size - stats->missing_genotypes);
         stats->cases_percent_dominant = (float) cases_dominant * 100 / (record->samples->size - stats->missing_genotypes);

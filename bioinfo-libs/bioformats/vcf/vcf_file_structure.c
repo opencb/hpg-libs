@@ -416,6 +416,7 @@ individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped) {
     }
 
     kh_destroy(ids, positions);
+    free(families);
 
     return individuals;
 }
@@ -432,7 +433,7 @@ khash_t(ids)* associate_samples_and_positions(vcf_file_t* file) {
         if (iter != kh_end(sample_ids)) {
             LOG_FATAL_F("Sample %s appears more than once. File can not be analyzed.\n", name);
         } else {
-            iter = kh_put(ids, sample_ids, strdup(name), &ret);
+            iter = kh_put(ids, sample_ids, name, &ret);
             if (ret) {
                 kh_value(sample_ids, iter) = i;
             }

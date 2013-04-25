@@ -15,9 +15,9 @@
 #include <commons/string_utils.h>
 
 typedef struct region {
-	uint32_t start_position;
-	uint32_t end_position;
-	char *chromosome;
+    size_t start_position;
+    size_t end_position;
+    char *chromosome;
 } region_t;
 
 typedef struct {

@@ -190,7 +190,6 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
     assert(input_records);
     assert(failed);
     
-    char *field;
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
 
@@ -297,6 +296,51 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, va
     return passed;
 }
 
+array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    enum inheritance_pattern pattern = ((inheritance_pattern_filter_args*)f_args)->pattern;
+    float min_following_pattern = ((inheritance_pattern_filter_args*)f_args)->min_following_pattern;
+    
+    if (pattern == DOMINANT) {
+        LOG_DEBUG_F("inheritance_pattern_filter (dominant in %.2f% of samples) over %zu records\n", 
+                    min_following_pattern * 100, input_records->size);
+    } else {
+        LOG_DEBUG_F("inheritance_pattern_filter (recessive in %.2f% of samples) over %zu records\n", 
+                    min_following_pattern * 100, input_records->size);
+    }
+    
+    vcf_record_t *record;
+    variant_stats_t *stats;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        stats = input_stats[i];
+        
+        if (pattern == DOMINANT) {
+            if (stats->cases_percent_dominant >= min_following_pattern &&
+                stats->controls_percent_dominant >= min_following_pattern) {
+                array_list_insert(record, passed);
+            } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            }
+        } else if (pattern == RECESSIVE) {
+            if (stats->cases_percent_recessive >= min_following_pattern &&
+                   stats->controls_percent_recessive >= min_following_pattern) {
+                array_list_insert(record, passed);
+            } else {
+                annotate_failed_record(filter_name, filter_name_len, record);
+                array_list_insert(record, failed);
+            }
+        }
+    }
+
+    return passed;
+}
 
 //====================================================================================
 //  Filter management (creation, comparison...) functions
@@ -358,7 +402,7 @@ filter_t* missing_values_filter_new(float max_missing) {
     filter->type = MISSING_VALUES;
     filter->filter_func = missing_values_filter;
     filter->free_func = missing_values_filter_free;
-    filter->priority = 5;
+    filter->priority = 3;
     
     missing_values_filter_args *filter_args = (missing_values_filter_args*) malloc (sizeof(missing_values_filter_args));
     filter_args->max_missing = max_missing;
@@ -382,7 +426,7 @@ filter_t* num_alleles_filter_new(int num_alleles) {
     filter->type = NUM_ALLELES;
     filter->filter_func = num_alleles_filter;
     filter->free_func = num_alleles_filter_free;
-    filter->priority = 4;
+    filter->priority = 3;
     
     num_alleles_filter_args *filter_args = (num_alleles_filter_args*) malloc (sizeof(num_alleles_filter_args));
     filter_args->num_alleles = num_alleles;
@@ -406,7 +450,7 @@ filter_t *quality_filter_new(int min_quality) {
     filter->type = QUALITY;
     filter->filter_func = quality_filter;
     filter->free_func = quality_filter_free;
-    filter->priority = 4;
+    filter->priority = 6;
     
     quality_filter_args *filter_args = (quality_filter_args*) malloc (sizeof(quality_filter_args));
     filter_args->min_quality = min_quality;
@@ -438,7 +482,13 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
     if (use_region_file) {
         snprintf(filter->name, 11, "RegionFile");
         snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        if (ends_with(region_descriptor, ".gff")) {
+            filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        } else if (ends_with(region_descriptor, ".bed")) {
+            filter_args->regions = parse_regions_from_bed_file(region_descriptor, url, species, version);
+        } else {
+            LOG_FATAL_F("Region file %s format not supported! Please use BED or GFF formats\n", region_descriptor);
+        }
     } else {
         snprintf(filter->name, 11, "RegionList");
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
@@ -465,7 +515,13 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
     if (use_region_file) {
         snprintf(filter->name, 11, "RegionFile");
         snprintf(filter->description, 64, "Regions read from '%s'", region_descriptor);
-        filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        if (ends_with(region_descriptor, ".gff")) {
+            filter_args->regions = parse_regions_from_gff_file(region_descriptor, url, species, version);
+        } else if (ends_with(region_descriptor, ".bed")) {
+            filter_args->regions = parse_regions_from_bed_file(region_descriptor, url, species, version);
+        } else {
+            LOG_FATAL_F("Region file %s format not supported! Please use BED or GFF formats\n", region_descriptor);
+        }
     } else {
         snprintf(filter->name, 11, "RegionList");
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
@@ -496,6 +552,7 @@ void region_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *url, const char *species, const char *version) {
     assert(gene_descriptor);
     assert(url);
@@ -514,8 +571,6 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
     assert(buffer);
 
     char* values_str = gene_ws_output_to_regions(buffer);
-    //printf("values_str = %s \n",values_str); 
-
     filter_t *filter = region_exact_filter_new(strdup(values_str), 0, url, species, version);
     
     free(values_str);
@@ -527,6 +582,7 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
 void gene_filter_free(filter_t *filter) {
     region_filter_free(filter);
 }
+
 
 filter_t *snp_filter_new(int include_snps) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
@@ -555,6 +611,7 @@ void snp_filter_free(filter_t *filter) {
     free(filter);
 }
 
+
 filter_t *indel_filter_new(int include_indels) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
     if (include_indels) {
@@ -577,6 +634,36 @@ filter_t *indel_filter_new(int include_indels) {
 }
 
 void indel_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+
+filter_t* inheritance_pattern_filter_new(enum inheritance_pattern pattern, float min_following_pattern) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    if (pattern == DOMINANT) {
+        sprintf(filter->name, "InheritDom%.0f", min_following_pattern * 100);
+        sprintf(filter->description, "Samples with dominant inheritance >= %.0f%%", min_following_pattern * 100);
+    } else {
+        sprintf(filter->name, "InheritRec%.0f", min_following_pattern * 100);
+        sprintf(filter->description, "Samples with recessive inheritance >= %.0f%%", min_following_pattern * 100);
+    }
+    
+    filter->type = INHERITANCE_PATTERN;
+    filter->filter_func = inheritance_pattern_filter;
+    filter->free_func = inheritance_pattern_filter_free;
+    filter->priority = 3;
+    
+    inheritance_pattern_filter_args *filter_args = (inheritance_pattern_filter_args*) malloc (sizeof(inheritance_pattern_filter_args));
+    filter_args->pattern = pattern;
+    filter_args->min_following_pattern = min_following_pattern * 100;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void inheritance_pattern_filter_free(filter_t* filter) {
     assert(filter);
     free(filter->args);
     free(filter);
@@ -625,7 +712,8 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters) {
     return filters;
 }
 
-array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters) {
+array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, individual_t **individuals, 
+                               khash_t(ids) *individuals_ids, filter_t **filters, int num_filters) {
     assert(input_records);
     assert(failed);
     assert(filters);
@@ -638,7 +726,7 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
     file_stats_t *file_stats = file_stats_new();
     list_t *input_stats = (list_t*) malloc (sizeof(list_t));
     list_init("stats", 1, input_records->size + 1, input_stats);
-    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, NULL, NULL, input_stats, file_stats);
+    get_variants_stats((vcf_record_t**) input_records->items, input_records->size, individuals, individuals_ids, input_stats, file_stats);
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(input_stats);
     
     // Apply each filter with the arguments provided
@@ -659,13 +747,9 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
         }
     }
     
-        
-    for (int i = 0; i < input_records->size; i++) {
-        list_item_t *stats_item = list_remove_item(input_stats);
-        variant_stats_free(stats_item->data_p);
-        list_item_free(stats_item);
-    }
     list_decr_writers(input_stats);
+    
+    list_free_deep(input_stats, variant_stats_free);
     file_stats_free(file_stats);
     free(input_stats_array);
     

@@ -71,6 +71,8 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
 
         /* always cleanup */
         curl_easy_cleanup(curl);
+        
+        free(url);
     }
     
     return ordering;
