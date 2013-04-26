@@ -200,7 +200,7 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end, sql
 //------------------------------------------------------------------------
 
 int update_chunks_hash(const char *chr, int chr_length, int chunksize, 
-		       int start, int end, khash_t(str) *hash) {
+		       int start, int end, khash_t(stats_chunks) *hash) {
   
   // update features counter for "touched" chunks
   int ret;
@@ -221,7 +221,7 @@ int update_chunks_hash(const char *chr, int chr_length, int chunksize,
     key = calloc(strlen(chr) + 32,  sizeof(char));
     sprintf(key, "%i::%s", chunk_id, chr);
 
-    k = kh_put(str, hash, key, &ret);
+    k = kh_put(stats_chunks, hash, key, &ret);
     if (ret == 0) {
       kh_value(hash, k) = (kh_value(hash, k) + 1);
     } else if (ret == 1) {
@@ -234,7 +234,7 @@ int update_chunks_hash(const char *chr, int chr_length, int chunksize,
 
 //------------------------------------------------------------------------
 
-int insert_chunk_hash(int chunksize, khash_t(str) *hash, sqlite3 *db) {
+int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   int rc;
   sqlite3_stmt *stmt;
   char *errorMessage;

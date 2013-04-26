@@ -324,7 +324,7 @@ int bam_stats_consumer(void *data) {
 
   // stats
   if (batch->in_stats->db && batch->stats_list) {
-    khash_t(str) *hash = batch->in_stats->hash;
+    khash_t(stats_chunks) *hash = batch->in_stats->hash;
     sqlite3 *db = batch->in_stats->db;
     array_list_t *stats_list = batch->stats_list;
 

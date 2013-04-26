@@ -246,7 +246,7 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
 }
 
 
-void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(str) *hash, int num_variants, variant_stats_t **stats_batch) {
+void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *hash, int num_variants, variant_stats_t **stats_batch) {
     for (int i = 0; i < num_variants; i++) {
         variant_stats_t *stats = stats_batch[i];
         
@@ -257,9 +257,9 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(str) *hash, int 
         report_variant_missing_data(stats, stats_fd);
         report_variant_inheritance_data(stats, stats_fd);
         
-        // TODO update chunks
+        // Update chunks
         if (db) {
-            update_chunks_hash(stats->chromosome, ULONG_MAX, VCF_CHUNKSIZE, stats->position, stats->position, hash);
+            update_chunks_hash(stats->chromosome, INT_MAX, VCF_CHUNKSIZE, stats->position, stats->position, hash);
         }
     }
 

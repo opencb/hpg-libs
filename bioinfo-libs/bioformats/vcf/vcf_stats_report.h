@@ -25,7 +25,7 @@ void report_vcf_summary_stats(FILE *stats_fd, void *db, file_stats_t *stats);
 
 char *get_variant_stats_output_filename(char *prefix);
 
-void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(str) *hash, int num_variants, variant_stats_t **stats);
+void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *hash, int num_variants, variant_stats_t **stats);
 
 void report_vcf_variant_stats_header(FILE *stats_fd);
 
