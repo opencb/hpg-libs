@@ -98,7 +98,7 @@ void report_summary(char *prefix, bam_stats_output_t *output) {
   sprintf(path, "%s.summary.txt", prefix);
 
   if ( (f = fopen(path, "w")) == NULL) {
-    LOG_FATAL("Impossible save stats summary for the BAM report");
+    LOG_FATAL_F("Impossible save stats summary (%s)for the BAM report", path);
   }
 
   fprintf(f, "\n");
