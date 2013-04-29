@@ -1,27 +1,19 @@
 #include "region_table.h"
 
-region_table_t *create_table(const char *url, const char *species, const char *version)
+region_table_t *create_region_table(const char *url, const char *species, const char *version)
 {
     int num_chromosomes;
     region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
-	
+
     table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
     table->max_chromosomes = num_chromosomes;
 
-    table->storage = cp_hashtable_create_by_option( COLLECTION_MODE_NOSYNC | COLLECTION_MODE_DEEP,
-                                                    num_chromosomes * 2,
-                                                    cp_hash_istring,			// Hash function
-                                                    (cp_compare_fn) strcasecmp,		// Key comparison function
-                                                    NULL,					// Key copy function
-                                                    (cp_destructor_fn) free_chromosome,	// Key destructor function
-                                                    NULL,					// Value copy function
-                                                    (cp_destructor_fn) free_chromosome_tree	// Value destructor function
-    );
+    create_regions_db("/tmp/regions.db", REGIONS_CHUNKSIZE, &(table->storage));
 
     return table;
 }
 
-void free_table(region_table_t* regions) {
+void free_region_table(region_table_t* regions) {
     // Free ordering array
     char **ordering = regions->ordering;
     for (int i = 0; i < regions->max_chromosomes; i++) {
@@ -29,10 +21,14 @@ void free_table(region_table_t* regions) {
     }
     free(ordering);
 
-    // Free hashtable
-    cp_hashtable *table = regions->storage;
-    cp_hashtable_destroy(table);
+    sqlite3_close_v2(regions->storage);
+    
     free(regions);
+}
+
+
+void finish_region_table_loading(region_table_t *table) {
+    // TODO save chunks from hashtable
 }
 
 
@@ -40,78 +36,151 @@ void free_table(region_table_t* regions) {
  *  		Regions		*
  * ******************************/
 
-int insert_region(region_t *region, region_table_t *table)
-{
-	cp_avltree *chr = NULL;
-	if (!cp_hashtable_contains(table->storage, region->chromosome))
-	{
-        // Check if the chromosome is valid for the species
-        int valid = 0;
-        for (int i = 0; i < table->max_chromosomes && !valid; i++) {
-            if (!strcasecmp(region->chromosome, table->ordering[i])) {
-                valid = 1;
-            }
+int insert_region(region_t *region, region_table_t *table) {
+    insert_regions(&region, 1, table);
+}
+
+int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
+    int rc;
+    sqlite3_stmt *stmt;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    rc = exec_sql(sql_begin, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+
+    char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+    rc = sqlite3_prepare_v2(db, sql, strlen(sql) + 300, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+    
+    for (int i = 0; i < num_regions; i++) {
+        region_t *region = regions[i];
+        sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(stmt, 2, region->start_position);
+        sqlite3_bind_int64(stmt, 3, region->end_position);
+        sqlite3_bind_text(stmt, 4, region->strand, strlen(region->strand), SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 5, region->type, strlen(region->type), SQLITE_STATIC);
+
+        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+            LOG_ERROR_F("Could not insert region %s:%ld-%ld: %s (%d)\n", 
+                        region->chromosome, region->start_position, region->end_position, 
+                        sqlite3_errmsg(db), sqlite3_errcode(db));
+        } else {
+            // Update value in khash
+            update_chunks_hash(region->chromosome, UINT_MAX, REGIONS_CHUNKSIZE, 
+                               region->start_position, region->end_position, table->chunks);
         }
-        if (!valid) {
-            LOG_WARN_F("Chromosome %s does not match the species to analyze\n", region->chromosome);
-            return -1;
-        }
+
+        sqlite3_reset(stmt);
+    }
+    
+    char *sql_end = "END TRANSACTION";
+    rc = exec_sql(sql_end, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+
+    return rc;
+}
+
+
+int contains_region(region_t *region, region_table_t *table) {
+    if (!table->is_ready) { // Don't allow queries over an un-indexed DB
+        finish_region_table_loading(table);
+    }
+    
+    int count = 0;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    exec_sql(sql_begin, db);
+
+    sqlite3_stmt *query_stmt;
+    char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start = ?2 AND end = ?3";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
+    sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(query_stmt, 2, region->start_position);
+    sqlite3_bind_int64(query_stmt, 3, region->end_position);
+    
+    if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(query_stmt, 1);
+    } else {
+        // Retry once
+        sqlite3_reset(query_stmt);
+        sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(query_stmt, 2, region->start_position);
+        sqlite3_bind_int64(query_stmt, 3, region->end_position);
         
-		// Insert new chromosome
-		if ((chr = insert_chromosome(region->chromosome, table)) == NULL)
-		{
-			return 1;
-		}
-	}
+        if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(query_stmt, 1);
+        } else {
+            LOG_ERROR_F("Regions table failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+    }
+    
+    sqlite3_finalize(query_stmt);
+    
+    char *sql_end = "END TRANSACTION";
+    exec_sql(sql_end, db);
 
-	// Insert region in chromosome tree
-	if (chr == NULL) 
-	{
-		chr = get_chromosome(region->chromosome, table);
-	}
-	if (cp_avltree_insert(chr, &region->start_position, region) == NULL)
-	{
-		return 2;
-	}
-	return 0;
+    return count > 0;
 }
 
-int contains_region(region_t *region, region_table_t *table)
-{
-	cp_avltree *chr = NULL;
-	if (region == NULL || table == NULL || 
-		(chr  = get_chromosome(region->chromosome, table)) == NULL)
-// 		!cp_hashtable_contains(table->storage, region->chromosome))
-	{
-		return 0;
-	}
-	
-	return cp_avltree_contains(chr, &(region->start_position));
+
+int find_region(region_t *region, region_table_t *table) {
+    if (!table->is_ready) { // Don't allow queries over an un-indexed DB
+        finish_region_table_loading(table);
+    }
+    
+    int count = 0;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    exec_sql(sql_begin, db);
+
+    sqlite3_stmt *query_stmt;
+    char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start <= ?2 AND end >= ?3";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
+    sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(query_stmt, 2, region->start_position);
+    sqlite3_bind_int64(query_stmt, 3, region->end_position);
+    
+    if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(query_stmt, 1);
+    } else {
+        // Retry once
+        sqlite3_reset(query_stmt);
+        sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(query_stmt, 2, region->start_position);
+        sqlite3_bind_int64(query_stmt, 3, region->end_position);
+        
+        if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(query_stmt, 1);
+        } else {
+            LOG_ERROR_F("Regions table failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+    }
+    
+    sqlite3_finalize(query_stmt);
+    
+    char *sql_end = "END TRANSACTION";
+    exec_sql(sql_end, db);
+
+    return count > 0;
 }
 
-int find_region(region_t *region, region_table_t *table)
-{
-	cp_avltree *chr = NULL;
-	if (region == NULL || table == NULL || 
-		(chr  = get_chromosome(region->chromosome, table)) == NULL)
-// 		!cp_hashtable_contains(table->storage, region->chromosome))
-	{
-		return 0;
-	}
-	
-	// Set new comparison function
-	cp_compare_fn aux_fn = (cp_compare_fn) chr->cmp;
-	chr->cmp = (cp_compare_fn) region_contains_other;
-	// Check whether it contains the region
-	int result = cp_avltree_contains(chr, region);
-	// Restore comparison function
-	chr->cmp = aux_fn;
-
-	return result;
-}
-
-region_t *remove_region(region_t *region, region_table_t *table)
-{
+region_t *remove_region(region_t *region, region_table_t *table) {
+/*
 	if (!cp_hashtable_contains(table->storage, region->chromosome))
 	{
 		return NULL;
@@ -119,11 +188,9 @@ region_t *remove_region(region_t *region, region_table_t *table)
 	
 	region_t *removed = NULL;
 	cp_avltree *chr = get_chromosome(region->chromosome, table);
-	/*
-	 * - If the tree node contains >1 element: remove all elements in that exact range. 
-	 *   If all of them are erased, remove the node.
-	 * - If the tree node contains 1 element: remove the node
-	 */
+	// - If the tree node contains >1 element: remove all elements in that exact range. 
+	//   If all of them are erased, remove the node.
+	// - If the tree node contains 1 element: remove the node
 	cp_vector *region_vector = cp_avltree_get(chr, &region->start_position);
 	int regions_in_node = cp_vector_size(region_vector);
 	
@@ -155,13 +222,56 @@ region_t *remove_region(region_t *region, region_table_t *table)
 	}
 	
 	return removed;
-}
+*/
+/*
+    int rc;
+    sqlite3_stmt *stmt;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    rc = exec_sql(sql_begin, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not remove region: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
 
-void free_region(region_t *region)
-{
-	// Doesn't need to be dynamically allocated memory
-// 	free(region->chromosome);
-	free(region);
+    char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+    rc = sqlite3_prepare_v2(db, sql, strlen(sql) + 300, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not remove region: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+    
+    for (int i = 0; i < num_regions; i++) {
+        region_t *region = regions[i];
+        sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(stmt, 2, region->start_position);
+        sqlite3_bind_int64(stmt, 3, region->end_position);
+        sqlite3_bind_text(stmt, 4, region->strand, strlen(region->strand), SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 5, region->type, strlen(region->type), SQLITE_STATIC);
+
+        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+            LOG_ERROR_F("Could not insert region %s:%ld-%ld: %s (%d)\n", 
+                        region->chromosome, region->start_position, region->end_position, 
+                        sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+
+        sqlite3_reset(stmt);
+    }
+    
+    char *sql_end = "END TRANSACTION";
+    rc = exec_sql(sql_end, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+
+    return rc == SQLITE_OK;
+*/
+    return NULL;
 }
 
 
@@ -170,49 +280,47 @@ void free_region(region_t *region)
  *  Chromosomes (region trees)	*
  * ******************************/
 
-void *insert_chromosome(const char *key, region_table_t *table)
-{
-	cp_avltree *chr_tree = get_chromosome(key, table);
-	if (chr_tree != NULL)
-	{
-		return chr_tree;
-	}
-	chr_tree = cp_avltree_create_by_option( COLLECTION_MODE_MULTIPLE_VALUES | COLLECTION_MODE_DEEP,
-// 						(cp_compare_fn) compare_regions,	// Key comparison function
-						(cp_compare_fn) compare_positions,
-						NULL,					// Key copy function
-						NULL,					// Key destructor function
-						NULL,					// Value copy function
-						(cp_destructor_fn) free_region		// Value destructor function
-						);
-	return cp_hashtable_put(table->storage, (void*) key, chr_tree);
-}
-
-cp_avltree *get_chromosome(const char *key, region_table_t *table)
-{
-	return (cp_avltree *) cp_hashtable_get_by_option(table->storage, (void*) key, COLLECTION_MODE_NOSYNC);
-}
-
-cp_avltree *remove_chromosome(const char *key, region_table_t *table)
-{
-	return cp_hashtable_remove(table->storage, (void*) key);
+cp_avltree *get_chromosome(const char *key, region_table_t *table) {
+/*
+    return (cp_avltree *) cp_hashtable_get_by_option(table->storage, (void*) key, COLLECTION_MODE_NOSYNC);
+*/
+    return NULL;
 }
 
 int count_regions_in_chromosome(const char *key, region_table_t *table) {
-    cp_avltree *chr_tree = get_chromosome(key, table);
-    if (chr_tree == NULL) {
-        return 0;
+    if (!table->is_ready) { // Don't allow queries over an un-indexed DB
+        finish_region_table_loading(table);
     }
-    return cp_avltree_count(chr_tree);
+    
+    int count = -1;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    exec_sql(sql_begin, db);
+
+    sqlite3_stmt *query_stmt;
+    char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
+    sqlite3_bind_text(query_stmt, 1, key, strlen(key), SQLITE_STATIC);
+    
+    if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(query_stmt, 1);
+    } else {
+        // Retry once
+        sqlite3_reset(query_stmt);
+        sqlite3_bind_text(query_stmt, 1, key, strlen(key), SQLITE_STATIC);
+        if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(query_stmt, 1);
+        } else {
+            LOG_ERROR_F("Regions table failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+    }
+    
+    sqlite3_finalize(query_stmt);
+    
+    char *sql_end = "END TRANSACTION";
+    exec_sql(sql_end, db);
+
+    return count;
 }
 
-void free_chromosome(const char *key)//, region_table_t *table)
-{
-	// As in free_region, the key doesn't need to be dynamically allocated memory
-// 	free((void*) key);
-}
-
-void free_chromosome_tree(cp_avltree *chromosome_tree)
-{
-	cp_avltree_destroy(chromosome_tree);
-}

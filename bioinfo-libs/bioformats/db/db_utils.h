@@ -72,4 +72,9 @@ int update_chunks_hash(const char *chr, int chr_length, int chunksize,
 int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db);
 
 
+//------------------------------------------------------------------------
+//------------------------------ AUXILIARY -------------------------------
+
+int exec_sql(char *sql, sqlite3* db);
+
 #endif // end of DB_UTILS_H

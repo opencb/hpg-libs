@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include <bioformats/db/db_utils.h>
+
 #include <commons/log.h>
 #include <commons/string_utils.h>
 #include <commons/sqlite/sqlite3.h>
@@ -12,7 +14,9 @@
 #include <containers/cprops/hashtable.h>
 #include <containers/cprops/vector.h>
 
-#include <bioformats/features/region/region.h>
+#include "region.h"
+
+#define REGIONS_CHUNKSIZE       10000
 
 /**
  * @struct region_table
@@ -22,10 +26,11 @@
  * and another one for preserving the order among chromosomes.
  */
 typedef struct region_table {
-	int max_chromosomes;    /**< Number of chromosomes registered in the 'ordering' variable, which should be the maximum to keep in 'storage' */
-	char **ordering;        /**< Order among chromosomes */
-//	cp_hashtable *storage;  /**< Chromosomes and a collection of regions contained in them */
-        sqlite3 *storage;       /**< Set of regions contained in the different chromosomes */
+	int max_chromosomes;            /**< Number of chromosomes registered in the 'ordering' variable, which should be the maximum to keep in 'storage' */
+	char **ordering;                /**< Order among chromosomes */
+        sqlite3 *storage;               /**< Set of regions contained in the different chromosomes */
+        khash_t(stats_chunks) *chunks;  /**< Hashtable containing groups of regions (chunks) */
+        int is_ready;           /**< Flag that notifies that chunks are saved and the storage is indexed */
 } region_table_t;
 
 
@@ -37,19 +42,24 @@ typedef struct region_table {
  * 	(Optional) File the list of ordered chromosomes is read from
  * @return A structure for a region table
  */
-region_table_t *create_table(const char *url, const char *species, const char *version);
+region_table_t *create_region_table(const char *url, const char *species, const char *version);
 
 /**
  * Free the region table given as parameter.
  * 
  * @param regions region table to be freed
  */
-void free_table(region_table_t *regions);
+void free_region_table(region_table_t *regions);
+
+
+void finish_region_table_loading(region_table_t *table);
 
 
 /* ******************************
  *  		Regions		*
  * ******************************/
+
+int insert_regions(region_t **regions, int num_regions, region_table_t *table);
 
 /**
  * Insert a region in a chromosome table. If the region's chromosome is not in the 
@@ -99,27 +109,10 @@ int find_region(region_t *region, region_table_t *table);
  */
 region_t *remove_region(region_t *region, region_table_t *table);
 
-/**
- * Free a region from the chromosome table.
- * 
- * @param region region to free
- */
-void free_region(region_t *region);
-
 
 /* ******************************
  *  Chromosomes (region trees)	*
  * ******************************/
-
-/**
- * Insert a chromosome in the table, and initializes the tree of regions it contains.
- * 
- * @param key name of the chromosome to be inserted
- * @param table regions structure the chromosome is inserted in
- * 
- * @return The created chromosome tree, or NULL if the chromosome could not be inserted
- */
-void *insert_chromosome(const char *key, region_table_t *table);
 
 /**
  * Find a chromosome in the table and returns its related tree containing all the inserted regions.
@@ -131,15 +124,6 @@ void *insert_chromosome(const char *key, region_table_t *table);
 cp_avltree *get_chromosome(const char *key, region_table_t *table);
 
 /**
- * Remove a chromosome from the table and returns the tree containing all the inserted regions.
- * 
- * @param key name of the chromosome to remove
- * @param table regions structure the chromosome is removed from
- * @return The removed tree, related to the chromosome
- */
-cp_avltree *remove_chromosome(const char *key, region_table_t *table);
-
-/**
  * Return the number of regions that have been inserted and belong to a certain chromosome.
  * 
  * @param key name of the chromosome whose regions are counted
@@ -147,18 +131,5 @@ cp_avltree *remove_chromosome(const char *key, region_table_t *table);
  */
 int count_regions_in_chromosome(const char *key, region_table_t *table);
 
-/**
- * Free a chromosome from the table and its related regions tree.
- * 
- * @param key name of the chromosome to free
- */
-void free_chromosome(const char *key);
-
-/**
- * Free the contents of a chromosome tree, being it inside the chromosome table or not.
- * 
- * @param chromosome_tree tree to be freed
- */
-void free_chromosome_tree(cp_avltree *chromosome_tree);
 
 #endif

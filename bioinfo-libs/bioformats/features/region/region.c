@@ -23,6 +23,10 @@ void region_free(region_t *region) {
 
 
 char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes) {
+    if (!host_url || !species || !version) {
+        return NULL;
+    }
+    
     int ret_code = init_http_environment(0);
     if (ret_code != 0) {
         return NULL;
@@ -30,6 +34,7 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
     
     char **ordering = NULL;
     
+/*
     // Default species: hsa
     if (species == NULL || version == NULL) {
         *num_chromosomes = 25;
@@ -48,6 +53,7 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
         
         return ordering;
     }
+*/
     
     CURL *curl;
     CURLcode res;

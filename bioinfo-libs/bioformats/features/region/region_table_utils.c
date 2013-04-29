@@ -2,7 +2,7 @@
 
 
 region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version) {
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
 
     char *str_1 = input_regions;
     char *str_2 = (char*) malloc (64 * sizeof(char));
@@ -64,7 +64,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;
@@ -124,7 +124,7 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;

@@ -9,7 +9,7 @@
 
 //------------------------------------------------------------------------
 
-static inline int exec_sql(char *sql, sqlite3* db) {
+inline int exec_sql(char *sql, sqlite3* db) {
   int rc;
   char *error_msg;
   if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
