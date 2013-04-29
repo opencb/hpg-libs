@@ -60,12 +60,16 @@ typedef struct variant_stats {
     
     char *ref_allele;           /**< Reference allele of the variant. */
     char **alternates;          /**< List of alternate alleles of the variant. */
+    char *maf_allele;           /**< Allele with MAF. */
+    char *mgf_genotype;         /**< Genotype with MGF. */
     
     int num_alleles;            /**< Number of alleles of the variant (1 reference + N alternates). */
     int *alleles_count;         /**< Times each allele has been counted. */
     int *genotypes_count;       /**< Times each possible genotype has been counted. */
     float *alleles_freq;        /**< Frequency of each allele in relation to the total. */
     float *genotypes_freq;      /**< Frequency of each genotype in relation to the total. */
+    float maf;                  /**< Minimum allele frequency. */
+    float mgf;                  /**< Minimum genotype frequency. */
     
     int missing_alleles;        /**< Number of alleles whose information is missing. */
     int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */

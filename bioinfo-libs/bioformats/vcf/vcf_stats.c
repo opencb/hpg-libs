@@ -49,12 +49,15 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->position = position;
     stats->ref_allele = ref_allele;
     stats->alternates = NULL;
+    stats->maf_allele = NULL;
     
     stats->num_alleles = 1;
     stats->alleles_count = NULL;
     stats->genotypes_count = NULL;
     stats->alleles_freq = NULL;
     stats->genotypes_freq = NULL;
+    stats->maf = 0.0f;
+    stats->mgf = 0.0f;
     
     stats->missing_alleles = 0;
     stats->missing_genotypes = 0;
@@ -93,7 +96,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     assert(output_list);
     assert(file_stats);
     
-    char *copy_buf, *copy_buf2, *sample;
+    char *copy_buf = NULL, *sample;
     
     int num_alternates, gt_position, curr_position;
     int allele1, allele2, alleles_code;
@@ -108,6 +111,8 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     int controls_dominant = 0;  // Number of controls that follow a dominant inheritance pattern
     int cases_recessive = 0;    // Number of cases that follow a recessive inheritance pattern
     int controls_recessive = 0; // Number of controls that follow a recessive inheritance pattern
+    float maf = 1.0f, mgf = 1.0f;
+    float cur_gt_freq;
     
     // Variant stats management
     vcf_record_t *record;
@@ -121,12 +126,14 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
         cases_dominant = controls_dominant = cases_recessive = controls_recessive = 0;
+        maf = mgf = 1.0f;
         
         // Create list of alternates
         copy_buf = strndup(record->alternate, record->alternate_len);
         stats->alternates = split(copy_buf, ",", &num_alternates);
         if (copy_buf) {
             free(copy_buf);
+            copy_buf = NULL;
         }
         
         stats->num_alleles = num_alternates + 1;
@@ -139,10 +146,11 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
         // Get position where GT is in sample
-        copy_buf2 = strndup(record->format, record->format_len);
-        gt_position = get_field_position_in_format("GT", copy_buf2);
-        if (copy_buf2) {
-            free(copy_buf2);
+        copy_buf = strndup(record->format, record->format_len);
+        gt_position = get_field_position_in_format("GT", copy_buf);
+        if (copy_buf) {
+            free(copy_buf);
+            copy_buf = NULL;
         }
         
         LOG_DEBUG_F("Genotype position = %d\n", gt_position);
@@ -157,10 +165,11 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             sample = (char*) array_list_get(j, record->samples);
             
             // Get to GT position
-            copy_buf2 = strdup(sample);
-            alleles_code = get_alleles(copy_buf2, gt_position, &allele1, &allele2);
-            if (copy_buf2) {
-                free(copy_buf2);
+            copy_buf = strdup(sample);
+            alleles_code = get_alleles(copy_buf, gt_position, &allele1, &allele2);
+            if (copy_buf) {
+                free(copy_buf);
+                copy_buf = NULL;
             }
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
@@ -233,14 +242,48 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         stats->controls_percent_recessive = (float) controls_recessive * 100 / (record->samples->size - stats->missing_genotypes);
         stats->cases_percent_recessive = (float) cases_recessive * 100 / (record->samples->size - stats->missing_genotypes);
         
-        // Get allele and genotype frequencies
+        // Get allele and genotype frequencies, as well as MAF and MGF
         for (int j = 0; j < stats->num_alleles; j++) {
             stats->alleles_freq[j] = (float) stats->alleles_count[j] / total_alleles_count;
+            if (stats->alleles_freq[j] < maf) {
+                maf = stats->alleles_freq[j];
+                stats->maf_allele = (j == 0) ? stats->ref_allele : stats->alternates[j-1];
+            }
         }
+        stats->maf = maf;
+        
         for (int j = 0; j < stats->num_alleles * stats->num_alleles; j++) {
             printf("");
             stats->genotypes_freq[j] = (float) stats->genotypes_count[j] / total_genotypes_count;
         }
+        
+        for (int j = 0; j < stats->num_alleles; j++) {
+            for (int k = j; k < stats->num_alleles; k++) {
+                int idx1 = j * stats->num_alleles + k;
+                if (j == k) {
+                    cur_gt_freq = stats->genotypes_freq[idx1];
+                } else {
+                    int idx2 = k * stats->num_alleles + j;
+                    cur_gt_freq = stats->genotypes_freq[idx1] + stats->genotypes_freq[idx2];
+                }
+
+                if (cur_gt_freq < mgf) {
+                    if (copy_buf) { 
+                        free(copy_buf); 
+                        copy_buf = NULL;
+                    }
+                    char *first_allele = (j == 0) ? stats->ref_allele : stats->alternates[j-1];
+                    char *second_allele = (k == 0) ? stats->ref_allele : stats->alternates[k-1];
+                    copy_buf = malloc((strlen(first_allele) + strlen(second_allele) + 2) * sizeof(char));
+                    sprintf(copy_buf, "%s|%s", first_allele, second_allele);
+                    mgf = cur_gt_freq;
+                }
+            }
+        }
+        
+        stats->mgf = mgf;
+        stats->mgf_genotype = copy_buf;
+        
         
         // Update variables finally used to update file_stats_t structure
         variants_count++;

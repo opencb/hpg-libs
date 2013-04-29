@@ -190,48 +190,10 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
     array_list_t *fields = array_list_new(num_variants + 1, 1.1, COLLECTION_MODE_ASYNCHRONIZED);
     
     variant_stats_t *var_stats;
-    char *allele_with_maf, *genotype_with_maf = NULL;
-    float maf_allele, maf_gt, cur_gt_freq;
     for (int i = 0; i < num_variants; i++) {
         var_stats = stats_batch[i];
-        allele_with_maf = var_stats->ref_allele;
-        maf_allele = var_stats->alleles_freq[0];
-        maf_gt = 1;
-        
-        // Get MAF from alleles
-        for (int j = 1; j < var_stats->num_alleles; j++) {
-            if (var_stats->alleles_freq[j] < maf_allele) {
-                maf_allele = var_stats->alleles_freq[j];
-                allele_with_maf = var_stats->alternates[j-1];
-            }
-        }
-        
-        // Get MAF from genotypes
-        for (int j = 0; j < var_stats->num_alleles; j++) {
-            for (int k = j; k < var_stats->num_alleles; k++) {
-                int idx1 = j * var_stats->num_alleles + k;
-                if (j == k) {
-                    cur_gt_freq = var_stats->genotypes_freq[idx1];
-                } else {
-                    int idx2 = k * var_stats->num_alleles + j;
-                    cur_gt_freq = var_stats->genotypes_freq[idx1] + var_stats->genotypes_freq[idx2];
-                }
-
-                if (cur_gt_freq < maf_gt) {
-                    if (genotype_with_maf) { free(genotype_with_maf); }
-                    char *first_allele = (j == 0) ? var_stats->ref_allele : var_stats->alternates[j-1];
-                    char *second_allele = (k == 0) ? var_stats->ref_allele : var_stats->alternates[k-1];
-                    genotype_with_maf = calloc(strlen(first_allele) + strlen(second_allele) + 2, sizeof(char));
-                    sprintf(genotype_with_maf, "%s|%s", first_allele, second_allele);
-                    maf_gt = cur_gt_freq;
-                }
-            }
-        }
-        
-        assert(allele_with_maf);
-        assert(genotype_with_maf);
         vcf_query_fields_t *f = vcf_query_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, 
-                                                     allele_with_maf, maf_allele, genotype_with_maf, maf_gt, 
+                                                     var_stats->maf_allele, var_stats->maf, var_stats->mgf_genotype, var_stats->mgf, 
                                                      var_stats->missing_alleles, var_stats->missing_genotypes,
                                                      var_stats->mendelian_errors, var_stats->is_indel,
                                                      var_stats->cases_percent_dominant, var_stats->controls_percent_dominant,
