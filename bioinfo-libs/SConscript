@@ -17,14 +17,8 @@ else:
 env['objects'] = []
 
 # Targets
-SConscript(['bioformats/SConscript',
-            ], exports = ['env'])
-
-SConscript(['aligners/SConscript',
-            ], exports = ['env'])
+SConscript(['bioformats/SConscript',], exports = ['env'])
+SConscript(['aligners/SConscript',], exports = ['env'])
 
 env.Library('bioinfo', env['objects'])
-
-# Should traverse the tree and get the *.c files
-#env.SharedLibrary('bioformats', env['objects'])
 

@@ -205,7 +205,8 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     alignment_p->query_name = (char*) calloc(bam_p->core.l_qname, sizeof(char));
     alignment_p->sequence = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));
     alignment_p->quality = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));   //same length as sequence
-    alignment_p->cigar = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, alignment_p->num_cigar_operations << 2), sizeof(char));
+    // commented by JT
+    //    alignment_p->cigar = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, alignment_p->num_cigar_operations << 2), sizeof(char));
     alignment_p->optional_fields = (uint8_t*) calloc(bam_p->l_aux, sizeof(uint8_t));
     alignment_p->optional_fields_length = bam_p->l_aux;
 
@@ -218,7 +219,10 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     //strcpy(alignment_p->quality, quality_string);
     //free(quality_string);
 
-    strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
+    // commented by JT
+    //    strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
+    alignment_p->cigar = convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations);
+
     memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);
 
     //flags
@@ -465,7 +469,9 @@ void set_secondary_alignment(short int set, alignment_t *alignment) {
  * *********************************************************************/
 
 char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length) {
-    char* sequence_string = (char*) calloc(1, sequence_length + 1); //each byte codes two nts ( 1 nt = 4 bits)
+  // commented by JT
+  //    char* sequence_string = (char*) calloc(1, sequence_length + 1); //each byte codes two nts ( 1 nt = 4 bits)
+  char* sequence_string = sequence_p;
 
     for (int i = 0; i < sequence_length; i++) {
         switch (bam1_seqi(sequence_p, i)) {

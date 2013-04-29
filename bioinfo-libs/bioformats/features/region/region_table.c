@@ -106,7 +106,7 @@ int find_region(region_t *region, region_table_t *table)
 	int result = cp_avltree_contains(chr, region);
 	// Restore comparison function
 	chr->cmp = aux_fn;
-	
+
 	return result;
 }
 
