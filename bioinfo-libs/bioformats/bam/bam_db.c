@@ -72,7 +72,7 @@ int create_bam_index(sqlite3 *db) {
   char *error_msg;
 
   // create chunks index
-  sprintf(sql, "CREATE INDEX record_query_fields_chromosome_start_end_idx ON chunk (chromosome, start, end)");
+  sprintf(sql, "CREATE INDEX record_query_fields_chromosome_start_end_idx ON record_query_fields (chromosome, start, end)");
   if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
     LOG_DEBUG_F("Stats database failed creating BAM index: %s\n", error_msg);
   }
