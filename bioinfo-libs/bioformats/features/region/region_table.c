@@ -185,51 +185,7 @@ int find_region(region_t *region, region_table_t *table) {
     return count > 0;
 }
 
-region_t *remove_region(region_t *region, region_table_t *table) {
-/*
-	if (!cp_hashtable_contains(table->storage, region->chromosome))
-	{
-		return NULL;
-	}
-	
-	region_t *removed = NULL;
-	cp_avltree *chr = get_chromosome(region->chromosome, table);
-	// - If the tree node contains >1 element: remove all elements in that exact range. 
-	//   If all of them are erased, remove the node.
-	// - If the tree node contains 1 element: remove the node
-	cp_vector *region_vector = cp_avltree_get(chr, &region->start_position);
-	int regions_in_node = cp_vector_size(region_vector);
-	
-	if (regions_in_node > 1)
-	{
-		int i = 0;
-		do
-		{
-			// Remove all elements in that exact range. 
-			if (compare_position_ranges(region, cp_vector_element_at(region_vector, i)) == 0)
-			{
-				removed = cp_vector_remove_element_at(region_vector, i);
-				regions_in_node--;
-			} else
-			{
-				i++;
-			}
-		} while (i < regions_in_node);
-		
-		// If all elements are erased, remove the node
-		regions_in_node = cp_vector_size(region_vector);
-		if (regions_in_node == 0)
-		{
-			removed = cp_avltree_delete(chr, &region->start_position);
-		}
-	} else
-	{
-		removed = cp_avltree_delete(chr, &region->start_position);
-	}
-	
-	return removed;
-*/
-/*
+int remove_exact_region(region_t *region, region_table_t *table) {
     int rc;
     sqlite3_stmt *stmt;
     sqlite3* db = table->storage;
@@ -242,7 +198,7 @@ region_t *remove_region(region_t *region, region_table_t *table) {
         return rc;
     }
 
-    char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+    char sql[] = "DELETE FROM regions WHERE chromosome = ?1 AND start = ?2 AND end = ?3";
     rc = sqlite3_prepare_v2(db, sql, strlen(sql) + 300, &stmt, NULL);
     if (rc != SQLITE_OK) {
         LOG_ERROR_F("Could not remove region: %s (%d)\n", 
@@ -250,36 +206,71 @@ region_t *remove_region(region_t *region, region_table_t *table) {
         return rc;
     }
     
-    for (int i = 0; i < num_regions; i++) {
-        region_t *region = regions[i];
-        sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
-        sqlite3_bind_int64(stmt, 2, region->start_position);
-        sqlite3_bind_int64(stmt, 3, region->end_position);
-        sqlite3_bind_text(stmt, 4, region->strand, strlen(region->strand), SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 5, region->type, strlen(region->type), SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(stmt, 2, region->start_position);
+    sqlite3_bind_int64(stmt, 3, region->end_position);
 
-        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
-            LOG_ERROR_F("Could not insert region %s:%ld-%ld: %s (%d)\n", 
-                        region->chromosome, region->start_position, region->end_position, 
-                        sqlite3_errmsg(db), sqlite3_errcode(db));
-        }
-
-        sqlite3_reset(stmt);
+    if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+        LOG_ERROR_F("Could not remove region %s:%ld-%ld: %s (%d)\n", 
+                    region->chromosome, region->start_position, region->end_position, 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
     }
     
     char *sql_end = "END TRANSACTION";
     rc = exec_sql(sql_end, db);
     if (rc != SQLITE_OK) {
-        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
+        LOG_ERROR_F("Could not remove regions: %s (%d)\n", 
                     sqlite3_errmsg(db), sqlite3_errcode(db));
         return rc;
     }
 
-    return rc == SQLITE_OK;
-*/
-    return NULL;
+    return rc;
 }
 
+
+int remove_region(region_t *region, region_table_t *table) {
+    int rc;
+    sqlite3_stmt *stmt;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    rc = exec_sql(sql_begin, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not remove region: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+
+    char sql[] = "DELETE FROM regions WHERE chromosome = ?1 AND start <= ?3 AND end >= ?2";
+    rc = sqlite3_prepare_v2(db, sql, strlen(sql) + 300, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not remove region: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+    
+    sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(stmt, 2, region->start_position);
+    sqlite3_bind_int64(stmt, 3, region->end_position);
+
+    if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+        LOG_ERROR_F("Could not remove region %s:%ld-%ld: %s (%d)\n", 
+                    region->chromosome, region->start_position, region->end_position, 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+    
+    char *sql_end = "END TRANSACTION";
+    rc = exec_sql(sql_end, db);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR_F("Could not remove regions: %s (%d)\n", 
+                    sqlite3_errmsg(db), sqlite3_errcode(db));
+        return rc;
+    }
+
+    return rc;
+}
 
 
 /* ******************************

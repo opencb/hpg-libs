@@ -6,11 +6,9 @@
 #include <limits.h>
 
 #include <bioformats/db/db_utils.h>
-
 #include <commons/log.h>
 #include <commons/string_utils.h>
 #include <commons/sqlite/sqlite3.h>
-
 #include <containers/array_list.h>
 
 #include "region.h"
@@ -97,16 +95,26 @@ int find_exact_region(region_t *region, region_table_t *table);
  */
 int find_region(region_t *region, region_table_t *table);
 
+
 /**
- * Remove a region from a chromosome table. In more than one region begin in the same 
- * position as this one, only the exact match is removed.
+ * Remove a region from a chromosome table, considering its exact coordinates.
  * 
  * @param region region to remove
  * @param table table the region will be removed from
  * 
- * @return The removed region
+ * @return 0 if the region was removed without errors, non-zero otherwise
  */
-region_t *remove_region(region_t *region, region_table_t *table);
+int remove_exact_region(region_t *region, region_table_t *table);
+
+/**
+ * Removes all regions contained inside the region given as argument.
+ * 
+ * @param region region to remove
+ * @param table table the region will be removed from
+ * 
+ * @return 0 if the region was removed without errors, non-zero otherwise
+ */
+int remove_region(region_t *region, region_table_t *table);
 
 
 /* ******************************
