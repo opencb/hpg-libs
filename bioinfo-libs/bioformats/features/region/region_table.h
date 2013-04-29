@@ -11,9 +11,7 @@
 #include <commons/string_utils.h>
 #include <commons/sqlite/sqlite3.h>
 
-#include <containers/cprops/avl.h>
-#include <containers/cprops/hashtable.h>
-#include <containers/cprops/vector.h>
+#include <containers/array_list.h>
 
 #include "region.h"
 
@@ -31,7 +29,7 @@ typedef struct region_table {
 	char **ordering;                /**< Order among chromosomes */
         sqlite3 *storage;               /**< Set of regions contained in the different chromosomes */
         khash_t(stats_chunks) *chunks;  /**< Hashtable containing groups of regions (chunks) */
-        int is_ready;           /**< Flag that notifies that chunks are saved and the storage is indexed */
+        int is_ready;                   /**< Flag that notifies that chunks are saved and the storage is indexed */
 } region_table_t;
 
 
@@ -85,7 +83,7 @@ int insert_region(region_t *region, region_table_t *table);
  * 
  * @return 1 if the region was found, 0 otherwise
  */
-int contains_region(region_t *region, region_table_t *table);
+int find_exact_region(region_t *region, region_table_t *table);
 
 /**
  * Find a region in a chromosome table. Its chromosome must be a perfect match, but its 
@@ -116,13 +114,13 @@ region_t *remove_region(region_t *region, region_table_t *table);
  * ******************************/
 
 /**
- * Find a chromosome in the table and returns its related tree containing all the inserted regions.
+ * Find a chromosome in the table and returns all the regions inserted into it.
  * 
  * @param key name of the chromosome to find
- * @param table regions structure the chromosome is get from
- * @return The tree with all regions related to the chromosome
+ * @param table regions structure the chromosome is retrieved from
+ * @return A list with all regions related to the chromosome
  */
-cp_avltree *get_chromosome(const char *key, region_table_t *table);
+array_list_t *get_chromosome(const char *key, region_table_t *table);
 
 /**
  * Return the number of regions that have been inserted and belong to a certain chromosome.
