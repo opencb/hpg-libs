@@ -80,7 +80,7 @@ int create_vcf_index(sqlite3 *db) {
     char *error_msg;
 
     // create chunks index
-    sprintf(sql, "CREATE INDEX record_query_fields_chromosome_position_idx ON chunk (chromosome, position)");
+    sprintf(sql, "CREATE INDEX record_query_fields_chromosome_start_end_idx ON chunk (chromosome, start, end)");
     if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
         LOG_ERROR_F("Stats database failed creating VCF index: %s\n", error_msg);
     }

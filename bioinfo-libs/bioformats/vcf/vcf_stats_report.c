@@ -1,24 +1,31 @@
 #include "vcf_stats_report.h"
 
 
+char *get_vcf_stats_filename_prefix(char *vcf_filename, char *out_filename, char *outdir) {
+    char *stats_filename;
+    
+    if (out_filename == NULL || strlen(out_filename) == 0) {
+        char suffix_filename[strlen(vcf_filename) + 1];
+        get_filename_from_path(vcf_filename, suffix_filename);
+        
+        stats_filename = (char*) calloc ((strlen(outdir) + strlen(suffix_filename) + 2), sizeof(char));
+        sprintf(stats_filename, "%s/%s", outdir, suffix_filename);
+    } else {
+        stats_filename = (char*) calloc ((strlen(outdir) + strlen(out_filename) + 2), sizeof(char));
+        sprintf(stats_filename, "%s/%s", outdir, out_filename);
+    }
+
+    return stats_filename;
+}
+
+
 /* ***********************************************
  *                   Global report               *
  * ***********************************************/
 
-char *get_vcf_file_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir) {
-    char *summary_filename;
-    
-    if (out_filename == NULL || strlen(out_filename) == 0) {
-        char suffix_filename[strlen(vcf_filename)];
-        get_filename_from_path(vcf_filename, suffix_filename);
-        
-        summary_filename = malloc ((strlen(outdir) + strlen(suffix_filename) + strlen(".summary-stats") + 2) * sizeof(char));
-        sprintf(summary_filename, "%s/%s.stats-summary", outdir, suffix_filename);
-    } else {
-        summary_filename = (char*) calloc ((strlen(outdir) + strlen(out_filename) + strlen(".summary-stats") + 2), sizeof(char));
-        sprintf(summary_filename, "%s/%s.stats-summary", outdir, out_filename);
-    }
-    
+char *get_vcf_file_stats_output_filename(char *prefix) {
+    char *summary_filename = (char*) calloc ((strlen(prefix) + strlen(".stats-summary") + 2), sizeof(char));
+    sprintf(summary_filename, "%s.stats-summary", prefix);
     return summary_filename;
 }
 
@@ -45,7 +52,7 @@ static void report_summary(FILE *summary_fd, file_stats_t *file_stats) {
 }
 
 
-static void report_summary_sqlite3(sqlite3 *db, file_stats_t *output) {
+static void report_summary_sqlite3(sqlite3 *db, file_stats_t *stats) {
     sqlite3_stmt* stmt;
     char* error_message;
     char aux[64];
@@ -54,37 +61,37 @@ static void report_summary_sqlite3(sqlite3 *db, file_stats_t *output) {
 
     sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message);
 
-    sprintf(aux, "%d", output->variants_count);
+    sprintf(aux, "%d", stats->variants_count);
     insert_statement_global_stats("NUM_VARIANTS", "Number of variants", aux, stmt, db);
 
-    sprintf(aux, "%d", output->samples_count);
+    sprintf(aux, "%d", stats->samples_count);
     insert_statement_global_stats("NUM_SAMPLES", "Number of samples", aux, stmt, db);
 
-    sprintf(aux, "%d", output->biallelics_count);
+    sprintf(aux, "%d", stats->biallelics_count);
     insert_statement_global_stats("NUM_BIALLELIC", "Number of biallelic variants", aux, stmt, db);
 
-    sprintf(aux, "%d", output->multiallelics_count);
+    sprintf(aux, "%d", stats->multiallelics_count);
     insert_statement_global_stats("NUM_MULTIALLELIC", "Number of multiallelic variants", aux, stmt, db);
 
-    sprintf(aux, "%d", output->snps_count);
+    sprintf(aux, "%d", stats->snps_count);
     insert_statement_global_stats("NUM_SNPS", "Number of SNPs", aux, stmt, db);
 
-    sprintf(aux, "%d", output->indels_count);
+    sprintf(aux, "%d", stats->indels_count);
     insert_statement_global_stats("NUM_INDELS", "Number of indels", aux, stmt, db);
 
-    sprintf(aux, "%d", output->transitions_count);
+    sprintf(aux, "%d", stats->transitions_count);
     insert_statement_global_stats("NUM_TRANSITIONS", "Number of transitions", aux, stmt, db);
 
-    sprintf(aux, "%d", output->transversions_count);
+    sprintf(aux, "%d", stats->transversions_count);
     insert_statement_global_stats("NUM_TRANSVERSIONS", "Number of transversions", aux, stmt, db);
 
-    sprintf(aux, "%.3f", (float) output->transitions_count / output->transversions_count);
+    sprintf(aux, "%.3f", (float) stats->transitions_count / stats->transversions_count);
     insert_statement_global_stats("TITV_RATIO", "Ti/TV ratio", aux, stmt, db);
 
-    sprintf(aux, "%.3f", ((float) output->pass_count / output->variants_count) * 100.0);
+    sprintf(aux, "%.3f", ((float) stats->pass_count / stats->variants_count) * 100.0);
     insert_statement_global_stats("PERCENT_PASS", "Percentage of PASS", aux, stmt, db);
 
-    sprintf(aux, "%.3f", output->accum_quality / output->variants_count);
+    sprintf(aux, "%.3f", stats->accum_quality / stats->variants_count);
     insert_statement_global_stats("AVG_QUALITY", "Average quality", aux, stmt, db);
 
     sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message);
@@ -108,20 +115,9 @@ void report_vcf_summary_stats(FILE *stats_fd, void *db, file_stats_t *stats) {
  *                 Variants report               *
  * ***********************************************/
 
-char *get_variant_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir) {
-    char *stats_filename;
-    
-    if (out_filename == NULL || strlen(out_filename) == 0) {
-        char suffix_filename[strlen(vcf_filename) + 1];
-        get_filename_from_path(vcf_filename, suffix_filename);
-        
-        stats_filename = (char*) calloc ((strlen(outdir) + strlen(suffix_filename) + strlen(".stats-variants") + 2), sizeof(char));
-        sprintf(stats_filename, "%s/%s.stats-variants", outdir, suffix_filename);
-    } else {
-        stats_filename = (char*) calloc ((strlen(outdir) + strlen(out_filename) + strlen(".stats-variants") + 2), sizeof(char));
-        sprintf(stats_filename, "%s/%s.stats-variants", outdir, out_filename);
-    }
-    
+char *get_variant_stats_output_filename(char *prefix) {
+    char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(".stats-variants") + 2), sizeof(char));
+    sprintf(stats_filename, "%s.stats-variants", prefix);
     return stats_filename;
 }
 
@@ -147,7 +143,7 @@ static int report_variant_alleles_stats(variant_stats_t *var_stats, FILE *stats_
     
     return written;
 } 
-    
+
 static int report_variant_genotypes_stats(variant_stats_t *var_stats, FILE *stats_fd) {
     int written = 0;
     int gt_count = 0;
@@ -190,19 +186,88 @@ static inline int report_variant_inheritance_data(variant_stats_t *var_stats, FI
                    var_stats->controls_percent_recessive);
 }
 
-void report_vcf_variant_stats(FILE *stats_fd, void *db, variant_stats_t *stats) {
-    // Write to plain text file
-    fprintf(stats_fd, "%s\t%ld\t", stats->chromosome, stats->position);
+static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, variant_stats_t **stats_batch) {
+    array_list_t *fields = array_list_new(num_variants + 1, 1.1, COLLECTION_MODE_ASYNCHRONIZED);
+    
+    variant_stats_t *var_stats;
+    char *allele_with_maf, *genotype_with_maf = NULL;
+    float maf_allele, maf_gt, cur_gt_freq;
+    for (int i = 0; i < num_variants; i++) {
+        var_stats = stats_batch[i];
+        allele_with_maf = var_stats->ref_allele;
+        maf_allele = var_stats->alleles_freq[0];
+        maf_gt = 1;
+        
+        // Get MAF from alleles
+        for (int j = 1; j < var_stats->num_alleles; j++) {
+            if (var_stats->alleles_freq[j] < maf_allele) {
+                maf_allele = var_stats->alleles_freq[j];
+                allele_with_maf = var_stats->alternates[j-1];
+            }
+        }
+        
+        // Get MAF from genotypes
+        for (int j = 0; j < var_stats->num_alleles; j++) {
+            for (int k = j; k < var_stats->num_alleles; k++) {
+                int idx1 = j * var_stats->num_alleles + k;
+                if (j == k) {
+                    cur_gt_freq = var_stats->genotypes_freq[idx1];
+                } else {
+                    int idx2 = k * var_stats->num_alleles + j;
+                    cur_gt_freq = var_stats->genotypes_freq[idx1] + var_stats->genotypes_freq[idx2];
+                }
 
-    report_variant_alleles_stats(stats, stats_fd);
-    report_variant_genotypes_stats(stats, stats_fd);
-    report_variant_missing_data(stats, stats_fd);
-    report_variant_inheritance_data(stats, stats_fd);
+                if (cur_gt_freq < maf_gt) {
+                    if (genotype_with_maf) { free(genotype_with_maf); }
+                    char *first_allele = (j == 0) ? var_stats->ref_allele : var_stats->alternates[j-1];
+                    char *second_allele = (k == 0) ? var_stats->ref_allele : var_stats->alternates[k-1];
+                    genotype_with_maf = calloc(strlen(first_allele) + strlen(second_allele) + 2, sizeof(char));
+                    sprintf(genotype_with_maf, "%s|%s", first_allele, second_allele);
+                    maf_gt = cur_gt_freq;
+                }
+            }
+        }
+        
+        assert(allele_with_maf);
+        assert(genotype_with_maf);
+        vcf_query_fields_t *f = vcf_query_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, 
+                                                     allele_with_maf, maf_allele, genotype_with_maf, maf_gt, 
+                                                     var_stats->missing_alleles, var_stats->missing_genotypes,
+                                                     var_stats->mendelian_errors, var_stats->is_indel,
+                                                     var_stats->cases_percent_dominant, var_stats->controls_percent_dominant,
+                                                     var_stats->cases_percent_recessive, var_stats->controls_percent_recessive);
+        
+        array_list_insert(f, fields);
+    }
+    
+    insert_vcf_query_fields_list(fields, db);
+    
+    array_list_free(fields, NULL);
+}
+
+
+void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *hash, int num_variants, variant_stats_t **stats_batch) {
+    for (int i = 0; i < num_variants; i++) {
+        variant_stats_t *stats = stats_batch[i];
+        
+        // Write to plain text file
+        fprintf(stats_fd, "%s\t%ld\t", stats->chromosome, stats->position);
+        report_variant_alleles_stats(stats, stats_fd);
+        report_variant_genotypes_stats(stats, stats_fd);
+        report_variant_missing_data(stats, stats_fd);
+        report_variant_inheritance_data(stats, stats_fd);
+        
+        // Update chunks
+        if (db) {
+            update_chunks_hash(stats->chromosome, INT_MAX, VCF_CHUNKSIZE, stats->position, stats->position, hash);
+        }
+    }
 
     // Write to database (optional)
     if (db) {
-        //report_summary_sqlite3((sqlite3 *) db, stats);
+        report_vcf_variant_stats_sqlite3((sqlite3 *) db, num_variants, stats_batch);
     }
+                   
 }
 
 inline void report_vcf_variant_stats_header(FILE *stats_fd) {
@@ -215,24 +280,13 @@ inline void report_vcf_variant_stats_header(FILE *stats_fd) {
  *                 Samples report                *
  * ***********************************************/
 
-char *get_sample_stats_output_filename(char *vcf_filename, char *out_filename, char *outdir) {
-    char *stats_filename;
-    
-    if (out_filename == NULL || strlen(out_filename) == 0) {
-        char suffix_filename[strlen(vcf_filename) + 1];
-        get_filename_from_path(vcf_filename, suffix_filename);
-        
-        stats_filename = (char*) calloc ((strlen(outdir) + strlen(suffix_filename) + strlen(".stats-samples") + 2), sizeof(char));
-        sprintf(stats_filename, "%s/%s.stats-samples", outdir, suffix_filename);
-    } else {
-        stats_filename = (char*) calloc ((strlen(outdir) + strlen(out_filename) + strlen(".stats-variants") + 2), sizeof(char));
-        sprintf(stats_filename, "%s/%s.stats-samples", outdir, out_filename);
-    }
-    
+char *get_sample_stats_output_filename(char *prefix) {
+    char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(".stats-samples") + 2), sizeof(char));
+    sprintf(stats_filename, "%s.stats-samples", prefix);
     return stats_filename;
 }
 
-void report_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
+void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
     sample_stats_t *sam_stats;
     for (int i = 0; i < num_samples; i++) {
         sam_stats = stats[i];
@@ -241,6 +295,6 @@ void report_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_st
     }
 }
 
-inline void report_sample_variant_stats_header(FILE *stats_fd) {
+inline void report_vcf_sample_stats_header(FILE *stats_fd) {
     fprintf(stats_fd, "#SAMPLE\t\tMISS GT\t\tMENDEL ERR\n");
 }

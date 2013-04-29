@@ -19,7 +19,7 @@
 
 //------------------------------------------------------------------------
 
-KHASH_MAP_INIT_STR(str, int)
+KHASH_MAP_INIT_STR(stats_chunks, int)
 
 //------------------------------------------------------------------------
 
@@ -50,9 +50,9 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end,
 	      sqlite3 *db);
 
 int update_chunks_hash(const char *chr, int chr_length, int chunksize, 
-		       int start, int end, khash_t(str) *hash);
+		       int start, int end, khash_t(stats_chunks) *hash);
 
-int insert_chunk_hash(int chunksize, khash_t(str) *hash, sqlite3 *db);
+int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db);
 
 //------------------------------------------------------------------------
 
