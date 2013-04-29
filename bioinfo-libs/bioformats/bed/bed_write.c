@@ -52,7 +52,7 @@ void write_bed_record(bed_record_t* bed_record, FILE *fd) {
         fprintf(fd, "\t.");
     }
     if (bed_record->score >= 0) {
-        fprintf(fd, "\t%d", bed_record->score);
+        fprintf(fd, "\t%.3f", bed_record->score);
     } else {
         fprintf(fd, "\t.");
     }
@@ -62,12 +62,12 @@ void write_bed_record(bed_record_t* bed_record, FILE *fd) {
         fprintf(fd, "\t.");
     }
     if (bed_record->thickstart >= 0) {
-        fprintf(fd, "\t%d", bed_record->thickstart);
+        fprintf(fd, "\t%ld", bed_record->thickstart);
     } else {
         fprintf(fd, "\t.");
     }
     if (bed_record->thickend >= 0) {
-        fprintf(fd, "\t%d", bed_record->thickend);
+        fprintf(fd, "\t%ld", bed_record->thickend);
     } else {
         fprintf(fd, "\t.");
     }
