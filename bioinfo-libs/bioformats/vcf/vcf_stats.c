@@ -297,28 +297,28 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             biallelics_count++;
         }
         
+        /* 
+            * 3 possibilities for being an INDEL:
+            * - The value of the ALT field is <DEL> or <INS>
+            * - The REF allele is not . but the ALT is
+            * - The REF allele is . but the ALT is not
+            * - The REF field length is different than the ALT field length
+            */
+        if ((strncmp(".", stats->ref_allele, 1) && !strncmp(".", record->alternate, 1)) ||
+            (strncmp(".", record->alternate, 1) && !strncmp(".", stats->ref_allele, 1)) ||
+            !strncmp("<INS>", record->alternate, record->alternate_len) ||
+            !strncmp("<DEL>", record->alternate, record->alternate_len) ||
+             record->reference_len != record->alternate_len) {
+            stats->is_indel = 1;
+            indels_count++;
+        } else {
+            stats->is_indel = 0;
+        }
+            
         int ref_len = strlen(stats->ref_allele);
         int alt_len;
         for (int j = 0; j < num_alternates; j++) {
             alt_len = strlen(stats->alternates[j]);
-            
-            /* 
-             * 3 possibilities for being an INDEL:
-             * - The value of the ALT field is <DEL> or <INS>
-             * - The REF allele is not . but the ALT is
-             * - The REF allele is . but the ALT is not
-             * - The REF field length is different than the ALT field length
-             */
-            if ((strncmp(".", record->reference, 1) && !strncmp(".", record->alternate, 1)) ||
-                (strncmp(".", record->alternate, 1) && !strncmp(".", record->reference, 1)) ||
-                !strncmp("<INS>", record->alternate, record->alternate_len) ||
-                !strncmp("<DEL>", record->alternate, record->alternate_len) ||
-                 record->reference_len != record->alternate_len) {
-                stats->is_indel = 1;
-                indels_count++;
-            } else {
-                stats->is_indel = 0;
-            }
             
             // Transitions and transversions
             if (ref_len == 1 && alt_len == 1) {
