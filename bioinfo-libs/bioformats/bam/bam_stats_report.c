@@ -671,8 +671,9 @@ void report_bam_stats_output(char *bam_filename, char *outdir,
 
   int len = strlen(bam_filename) + strlen(outdir) + 100;
 
-  char prefix[len];
-  sprintf(prefix, "%s/%s", outdir, bam_filename);
+  char filename[len], prefix[len], *p;
+  sprintf(filename, "%s", ((p = strrchr(bam_filename, '/')) ? (p+1) : bam_filename));
+  sprintf(prefix, "%s/%s", outdir, filename);
 
   report_summary(prefix, stats);
 
