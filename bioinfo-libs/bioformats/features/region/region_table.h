@@ -3,6 +3,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include <bioformats/db/db_utils.h>
 

@@ -14,6 +14,9 @@ region_table_t *create_region_table(const char *url, const char *species, const 
 }
 
 void free_region_table(region_table_t* regions) {
+    // Close database
+    sqlite3_close_v2(regions->storage);
+    
     // Free ordering array
     char **ordering = regions->ordering;
     for (int i = 0; i < regions->max_chromosomes; i++) {
@@ -21,14 +24,17 @@ void free_region_table(region_table_t* regions) {
     }
     free(ordering);
 
-    sqlite3_close_v2(regions->storage);
-    
     free(regions);
 }
 
 
 void finish_region_table_loading(region_table_t *table) {
-    // TODO save chunks from hashtable
+    // Save chunks from hashtable
+    insert_chunk_hash(REGIONS_CHUNKSIZE, table->chunks, table->storage);
+    // Index contents
+    create_regions_index(table->storage);
+    // Mark as ready!
+    table->is_ready = 1;
 }
 
 
@@ -74,7 +80,7 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
                         region->chromosome, region->start_position, region->end_position, 
                         sqlite3_errmsg(db), sqlite3_errcode(db));
         } else {
-            // Update value in khash
+            // Update value in chunks hashtable
             update_chunks_hash(region->chromosome, UINT_MAX, REGIONS_CHUNKSIZE, 
                                region->start_position, region->end_position, table->chunks);
         }

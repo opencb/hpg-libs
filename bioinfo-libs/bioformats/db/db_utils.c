@@ -396,4 +396,6 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   }
 
   sqlite3_finalize(stmt);
+  
+  return rc;
 }
