@@ -6,6 +6,7 @@
 
 #include <commons/log.h>
 #include <commons/string_utils.h>
+#include <commons/sqlite/sqlite3.h>
 
 #include <containers/cprops/avl.h>
 #include <containers/cprops/hashtable.h>
@@ -21,9 +22,10 @@
  * and another one for preserving the order among chromosomes.
  */
 typedef struct region_table {
-	int max_chromosomes; /**< Number of chromosomes registered in the 'ordering' variable, which should be the maximum to keep in 'storage' */
-	char **ordering; /**< Order among chromosomes */
-	cp_hashtable *storage; /**< Chromosomes and a collection of regions contained in them */
+	int max_chromosomes;    /**< Number of chromosomes registered in the 'ordering' variable, which should be the maximum to keep in 'storage' */
+	char **ordering;        /**< Order among chromosomes */
+//	cp_hashtable *storage;  /**< Chromosomes and a collection of regions contained in them */
+        sqlite3 *storage;       /**< Set of regions contained in the different chromosomes */
 } region_table_t;
 
 

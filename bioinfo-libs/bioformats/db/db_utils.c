@@ -13,14 +13,16 @@ static inline int exec_sql(char *sql, sqlite3* db) {
   int rc;
   char *error_msg;
   if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
-    LOG_DEBUG_F("Stats database failed (%s): %s\n", sql, error_msg);
+    LOG_ERROR_F("Stats database failed (%s): %s\n", sql, error_msg);
   }
   return rc;
 }
 
 //------------------------------------------------------------------------
-//             C R E A T I O N        F U N C T I O N S
+//             S T A T I S T I C S        D A T A B A S E
 //------------------------------------------------------------------------
+
+//-------------------------- CREATION FUNCTIONS --------------------------
 
 int create_stats_db(const char *db_name, int chunksize, 
 		    int (*create_custom_fields)(sqlite3 *), sqlite3** db) {
@@ -64,9 +66,6 @@ int create_stats_db(const char *db_name, int chunksize,
 //------------------------------------------------------------------------
 
 int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
-  //  sprintf(sql, "CREATE INDEX id_idx ON global_stats (id)");
-  //  rc = exec_sql(sql, *db);
-
   int rc;
   char sql[128];
 
@@ -74,7 +73,7 @@ int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
   sprintf(sql, "CREATE INDEX chunk_chromosome_chunk_id_idx ON chunk (chromosome, chunk_id)");
   rc = exec_sql(sql, db);
 
-  // create custeom index (for the record_query_fields table)
+  // create custom index (for the record_query_fields table)
   if (create_custom_index) {
     rc = create_custom_index(db);
   }
@@ -82,9 +81,8 @@ int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
   return rc;
 }
 
-//------------------------------------------------------------------------
-//             G L O B A L     S T A T S     T A B L E
-//------------------------------------------------------------------------
+
+//-------------------------- GLOBAL STATS TABLE --------------------------
 
 int insert_global_stats(const char *name, const char *title, 
 			const char *value, sqlite3 *db) {
@@ -132,7 +130,7 @@ int insert_statement_global_stats(const char *name, const char *title,
   sqlite3_bind_text(stmt, 3, value, strlen(value), SQLITE_TRANSIENT);
 
   if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
-    LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+    LOG_ERROR_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
   }
@@ -140,6 +138,103 @@ int insert_statement_global_stats(const char *name, const char *title,
 
   return rc;
 }
+
+
+
+//------------------------------------------------------------------------
+//                  R E G I O N S    D A T A B A S E
+//------------------------------------------------------------------------
+
+int create_regions_db(const char *db_name, int chunksize, sqlite3** db) {
+  // create sqlite db
+  if (sqlite3_open(db_name, db)) {
+    LOG_FATAL_F("Could not open regions database (%s): %s\n", 
+		db_name, sqlite3_errmsg(*db));
+  }
+
+  int rc;
+  char sql[128];
+  
+  sprintf(sql, "BEGIN TRANSACTION");
+  rc = exec_sql(sql, *db);
+
+  // create regions table
+  sprintf(sql, "CREATE TABLE regions (chromosome TEXT, start INT, end INT, strand CHARACTER(1), type TEXT)");
+  rc = exec_sql(sql, *db);
+
+  // create chunks table
+  sprintf(sql, "CREATE TABLE chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
+  rc = exec_sql(sql, *db);
+
+  sprintf(sql, "END TRANSACTION");
+  rc = exec_sql(sql, *db);
+
+  return rc;
+}
+
+//------------------------------------------------------------------------
+
+int create_regions_index(sqlite3* db) {
+  int rc;
+  char sql[128];
+
+  // create chunks index
+  sprintf(sql, "CREATE INDEX chunk_chromosome_chunk_id_idx ON chunk (chromosome, chunk_id)");
+  rc = exec_sql(sql, db);
+
+  // create regions index
+  sprintf(sql, "CREATE INDEX regions_chromosome_start_end_idx ON chunk (chromosome, start, end)");
+  rc = exec_sql(sql, db);
+  return rc;
+}
+
+//------------------------------------------------------------------------
+
+static int prepare_statement_regions_query_fields(sqlite3 *db, sqlite3_stmt **stmt) {
+  char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+  return sqlite3_prepare_v2(db, sql, strlen(sql) + 300, stmt, NULL);
+}
+
+//------------------------------------------------------------------------
+
+int insert_regions_query_fields_list(array_list_t *list, sqlite3 *db) {
+
+    int rc;
+    sqlite3_stmt *stmt;
+    region_t *fields;
+    char *error_message;
+
+    prepare_statement_regions_query_fields(db, &stmt);
+
+    if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message)) {
+        LOG_ERROR_F("Regions database failed: %s (%d)\n", rc, error_message);
+    }
+
+    int num_items = array_list_size(list);
+    for (int i = 0; i < num_items; i++) {
+        fields = array_list_get(i, list);
+
+        sqlite3_bind_text(stmt, 1, fields->chromosome, strlen(fields->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(stmt, 2, fields->start_position);
+        sqlite3_bind_int64(stmt, 3, fields->end_position);
+        sqlite3_bind_text(stmt, 4, fields->strand, strlen(fields->strand), SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 5, fields->type, strlen(fields->type), SQLITE_STATIC);
+
+        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+            LOG_ERROR_F("Regions database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+
+        sqlite3_reset(stmt);
+    }
+
+    if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message)) {
+        LOG_ERROR_F("Regions database failed: %s (%d)\n", rc, error_message);
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+
 
 //------------------------------------------------------------------------
 //                     C H U N K       T A B L E
@@ -160,7 +255,7 @@ int insert_chunk(const char *chr, int chunk_id, int start, int end,
   sqlite3_bind_int(stmt, 5, features_count);
 
   if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
-    LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+    LOG_ERROR_F("Database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
   }
@@ -247,7 +342,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   sqlite3_prepare_v2(db, sql, strlen(sql) + 200, &stmt, NULL);
 
   if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
-    LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+    LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
   }
 
   for (khiter_t k = kh_begin(hash); k != kh_end(hash); ++k) {
@@ -270,7 +365,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
       sqlite3_bind_int(stmt, 5, features_count);
 
       if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
-	LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+	LOG_ERROR_F("Database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
       }
 
       sqlite3_reset(stmt);
@@ -282,12 +377,12 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
       if (counter % 100000 == 0) {
 	// commit the current transaction
 	if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
-	  LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+	  LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
 	}
 
 	// start a new transaction
 	if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
-	  LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+	  LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
 	}
 	counter = 0;
       }
@@ -296,83 +391,9 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
   if (counter) {
     if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
-      LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
+      LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
     }
   }
 
   sqlite3_finalize(stmt);
 }
-
-
-//------------------------------------------------------------------------
-//         R E C O R D     Q U E R Y     F I E L D S    T A B L E
-//------------------------------------------------------------------------
-
-int insert_record_query_fields(const char *chr, int chr_length, int chunksize, 
-			       int start, int end, void *fields,
-			       int (*insert_custom_fields)(void *, sqlite3 *), 
-			       sqlite3* db) {
-  int rc;
-
-  if (rc = insert_custom_fields(fields, db)) {
-    LOG_DEBUG_F("Stats database failed: %s\n", sqlite3_errmsg(db));
-  } else {
-    /*
-    // if custom fields insertion succeeded then
-    // update features counter for "touched" chunks
-    int chunk_start, chunk_end;
-    int chunk_id_start = start / chunksize;
-    int chunk_id_end = end / chunksize;
-
-    for (int chunk_id = chunk_id_start; chunk_id <= chunk_id_end; chunk_id++) {
-      chunk_start = chunk_id * chunksize;
-      chunk_end = chunk_start + chunksize - 1;
-      if (chunk_end > chr_length) {
-	chunk_end = chr_length - 1;
-      }
-
-      rc += inc_chunk(chr, chunk_id, chunk_start, chunk_end, db);
-    }
-    */
-  }
-
-  return rc;
-}
-
-//------------------------------------------------------------------------
-
-int insert_statement_record_query_fields(const char *chr, int chr_length, int chunksize, 
-					 int start, int end, void *fields,
-					 int (*insert_statement_custom_fields)(void *, sqlite3_stmt *, sqlite3 *), 
-					 sqlite3_stmt *custom_stmt,
-					 sqlite3* db) {
-  int rc;
-
-
-  if (rc = insert_statement_custom_fields(fields, custom_stmt, db)) {
-    LOG_DEBUG_F("Stats database failed: %s\n", sqlite3_errmsg(db));
-  } else {
-    /*
-    // if custom fields insertion succeeded then
-    // update features counter for "touched" chunks
-    int chunk_start, chunk_end;
-    int chunk_id_start = start / chunksize;
-    int chunk_id_end = end / chunksize;
-
-    for (int chunk_id = chunk_id_start; chunk_id <= chunk_id_end; chunk_id++) {
-      chunk_start = chunk_id * chunksize;
-      chunk_end = chunk_start + chunksize - 1;
-      if (chunk_end > chr_length) {
-	chunk_end = chr_length - 1;
-      }
-
-      rc += inc_chunk(chr, chunk_id, chunk_start, chunk_end, db);
-    }
-    */
-  }
-
-  return rc;
-}
-
-//------------------------------------------------------------------------
-//------------------------------------------------------------------------

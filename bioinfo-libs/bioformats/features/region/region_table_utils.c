@@ -91,16 +91,15 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
             list_item_t *item = NULL;
             gff_batch_t *batch;
             gff_record_t *record;
-            while ( (item = list_remove_item(read_list)) != NULL ) {
+            while ( item = list_remove_item(read_list) ) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = (region_t*) malloc (sizeof(region_t));
-                    region->chromosome = strndup(record->sequence, record->sequence_len);
-                    region->start_position = record->start;
-                    region->end_position = record->end;
+                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
+                                                  record->start, record->end, record->strand, record->feature);
+                    
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
                     insert_region(region, regions_table);
@@ -137,12 +136,12 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
         // The producer reads the bed file
         #pragma omp section
         {
-            LOG_DEBUG_F("Thread %d reads the bed file\n", omp_get_thread_num());
+            LOG_DEBUG_F("Thread %d reads the BED file\n", omp_get_thread_num());
             ret_code = bed_read_batches(read_list, batch_size, file);
             list_decr_writers(read_list);
             
             if (ret_code) {
-                LOG_FATAL_F("Error while reading bed file %s (%d)\n", filename, ret_code);
+                LOG_FATAL_F("Error while reading BED file %s (%d)\n", filename, ret_code);
             }
         }
         
@@ -152,16 +151,15 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
             list_item_t *item = NULL;
             bed_batch_t *batch;
             bed_record_t *record;
-            while ( (item = list_remove_item(read_list)) != NULL ) {
+            while ( item = list_remove_item(read_list) ) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = (region_t*) malloc (sizeof(region_t));
-                    region->chromosome = strndup(record->sequence, record->sequence_len);
-                    region->start_position = record->start;
-                    region->end_position = record->end;
+                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
+                                                  record->start, record->end, record->strand, NULL);
+                    
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
                     insert_region(region, regions_table);
