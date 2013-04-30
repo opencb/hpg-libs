@@ -2,6 +2,7 @@
 #include <check.h>
 
 #include <bioformats/features/region/region_table.h>
+#include <commons/file_utils.h>
 #include <containers/array_list.h>
 
 
@@ -18,6 +19,7 @@ static region_t *reg_2, *reg_3, *reg_4_1, *reg_4_2, *reg_X_1, *reg_X_2, *reg_Y;
  * ******************************/
 
 void setup_region_table(void) {
+    delete_files_by_extension("/tmp/", ".db");
     table = create_region_table("http://ws.bioinfo.cipf.es/", "hsa", "latest");
 }
 
@@ -71,35 +73,51 @@ START_TEST(insert_region_and_chromosome) {
 }
 END_TEST
 
-/*
 START_TEST(insert_several_regions) {
     // Insert regions in different chromosomes, in the same chromosome and in the same start position
-    fail_unless(insert_region(reg_2, table) == 0, "Insertion of region in chr2 must be successfully performed");
-    fail_unless(insert_region(reg_3, table) == 0, "Insertion of region in chr3 must be successfully performed");
-    fail_unless(insert_region(reg_4_1, table) == 0, "Insertion of region in chr4, position 60K must be successfully performed");
-    fail_unless(insert_region(reg_4_2, table) == 0, "Insertion of region in chr4, position 200-250K must be successfully performed");
-    fail_unless(insert_region(reg_X_1, table) == 0, "Insertion of region in chrX, position 1M-1.5M must be successfully performed");
-    fail_unless(insert_region(reg_X_2, table) == 0, "Insertion of region in chrX, position 1M-1.8M must be successfully performed");
-    fail_unless(insert_region(reg_Y, table) == 0, "Insertion of region in chrY must be successfully performed");
+    region_t *regions[] = { reg_2, reg_3, reg_4_1, reg_4_2, reg_X_1, reg_X_2, reg_Y };
+    int num_regions = 7;
+    fail_if(insert_regions(regions, num_regions, table), "Regions must be successfully inserted");
 
-// 	void **keys = cp_hashtable_get_keys(table->storage);
-// 	for (int i = 0; i < cp_hashtable_count(table->storage); i++)
-// 	{
-// 		printf("%d = %s\n", i, (char*) keys[i]);
-// 	}
-    // Check number of elements inserted in the table and each tree
-    fail_unless(cp_hashtable_count(table->storage) == 5, "There must be 5 elements in the chromosome table");
-
-    fail_unless(cp_avltree_count(get_chromosome("2", table)) == 1, "There must be 1 element(s) in chr2");
-    fail_unless(cp_avltree_count(get_chromosome("3", table)) == 1, "There must be 1 element(s) in chr3");
-    fail_unless(cp_avltree_count(get_chromosome("4", table)) == 2, "There must be 2 element(s) in chr4");
-    fail_unless(cp_avltree_count(get_chromosome("X", table)) == 1, "There must be 1 element(s) in chrX");
-    fail_unless(cp_avltree_count(get_chromosome("Y", table)) == 1, "There must be 1 element(s) in chrY");
-
-    fail_unless(cp_vector_size(cp_avltree_get(get_chromosome("X", table), &(reg_X_2->start_position))) == 2, "There must be 2 element(s) in X:1000000");
+    // Check number of elements inserted in each chromosome
+    fail_unless(count_regions_in_chromosome("2", table) == 1, "There must be 1 element(s) in chr2");
+    fail_unless(count_regions_in_chromosome("3", table) == 1, "There must be 1 element(s) in chr3");
+    fail_unless(count_regions_in_chromosome("4", table) == 2, "There must be 2 element(s) in chr4");
+    fail_unless(count_regions_in_chromosome("X", table) == 2, "There must be 2 element(s) in chrX");
+    fail_unless(count_regions_in_chromosome("Y", table) == 1, "There must be 1 element(s) in chrY");
+    
+    fail_unless(get_chromosome("2", table)->size == 1, "There must be 1 element(s) in chr2");
+    fail_unless(get_chromosome("3", table)->size == 1, "There must be 1 element(s) in chr3");
+    fail_unless(get_chromosome("4", table)->size == 2, "There must be 2 element(s) in chr4");
+    fail_unless(get_chromosome("X", table)->size == 2, "There must be 2 element(s) in chrX");
+    fail_unless(get_chromosome("Y", table)->size == 1, "There must be 1 element(s) in chrY");
 }
 END_TEST
-*/
+
+START_TEST(insert_several_regions_one_by_one) {
+    // Insert regions in different chromosomes, in the same chromosome and in the same start position
+    fail_if(insert_region(reg_2, table), "Insertion of region in chr2 must be successfully performed");
+    fail_if(insert_region(reg_3, table), "Insertion of region in chr3 must be successfully performed");
+    fail_if(insert_region(reg_4_1, table), "Insertion of region in chr4, position 60K must be successfully performed");
+    fail_if(insert_region(reg_4_2, table), "Insertion of region in chr4, position 200-250K must be successfully performed");
+    fail_if(insert_region(reg_X_1, table), "Insertion of region in chrX, position 1M-1.5M must be successfully performed");
+    fail_if(insert_region(reg_X_2, table), "Insertion of region in chrX, position 1M-1.8M must be successfully performed");
+    fail_if(insert_region(reg_Y, table), "Insertion of region in chrY must be successfully performed");
+
+    // Check number of elements inserted in each chromosome
+    fail_unless(count_regions_in_chromosome("2", table) == 1, "There must be 1 element(s) in chr2");
+    fail_unless(count_regions_in_chromosome("3", table) == 1, "There must be 1 element(s) in chr3");
+    fail_unless(count_regions_in_chromosome("4", table) == 2, "There must be 2 element(s) in chr4");
+    fail_unless(count_regions_in_chromosome("X", table) == 2, "There must be 2 element(s) in chrX");
+    fail_unless(count_regions_in_chromosome("Y", table) == 1, "There must be 1 element(s) in chrY");
+    
+    fail_unless(get_chromosome("2", table)->size == 1, "There must be 1 element(s) in chr2");
+    fail_unless(get_chromosome("3", table)->size == 1, "There must be 1 element(s) in chr3");
+    fail_unless(get_chromosome("4", table)->size == 2, "There must be 2 element(s) in chr4");
+    fail_unless(get_chromosome("X", table)->size == 2, "There must be 2 element(s) in chrX");
+    fail_unless(get_chromosome("Y", table)->size == 1, "There must be 1 element(s) in chrY");
+}
+END_TEST
 
 /*
 START_TEST(remove_regions_and_chromosomes) {
@@ -230,11 +248,12 @@ Suite *create_test_suite() {
 
     // Manipulation of the data structure
     TCase *tc_manipulation = tcase_create("Data structure manipulation");
-    tcase_add_unchecked_fixture(tc_manipulation, setup_region_table, teardown_region_table);
+    tcase_add_checked_fixture(tc_manipulation, setup_region_table, teardown_region_table);
     tcase_add_checked_fixture(tc_manipulation, setup_regions, teardown_regions);
     tcase_add_test(tc_manipulation, insert_region_and_chromosome);
-/*
     tcase_add_test(tc_manipulation, insert_several_regions);
+    tcase_add_test(tc_manipulation, insert_several_regions_one_by_one);
+/*
     tcase_add_test(tc_manipulation, remove_regions_and_chromosomes);
 
     // Region searching
