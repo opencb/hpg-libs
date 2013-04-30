@@ -534,20 +534,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
 
 void region_filter_free(filter_t *filter) {
     assert(filter);
-    region_table_t *regions = ((region_filter_args*) filter->args)->regions;
-    // Free ordering array
-    char **ordering = regions->ordering;
-    for (int i = 0; i < regions->max_chromosomes; i++) {
-        free(ordering[i]);
-    }
-    free(ordering);
-
-    // Free hashtable
-    cp_hashtable *table = regions->storage;
-    cp_hashtable_destroy(table);
-
-    // Free pointers to args and to the filter itself
-    free(regions);
+    free_region_table(((region_filter_args*) filter->args)->regions);
     free(filter->args);
     free(filter);
 }
