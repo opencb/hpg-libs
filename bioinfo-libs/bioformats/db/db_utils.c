@@ -109,7 +109,7 @@ int insert_global_stats(const char *name, const char *title,
 
 int prepare_statement_global_stats(sqlite3 *db, sqlite3_stmt **stmt) {
   char sql[] = "INSERT INTO global_stats VALUES(?1, ?2, ?3)"; 
-  return sqlite3_prepare_v2(db, sql, strlen(sql) + 1024, stmt, NULL);
+  return sqlite3_prepare_v2(db, sql, strlen(sql), stmt, NULL);
 }
 
 //------------------------------------------------------------------------
@@ -192,7 +192,7 @@ int create_regions_index(sqlite3* db) {
 
 static int prepare_statement_regions_query_fields(sqlite3 *db, sqlite3_stmt **stmt) {
   char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
-  return sqlite3_prepare_v2(db, sql, strlen(sql) + 300, stmt, NULL);
+  return sqlite3_prepare_v2(db, sql, strlen(sql), stmt, NULL);
 }
 
 //------------------------------------------------------------------------
@@ -247,7 +247,7 @@ int insert_chunk(const char *chr, int chunk_id, int start, int end,
   sqlite3_stmt* stmt;
   char sql[] = "INSERT INTO chunk VALUES(?1, ?2, ?3, ?4, ?5)";
 
-  sqlite3_prepare_v2(db, sql, strlen(sql) + strlen(chr), &stmt, NULL);
+  sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
   sqlite3_bind_text(stmt, 1, chr, strlen(chr), SQLITE_STATIC);
   sqlite3_bind_int(stmt, 2, chunk_id);
   sqlite3_bind_int(stmt, 3, start);
@@ -273,7 +273,7 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end, sql
 
   strcpy(sql, "SELECT features_count FROM chunk WHERE chromosome = ?1 AND chunk_id = ?2");
 
-  sqlite3_prepare_v2(db, sql, strlen(sql) + strlen(chr), &stmt, NULL);
+  sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
   sqlite3_bind_text(stmt, 1, chr, strlen(chr), SQLITE_STATIC);
   sqlite3_bind_int(stmt, 2, chunk_id);
   
@@ -339,7 +339,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
   // prepared statement
   char sql[] = "INSERT INTO chunk VALUES (?1, ?2, ?3, ?4, ?5)";
-  sqlite3_prepare_v2(db, sql, strlen(sql) + 200, &stmt, NULL);
+  sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
 
   if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
     LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);

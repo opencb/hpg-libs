@@ -3,7 +3,7 @@
 
 region_t *region_new(char *chromosome, size_t start_position, size_t end_position, char *strand, char *type) {
     assert(chromosome);
-    region_t *region = malloc(sizeof(region));
+    region_t *region = malloc(sizeof(region_t));
     region->chromosome = chromosome;
     region->start_position = start_position;
     region->end_position = end_position;
