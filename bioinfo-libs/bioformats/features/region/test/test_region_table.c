@@ -119,43 +119,26 @@ START_TEST(insert_several_regions_one_by_one) {
 }
 END_TEST
 
-/*
 START_TEST(remove_regions_and_chromosomes) {
     // Insert regions
-    fail_unless(insert_region(reg_2, table) == 0, "Insertion of region in chr2 must be successfully performed");
-    fail_unless(insert_region(reg_3, table) == 0, "Insertion of region in chr3 must be successfully performed");
-    fail_unless(insert_region(reg_4_1, table) == 0, "Insertion of region in chr4, position 60K must be successfully performed");
-    fail_unless(insert_region(reg_4_2, table) == 0, "Insertion of region in chr4, position 200-250K must be successfully performed");
-    fail_unless(insert_region(reg_X_1, table) == 0, "Insertion of region in chrX, position 1M-1.5M must be successfully performed");
-    fail_unless(insert_region(reg_X_2, table) == 0, "Insertion of region in chrX, position 1M-1.8M must be successfully performed");
-    fail_unless(insert_region(reg_Y, table) == 0, "Insertion of region in chrY must be successfully performed");
-
-    fail_unless(cp_hashtable_count(table->storage) == 5, "There must be 5 elements in the chromosome table");
-
-    // Delete regions
-    fail_if(remove_region(reg_3, table) == NULL, "Deletion of region in chr3 must be successfully performed");
-    fail_unless(cp_avltree_count(get_chromosome("3", table)) == 0, "There must be 0 element(s) in chr3");
-
-    fail_if(remove_region(reg_4_2, table) == NULL, "Deletion of region in chr4, position 200-250K must be successfully performed");
-    fail_unless(cp_avltree_count(get_chromosome("4", table)) == 1, "There must be 1 element(s) in chr4");
-
-    fail_if(remove_region(reg_X_1, table) == NULL, "Deletion of region in chrX, position 1M-1.5M must be successfully performed");
-    fail_unless(cp_avltree_count(get_chromosome("X", table)) == 1, "There must be 1 element(s) in chrX");
-
-    fail_if(remove_region(reg_X_2, table) == NULL, "Deletion of region in chrX, position 1M-1.8M must be successfully performed");
-    fail_unless(cp_avltree_count(get_chromosome("X", table)) == 0, "There must be 0 element(s) in chrX");
-
-    fail_unless(cp_hashtable_count(table->storage) == 5, "There must be 5 elements in the chromosome table");
-
-    // Delete chromosomes
-    fail_if(remove_chromosome("3", table) == NULL, "Deletion of chr3 must be successfully performed");
-    fail_unless(cp_hashtable_count(table->storage) == 4, "chr3: There must be 4 elements in the chromosome table");
-
-    fail_if(remove_chromosome("4", table) == NULL, "Deletion of chr4 must be successfully performed");
-    fail_unless(cp_hashtable_count(table->storage) == 3, "chr4: There must be 3 elements in the chromosome table");
+    region_t *regions[] = { reg_2, reg_3, reg_4_1, reg_4_2, reg_X_1, reg_X_2, reg_Y };
+    int num_regions = 7;
+    fail_if(insert_regions(regions, num_regions, table), "Regions must be successfully inserted");
+    finish_region_table_loading(table);
+    
+    // Remove region by exact coordinates
+    fail_if(remove_exact_region(reg_3, table), "Deletion of region in chr3 must be successfully performed");
+    fail_if(count_regions_in_chromosome("3", table), "There must be 0 element(s) in chr3");
+    
+    // Remove all features inside region limits
+    fail_if(remove_region(reg_X_2, table), "Deletion of regions in chrX must be successfully performed");
+    fail_if(count_regions_in_chromosome("X", table), "There must be 0 element(s) in chrX");
+    
+    // Remove all features inside region limits
+    fail_if(remove_region(reg_4_2, table), "Deletion of regions in chr4 must be successfully performed");
+    fail_if(count_regions_in_chromosome("4", table) != 1, "There must be 1 element(s) in chr4");
 }
 END_TEST
-*/
 
 
 /* Data structure search */
@@ -230,9 +213,7 @@ Suite *create_test_suite() {
     tcase_add_test(tc_manipulation, insert_region_and_chromosome);
     tcase_add_test(tc_manipulation, insert_several_regions);
     tcase_add_test(tc_manipulation, insert_several_regions_one_by_one);
-/*
     tcase_add_test(tc_manipulation, remove_regions_and_chromosomes);
-*/
 
     // Region searching
     TCase *tc_searching = tcase_create("Searching in region data structure");
