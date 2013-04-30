@@ -160,69 +160,46 @@ END_TEST
 
 /* Data structure search */
 
-/*
 START_TEST(search_region) {
     // Insert regions
-    fail_unless(insert_region(reg_2, table) == 0, "Insertion of region in chr2 must be successfully performed");
-    fail_unless(insert_region(reg_3, table) == 0, "Insertion of region in chr3 must be successfully performed");
-    fail_unless(insert_region(reg_4_1, table) == 0, "Insertion of region in chr4, position 60-80K must be successfully performed");
-    fail_unless(insert_region(reg_4_2, table) == 0, "Insertion of region in chr4, position 200-250K must be successfully performed");
-    fail_unless(insert_region(reg_X_1, table) == 0, "Insertion of region in chrX, position 1M-1.5M must be successfully performed");
-    fail_unless(insert_region(reg_X_2, table) == 0, "Insertion of region in chrX, position 1M-1.8M must be successfully performed");
-    fail_unless(insert_region(reg_Y, table) == 0, "Insertion of region in chrY must be successfully performed");
-
-    fail_unless(cp_hashtable_count(table->storage) == 5, "There must be 5 elements in the chromosome table");
-
-    // TODO Find regions
+    fail_if(insert_region(reg_2, table), "Insertion of region in chr2 must be successfully performed");
+    fail_if(insert_region(reg_3, table), "Insertion of region in chr3 must be successfully performed");
+    fail_if(insert_region(reg_4_1, table), "Insertion of region in chr4, position 60-80K must be successfully performed");
+    fail_if(insert_region(reg_4_2, table), "Insertion of region in chr4, position 200-250K must be successfully performed");
+    fail_if(insert_region(reg_X_1, table), "Insertion of region in chrX, position 1M-1.5M must be successfully performed");
+    fail_if(insert_region(reg_X_2, table), "Insertion of region in chrX, position 1M-1.8M must be successfully performed");
+    fail_if(insert_region(reg_Y, table), "Insertion of region in chrY must be successfully performed");
 
     // Region in the limits of chr3 tree
-    region_t *f_reg_3 = (region_t*) malloc (sizeof(region_t));
-    f_reg_3->chromosome = "3";
-    f_reg_3->start_position = 30000;
-    f_reg_3->end_position = 40000;
-    fail_if(find_region(f_reg_3, table) == 0, "Region 3:30000-40000 must be found");
-
+    region_t t_reg_3 = { .chromosome = "3", .start_position = 30000, .end_position = 40000 };
+    fail_if(!find_region(&t_reg_3, table), "Region 3:30000-40000 must be found");
+    
     // Region contained in chrY tree
-    region_t *f_reg_Y = (region_t*) malloc (sizeof(region_t));
-    f_reg_Y->chromosome = "Y";
-    f_reg_Y->start_position = 2100000;
-    f_reg_Y->end_position = 2200000;
-    fail_if(find_region(f_reg_Y, table) == 0, "Region Y:2100000-2200000 must be found");
-
-    // Region before, in between and after the ones in chr4
-    region_t *f_reg_4 = (region_t*) malloc (sizeof(region_t));
-    f_reg_4->chromosome = "4";
-    f_reg_4->start_position = 30000;
-    f_reg_4->end_position = 70000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:30000-70000 must not be found");
-
-    f_reg_4->start_position = 30000;
-    f_reg_4->end_position = 90000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:30000-90000 must not be found");
-
-    f_reg_4->start_position = 100000;
-    f_reg_4->end_position = 190000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:100000-190000 must not be found");
-
-    f_reg_4->start_position = 160000;
-    f_reg_4->end_position = 210000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:100000-210000 must not be found");
-
-    f_reg_4->start_position = 240000;
-    f_reg_4->end_position = 270000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:240000-270000 must not be found");
-
-    f_reg_4->start_position = 280000;
-    f_reg_4->end_position = 300000;
-    fail_unless(find_region(f_reg_4, table) == 0, "Region 4:280000-300000 must not be found");
-
-
-    free(f_reg_3);
-    free(f_reg_4);
-    free(f_reg_Y);
+    region_t t_reg_Y = { .chromosome = "Y", .start_position = 2100000, .end_position = 2200000 };
+    fail_if(!find_region(&t_reg_Y, table), "Region Y:2100000-2200000 must be found");
+    
+    // Region before the ones in chr4
+    region_t t_reg_4_1 = { .chromosome = "4", .start_position = 30000, .end_position = 50000 };
+    fail_if(find_region(&t_reg_4_1, table), "Region 4:30000-50000 must not be found");
+    
+    // Regions between the ones in chr4
+    region_t t_reg_4_2 = { .chromosome = "4", .start_position = 30000, .end_position = 65000 };
+    fail_if(!find_region(&t_reg_4_2, table), "Region 4:30000-65000 must be found");
+    
+    region_t t_reg_4_3 = { .chromosome = "4", .start_position = 60000, .end_position = 70000 };
+    fail_if(!find_region(&t_reg_4_3, table), "Region 4:60000-70000 must be found");
+    
+    region_t t_reg_4_4 = { .chromosome = "4", .start_position = 50000, .end_position = 90000 };
+    fail_if(!find_region(&t_reg_4_4, table), "Region 4:50000-90000 must be found");
+    
+    region_t t_reg_4_5 = { .chromosome = "4", .start_position = 80000, .end_position = 90000 };
+    fail_if(!find_region(&t_reg_4_5, table), "Region 4:80000-90000 must be found");
+    
+    // Region after the ones in chr4
+    region_t t_reg_4_6 = { .chromosome = "4", .start_position = 80001, .end_position = 90000 };
+    fail_if(find_region(&t_reg_4_6, table), "Region 4:80001-90000 must not be found");
 }
 END_TEST
-*/
 
 
 /* ******************************
@@ -255,21 +232,19 @@ Suite *create_test_suite() {
     tcase_add_test(tc_manipulation, insert_several_regions_one_by_one);
 /*
     tcase_add_test(tc_manipulation, remove_regions_and_chromosomes);
+*/
 
     // Region searching
     TCase *tc_searching = tcase_create("Searching in region data structure");
-    tcase_add_unchecked_fixture(tc_searching, setup_region_table, teardown_region_table);
+    tcase_add_checked_fixture(tc_searching, setup_region_table, teardown_region_table);
     tcase_add_checked_fixture(tc_searching, setup_regions, teardown_regions);
     tcase_add_test(tc_searching, search_region);
-*/
 
     // Add test cases to a test suite
     Suite *fs = suite_create("Region searching table");
     suite_add_tcase(fs, tc_table);
     suite_add_tcase(fs, tc_manipulation);
-/*
     suite_add_tcase(fs, tc_searching);
-*/
 
     return fs;
 }
