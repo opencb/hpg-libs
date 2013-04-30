@@ -28,3 +28,10 @@ region_table = env.Program('region_table.test',
                                      "%s/libbioinfo.a" % bioinfo_path
                                     ]
                           )
+
+parsing = env.Program('parse_regions_vcf.test', 
+                      source = ['test_parse_regions.c', 
+                                "%s/libcommon.a" % commons_path,
+                                "%s/libbioinfo.a" % bioinfo_path
+                               ]
+                     )

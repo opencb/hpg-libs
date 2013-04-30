@@ -87,7 +87,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
         
         // The consumer inserts regions in the structure 
         #pragma omp section
-        {    
+        {
             list_item_t *item = NULL;
             gff_batch_t *batch;
             gff_record_t *record;
@@ -98,11 +98,11 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
                     record = batch->records->items[i];
                     
                     region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
-                                                  record->start, record->end, record->strand, record->feature);
+                                                  record->start, record->end, 
+                                                  record->strand ? strndup(&record->strand, 1) : NULL, 
+                                                  record->feature ? strndup(record->feature, record->feature_len) : NULL);
                     
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
-                    
-                    insert_region(region, regions_table);
                 }
                
                 gff_batch_free(batch);
@@ -158,7 +158,8 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
                     record = batch->records->items[i];
                     
                     region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
-                                                  record->start, record->end, record->strand, NULL);
+                                                  record->start, record->end, strndup(&record->strand, 1), 
+                                                  NULL);
                     
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     

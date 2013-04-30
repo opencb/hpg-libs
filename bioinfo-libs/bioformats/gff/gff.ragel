@@ -215,7 +215,7 @@ static gff_batch_t *current_batch;
                        record_strand >strand_begin %strand_end $err(strand_error) "\t" 
                        record_frame >frame_begin %frame_end $err(frame_error) "\t" 
                        record_attr? >attribute_begin %attribute_end $err(attribute_error))
-                       >record_begin %record_end ;
+                       >record_begin %record_end (space)*;
     records         = record ("\n" >linebreak (record | comment))* ;
 
     # Machine start
