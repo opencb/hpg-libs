@@ -113,6 +113,9 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
 
 
 int find_exact_region(region_t *region, region_table_t *table) {
+    assert(region);
+    assert(table);
+    
     if (!table->is_ready) { // Don't allow queries over an un-indexed DB
         finish_region_table_loading(table);
     }
@@ -154,8 +157,58 @@ int find_exact_region(region_t *region, region_table_t *table) {
     return count > 0;
 }
 
+int find_exact_region_by_type(region_t *region, region_table_t *table) {
+    assert(region);
+    assert(region->type);
+    assert(table);
+    
+    if (!table->is_ready) { // Don't allow queries over an un-indexed DB
+        finish_region_table_loading(table);
+    }
+    
+    int count = 0;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    exec_sql(sql_begin, db);
+
+    sqlite3_stmt *query_stmt;
+    char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start = ?2 AND end = ?3 AND type = ?4";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
+    sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(query_stmt, 2, region->start_position);
+    sqlite3_bind_int64(query_stmt, 3, region->end_position);
+    sqlite3_bind_text(query_stmt, 4, region->type, strlen(region->type), SQLITE_STATIC);
+    
+    if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(query_stmt, 0);
+    } else {
+        // Retry once
+        sqlite3_reset(query_stmt);
+        sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(query_stmt, 2, region->start_position);
+        sqlite3_bind_int64(query_stmt, 3, region->end_position);
+    sqlite3_bind_text(query_stmt, 4, region->type, strlen(region->type), SQLITE_STATIC);
+        
+        if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(query_stmt, 0);
+        } else {
+            LOG_ERROR_F("Regions table failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+    }
+    
+    sqlite3_finalize(query_stmt);
+    
+    char *sql_end = "END TRANSACTION";
+    exec_sql(sql_end, db);
+
+    return count > 0;
+}
 
 int find_region(region_t *region, region_table_t *table) {
+    assert(region);
+    assert(table);
+    
     if (!table->is_ready) { // Don't allow queries over an un-indexed DB
         finish_region_table_loading(table);
     }
@@ -181,6 +234,54 @@ int find_region(region_t *region, region_table_t *table) {
         sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
         sqlite3_bind_int64(query_stmt, 2, region->start_position);
         sqlite3_bind_int64(query_stmt, 3, region->end_position);
+        
+        if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(query_stmt, 0);
+        } else {
+            LOG_ERROR_F("Regions table failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+        }
+    }
+    
+    sqlite3_finalize(query_stmt);
+    
+    char *sql_end = "END TRANSACTION";
+    exec_sql(sql_end, db);
+
+    return count > 0;
+}
+
+int find_region_by_type(region_t *region, region_table_t *table) {
+    assert(region);
+    assert(region->type);
+    assert(table);
+    
+    if (!table->is_ready) { // Don't allow queries over an un-indexed DB
+        finish_region_table_loading(table);
+    }
+    
+    int count = 0;
+    sqlite3* db = table->storage;
+    
+    char *sql_begin = "BEGIN TRANSACTION";
+    exec_sql(sql_begin, db);
+
+    sqlite3_stmt *query_stmt;
+    char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start <= ?3 AND end >= ?2 AND type = ?4";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
+    sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+    sqlite3_bind_int64(query_stmt, 2, region->start_position);
+    sqlite3_bind_int64(query_stmt, 3, region->end_position);
+    sqlite3_bind_text(query_stmt, 4, region->type, strlen(region->type), SQLITE_STATIC);
+    
+    if (sqlite3_step(query_stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(query_stmt, 0);
+    } else {
+        // Retry once
+        sqlite3_reset(query_stmt);
+        sqlite3_bind_text(query_stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
+        sqlite3_bind_int64(query_stmt, 2, region->start_position);
+        sqlite3_bind_int64(query_stmt, 3, region->end_position);
+        sqlite3_bind_text(query_stmt, 4, region->type, strlen(region->type), SQLITE_STATIC);
         
         if (sqlite3_step(query_stmt) == SQLITE_ROW) {
             count = sqlite3_column_int(query_stmt, 0);

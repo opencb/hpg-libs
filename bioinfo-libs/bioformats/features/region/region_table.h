@@ -84,6 +84,17 @@ int insert_region(region_t *region, region_table_t *table);
 int find_exact_region(region_t *region, region_table_t *table);
 
 /**
+ * Check whether a region is stored in a chromosome table. Its chromosome, start, end and type
+ * position must be a perfect match of one of the regions already inserted.
+ * 
+ * @param region region presumably contained in the region table
+ * @param table table that could contain the region
+ * 
+ * @return 1 if the region was found, 0 otherwise
+ */
+int find_exact_region_by_type(region_t *region, region_table_t *table);
+
+/**
  * Find a region in a chromosome table. Its chromosome must be a perfect match, but its 
  * start and end positions can be just contained in the range of one of the regions 
  * stored. For example, if region 1:100-200 is stored, 1:150-160 would be a match.
@@ -95,6 +106,18 @@ int find_exact_region(region_t *region, region_table_t *table);
  */
 int find_region(region_t *region, region_table_t *table);
 
+/**
+ * Find a region in a chromosome table. Its chromosome and type must be a perfect match, but its 
+ * start and end positions can be just contained in the range of one of the regions 
+ * stored. For example, if region 1:100-200 (regulatory type) is stored, 1:150-160 
+ * (regulatory type) would be a match.
+ * 
+ * @param region region to find
+ * @param table table that could contain the region
+ * 
+ * @return 1 if the region matches another one, 0 otherwise
+ */
+int find_region_by_type(region_t *region, region_table_t *table);
 
 /**
  * Remove a region from a chromosome table, considering its exact coordinates.

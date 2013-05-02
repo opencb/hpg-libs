@@ -84,10 +84,12 @@ typedef struct {
 /**
  * @brief Arguments for the filter by region
  * @details The argument of a filter by region is a set of one or more regions of the form 
- * chromosome:position:ref_allele:alt_allele.
+ * chromosome:position:ref_allele:alt_allele. Optionally, a specific type can be chosen, and it will 
+ * restrict the query to those regions that match that type.
  **/
 typedef struct {
     region_table_t *regions;    /**< Region(s) where a record must be placed */
+    char *type;                 /**< Type of the regions where a record must be placed */
 } region_filter_args;
 
 /**
@@ -348,12 +350,14 @@ void quality_filter_free(filter_t *filter);
  *
  * @param region_descriptor List of regions or filename where to extract the list from
  * @param use_region_file Whether to use a file containing regions
+ * @param type Within the list of regions to match, choose only the ones with this type
  * @param url URL of the web service to check for chromosomes order
  * @param species Species against the filter is applied
  * @param version Version of the web service to check for chromosome order
  * @return The new filter
  **/
-filter_t *region_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
+filter_t *region_filter_new(char *region_descriptor, int use_region_file, char *type,
+                            const char *url, const char *species, const char *version);
 
 /**
  * @brief Creates a new filter by region(s), considering them as exact positions.
@@ -361,12 +365,14 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
  *
  * @param region_descriptor List of regions or filename where to extract the list from
  * @param use_region_file Whether to use a file containing regions
+ * @param type Within the list of regions to match, choose only the ones with this type
  * @param url URL of the web service to check for chromosomes order
  * @param species Species against the filter is applied
  * @param version Version of the web service to check for chromosome order
  * @return The new filter
  **/
-filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version);
+filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, char *type, 
+                                  const char *url, const char *species, const char *version);
 
 /**
  * @brief Deallocates memory of a filter by region(s).
