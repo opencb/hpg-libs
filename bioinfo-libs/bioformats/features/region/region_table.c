@@ -1,7 +1,6 @@
 #include "region_table.h"
 
-region_table_t *create_region_table(const char *url, const char *species, const char *version)
-{
+region_table_t *create_region_table(const char *url, const char *species, const char *version) {
     int num_chromosomes;
     region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
 
@@ -10,7 +9,12 @@ region_table_t *create_region_table(const char *url, const char *species, const 
     table->chunks = kh_init(stats_chunks);
     table->is_ready = 0;
 
-    create_regions_db("/tmp/regions.db", REGIONS_CHUNKSIZE, &(table->storage));
+    srand( time(NULL) );
+    int suffix = rand();
+    char db_name[32];
+    sprintf(db_name, "/tmp/regions_%d.db", suffix);
+    printf("db name = %s\n", db_name);
+    create_regions_db(db_name, REGIONS_CHUNKSIZE, &(table->storage));
 
     return table;
 }

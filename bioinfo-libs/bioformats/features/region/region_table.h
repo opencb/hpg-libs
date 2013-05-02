@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 
 #include <bioformats/db/db_utils.h>
 #include <commons/log.h>
