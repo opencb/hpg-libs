@@ -13,7 +13,6 @@ region_table_t *create_region_table(const char *url, const char *species, const 
     int suffix = rand();
     char db_name[32];
     sprintf(db_name, "/tmp/regions_%d.db", suffix);
-    printf("db name = %s\n", db_name);
     create_regions_db(db_name, REGIONS_CHUNKSIZE, &(table->storage));
 
     return table;

@@ -5,9 +5,6 @@ Import('penv')
 bioinfo_path = os.getcwd() + '/../../../../'
 commons_path = os.getcwd() + '/../../../../../common-libs/'
 
-print bioinfo_path
-print commons_path
-
 env = Environment(CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_GNU_SOURCE -fopenmp',
                   CPPPATH = ['#', bioinfo_path, commons_path, '/usr/include', '/usr/local/include' ],
                   LIBPATH = ['/usr/lib', '/usr/local/lib', '#libs', commons_path ],
