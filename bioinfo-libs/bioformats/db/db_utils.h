@@ -31,6 +31,8 @@ int create_stats_db(const char *db_name, int chunksize,
 
 int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db);
 
+int close_stats_db(sqlite3* db, khash_t(stats_chunks) *hash);
+
 //------------------------------------------------------------------------
 
 int insert_global_stats(const char *id, const char *title, 

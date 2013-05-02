@@ -63,8 +63,6 @@ int create_stats_db(const char *db_name, int chunksize,
   return rc;
 }
 
-//------------------------------------------------------------------------
-
 int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
   int rc;
   char sql[128];
@@ -79,6 +77,13 @@ int create_stats_index(int (*create_custom_index)(sqlite3 *), sqlite3* db) {
   }
 
   return rc;
+}
+
+int close_stats_db(sqlite3* db, khash_t(stats_chunks) *hash) {
+    // Close database connection
+    sqlite3_close_v2(db);
+    // Destroy the chunks hashtable
+    kh_destroy(stats_chunks, hash);
 }
 
 
@@ -319,6 +324,7 @@ int update_chunks_hash(const char *chr, int chr_length, int chunksize,
     k = kh_put(stats_chunks, hash, key, &ret);
     if (ret == 0) {
       kh_value(hash, k) = (kh_value(hash, k) + 1);
+      free(key);
     } else if (ret == 1) {
       kh_value(hash, k) = 1;
     }
@@ -372,6 +378,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
       // we must free the key, it was allocated previously 
       free(key);
+      kh_del(stats_chunks, hash, k);
 
 
       if (counter % 100000 == 0) {

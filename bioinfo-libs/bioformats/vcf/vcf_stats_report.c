@@ -204,7 +204,7 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
     
     insert_vcf_query_fields_list(fields, db);
     
-    array_list_free(fields, NULL);
+    array_list_free(fields, vcf_query_fields_free);
 }
 
 

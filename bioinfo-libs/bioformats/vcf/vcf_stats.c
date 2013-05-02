@@ -50,6 +50,7 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->ref_allele = ref_allele;
     stats->alternates = NULL;
     stats->maf_allele = NULL;
+    stats->mgf_genotype = NULL;
     
     stats->num_alleles = 1;
     stats->alleles_count = NULL;
@@ -77,6 +78,7 @@ void variant_stats_free(variant_stats_t* stats) {
     
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
+    if (stats->mgf_genotype) { free(stats->mgf_genotype); }
     if (stats->alternates) {
         for (int i = 0; i < stats->num_alleles-1; i++) {
             free(stats->alternates[i]);
