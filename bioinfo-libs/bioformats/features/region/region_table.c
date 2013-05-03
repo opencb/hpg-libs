@@ -2,8 +2,9 @@
 
 region_table_t *create_region_table(const char *url, const char *species, const char *version) {
     int num_chromosomes;
+    
+    // Initialize structure
     region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
-
     table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
     table->max_chromosomes = num_chromosomes;
     table->chunks = kh_init(stats_chunks);
@@ -14,12 +15,21 @@ region_table_t *create_region_table(const char *url, const char *species, const 
     char db_name[32];
     sprintf(db_name, "/tmp/regions_%d.db", suffix);
     create_regions_db(db_name, REGIONS_CHUNKSIZE, &(table->storage));
-
+    
+    sqlite3 *db = table->storage;
+    
+    // Prepare statements
+    char *sql = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+    if (sqlite3_prepare_v2(table->storage, sql, strlen(sql), &(table->insert_region_stmt), NULL) != SQLITE_OK) {
+        LOG_FATAL_F("Could not create regions database: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+    }
+    
     return table;
 }
 
 void free_region_table(region_table_t* regions) {
-    // Close database
+    // Destroy prepared statements and close database
+    sqlite3_finalize(regions->insert_region_stmt);
     sqlite3_close_v2(regions->storage);
     
     // Free ordering array
@@ -53,7 +63,7 @@ int insert_region(region_t *region, region_table_t *table) {
 
 int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
     int rc;
-    sqlite3_stmt *stmt;
+    sqlite3_stmt *stmt = table->insert_region_stmt;
     sqlite3* db = table->storage;
     
     char *sql_begin = "BEGIN TRANSACTION";
@@ -64,14 +74,6 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
         return rc;
     }
 
-    char sql[] = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
-    rc = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
-    if (rc != SQLITE_OK) {
-        LOG_ERROR_F("Could not insert regions: %s (%d)\n", 
-                    sqlite3_errmsg(db), sqlite3_errcode(db));
-        return rc;
-    }
-    
     for (int i = 0; i < num_regions; i++) {
         region_t *region = regions[i];
         sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
@@ -101,8 +103,6 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
         sqlite3_reset(stmt);
     }
     
-    sqlite3_finalize(stmt);
-    
     char *sql_end = "END TRANSACTION";
     rc = exec_sql(sql_end, db);
     if (rc != SQLITE_OK) {
@@ -126,9 +126,6 @@ int find_exact_region(region_t *region, region_table_t *table) {
     int count = 0;
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start = ?2 AND end = ?3";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -154,9 +151,6 @@ int find_exact_region(region_t *region, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-
     return count > 0;
 }
 
@@ -172,9 +166,6 @@ int find_exact_region_by_type(region_t *region, region_table_t *table) {
     int count = 0;
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start = ?2 AND end = ?3 AND type = ?4";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -202,9 +193,6 @@ int find_exact_region_by_type(region_t *region, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-
     return count > 0;
 }
 
@@ -219,9 +207,6 @@ int find_region(region_t *region, region_table_t *table) {
     int count = 0;
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start <= ?3 AND end >= ?2";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -247,9 +232,6 @@ int find_region(region_t *region, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-
     return count > 0;
 }
 
@@ -265,9 +247,6 @@ int find_region_by_type(region_t *region, region_table_t *table) {
     int count = 0;
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1 AND start <= ?3 AND end >= ?2 AND type = ?4";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -295,9 +274,6 @@ int find_region_by_type(region_t *region, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-
     return count > 0;
 }
 
@@ -466,9 +442,6 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
     array_list_t *regions_in_chromosome = array_list_new(100, 1.5, COLLECTION_MODE_ASYNCHRONIZED);
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT * FROM regions WHERE chromosome = ?1";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -511,9 +484,6 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-    
     return regions_in_chromosome;
 }
 
@@ -525,9 +495,6 @@ int count_regions_in_chromosome(const char *key, region_table_t *table) {
     int count = -1;
     sqlite3* db = table->storage;
     
-    char *sql_begin = "BEGIN TRANSACTION";
-    exec_sql(sql_begin, db);
-
     sqlite3_stmt *query_stmt;
     char *sql = "SELECT COUNT(*) FROM regions WHERE chromosome = ?1";
     sqlite3_prepare_v2(db, sql, strlen(sql), &query_stmt, NULL);
@@ -548,9 +515,6 @@ int count_regions_in_chromosome(const char *key, region_table_t *table) {
     
     sqlite3_finalize(query_stmt);
     
-    char *sql_end = "END TRANSACTION";
-    exec_sql(sql_end, db);
-
     return count;
 }
 

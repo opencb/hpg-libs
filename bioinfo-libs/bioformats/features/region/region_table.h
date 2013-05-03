@@ -29,6 +29,8 @@ typedef struct region_table {
         sqlite3 *storage;               /**< Set of regions contained in the different chromosomes */
         khash_t(stats_chunks) *chunks;  /**< Hashtable containing groups of regions (chunks) */
         int is_ready;                   /**< Flag that notifies that chunks are saved and the storage is indexed */
+        
+        sqlite3_stmt *insert_region_stmt;
 } region_table_t;
 
 
