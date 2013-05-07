@@ -127,10 +127,14 @@ void family_free(family_t *family) {
     assert(family);
     
     free(family->id);
-    individual_free(family->father);
-    individual_free(family->mother);
-    linked_list_free(family->children, individual_free);
-    linked_list_free(family->unknown, individual_free);
+    if (family->father) { individual_free(family->father); }
+    if (family->mother) { individual_free(family->mother); }
+    
+    void *free_func = family->children->size ? individual_free : NULL;
+    linked_list_free(family->children, free_func);
+    
+    free_func = family->unknown->size ? individual_free : NULL;
+    linked_list_free(family->unknown, free_func);
     free(family);
 }
 
