@@ -2,6 +2,7 @@
 #define VCF_STATS_H
 
 #include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 

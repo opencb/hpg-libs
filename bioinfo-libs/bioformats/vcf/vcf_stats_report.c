@@ -179,7 +179,7 @@ static inline int report_variant_missing_data(variant_stats_t *var_stats, FILE *
 
 static inline int report_variant_inheritance_data(variant_stats_t *var_stats, FILE *stats_fd) {
     return fprintf(stats_fd, "%d\t%.2f | %.2f\t%.2f | %.2f\n",
-                   var_stats->missing_alleles,
+                   var_stats->mendelian_errors,
                    var_stats->cases_percent_dominant,
                    var_stats->controls_percent_dominant,
                    var_stats->cases_percent_recessive,
