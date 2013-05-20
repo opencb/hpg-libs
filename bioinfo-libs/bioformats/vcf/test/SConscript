@@ -20,13 +20,6 @@ filters = env.Program('filters_vcf.test',
                       ]
            )
 
-regions = env.Program('parse_regions_vcf.test', 
-             source = ['test_parse_regions.c', 
-                       "%s/libcommon.a" % commons_path,
-                       "%s/libbioinfo.a" % bioinfo_path
-                      ]
-           )
-
 stats = env.Program('stats_vcf.test', 
              source = ['test_stats.c', 
                        "%s/libcommon.a" % commons_path,

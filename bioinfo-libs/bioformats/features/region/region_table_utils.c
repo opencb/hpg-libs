@@ -2,7 +2,7 @@
 
 
 region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version) {
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
 
     char *str_1 = input_regions;
     char *str_2 = (char*) malloc (64 * sizeof(char));
@@ -64,7 +64,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;
@@ -87,30 +87,55 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
         
         // The consumer inserts regions in the structure 
         #pragma omp section
-        {    
+        {
             list_item_t *item = NULL;
             gff_batch_t *batch;
             gff_record_t *record;
-            while ( (item = list_remove_item(read_list)) != NULL ) {
+            
+            region_t *regions_batch[REGIONS_CHUNKSIZE];
+            int avail_regions = 0;
+            
+            while ( item = list_remove_item(read_list) ) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = (region_t*) malloc (sizeof(region_t));
-                    region->chromosome = strndup(record->sequence, record->sequence_len);
-                    region->start_position = record->start;
-                    region->end_position = record->end;
+                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
+                                                  record->start, record->end, 
+                                                  record->strand ? strndup(&record->strand, 1) : NULL, 
+                                                  record->feature ? strndup(record->feature, record->feature_len) : NULL);
+                    
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
-                    insert_region(region, regions_table);
+                    regions_batch[avail_regions++] = region;
+                    
+                    // Save when the recommended size is reached
+                    if (avail_regions == REGIONS_CHUNKSIZE) {
+                        insert_regions(regions_batch, avail_regions, regions_table);
+                        for (int i = 0; i < avail_regions; i++) {
+                            free(regions_batch[i]);
+                        }
+                        avail_regions = 0;
+                    }
                 }
                
                 gff_batch_free(batch);
                 list_item_free(item);
             }
+            
+            // Save the remaining regions that did not fill a batch
+            if (avail_regions > 0) {
+                insert_regions(regions_batch, avail_regions, regions_table);
+                for (int i = 0; i < avail_regions; i++) {
+                    free(regions_batch[i]);
+                }
+                avail_regions = 0;
+            }
         }
     }
+    
+    finish_region_table_loading(regions_table);
     
     list_free_deep(read_list, NULL);
     
@@ -125,7 +150,7 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_table(url, species, version);
+    region_table_t *regions_table = create_region_table(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;
@@ -137,12 +162,12 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
         // The producer reads the bed file
         #pragma omp section
         {
-            LOG_DEBUG_F("Thread %d reads the bed file\n", omp_get_thread_num());
+            LOG_DEBUG_F("Thread %d reads the BED file\n", omp_get_thread_num());
             ret_code = bed_read_batches(read_list, batch_size, file);
             list_decr_writers(read_list);
             
             if (ret_code) {
-                LOG_FATAL_F("Error while reading bed file %s (%d)\n", filename, ret_code);
+                LOG_FATAL_F("Error while reading BED file %s (%d)\n", filename, ret_code);
             }
         }
         
@@ -152,23 +177,45 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
             list_item_t *item = NULL;
             bed_batch_t *batch;
             bed_record_t *record;
-            while ( (item = list_remove_item(read_list)) != NULL ) {
+            
+            region_t *regions_batch[REGIONS_CHUNKSIZE];
+            int avail_regions = 0;
+            
+            while ( item = list_remove_item(read_list) ) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = (region_t*) malloc (sizeof(region_t));
-                    region->chromosome = strndup(record->sequence, record->sequence_len);
-                    region->start_position = record->start;
-                    region->end_position = record->end;
+                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
+                                                  record->start, record->end, strndup(&record->strand, 1), 
+                                                  NULL);
+                    
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
-                    insert_region(region, regions_table);
+                    regions_batch[avail_regions++] = region;
+                    
+                    // Save when the recommended size is reached
+                    if (avail_regions == REGIONS_CHUNKSIZE) {
+                        insert_regions(regions_batch, avail_regions, regions_table);
+                        for (int i = 0; i < avail_regions; i++) {
+                            free(regions_batch[i]);
+                        }
+                        avail_regions = 0;
+                    }
                 }
                
                 bed_batch_free(batch);
                 list_item_free(item);
+            }
+            
+            // Save the remaining regions that did not fill a batch
+            if (avail_regions > 0) {
+                insert_regions(regions_batch, avail_regions, regions_table);
+                for (int i = 0; i < avail_regions; i++) {
+                    free(regions_batch[i]);
+                }
+                avail_regions = 0;
             }
         }
     }

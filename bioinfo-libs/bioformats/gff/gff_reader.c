@@ -202,7 +202,7 @@ tr98:
         printf("Line %zu (%s): Error in 'attribute' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	goto st0;
-tr108:
+tr114:
 #line 34 "gff.ragel"
 	{
         printf("Line %zu (%s): Error in header\n", lines, file->filename);
@@ -512,10 +512,15 @@ st64:
 		goto _test_eof64;
 case 64:
 #line 515 "gff_reader.c"
-	if ( (*p) == 10 )
+	switch( (*p) ) {
+		case 10: goto tr100;
+		case 32: goto tr101;
+	}
+	if ( (*p) > 13 ) {
+		if ( 33 <= (*p) && (*p) <= 126 )
+			goto tr102;
+	} else if ( (*p) >= 9 )
 		goto tr99;
-	if ( 32 <= (*p) && (*p) <= 126 )
-		goto tr100;
 	goto tr98;
 tr99:
 #line 169 "gff.ragel"
@@ -547,20 +552,51 @@ tr99:
         add_record_to_gff_batch(current_record, current_batch);
         num_records++;
     }
-#line 19 "gff.ragel"
+	goto st65;
+tr108:
+#line 173 "gff.ragel"
 	{
-        lines++;
-//        printf("lines read = %d\n", lines);
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
     }
 	goto st65;
-tr103:
-#line 19 "gff.ragel"
+st65:
+	if ( ++p == pe )
+		goto _test_eof65;
+case 65:
+#line 588 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr104;
+		case 32: goto st65;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto st65;
+	goto st0;
+tr100:
+#line 169 "gff.ragel"
 	{
-        lines++;
-//        printf("lines read = %d\n", lines);
+        ts = p;
     }
-	goto st65;
-tr104:
 #line 173 "gff.ragel"
 	{
         set_gff_record_attribute(ts, p-ts, current_record);
@@ -591,33 +627,69 @@ tr104:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-	goto st65;
-st65:
-	if ( ++p == pe )
-		goto _test_eof65;
-case 65:
-#line 600 "gff_reader.c"
-	switch( (*p) ) {
-		case 10: goto st66;
-		case 35: goto st16;
-		case 95: goto tr97;
-	}
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr97;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr97;
-	} else
-		goto tr97;
-	goto tr0;
+	goto st66;
+tr104:
+#line 19 "gff.ragel"
+	{
+        lines++;
+//        printf("lines read = %d\n", lines);
+    }
+	goto st66;
+tr109:
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+#line 19 "gff.ragel"
+	{
+        lines++;
+//        printf("lines read = %d\n", lines);
+    }
+	goto st66;
 st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-	if ( (*p) == 10 )
-		goto st66;
-	goto st0;
+#line 675 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr104;
+		case 32: goto st65;
+		case 35: goto st16;
+		case 95: goto tr97;
+	}
+	if ( (*p) < 48 ) {
+		if ( 9 <= (*p) && (*p) <= 13 )
+			goto st65;
+	} else if ( (*p) > 57 ) {
+		if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr97;
+		} else if ( (*p) >= 65 )
+			goto tr97;
+	} else
+		goto tr97;
+	goto tr0;
 st16:
 	if ( ++p == pe )
 		goto _test_eof16;
@@ -630,25 +702,121 @@ st67:
 		goto _test_eof67;
 case 67:
 	if ( (*p) == 10 )
-		goto tr103;
+		goto tr106;
 	if ( 32 <= (*p) && (*p) <= 126 )
 		goto st67;
 	goto st0;
-tr100:
-#line 169 "gff.ragel"
+tr106:
+#line 19 "gff.ragel"
 	{
-        ts = p;
+        lines++;
+//        printf("lines read = %d\n", lines);
     }
 	goto st68;
 st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 648 "gff_reader.c"
+#line 721 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto st69;
+		case 35: goto st16;
+		case 95: goto tr97;
+	}
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr97;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto tr97;
+	} else
+		goto tr97;
+	goto tr0;
+st69:
+	if ( ++p == pe )
+		goto _test_eof69;
+case 69:
 	if ( (*p) == 10 )
-		goto tr104;
-	if ( 32 <= (*p) && (*p) <= 126 )
-		goto st68;
+		goto st69;
+	goto st0;
+tr101:
+#line 169 "gff.ragel"
+	{
+        ts = p;
+    }
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st70;
+tr102:
+#line 169 "gff.ragel"
+	{
+        ts = p;
+    }
+	goto st70;
+tr110:
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st70;
+st70:
+	if ( ++p == pe )
+		goto _test_eof70;
+case 70:
+#line 811 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr109;
+		case 32: goto tr110;
+	}
+	if ( (*p) > 13 ) {
+		if ( 33 <= (*p) && (*p) <= 126 )
+			goto st70;
+	} else if ( (*p) >= 9 )
+		goto tr108;
 	goto tr98;
 tr30:
 #line 157 "gff.ragel"
@@ -660,7 +828,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 664 "gff_reader.c"
+#line 832 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr31;
 		case 46: goto st18;
@@ -694,7 +862,7 @@ st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 698 "gff_reader.c"
+#line 866 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr24;
 		case 46: goto st21;
@@ -760,7 +928,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 764 "gff_reader.c"
+#line 932 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr10;
 		case 95: goto st27;
@@ -784,7 +952,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 788 "gff_reader.c"
+#line 956 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr6;
 		case 95: goto st28;
@@ -823,7 +991,7 @@ st31:
 	if ( ++p == pe )
 		goto _test_eof31;
 case 31:
-#line 827 "gff_reader.c"
+#line 995 "gff_reader.c"
 	if ( (*p) == 10 )
 		goto tr48;
 	if ( 0 <= (*p) )
@@ -840,7 +1008,7 @@ tr48:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-	goto st69;
+	goto st71;
 tr50:
 #line 24 "gff.ragel"
 	{
@@ -857,16 +1025,16 @@ tr50:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-	goto st69;
-st69:
+	goto st71;
+st71:
 	if ( ++p == pe )
-		goto _test_eof69;
-case 69:
-#line 866 "gff_reader.c"
+		goto _test_eof71;
+case 71:
+#line 1034 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 35: goto st32;
-		case 95: goto tr107;
+		case 95: goto tr113;
 	}
 	if ( (*p) < 65 ) {
 		if ( (*p) < 48 ) {
@@ -876,7 +1044,7 @@ case 69:
 			if ( 58 <= (*p) && (*p) <= 64 )
 				goto st31;
 		} else
-			goto tr107;
+			goto tr113;
 	} else if ( (*p) > 90 ) {
 		if ( (*p) < 97 ) {
 			if ( 91 <= (*p) && (*p) <= 96 )
@@ -885,9 +1053,9 @@ case 69:
 			if ( 123 <= (*p) )
 				goto st31;
 		} else
-			goto tr107;
+			goto tr113;
 	} else
-		goto tr107;
+		goto tr113;
 	goto tr51;
 st32:
 	if ( ++p == pe )
@@ -909,7 +1077,7 @@ case 33:
 	if ( 0 <= (*p) )
 		goto tr46;
 	goto tr45;
-tr107:
+tr113:
 #line 38 "gff.ragel"
 	{
         current_record = gff_record_new();
@@ -923,7 +1091,7 @@ st34:
 	if ( ++p == pe )
 		goto _test_eof34;
 case 34:
-#line 927 "gff_reader.c"
+#line 1095 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr52;
 		case 10: goto tr48;
@@ -960,7 +1128,7 @@ st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-#line 964 "gff_reader.c"
+#line 1132 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 46: goto tr55;
@@ -997,7 +1165,7 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 1001 "gff_reader.c"
+#line 1169 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr57;
 		case 10: goto tr48;
@@ -1015,7 +1183,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 1019 "gff_reader.c"
+#line 1187 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 46: goto tr59;
@@ -1052,7 +1220,7 @@ st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-#line 1056 "gff_reader.c"
+#line 1224 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr61;
 		case 10: goto tr48;
@@ -1070,7 +1238,7 @@ st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-#line 1074 "gff_reader.c"
+#line 1242 "gff_reader.c"
 	if ( (*p) == 10 )
 		goto tr48;
 	if ( (*p) < 48 ) {
@@ -1092,7 +1260,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1096 "gff_reader.c"
+#line 1264 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr64;
 		case 10: goto tr48;
@@ -1119,7 +1287,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1123 "gff_reader.c"
+#line 1291 "gff_reader.c"
 	if ( (*p) == 10 )
 		goto tr48;
 	if ( (*p) < 48 ) {
@@ -1141,7 +1309,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1145 "gff_reader.c"
+#line 1313 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr69;
 		case 10: goto tr48;
@@ -1168,7 +1336,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 1172 "gff_reader.c"
+#line 1340 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 46: goto tr73;
@@ -1192,7 +1360,7 @@ st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-#line 1196 "gff_reader.c"
+#line 1364 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr75;
 		case 10: goto tr48;
@@ -1216,7 +1384,7 @@ st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-#line 1220 "gff_reader.c"
+#line 1388 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 43: goto tr77;
@@ -1240,7 +1408,7 @@ st46:
 	if ( ++p == pe )
 		goto _test_eof46;
 case 46:
-#line 1244 "gff_reader.c"
+#line 1412 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr78;
 		case 10: goto tr48;
@@ -1258,7 +1426,7 @@ st47:
 	if ( ++p == pe )
 		goto _test_eof47;
 case 47:
-#line 1262 "gff_reader.c"
+#line 1430 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 46: goto tr80;
@@ -1282,7 +1450,7 @@ st48:
 	if ( ++p == pe )
 		goto _test_eof48;
 case 48:
-#line 1286 "gff_reader.c"
+#line 1454 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr82;
 		case 10: goto tr48;
@@ -1295,40 +1463,106 @@ tr82:
 	{
         set_gff_record_frame(*ts, current_record);
     }
-	goto st70;
-st70:
+	goto st72;
+st72:
 	if ( ++p == pe )
-		goto _test_eof70;
-case 70:
-#line 1304 "gff_reader.c"
+		goto _test_eof72;
+case 72:
+#line 1472 "gff_reader.c"
 	switch( (*p) ) {
-		case 10: goto tr109;
+		case 10: goto tr116;
+		case 32: goto tr117;
 		case 127: goto st31;
 	}
-	if ( (*p) > 31 ) {
-		if ( 32 <= (*p) && (*p) <= 126 )
-			goto tr110;
-	} else if ( (*p) >= 0 )
-		goto st31;
-	goto tr108;
-tr112:
-#line 29 "gff.ragel"
+	if ( (*p) < 9 ) {
+		if ( 0 <= (*p) && (*p) <= 8 )
+			goto st31;
+	} else if ( (*p) > 13 ) {
+		if ( (*p) > 31 ) {
+			if ( 33 <= (*p) && (*p) <= 126 )
+				goto tr118;
+		} else if ( (*p) >= 14 )
+			goto st31;
+	} else
+		goto tr115;
+	goto tr114;
+tr115:
+#line 169 "gff.ragel"
 	{
-        set_gff_header_entry_text(ts, p-ts, current_header_entry);
-        add_gff_header_entry(current_header_entry, file);
-    }
-#line 19 "gff.ragel"
-	{
-        lines++;
-//        printf("lines read = %d\n", lines);
-    }
-	goto st71;
-tr113:
-#line 24 "gff.ragel"
-	{
-        current_header_entry = gff_header_entry_new();
         ts = p;
     }
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st73;
+tr125:
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st73;
+st73:
+	if ( ++p == pe )
+		goto _test_eof73;
+case 73:
+#line 1552 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr120;
+		case 32: goto st73;
+	}
+	if ( (*p) < 9 ) {
+		if ( 0 <= (*p) && (*p) <= 8 )
+			goto st31;
+	} else if ( (*p) > 13 ) {
+		if ( 14 <= (*p) )
+			goto st31;
+	} else
+		goto st73;
+	goto tr45;
+tr120:
 #line 29 "gff.ragel"
 	{
         set_gff_header_entry_text(ts, p-ts, current_header_entry);
@@ -1339,8 +1573,8 @@ tr113:
         lines++;
 //        printf("lines read = %d\n", lines);
     }
-	goto st71;
-tr109:
+	goto st74;
+tr116:
 #line 29 "gff.ragel"
 	{
         set_gff_header_entry_text(ts, p-ts, current_header_entry);
@@ -1380,8 +1614,8 @@ tr109:
         add_record_to_gff_batch(current_record, current_batch);
         num_records++;
     }
-	goto st71;
-tr115:
+	goto st74;
+tr126:
 #line 29 "gff.ragel"
 	{
         set_gff_header_entry_text(ts, p-ts, current_header_entry);
@@ -1417,16 +1651,120 @@ tr115:
         add_record_to_gff_batch(current_record, current_batch);
         num_records++;
     }
-	goto st71;
-st71:
+	goto st74;
+st74:
 	if ( ++p == pe )
-		goto _test_eof71;
-case 71:
-#line 1426 "gff_reader.c"
+		goto _test_eof74;
+case 74:
+#line 1660 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr120;
+		case 32: goto st73;
+		case 35: goto st49;
+		case 95: goto tr113;
+	}
+	if ( (*p) < 58 ) {
+		if ( (*p) < 9 ) {
+			if ( 0 <= (*p) && (*p) <= 8 )
+				goto st31;
+		} else if ( (*p) > 13 ) {
+			if ( (*p) > 47 ) {
+				if ( 48 <= (*p) && (*p) <= 57 )
+					goto tr113;
+			} else if ( (*p) >= 14 )
+				goto st31;
+		} else
+			goto st73;
+	} else if ( (*p) > 64 ) {
+		if ( (*p) < 91 ) {
+			if ( 65 <= (*p) && (*p) <= 90 )
+				goto tr113;
+		} else if ( (*p) > 96 ) {
+			if ( (*p) > 122 ) {
+				if ( 123 <= (*p) )
+					goto st31;
+			} else if ( (*p) >= 97 )
+				goto tr113;
+		} else
+			goto st31;
+	} else
+		goto st31;
+	goto tr51;
+st49:
+	if ( ++p == pe )
+		goto _test_eof49;
+case 49:
+	switch( (*p) ) {
+		case 10: goto tr48;
+		case 35: goto st77;
+		case 127: goto st31;
+	}
+	if ( (*p) > 31 ) {
+		if ( 32 <= (*p) && (*p) <= 126 )
+			goto st75;
+	} else if ( (*p) >= 0 )
+		goto st31;
+	goto tr45;
+tr124:
+#line 24 "gff.ragel"
+	{
+        current_header_entry = gff_header_entry_new();
+        ts = p;
+    }
+	goto st75;
+st75:
+	if ( ++p == pe )
+		goto _test_eof75;
+case 75:
+#line 1720 "gff_reader.c"
+	switch( (*p) ) {
+		case 10: goto tr122;
+		case 127: goto st31;
+	}
+	if ( (*p) > 31 ) {
+		if ( 32 <= (*p) && (*p) <= 126 )
+			goto st75;
+	} else if ( (*p) >= 0 )
+		goto st31;
+	goto tr45;
+tr122:
+#line 29 "gff.ragel"
+	{
+        set_gff_header_entry_text(ts, p-ts, current_header_entry);
+        add_gff_header_entry(current_header_entry, file);
+    }
+#line 19 "gff.ragel"
+	{
+        lines++;
+//        printf("lines read = %d\n", lines);
+    }
+	goto st76;
+tr123:
+#line 24 "gff.ragel"
+	{
+        current_header_entry = gff_header_entry_new();
+        ts = p;
+    }
+#line 29 "gff.ragel"
+	{
+        set_gff_header_entry_text(ts, p-ts, current_header_entry);
+        add_gff_header_entry(current_header_entry, file);
+    }
+#line 19 "gff.ragel"
+	{
+        lines++;
+//        printf("lines read = %d\n", lines);
+    }
+	goto st76;
+st76:
+	if ( ++p == pe )
+		goto _test_eof76;
+case 76:
+#line 1764 "gff_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr48;
 		case 35: goto st49;
-		case 95: goto tr107;
+		case 95: goto tr113;
 	}
 	if ( (*p) < 65 ) {
 		if ( (*p) < 48 ) {
@@ -1436,7 +1774,7 @@ case 71:
 			if ( 58 <= (*p) && (*p) <= 64 )
 				goto st31;
 		} else
-			goto tr107;
+			goto tr113;
 	} else if ( (*p) > 90 ) {
 		if ( (*p) < 97 ) {
 			if ( 91 <= (*p) && (*p) <= 96 )
@@ -1445,82 +1783,110 @@ case 71:
 			if ( 123 <= (*p) )
 				goto st31;
 		} else
-			goto tr107;
+			goto tr113;
 	} else
-		goto tr107;
+		goto tr113;
 	goto tr51;
-st49:
+st77:
 	if ( ++p == pe )
-		goto _test_eof49;
-case 49:
+		goto _test_eof77;
+case 77:
 	switch( (*p) ) {
-		case 10: goto tr48;
-		case 35: goto st73;
-		case 127: goto st31;
-	}
-	if ( (*p) > 31 ) {
-		if ( 32 <= (*p) && (*p) <= 126 )
-			goto st72;
-	} else if ( (*p) >= 0 )
-		goto st31;
-	goto tr45;
-tr114:
-#line 24 "gff.ragel"
-	{
-        current_header_entry = gff_header_entry_new();
-        ts = p;
-    }
-	goto st72;
-st72:
-	if ( ++p == pe )
-		goto _test_eof72;
-case 72:
-#line 1479 "gff_reader.c"
-	switch( (*p) ) {
-		case 10: goto tr112;
-		case 127: goto st31;
-	}
-	if ( (*p) > 31 ) {
-		if ( 32 <= (*p) && (*p) <= 126 )
-			goto st72;
-	} else if ( (*p) >= 0 )
-		goto st31;
-	goto tr45;
-st73:
-	if ( ++p == pe )
-		goto _test_eof73;
-case 73:
-	switch( (*p) ) {
-		case 10: goto tr113;
+		case 10: goto tr123;
 		case 127: goto tr46;
 	}
 	if ( (*p) > 31 ) {
 		if ( 32 <= (*p) && (*p) <= 126 )
-			goto tr114;
+			goto tr124;
 	} else if ( (*p) >= 0 )
 		goto tr46;
 	goto tr45;
-tr110:
+tr117:
 #line 169 "gff.ragel"
 	{
         ts = p;
     }
-	goto st74;
-st74:
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st78;
+tr118:
+#line 169 "gff.ragel"
+	{
+        ts = p;
+    }
+	goto st78;
+tr127:
+#line 173 "gff.ragel"
+	{
+        set_gff_record_attribute(ts, p-ts, current_record);
+    }
+#line 42 "gff.ragel"
+	{
+        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && current_batch->records->size == batch_size) {
+            list_item_t *item = list_item_new(num_records, 1, current_batch); 
+            list_insert_item(item, batches_list);
+//             printf("Batch %d added - %zu records\t", batches, current_batch->records->size);
+            current_batch = gff_batch_new(batch_size);
+            
+            if (p+1) {
+                current_batch->text = p+1;
+//                 printf("batch text = '%.*s'\n", 50, current_batch->text);
+            }
+            num_batches++;
+            num_records = 0;
+        }
+
+        // If not a blank line, add current record to current batch
+        add_record_to_gff_batch(current_record, current_batch);
+        num_records++;
+    }
+	goto st78;
+st78:
 	if ( ++p == pe )
-		goto _test_eof74;
-case 74:
-#line 1514 "gff_reader.c"
+		goto _test_eof78;
+case 78:
+#line 1873 "gff_reader.c"
 	switch( (*p) ) {
-		case 10: goto tr115;
+		case 10: goto tr126;
+		case 32: goto tr127;
 		case 127: goto st31;
 	}
-	if ( (*p) > 31 ) {
-		if ( 32 <= (*p) && (*p) <= 126 )
-			goto st74;
-	} else if ( (*p) >= 0 )
-		goto st31;
-	goto tr108;
+	if ( (*p) < 9 ) {
+		if ( 0 <= (*p) && (*p) <= 8 )
+			goto st31;
+	} else if ( (*p) > 13 ) {
+		if ( (*p) > 31 ) {
+			if ( 33 <= (*p) && (*p) <= 126 )
+				goto st78;
+		} else if ( (*p) >= 14 )
+			goto st31;
+	} else
+		goto tr125;
+	goto tr114;
 tr81:
 #line 157 "gff.ragel"
 	{
@@ -1531,7 +1897,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 1535 "gff_reader.c"
+#line 1901 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr82;
 		case 10: goto tr48;
@@ -1588,7 +1954,7 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 1592 "gff_reader.c"
+#line 1958 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr75;
 		case 10: goto tr48;
@@ -1709,7 +2075,7 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 1713 "gff_reader.c"
+#line 2079 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr61;
 		case 10: goto tr48;
@@ -1746,7 +2112,7 @@ st61:
 	if ( ++p == pe )
 		goto _test_eof61;
 case 61:
-#line 1750 "gff_reader.c"
+#line 2116 "gff_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr57;
 		case 10: goto tr48;
@@ -1796,6 +2162,8 @@ case 61:
 	_test_eof16: cs = 16; goto _test_eof; 
 	_test_eof67: cs = 67; goto _test_eof; 
 	_test_eof68: cs = 68; goto _test_eof; 
+	_test_eof69: cs = 69; goto _test_eof; 
+	_test_eof70: cs = 70; goto _test_eof; 
 	_test_eof17: cs = 17; goto _test_eof; 
 	_test_eof18: cs = 18; goto _test_eof; 
 	_test_eof19: cs = 19; goto _test_eof; 
@@ -1811,7 +2179,7 @@ case 61:
 	_test_eof29: cs = 29; goto _test_eof; 
 	_test_eof30: cs = 30; goto _test_eof; 
 	_test_eof31: cs = 31; goto _test_eof; 
-	_test_eof69: cs = 69; goto _test_eof; 
+	_test_eof71: cs = 71; goto _test_eof; 
 	_test_eof32: cs = 32; goto _test_eof; 
 	_test_eof33: cs = 33; goto _test_eof; 
 	_test_eof34: cs = 34; goto _test_eof; 
@@ -1829,12 +2197,14 @@ case 61:
 	_test_eof46: cs = 46; goto _test_eof; 
 	_test_eof47: cs = 47; goto _test_eof; 
 	_test_eof48: cs = 48; goto _test_eof; 
-	_test_eof70: cs = 70; goto _test_eof; 
-	_test_eof71: cs = 71; goto _test_eof; 
-	_test_eof49: cs = 49; goto _test_eof; 
 	_test_eof72: cs = 72; goto _test_eof; 
 	_test_eof73: cs = 73; goto _test_eof; 
 	_test_eof74: cs = 74; goto _test_eof; 
+	_test_eof49: cs = 49; goto _test_eof; 
+	_test_eof75: cs = 75; goto _test_eof; 
+	_test_eof76: cs = 76; goto _test_eof; 
+	_test_eof77: cs = 77; goto _test_eof; 
+	_test_eof78: cs = 78; goto _test_eof; 
 	_test_eof50: cs = 50; goto _test_eof; 
 	_test_eof51: cs = 51; goto _test_eof; 
 	_test_eof52: cs = 52; goto _test_eof; 
@@ -2028,8 +2398,8 @@ case 61:
         printf("Line %zu (%s): Error in 'frame' field\n", num_batches * batch_size + num_records, file->filename);
     }
 	break;
-	case 68: 
-	case 74: 
+	case 70: 
+	case 78: 
 #line 173 "gff.ragel"
 	{
         set_gff_record_attribute(ts, p-ts, current_record);
@@ -2057,7 +2427,7 @@ case 61:
     }
 	break;
 	case 64: 
-	case 70: 
+	case 72: 
 #line 169 "gff.ragel"
 	{
         ts = p;
@@ -2088,7 +2458,7 @@ case 61:
         num_records++;
     }
 	break;
-#line 2092 "gff_reader.c"
+#line 2462 "gff_reader.c"
 	}
 	}
 
@@ -2106,13 +2476,13 @@ case 61:
     }
 
     if ( cs < 
-#line 2110 "gff_reader.c"
+#line 2480 "gff_reader.c"
 62
 #line 252 "gff.ragel"
  ) {
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 2116 "gff_reader.c"
+#line 2486 "gff_reader.c"
 62
 #line 254 "gff.ragel"
 );
@@ -2124,7 +2494,7 @@ case 61:
     //gff_header_entry_free(current_header_entry);
 
     return cs < 
-#line 2128 "gff_reader.c"
+#line 2498 "gff_reader.c"
 62
 #line 262 "gff.ragel"
 ;

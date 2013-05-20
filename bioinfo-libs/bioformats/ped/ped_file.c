@@ -84,7 +84,10 @@ int ped_read(ped_file_t *ped_file) {
             ped_batch_t *batch = (ped_batch_t*) item->data_p;
             record_item = batch->first_p;
             while (record_item) {
-                ret_code &= add_ped_record(record_item->data_p, ped_file);
+                ret_code = add_ped_record(record_item->data_p, ped_file);
+                if (ret_code > 0) {
+                    LOG_FATAL_F("%s - %s\n", ((ped_record_t*) record_item->data_p)->family_id, get_ped_semantic_error_msg(ret_code));
+                }
                 record_item = record_item->next_p;
             }
             ped_batch_free(batch);

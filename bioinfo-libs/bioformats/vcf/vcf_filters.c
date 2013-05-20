@@ -209,7 +209,15 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
         region->start_position = record->position;
         region->end_position = record->position;
         
-        if (find_region(region, regions)) {
+        int found = 0;
+        if (args->type) {
+            region->type = args->type;
+            found = find_region_by_type(region, regions);
+        } else {
+            found = find_region(region, regions);
+        }
+        
+        if (found) {
             // Add to the list of records that pass all checks for at least one region
             array_list_insert(record, passed);
 //             LOG_DEBUG_F("%.*s, %ld passed\n", record->chromosome_len, record->chromosome, record->position);
@@ -466,7 +474,8 @@ void quality_filter_free(filter_t *filter) {
 }
 
 
-filter_t *region_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
+filter_t *region_filter_new(char *region_descriptor, int use_region_file, char *type,
+                            const char *url, const char *species, const char *version) {
     assert(region_descriptor);
     assert(url);
     assert(species);
@@ -494,12 +503,15 @@ filter_t *region_filter_new(char *region_descriptor, int use_region_file, const 
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
         filter_args->regions = parse_regions(region_descriptor, 0, url, species, version);
     }
+    
+    filter_args->type = type;
     filter->args = filter_args;
 
     return filter;
 }
 
-filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, const char *url, const char *species, const char *version) {
+filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, char *type, 
+                                  const char *url, const char *species, const char *version) {
     assert(region_descriptor);
     assert(url);
     assert(species);
@@ -527,6 +539,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
         snprintf(filter->description, 64, "Regions (could be more) %s", region_descriptor);
         filter_args->regions = parse_regions(region_descriptor, 1, url, species, version);
     }
+    filter_args->type = type;
     filter->args = filter_args;
 
     return filter;
@@ -534,20 +547,7 @@ filter_t *region_exact_filter_new(char *region_descriptor, int use_region_file, 
 
 void region_filter_free(filter_t *filter) {
     assert(filter);
-    region_table_t *regions = ((region_filter_args*) filter->args)->regions;
-    // Free ordering array
-    char **ordering = regions->ordering;
-    for (int i = 0; i < regions->max_chromosomes; i++) {
-        free(ordering[i]);
-    }
-    free(ordering);
-
-    // Free hashtable
-    cp_hashtable *table = regions->storage;
-    cp_hashtable_destroy(table);
-
-    // Free pointers to args and to the filter itself
-    free(regions);
+    free_region_table(((region_filter_args*) filter->args)->regions);
     free(filter->args);
     free(filter);
 }
@@ -571,7 +571,7 @@ filter_t *gene_filter_new(char *gene_descriptor, int use_gene_file, const char *
     assert(buffer);
 
     char* values_str = gene_ws_output_to_regions(buffer);
-    filter_t *filter = region_exact_filter_new(strdup(values_str), 0, url, species, version);
+    filter_t *filter = region_exact_filter_new(strdup(values_str), 0, NULL, url, species, version);
     
     free(values_str);
     free(full_url);

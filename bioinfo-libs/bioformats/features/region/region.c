@@ -1,25 +1,32 @@
 #include "region.h"
 
 
-region_t *region_new(char *chromosome, uint32_t start_position, uint32_t end_position) {
+region_t *region_new(char *chromosome, size_t start_position, size_t end_position, char *strand, char *type) {
     assert(chromosome);
-    region_t *region = malloc(sizeof(region));
+    region_t *region = malloc(sizeof(region_t));
     region->chromosome = chromosome;
     region->start_position = start_position;
     region->end_position = end_position;
+    region->strand = strand;
+    region->type = type;
     return region;
 }
 
 void region_free(region_t *region) {
     assert(region);
-    free(region->chromosome);
+    if (region->chromosome) { free(region->chromosome); }
+    if (region->strand) { free(region->strand); }
+    if (region->type) { free(region->type); }
     free(region);
 }
 
 
 
-char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes)
-{
+char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes) {
+    if (!host_url || !species || !version) {
+        return NULL;
+    }
+    
     int ret_code = init_http_environment(0);
     if (ret_code != 0) {
         return NULL;
@@ -27,6 +34,7 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
     
     char **ordering = NULL;
     
+/*
     // Default species: hsa
     if (species == NULL || version == NULL) {
         *num_chromosomes = 25;
@@ -45,6 +53,7 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
         
         return ordering;
     }
+*/
     
     CURL *curl;
     CURLcode res;
@@ -139,92 +148,76 @@ static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t n
 
 
 
-int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, int num_chromosomes)
-{
-	if (region_1 == NULL || region_2 == NULL)
-	{
-		return INT_MIN;
-	}
-	
-	region_t *reg_1 = (region_t *) region_1;
-	region_t *reg_2 = (region_t *) region_2;
-	
-	// TODO This could be avoided while inserting, because regions are classified by chromosome
-	int result = compare_chromosomes(reg_1->chromosome, reg_2->chromosome, chromosome_ordering, num_chromosomes);
-	if (result != 0)
-	{
-		return result;
-	} else
-	{
+int compare_regions(void *region_1, void *region_2, char **chromosome_ordering, int num_chromosomes) {
+    if (region_1 == NULL || region_2 == NULL) {
+            return INT_MIN;
+    }
+
+    region_t *reg_1 = (region_t *) region_1;
+    region_t *reg_2 = (region_t *) region_2;
+
+    // TODO This could be avoided while inserting, because regions are classified by chromosome
+    int result = compare_chromosomes(reg_1->chromosome, reg_2->chromosome, chromosome_ordering, num_chromosomes);
+    if (result != 0) {
+        return result;
+    } else {
 // 		return compare_position_ranges(reg_1, reg_2);
-		return compare_positions(reg_1->start_position, reg_2->start_position);
-	}
+        return compare_positions(reg_1->start_position, reg_2->start_position);
+    }
 }
 
-int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes)
-{
+int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosome_ordering, int num_chromosomes) {
     assert(chromosome_1);
     assert(chromosome_2);
-//     printf("chr1 = %s\t", chromosome_1);
-//     printf("chr 2 = %s\t", chromosome_2);
-//     printf("num chr = %d\n", num_chromosomes);
-	int chr_1_found = 0, chr_2_found = 0;
-	for (int i = 0; i < num_chromosomes; i++)
-	{
-        assert(chromosome_ordering[i]);
+    //     printf("chr1 = %s\t", chromosome_1);
+    //     printf("chr 2 = %s\t", chromosome_2);
+    //     printf("num chr = %d\n", num_chromosomes);
+    int chr_1_found = 0, chr_2_found = 0;
+    for (int i = 0; i < num_chromosomes; i++) {
+    assert(chromosome_ordering[i]);
 //         printf("* 0\n");
-		if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0)
-		{
+    if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0) {
 //             printf("* 1\n");
-			if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0)
-			{
+        if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
 //                 printf("* 2\n");
-				return 0;
-			}
-			return -1;
-		}
-		else if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0)
-		{
+            return 0;
+        }
+        return -1;
+    } else if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
 //             printf("* 4\n");
-			return 1;
-		}
-	}
-	return 0;
+        return 1;
+    }
+    }
+    return 0;
 }
 
-int compare_positions(uint32_t position_1, uint32_t position_2)
-{
-	return position_1 - position_2;
+int compare_positions(uint32_t position_1, uint32_t position_2) {
+    return position_1 - position_2;
 }
 
-int compare_position_ranges(region_t *region_1, region_t *region_2)
-{
-	int result = region_1->start_position - region_2->start_position;
-	if (result == 0)
-	{
-		result = region_1->end_position - region_2->end_position;
-	}
-	return result;
+int compare_position_ranges(region_t *region_1, region_t *region_2) {
+    int result = region_1->start_position - region_2->start_position;
+    if (result == 0) {
+            result = region_1->end_position - region_2->end_position;
+    }
+    return result;
 }
 
-int region_contains_other(region_t *container, region_t *content)
-{
+int region_contains_other(region_t *container, region_t *content) {
 // 	printf("container = %s:%d:%d\t", container->chromosome, container->start_position, container->end_position);
 // 	printf("content = %s:%d:%d\n", content->chromosome, content->start_position, content->end_position);
 // 	printf("start ok = %d, end ok = %d\n", container->start_position <= content->start_position, container->end_position >= content->end_position);
 	
-	int result = strcasecmp(container->chromosome, content->chromosome);
-	if (result != 0) { return result; }
-	
-	if (container->start_position > content->start_position)
-	{
-		return 1;
-	}
-	
-	if (container->end_position < content->end_position)
-	{
-		return -1;
-	}
-	
-	return 0;
+    int result = strcasecmp(container->chromosome, content->chromosome);
+    if (result != 0) { return result; }
+
+    if (container->start_position > content->start_position) {
+        return 1;
+    }
+
+    if (container->end_position < content->end_position) {
+        return -1;
+    }
+
+    return 0;
 }

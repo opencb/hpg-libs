@@ -36,6 +36,7 @@ void vcf_query_fields_free(vcf_query_fields_t *p) {
     free(p->allele_ref);
     free(p->allele_maf);
     free(p->genotype_maf);
+    free(p);
 }
 
 void print_vcf_query_fields(vcf_query_fields_t *fields) {

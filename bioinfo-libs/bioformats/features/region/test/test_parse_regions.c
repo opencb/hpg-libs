@@ -5,7 +5,7 @@
 #include <bioformats/features/region/region.h>
 #include <bioformats/features/region/region_table.h>
 #include <bioformats/features/region/region_table_utils.h>
-
+#include <commons/log.h>
 
 Suite *create_test_suite();
 
@@ -18,11 +18,11 @@ char *chromosomes[6] = { "1", "2", "20", "22", "3", "X" };
  * ******************************/
 
 void setup_gff(void) {
-    region_table = parse_regions_from_gff_file(strdup("test_parse_regions_01.gff"), "http://ws.bioinfo.cipf.es", "hsa", "latest");
+    region_table = parse_regions_from_gff_file("test_parse_regions_01.gff", "http://ws.bioinfo.cipf.es", "hsa", "latest");
 }
 
 void teardown_gff(void) {
-    free_table(region_table);
+    free_region_table(region_table);
 }
 
 
@@ -32,14 +32,6 @@ void teardown_gff(void) {
 
 START_TEST (gff_file_chromosomes)
 {
-    // Check number of chromosomes
-    fail_unless(cp_hashtable_count(region_table->storage) == 6, "There must be 6 chromosomes");
-    
-    // Check identity and # of regions of each chromosome
-    for (int i = 0; i < 6; i++) {
-        fail_if(!get_chromosome(chromosomes[i], region_table), "A chromosome has not been inserted");
-    }
-    
     // Check number of regions per chromosome
     fail_unless(count_regions_in_chromosome("1", region_table) == 2, "Chromosome 1 must have 2 regions");
     fail_unless(count_regions_in_chromosome("2", region_table) == 3, "Chromosome 2 must have 3 regions");
