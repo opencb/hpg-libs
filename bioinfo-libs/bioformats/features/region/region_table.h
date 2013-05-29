@@ -43,6 +43,7 @@ typedef struct region_table {
  * @return A structure for a region table
  */
 region_table_t *create_region_table(const char *url, const char *species, const char *version);
+region_table_t *new_region_table(int num_chromosomes, char **chromosomes);
 
 /**
  * Free the region table given as parameter.

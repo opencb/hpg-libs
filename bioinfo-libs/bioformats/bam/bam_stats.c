@@ -196,6 +196,7 @@ void bam_stats_wf_input_free(bam_stats_wf_input_t *wfi) {
 //--------------------------------------------------------------------
 // workflow producer
 //--------------------------------------------------------------------
+int read_progress = 0;
 
 void *bam_stats_producer(void *input) {
   
@@ -203,12 +204,40 @@ void *bam_stats_producer(void *input) {
   bam_stats_wf_batch_t *new_batch = NULL;
   int max_num_bam1s = wf_input->in_stats->batch_size;
 
+  char **sequence_labels = wf_input->out_stats->sequence_labels;
+  region_table_t *region_table = wf_input->in_stats->region_table;
+  region_t region;
+  region.strand = NULL;
+  region.type = NULL;
+
   bam1_t *bam1;
   array_list_t *bam1_list = array_list_new(max_num_bam1s, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);  
-  for (int i = 0; i < max_num_bam1s; i++) {
+  while (1) {
+    //  for (int i = 0; i < max_num_bam1s; i++) {
     bam1 = bam_init1();    
     if (bam_read1(wf_input->in_file->bam_fd, bam1) > 0) {
-      array_list_insert(bam1, bam1_list);
+
+      if (++read_progress % 500000 == 0) {
+	LOG_INFO_F("%i reads extracting from disk...\n", read_progress);
+      }
+
+      if (region_table) {
+	region.chromosome = sequence_labels[bam1->core.tid];
+	region.start_position = bam1->core.pos;
+	region.end_position = region.start_position + bam1->core.l_qseq;
+      }
+
+      //      LOG_INFO("find region...\n");
+      find_region(&region, region_table);
+      //      LOG_INFO("...done !!\n");
+
+	//      if ((region_table == NULL) || find_region(&region, region_table)) {
+	array_list_insert(bam1, bam1_list);
+	if (array_list_size(bam1_list) >= max_num_bam1s) {
+	  break;
+	}
+	//      }
+
     } else {
       bam_destroy1(bam1);
       break;
@@ -225,7 +254,7 @@ void *bam_stats_producer(void *input) {
 				       bam_stats_output_new(),
 				       wf_input->out_stats);				      
   }
-    
+
   return new_batch;
 }
 
@@ -288,9 +317,9 @@ int bam_stats_consumer(void *data) {
     out->quality[i] += tmp->quality[i];
   }
 
-  region_t region;
-  char **sequence_labels = out->sequence_labels;
-  region_table_t * region_table = batch->in_stats->region_table;
+  //  region_t region;
+  //  char **sequence_labels = out->sequence_labels;
+  //  region_table_t * region_table = batch->in_stats->region_table;
 
   bam1_t *bam1;
   uint32_t bam_flag;
@@ -305,6 +334,11 @@ int bam_stats_consumer(void *data) {
       seq_id = bam1->core.tid;
       start = bam1->core.pos;
       end = start + bam1->core.l_qseq;
+
+      for (int p = start; p < end; p++) {
+	out->sequence_depths_per_nt[seq_id][p]++;
+      }
+      /*
       if (region_table) {
 	region.chromosome = sequence_labels[seq_id];
 	region.start_position = start;
@@ -316,6 +350,7 @@ int bam_stats_consumer(void *data) {
 	  out->sequence_depths_per_nt[seq_id][p]++;
 	}
       }
+      */
     }
 
     bam_destroy1(bam1);
@@ -368,7 +403,7 @@ int bam_stats_worker(void *data) {
   region_t region;
   char **sequence_labels = batch->out_stats->sequence_labels;
   size_t *sequence_lengths = batch->out_stats->sequence_lengths;
-  
+   
   bam1_t *bam1;
   int bam_seq_len, num_cigar_ops, gc_content;
   uint8_t* bam_seq;
@@ -382,7 +417,6 @@ int bam_stats_worker(void *data) {
   bam_query_fields_t *fields;
   array_list_t *stats_list = NULL;
   if (batch->in_stats->db) {
-    //    db = (sqlite3 *) batch->in_stats->db;
     stats_list = array_list_new(num_items, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);  
   }
 
@@ -404,13 +438,19 @@ int bam_stats_worker(void *data) {
     printf("\tchr = %s\n", chr);
     */
 
+    /*
     if (region_table) {
       region.chromosome = chr;
       region.start_position = bam1->core.pos;
       region.end_position = region.start_position + bam1->core.l_qseq;
     }
+    */
+    //    find_region(&region, region_table);
+    {
+      //    if ((region_table == NULL) || find_region(&region, region_table)) {
+      //	printf("region: %s:%i-%i\n", region.chromosome, region.start_position, region.end_position);
+      //	printf("FOUND !!\n");
 
-    if ((region_table == NULL) || find_region(&region, region_table)) {
 	tmp->num_reads++;
 
 	if (bam_flag & BAM_FUNMAP) {
@@ -575,7 +615,52 @@ void bam_stats(bam_stats_input_t *input, bam_stats_output_t *output) {
   workflow_set_producer(bam_stats_producer, "BAM stats producer", wf);
   workflow_set_consumer(bam_stats_consumer, "BAM stats consumer", wf);
   
-  workflow_run_with(input->num_threads, wf_input, wf);
+  //  workflow_run_with(input->num_threads, wf_input, wf);
+    {
+      bam1_t *bam1;
+      int read_progress = 0;
+      char **sequence_labels = wf_input->out_stats->sequence_labels;
+      region_table_t *region_table = wf_input->in_stats->region_table;
+      region_t region;
+      region.strand = NULL;
+      region.type = NULL;
+      while (1) {
+	bam1 = bam_init1();    
+	if (bam_read1(wf_input->in_file->bam_fd, bam1) > 0) {
+	  
+	  if (++read_progress % 500000 == 0) {
+	    LOG_INFO_F("%i reads extracting from disk...\n", read_progress);
+	  }
+	  
+	  if (region_table) {
+	    region.chromosome = sequence_labels[bam1->core.tid];
+	    region.start_position = bam1->core.pos;
+	    region.end_position = region.start_position + bam1->core.l_qseq;
+
+
+
+	    if (read_progress == 30983201) {
+	      printf("read %lu..\n", read_progress);
+	      printf("\tbam1_qname(bam1): %s\n", bam1_qname(bam1));
+	      printf("\tbam1->core.tid  : %i\n", bam1->core.tid);
+	      printf("\tregion to find  : (chr, start, end) = (%s, %lu, %lu)\n",
+		     region.chromosome, region.start_position, region.end_position);
+	    }
+	  }
+	  
+	  //      LOG_INFO("find region...\n");
+	  //	  find_region(&region, region_table);
+	  //      LOG_INFO("...done !!\n");
+	  bam_destroy1(bam1);
+	  
+	  
+	} else {
+	  bam_destroy1(bam1);
+	  break;
+	}
+      }
+      exit(-1);
+    }
   
   // free memory
   workflow_free(wf);

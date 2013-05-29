@@ -27,6 +27,31 @@ region_table_t *create_region_table(const char *url, const char *species, const 
     return table;
 }
 
+region_table_t *new_region_table(int num_chromosomes, char **chromosomes) {
+    // Initialize structure
+    region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
+    table->ordering = chromosomes;
+    table->max_chromosomes = num_chromosomes;
+    table->chunks = kh_init(stats_chunks);
+    table->is_ready = 0;
+
+    srand( time(NULL) );
+    int suffix = rand();
+    char db_name[32];
+    sprintf(db_name, "/tmp/regions_%d.db", suffix);
+    create_regions_db(db_name, REGIONS_CHUNKSIZE, &(table->storage));
+    
+    sqlite3 *db = table->storage;
+    
+    // Prepare statements
+    char *sql = "INSERT INTO regions VALUES (?1, ?2, ?3, ?4, ?5)";
+    if (sqlite3_prepare_v2(table->storage, sql, strlen(sql), &(table->insert_region_stmt), NULL) != SQLITE_OK) {
+        LOG_FATAL_F("Could not create regions database: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
+    }
+    
+    return table;
+}
+
 void free_region_table(region_table_t* regions) {
     // Destroy prepared statements and close database
     sqlite3_finalize(regions->insert_region_stmt);
