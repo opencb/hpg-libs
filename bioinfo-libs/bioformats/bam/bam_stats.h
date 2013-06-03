@@ -11,108 +11,72 @@
 #include <stdlib.h>
 #include <string.h>
 
-//#include "argtable2.h"
-//#include "libconfig.h"
-//#include "commons/log.h"
-//#include "commons/system_utils.h"
-//#include "commons/file_utils.h"
-
-#include "commons/workflow_scheduler.h"
-#include "commons/sqlite/sqlite3.h"
-#include "containers/khash.h"
 #include "containers/array_list.h"
 #include "bioformats/features/region/region_table.h"
-#include "bioformats/db/db_utils.h"
-#include "bioformats/bam/bam_file.h"
-#include "bioformats/bam/bam_db.h"
-
+#include "bioformats/bam/samtools/bam.h"
 
 //------------------------------------------------------------------------
 
-#define NUM_ERRORS_STATS 20
-#define QUALITY_STATS   256
+typedef struct bam_stats {
+  // mapped
+  int mapped;
 
-//------------------------------------------------------------------------
-
-typedef struct bam_stats_input {
-  int num_threads;
-  int batch_size;
-  region_table_t *region_table;
-  char *in_filename;
-  void *db;
-  void *hash;
-} bam_stats_input_t;
-
-bam_stats_input_t *bam_stats_input_new(char *in_filename, region_table_t *region_table,
-				       int num_threads, int batch_size, void *db, void *hash);
-void bam_stats_input_free(bam_stats_input_t *input);
-
-//------------------------------------------------------------------------
-
-typedef struct bam_stats_output {
-  // global statistics
-  size_t ref_length;
-  int num_sequences;
-  int single_end;
-
-  size_t num_reads;
-  size_t num_unique_alignments;
-  size_t num_mapped_reads;
-  size_t num_unmapped_reads;
-  size_t num_mapped_reads_1;
-  size_t num_unmapped_reads_1;
-  size_t num_mapped_reads_2;
-  size_t num_unmapped_reads_2;
-
-  size_t min_alignment_length;
-  size_t max_alignment_length;
-
-  // stats per strand
-  size_t num_unique_alignments_strand[2];
-  size_t num_mapped_reads_strand[2];
-
-  // errors stats
-  size_t num_indels;
-  size_t indels_acc;
-  size_t num_errors[NUM_ERRORS_STATS + 1];
-
-  // nucleotide content
-  size_t num_nucleotides;
-  size_t num_As;
-  size_t num_Cs;
-  size_t num_Ts;
-  size_t num_Gs;  
-  size_t num_Ns;  
-  size_t GC_content[100];
-
-  // insert
-  size_t min_insert_size;
-  size_t max_insert_size;
-  size_t insert_size_acc;
+  // strand
+  int strand;
+  
+  // number of errors
+  int num_errors;
+  
+  // cigar handling: number of indels and length
+  int num_indels;
+  int indels_length;
 
   // quality
-  size_t min_quality;
-  size_t max_quality;
-  size_t quality_acc;
-  size_t quality[QUALITY_STATS];
+  int quality;
 
-  // coverage (depth): global and per chromosome
-  size_t unmapped_nts;
-  double depth;
-  char** sequence_labels;
-  int **sequence_depths_per_nt;
-  size_t* sequence_lengths;
-  double* depth_per_sequence;
+  // unique alignment
+  int unique_alignment;
+  
+  // handling pairs
+  int single_end;
+  int unmapped_pair_1;
+  int unmapped_pair_2;
+  int mapped_pair_1;
+  int mapped_pair_2;
+  int isize;
 
-  //  khash_t(32) *gc_hash;
-} bam_stats_output_t;
+  // mapping length
+  int seq_length;
 
-bam_stats_output_t *bam_stats_output_new();
-void bam_stats_output_free(bam_stats_output_t *output);
+  // nucleotide content
+  int num_As;
+  int num_Cs;
+  int num_Gs;
+  int num_Ts;
+  int num_Ns;
+  int num_GCs;
+} bam_stats_t;
+
+bam_stats_t *bam_stats_new();
+void bam_stats_free(bam_stats_t *p);
 
 //------------------------------------------------------------------------
 
-void bam_stats(bam_stats_input_t *input, bam_stats_output_t *output);
+typedef struct bam_stats_options {
+  region_table_t *region_table;
+  char **sequence_labels;
+} bam_stats_options_t;
+
+bam_stats_options_t *bam_stats_options_new(region_table_t *region_table,  
+					   char **sequence_labels);
+void bam_stats_options_free(bam_stats_options_t *p);
+
+
+//------------------------------------------------------------------------
+
+bam_stats_t *bam1_stats(bam1_t *bam1, bam_stats_options_t *opts);
+int bam1s_stats(array_list_t *bam1s, bam_stats_options_t *opts,
+		array_list_t *bam1s_stats);
 
 //------------------------------------------------------------------------
 

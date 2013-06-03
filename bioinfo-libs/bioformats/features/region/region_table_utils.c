@@ -237,7 +237,9 @@ int region_table_parse_from_string(char *input_regions, region_table_t *regions_
 
     int i = 0;
     while ((token = strtok_r(str_1, ",", &saveptr1)) != NULL) {
+
         region_t *region = (region_t*) malloc (sizeof(region_t));
+
         token_len = strlen(token);
         
         LOG_DEBUG_F("token = %s, len = %zu\n", token, token_len);
@@ -269,7 +271,9 @@ int region_table_parse_from_string(char *input_regions, region_table_t *regions_
         }
         
         LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
-        
+
+	region->strand = NULL;
+	region->type = NULL;
         insert_region(region, regions_table);
         
         str_1 = NULL;

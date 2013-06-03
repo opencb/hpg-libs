@@ -188,6 +188,13 @@ int bam_fwrite_array(bam1_t** alignment_p, int length, bam_file_t* bam_file_p) {
     return current_size;
 }
 
+int bam_fwrite_bam1s(array_list_t* bam1s, bam_file_t* bam_file) {
+  size_t num_items = array_list_size(bam1s);
+  for (int i = 0; i < num_items; i++) {
+    bam_write1(bam_file->bam_fd, array_list_get(i, bam1s));
+  }
+}
+
 int bam_fwrite_sorted_array(bam1_t** alignment_p, int* indices, int length, bam_file_t* bam_file_p) {
     int current_size = 0;
 

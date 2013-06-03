@@ -64,6 +64,9 @@ void free_region_table(region_table_t* regions) {
     }
     free(ordering);
 
+    // Destroy the chunks hashtable
+    kh_destroy(stats_chunks, regions->chunks);
+
     free(regions);
 }
 
@@ -90,7 +93,7 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
     int rc;
     sqlite3_stmt *stmt = table->insert_region_stmt;
     sqlite3* db = table->storage;
-    
+
     char *sql_begin = "BEGIN TRANSACTION";
     rc = exec_sql(sql_begin, db);
     if (rc != SQLITE_OK) {
@@ -98,12 +101,14 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
                     sqlite3_errmsg(db), sqlite3_errcode(db));
         return rc;
     }
-
+    
     for (int i = 0; i < num_regions; i++) {
         region_t *region = regions[i];
+
         sqlite3_bind_text(stmt, 1, region->chromosome, strlen(region->chromosome), SQLITE_STATIC);
         sqlite3_bind_int64(stmt, 2, region->start_position);
         sqlite3_bind_int64(stmt, 3, region->end_position);
+
         if (region->strand) { 
             sqlite3_bind_text(stmt, 4, region->strand, strlen(region->strand), SQLITE_STATIC); 
         } else {

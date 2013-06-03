@@ -9,49 +9,127 @@
 
 //------------------------------------------------------------------------
 
-bam_filter_input_t *new_bam_filter_input(char *in_filename, char *out_dirname,
-					 int by_mapped, int by_unmapped, 
-					 int by_proper_pairs, int by_unique,
-					 int by_num_errors, int min_num_errors, int max_num_errors,
-					 int by_quality, int min_quality, int max_quality,
-					 int by_length, int min_length, int max_length,
-					 region_table_t *region_table,
-					 int num_threads,int batch_size) {
-  bam_filter_input_t *input = (bam_filter_input_t *) calloc(1, sizeof(bam_filter_input_t));
+bam_filter_options_t *bam_filter_options_new(int unique, int proper_pairs,
+					     int min_length, int max_length,
+					     int min_quality, int max_quality,
+					     int min_num_errors, int max_num_errors,
+					     region_table_t *region_table) {
+
+  bam_filter_options_t *p = (bam_filter_options_t *) calloc(1, sizeof(bam_filter_options_t));
+
+  p->unique = unique;
+  p->proper_pairs = proper_pairs;
+  p->min_length = min_length;
+  p->max_length = max_length;
+  p->min_quality = min_quality;
+  p->max_quality = max_quality;
+  p->min_num_errors = min_num_errors;
+  p->max_num_errors = max_num_errors;    
+  p->region_table = region_table;
   
-  input->in_filename = strdup(in_filename);
-  input->out_dirname = strdup(out_dirname);
-  input->by_mapped = by_mapped;
-  input->by_unmapped = by_unmapped;
-  input->by_proper_pairs = by_proper_pairs;
-  input->by_unique = by_unique;
-  input->by_num_errors = by_num_errors;
-  input->min_num_errors = min_num_errors;
-  input->max_num_errors = max_num_errors;
-  input->by_quality = by_quality;
-  input->min_quality = min_quality;
-  input->max_quality = max_quality;
-  input->by_length = by_length;
-  input->min_length = min_length;
-  input->max_length = max_length;
-
-  input->region_table = region_table;
-  input->num_threads = num_threads;
-  input->batch_size = batch_size;
-
-  return input;
+  return p;
 }
 
-void free_bam_filter_input(bam_filter_input_t *input) {
-  if (input) {
-
-    if (input->in_filename) free(input->in_filename);
-    if (input->out_dirname) free(input->out_dirname);
-
-    free(input);
+void bam_filter_options_free(bam_filter_options_t *p) {
+  if (p) {
+    free(p);
   }
 }
 
+//------------------------------------------------------------------------
+
+void bam_filter(array_list_t *bam1s, array_list_t *passed_bam1s,
+		array_list_t *failed_bam1s, bam_filter_options_t *opts) {
+
+  bam1_t *bam1;
+  uint32_t bam_flag;
+  int value;
+
+  region_t region;
+  char **chromosomes;
+  int num_chromosomes;
+  if (opts->region_table) {
+    chromosomes = opts->region_table->ordering;
+    num_chromosomes = opts->region_table->max_chromosomes;
+    region.strand = NULL;
+    region.type = NULL;
+  }
+
+  size_t num_items = array_list_size(bam1s);
+
+  for (size_t i = 0; i < num_items; i++) {
+    
+    bam1 = array_list_get(i, bam1s);
+    bam_flag = (uint32_t) bam1->core.flag;
+
+    // if not mapped, 
+    if (bam_flag & BAM_FUNMAP) {
+      array_list_insert(bam1, failed_bam1s);
+      continue;
+    }
+
+    // unique
+    if (opts->unique && (bam_flag & BAM_FSECONDARY)) {
+      array_list_insert(bam1, failed_bam1s);
+      continue;
+    }
+
+    // proper pairs
+    if (opts->proper_pairs && (bam_flag & BAM_FPAIRED)) {
+      if ( !(bam_flag & BAM_FPROPER_PAIR)) {
+	array_list_insert(bam1, failed_bam1s);
+	continue;
+      }
+    }
+
+    // length
+    value = bam1->core.l_qseq;
+    if (value < opts->min_length || value > opts->max_length) {
+      array_list_insert(bam1, failed_bam1s);
+      continue;
+    }
+
+    // quality
+    value = bam1->core.qual;
+    if (value < opts->min_quality || value > opts->max_quality) {
+      array_list_insert(bam1, failed_bam1s);
+      continue;
+    }
+
+    // num. error
+    value = bam_aux2i(bam_aux_get(bam1, "NM"));
+    if (value < opts->min_num_errors || value > opts->max_num_errors) {
+      array_list_insert(bam1, failed_bam1s);
+      continue;
+    }
+
+    // region
+    if (opts->region_table) {
+      int seq_id = bam1->core.tid;
+      if (seq_id >=0 &&  seq_id < num_chromosomes) {
+
+	region.chromosome = chromosomes[bam1->core.tid];
+	region.start_position = bam1->core.pos;
+	region.end_position = region.start_position + bam1->core.l_qseq;
+
+	if (!find_exact_region(&region, opts->region_table)) {
+	  array_list_insert(bam1, failed_bam1s);
+	  continue;
+	}
+
+      } else {
+	array_list_insert(bam1, failed_bam1s);
+	continue;
+      }
+    }
+
+    // finally, this bam1 passed all the filters,
+    // insert it in the output list
+    array_list_insert(bam1, passed_bam1s);
+  }
+}
+
+/*
 //====================================================================
 // W O R K F L O W     F O R      S T A T I S T I C S
 //====================================================================
@@ -236,13 +314,13 @@ int bam_filter_worker(void *data) {
     }
 
     if ((region_table == NULL) || find_region(&region, region_table)) {
-      /*
+
       // by mapped
-      if (in_filter->by_mapped && (bam_flag & BAM_FUNMAP)) {
-	bam_destroy1(bam1);
-	continue;
-      }
-      */
+//      if (in_filter->by_mapped && (bam_flag & BAM_FUNMAP)) {
+//	bam_destroy1(bam1);
+//	continue;
+//      }
+
       // by proper pair
       if (in_filter->by_proper_pairs && (bam_flag & BAM_FPAIRED)) {
 	if ( !(bam_flag & BAM_FPROPER_PAIR)) {
@@ -463,6 +541,6 @@ void filter_bam(bam_filter_input_t *input) {
   // close sqlite db
   sqlite3_close(db);
 }
-
+      */
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------

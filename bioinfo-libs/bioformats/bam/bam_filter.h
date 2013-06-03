@@ -26,48 +26,34 @@
 
 //------------------------------------------------------------------------
 
-typedef struct bam_filter_input {
-  int num_threads;
-  int batch_size;
+typedef struct bam_filter_options {
+  int proper_pairs;
+  int unique;
 
-  int by_mapped;
-  int by_unmapped;
-  int by_proper_pairs;
-  int by_unique;
-
-  int by_num_errors;
   int min_num_errors;
   int max_num_errors;
 
-  int by_quality;
   int min_quality;
   int max_quality;
 
-  int by_length;
   int min_length;
   int max_length;
 
   region_table_t *region_table;
-  char *in_filename;
-  char *out_dirname;
+} bam_filter_options_t;
 
+bam_filter_options_t *bam_filter_options_new(int unique, int proper_pairs,
+					     int min_length, int max_length,
+					     int min_quality, int max_quality,
+					     int min_num_errors, int max_num_errors,
+					     region_table_t *region_table);
 
-} bam_filter_input_t;
-
-bam_filter_input_t *bam_filter_input_new(char *in_filename, char *out_dirname,
-					 int by_mapped, int by_unmapped, 
-					 int by_proper_pairs, int by_unique,
-					 int by_num_errors, int min_num_errors, int max_num_errors,
-					 int by_quality, int min_quality, int max_quality,
-					 int by_length, int min_length, int max_length,
-					 region_table_t *region_table,
-					 int num_threads,int batch_size);
-
-void bam_filter_input_free(bam_filter_input_t *input);
+void bam_filter_options_free(bam_filter_options_t *p);
 
 //------------------------------------------------------------------------
 
-void bam_filter(bam_filter_input_t *input);
+void bam_filter(array_list_t *bam1s, array_list_t *passed_bam1s,
+		array_list_t *failed_bam1s, bam_filter_options_t *opts);
 
 //------------------------------------------------------------------------
 
