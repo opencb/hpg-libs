@@ -5,4 +5,4 @@ penv['CFLAGS'] += ' -D_XOPEN_SOURCE=600'
 
 formats_env['objects'] += penv.Object(Glob('region/*.c'))
 
-#region_test = SConscript("region/test/SConscript", exports = ['penv'] )
+region_test = SConscript("region/test/SConscript", exports = ['penv'] )
