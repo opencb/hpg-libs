@@ -295,6 +295,9 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
         pe = p + file->data_len;
         cs |= run_vcf_parser(p, pe, batch_lines, file, status);
         file->data_len = 0;
+    } else {
+        // Empty batch, the data buffer must be free'd
+        free(data);
     }
 
     if ( cs ) {

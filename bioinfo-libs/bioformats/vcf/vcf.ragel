@@ -104,6 +104,7 @@
 
     action chrom_error {
         printf("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action pos_begin {
@@ -118,6 +119,7 @@
 
     action pos_error {
         printf("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action id_begin {
@@ -130,6 +132,7 @@
 
     action id_error {
         printf("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action ref_begin {
@@ -142,6 +145,7 @@
 
     action ref_error {
         printf("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action alt_begin {
@@ -160,6 +164,7 @@
 
     action alt_error {
         printf("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action qual_begin {
@@ -178,6 +183,7 @@
 
     action qual_error {
         printf("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action filter_begin {
@@ -190,6 +196,7 @@
 
     action filter_error {
         printf("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action info_begin {
@@ -202,6 +209,7 @@
 
     action info_error {
         printf("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action format_begin {
@@ -214,6 +222,7 @@
 
     action format_error {
         printf("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     action sample_begin {
@@ -226,6 +235,7 @@
 
     action sample_error {
         printf("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
+        vcf_record_free(status->current_record);
     }
 
     #################################################
@@ -316,6 +326,8 @@ int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_r
     if (!vcf_batch_is_empty(status->current_batch)) {
         add_vcf_batch(status->current_batch, file);
 //         printf("Batch added - %zu records\n", status->current_batch->records->size);
+    } else {
+        vcf_batch_free(status->current_batch);
     }
 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
