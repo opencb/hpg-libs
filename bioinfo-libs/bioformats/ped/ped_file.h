@@ -60,8 +60,9 @@ ped_file_t *ped_open(char *filename);
  * 
  * @param ped_file ped_file_t whose file stream is about to being closed
  * @param free_families flag that marks if the families must be also freed
+ * @param free_phenotypes flag that marks if the phenotypes must be also freed
  */
-void ped_close(ped_file_t *ped_file, int free_families);
+void ped_close(ped_file_t *ped_file, int free_families, int free_phenotypes);
 
 void ped_record_free(ped_record_t *ped_record);
 
@@ -95,4 +96,12 @@ int get_num_families(ped_file_t *ped_file);
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file);
 
+khash_t(str)* get_phenotypes(ped_file_t *ped_file);
+
+/*TODO: This call will change to generic one where you can specify a other fields, even custom fields (phenotype, sex, age?, ...)
+ *      int set_unaffected(const char* id, int field_number, ped_file_t *ped_file);
+ *      int set_affected(const char* id, int field_number, ped_file_t *ped_file);
+ */
+int set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
+int set_affected_phenotype(const char* id, ped_file_t *ped_file);
 #endif

@@ -48,6 +48,24 @@ typedef struct file_stats {
     float mean_quality;         /**< Mean of all values of the QUALITY column. */
 } file_stats_t;
 
+/** 
+ * @brief Hardy-Weinberg test results
+ * @details
+ **/
+typedef struct hardy_weinberg_stats {
+    float chi2;                 /**< Hardy-Weinberg chi square*/
+    float p_value;              /**< Hardy-Weinberg p-value*/
+    int n, n_AA, n_Aa, n_aa;
+    float e_AA, e_Aa, e_aa;
+    float p, q;  
+} hardy_weinberg_stats_t;
+
+typedef struct phenotype_stats {
+    int phenotype;
+    
+    hardy_weinberg_stats_t hw;
+    
+} phenotype_stats_t;
 
 /**
  * @brief Statistics of a variant of a VCF file
@@ -81,6 +99,9 @@ typedef struct variant_stats {
     float controls_percent_dominant;    /**< Percentage of controls that follow a dominant inheritance pattern */
     float cases_percent_recessive;      /**< Percentage of cases that follow a recessive inheritance pattern */
     float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
+    
+    phenotype_stats_t *pheno_stats;   /**< Array for Phenotype stats*/
+    hardy_weinberg_stats_t hw_all;   /**< All samples Hardy-Weinberg stats*/
 } variant_stats_t;
 
 /**
@@ -94,6 +115,8 @@ typedef struct sample_stats {
     
     size_t mendelian_errors;    /**< Number of mendelian errors. */
     size_t missing_genotypes;   /**< Number of genotypes with at least one allele missing. */
+	size_t homozygotes_number;	/**< Number of homozygotes. */
+//    float homozygosity; TODO       /**< Percentage of homozygous */
 } sample_stats_t;
 
 
@@ -126,9 +149,10 @@ void file_stats_free(file_stats_t *stats);
  * @param chromosome Chromosome of the variant in the genome
  * @param position Position of the variant in the chromosome
  * @param ref_allele Reference allele
+ * @param num_phenotypes Number of different phenotypes
  * @return A new variant_stats_t structure
  */
-variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele);
+variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, int num_phenotypes);
 
 /**
  * @brief Deallocates memory associated to a variant_stats_t structure
@@ -178,6 +202,9 @@ void sample_stats_free(sample_stats_t *stats);
  **/
 int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
                        list_t *output_list, file_stats_t *file_stats);
+/* Temporaly changed. TODO: change correctly in all code */
+int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                       khash_t(str) *phenotype_ids, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file

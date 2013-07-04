@@ -178,12 +178,22 @@ static inline int report_variant_missing_data(variant_stats_t *var_stats, FILE *
 }
 
 static inline int report_variant_inheritance_data(variant_stats_t *var_stats, FILE *stats_fd) {
-    return fprintf(stats_fd, "%d\t%.2f | %.2f\t%.2f | %.2f\n",
+    return fprintf(stats_fd, "%d\t%.2f | %.2f\t%.2f | %.2f\t",
                    var_stats->mendelian_errors,
                    var_stats->cases_percent_dominant,
                    var_stats->controls_percent_dominant,
                    var_stats->cases_percent_recessive,
                    var_stats->controls_percent_recessive);
+}
+
+static inline int report_variant_hardy_data(hardy_weinberg_stats_t hw, FILE *stats_fd) {
+    return fprintf(stats_fd, "%.2f\t%.2f\t%d/%d/%d\n",
+                   hw.chi2,
+                   hw.p_value,
+                   hw.n_AA,
+                   hw.n_Aa,
+                   hw.n_aa,
+                   hw.n);
 }
 
 static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, variant_stats_t **stats_batch) {
@@ -218,7 +228,7 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *h
         report_variant_genotypes_stats(stats, stats_fd);
         report_variant_missing_data(stats, stats_fd);
         report_variant_inheritance_data(stats, stats_fd);
-        
+        report_variant_hardy_data(stats->hw_all, stats_fd);
         // Update chunks
         if (db) {
             update_chunks_hash(stats->chromosome, INT_MAX, VCF_CHUNKSIZE, stats->position, stats->position, hash);
@@ -234,7 +244,7 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *h
 
 inline void report_vcf_variant_stats_header(FILE *stats_fd) {
     fprintf(stats_fd, 
-            "#CHROM\tPOS\tINDEL?\tList of [ALLELE  COUNT  FREQ]\t\t\tList of [GT  COUNT  FREQ]\t\t\t\t\t\tMISS_AL\tMISS_GT\tMEND_ER\t%% AFF | UNAFF dominant\t%% AFF | UNAFF recessive\n");
+            "#CHROM\tPOS\tINDEL?\tList of [ALLELE  COUNT  FREQ]\t\t\tList of [GT  COUNT  FREQ]\t\t\t\t\t\tMISS_AL\tMISS_GT\tMEND_ER\t%% AFF | UNAFF dominant\t%% AFF | UNAFF recessive | HWE CHI2\tHWE p-value\n");
 }
 
 
@@ -259,4 +269,36 @@ void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sampl
 
 inline void report_vcf_sample_stats_header(FILE *stats_fd) {
     fprintf(stats_fd, "#SAMPLE\t\tMISS GT\t\tMENDEL ERR\n");
+}
+
+
+/* ***********************************************
+ *          Variant Phenotype report             *
+ * ***********************************************/
+ 
+ 
+char *get_variant_phenotype_stats_output_filename(char* prefix, char* phenotype_name)
+{
+    char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(phenotype_name) + strlen("._stats-variants") + 2), sizeof(char));
+    sprintf(stats_filename, "%s.%s_stats-variants", prefix, phenotype_name);
+    return stats_filename;
+} 
+ 
+
+void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, variant_stats_t **stats_batch, int phenotype_id) {
+
+    for (int i = 0; i < num_variants; i++) {
+        variant_stats_t *stats = stats_batch[i];
+        
+        // Write to plain text file
+        fprintf(stats_fd, "%s\t%ld\t", stats->chromosome, stats->position);
+        report_variant_hardy_data(stats->pheno_stats[phenotype_id].hw, stats_fd);
+    }
+
+}
+
+
+inline void report_vcf_variant_phenotype_stats_header(FILE *stats_fd) {
+    fprintf(stats_fd, 
+            "#CHROM\tPOS\t\tHWE CHI2\tHWE p-value\n");
 }

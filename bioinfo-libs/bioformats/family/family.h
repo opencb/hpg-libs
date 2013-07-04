@@ -25,7 +25,7 @@ enum Condition { MISSING_CONDITION, AFFECTED, UNAFFECTED, UNKNOWN_CONDITION };
  */
 typedef struct individual {
     char *id;   /**< Unique ID of the individual **/
-    float phenotype;    /**< Numerical descriptor for the affection of the individual */
+    int phenotype;    /**< Numerical index on the khash for the affection of the individual */
     enum Sex sex;   /**< Sex of the individual */
     enum Condition condition;  /**< Whether the individual is affected by a disease or not, or its data are missing */
     struct individual *father;  /**< Father of the individual (NULL in case he's parent in a family) */

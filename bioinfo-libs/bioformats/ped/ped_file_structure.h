@@ -7,8 +7,11 @@
 #include <commons/file_utils.h>
 
 #include <containers/cprops/hashtable.h>
+#include <containers/khash.h>
 
 #include <bioformats/family/family.h>
+
+KHASH_MAP_INIT_STR(str, int);
 
 /**
  * Entry in the PED document body.
@@ -19,7 +22,7 @@ typedef struct ped_record {
     char *father_id;
     char *mother_id;
     enum Sex sex;
-    float phenotype;
+    int phenotype;
 } ped_record_t;
 
 /**
@@ -36,6 +39,11 @@ typedef struct ped_file {
     size_t data_len;
     
     cp_hashtable *families;
+    
+    //TODO: Will have extra value for the number of the field to compare
+    int unaffected_id;
+    int affected_id;
+    khash_t(str) *phenotypes;
 } ped_file_t;
 
 #endif

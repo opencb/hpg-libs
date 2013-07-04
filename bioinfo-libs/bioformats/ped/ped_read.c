@@ -40,7 +40,18 @@ void set_ped_record_sex(enum Sex sex, ped_record_t* ped_record) {
     LOG_DEBUG_F("set sex: %ld\n", ped_record->sex);
 }
 
-void set_ped_record_phenotype(float phenotype, ped_record_t* ped_record) {
-    ped_record->phenotype = phenotype;
+void set_ped_record_phenotype(char* phenotype, ped_record_t* ped_record, ped_file_t *ped_file) {
+    
+    int ret = 888;
+    int k = kh_get(str, ped_file->phenotypes, phenotype);
+    if(k == kh_end(ped_file->phenotypes))	//If k == kh_end, is missing
+    {
+		//printf("Added phenotype. k = %d\n", k);
+		k = kh_put(str, ped_file->phenotypes, strdup(phenotype), &ret);
+		kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;//ped_file->num_phenotypes;
+    }
+    ped_record->phenotype = kh_value(ped_file->phenotypes, k);
+    //printf("ped_read.c:48: El string %s tiene el khiter %d. Value %d.    RET = %d\n", phenotype, k, ped_record->phenotype, ret);
+	
     LOG_DEBUG_F("set phenotype: %f\n", ped_record->phenotype);
 }

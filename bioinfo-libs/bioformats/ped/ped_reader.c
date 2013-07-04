@@ -18,7 +18,7 @@ static const int ped_error = 0;
 static const int ped_en_main = 16;
 
 
-#line 165 "ped.ragel"
+#line 164 "ped.ragel"
 
 
 
@@ -84,7 +84,7 @@ tr15:
     }
 	goto st0;
 tr19:
-#line 130 "ped.ragel"
+#line 129 "ped.ragel"
 	{
         printf("Line %zu: Error in 'phenotype' field\n", lines);
     }
@@ -305,7 +305,13 @@ st10:
 		goto _test_eof10;
 case 10:
 #line 308 "ped_reader.c"
-	if ( 48 <= (*p) && (*p) <= 57 )
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr20;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto tr20;
+	} else
 		goto tr20;
 	goto tr19;
 tr20:
@@ -314,13 +320,12 @@ tr20:
         ts = p;
     }
 	goto st18;
-tr32:
+tr31:
 #line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
+            set_ped_record_phenotype(field, current_record, file);
             free(field);
         }
     }
@@ -329,21 +334,24 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 333 "ped_reader.c"
-	switch( (*p) ) {
-		case 10: goto tr30;
-		case 46: goto tr31;
-	}
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr32;
+#line 338 "ped_reader.c"
+	if ( (*p) == 10 )
+		goto tr30;
+	if ( (*p) < 65 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr31;
+	} else if ( (*p) > 90 ) {
+		if ( 97 <= (*p) && (*p) <= 122 )
+			goto tr31;
+	} else
+		goto tr31;
 	goto tr29;
 tr29:
 #line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
+            set_ped_record_phenotype(field, current_record, file);
             free(field);
         }
     }
@@ -352,17 +360,16 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 356 "ped_reader.c"
+#line 364 "ped_reader.c"
 	if ( (*p) == 10 )
-		goto tr34;
+		goto tr33;
 	goto st19;
 tr30:
 #line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
+            set_ped_record_phenotype(field, current_record, file);
             free(field);
         }
     }
@@ -389,7 +396,7 @@ tr30:
         lines++;
     }
 	goto st20;
-tr34:
+tr33:
 #line 27 "ped.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
@@ -417,9 +424,9 @@ st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 421 "ped_reader.c"
+#line 428 "ped_reader.c"
 	switch( (*p) ) {
-		case 10: goto tr34;
+		case 10: goto tr33;
 		case 32: goto st21;
 	}
 	if ( (*p) > 13 ) {
@@ -433,54 +440,12 @@ st21:
 		goto _test_eof21;
 case 21:
 	switch( (*p) ) {
-		case 10: goto tr34;
+		case 10: goto tr33;
 		case 32: goto st21;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto st21;
 	goto st0;
-tr31:
-#line 121 "ped.ragel"
-	{
-        if (strncmp(".", ts, 1)) {
-            char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
-            free(field);
-        }
-    }
-	goto st22;
-st22:
-	if ( ++p == pe )
-		goto _test_eof22;
-case 22:
-#line 458 "ped_reader.c"
-	if ( (*p) == 10 )
-		goto tr34;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st23;
-	goto st19;
-tr37:
-#line 121 "ped.ragel"
-	{
-        if (strncmp(".", ts, 1)) {
-            char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
-            free(field);
-        }
-    }
-	goto st23;
-st23:
-	if ( ++p == pe )
-		goto _test_eof23;
-case 23:
-#line 479 "ped_reader.c"
-	if ( (*p) == 10 )
-		goto tr30;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr37;
-	goto tr29;
 tr17:
 #line 97 "ped.ragel"
 	{
@@ -491,7 +456,7 @@ st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-#line 495 "ped_reader.c"
+#line 460 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr18;
 		case 32: goto tr18;
@@ -528,7 +493,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 532 "ped_reader.c"
+#line 497 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr14;
 		case 32: goto tr14;
@@ -553,7 +518,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 557 "ped_reader.c"
+#line 522 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr10;
 		case 32: goto tr10;
@@ -584,8 +549,6 @@ case 15:
 	_test_eof19: cs = 19; goto _test_eof; 
 	_test_eof20: cs = 20; goto _test_eof; 
 	_test_eof21: cs = 21; goto _test_eof; 
-	_test_eof22: cs = 22; goto _test_eof; 
-	_test_eof23: cs = 23; goto _test_eof; 
 	_test_eof11: cs = 11; goto _test_eof; 
 	_test_eof12: cs = 12; goto _test_eof; 
 	_test_eof13: cs = 13; goto _test_eof; 
@@ -599,7 +562,6 @@ case 15:
 	case 19: 
 	case 20: 
 	case 21: 
-	case 22: 
 #line 27 "ped.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
@@ -659,19 +621,17 @@ case 15:
     }
 	break;
 	case 10: 
-#line 130 "ped.ragel"
+#line 129 "ped.ragel"
 	{
         printf("Line %zu: Error in 'phenotype' field\n", lines);
     }
 	break;
 	case 18: 
-	case 23: 
 #line 121 "ped.ragel"
 	{
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
+            set_ped_record_phenotype(field, current_record, file);
             free(field);
         }
     }
@@ -694,14 +654,14 @@ case 15:
         current_record = NULL;
     }
 	break;
-#line 698 "ped_reader.c"
+#line 658 "ped_reader.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 184 "ped.ragel"
+#line 183 "ped.ragel"
  
 
     // Insert the last batch
@@ -713,25 +673,25 @@ case 15:
     }
 
     if ( cs < 
-#line 717 "ped_reader.c"
+#line 677 "ped_reader.c"
 16
-#line 194 "ped.ragel"
+#line 193 "ped.ragel"
  ) 
     {
         LOG_ERROR("The file was not successfully read\n");
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 725 "ped_reader.c"
+#line 685 "ped_reader.c"
 16
-#line 198 "ped.ragel"
+#line 197 "ped.ragel"
 );
     } 
 
     LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < 
-#line 734 "ped_reader.c"
+#line 694 "ped_reader.c"
 16
-#line 203 "ped.ragel"
+#line 202 "ped.ragel"
 ;
 }

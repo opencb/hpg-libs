@@ -121,8 +121,7 @@ static ped_batch_t *current_batch;
     action pheno_end {
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
+            set_ped_record_phenotype(field, current_record, file);
             free(field);
         }
     }
@@ -145,7 +144,7 @@ static ped_batch_t *current_batch;
     record_indiv    = (alnum | "_" )+ ;
     record_parent   = (alnum | "_" )+ | "." ;
     record_sex      = number | "." ;
-    record_pheno    = number ;
+    record_pheno    = identifier ;
 
     record      = (record_family >family_begin %family_end $err(family_error) [\t ] 
                     record_indiv >indiv_begin %indiv_end $err(indiv_error) [\t ]

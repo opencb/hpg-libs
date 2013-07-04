@@ -1,10 +1,12 @@
 #include "vcf_stats.h"
 
+#include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_cdf.h>
 
 static int is_mendelian_error(individual_t *father, individual_t *mother, individual_t *child, 
                               int child_allele1, int child_allele2, int gt_position, 
                               vcf_record_t *record, khash_t(ids) *sample_ids);
-
+void hardy_weinberg_test(hardy_weinberg_stats_t *hw);
 /* ******************************
  *      Whole file statistics   *
  * ******************************/
@@ -40,7 +42,7 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
  *     Per variant statistics   *
  * ******************************/
  
-variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele) {
+variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, int num_phenotypes) {
     assert(chromosome);
     assert(ref_allele);
     
@@ -70,6 +72,9 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->cases_percent_recessive = 0.0f;
     stats->controls_percent_recessive = 0.0f;
     
+    memset(&(stats->hw_all),0, sizeof(phenotype_stats_t));
+    stats->pheno_stats = (phenotype_stats_t*)calloc(num_phenotypes , sizeof(phenotype_stats_t));
+
     return stats;
 }
 
@@ -89,11 +94,16 @@ void variant_stats_free(variant_stats_t* stats) {
     if (stats->genotypes_count) { free(stats->genotypes_count); }
     if (stats->alleles_freq) { free(stats->alleles_freq); }
     if (stats->genotypes_freq) { free(stats->genotypes_freq); }
+    if (stats->pheno_stats) { free(stats->pheno_stats); }
     free(stats);
 }
 
-int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
-                       list_t *output_list, file_stats_t *file_stats) {
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
+                        list_t *output_list, file_stats_t *file_stats) {
+    get_variants_stats_tmp(variants, num_variants,individuals,sample_ids, NULL,output_list, file_stats);
+}
+int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
+                        khash_t(str) *phenotype_ids, list_t *output_list, file_stats_t *file_stats) {
     assert(variants);
     assert(output_list);
     assert(file_stats);
@@ -117,13 +127,15 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     float cur_gt_freq;
     
     // Variant stats management
+    int num_phenotypes = phenotype_ids?kh_size(phenotype_ids) :2;	//FIXME When the temporal function is removed, the "default value" is not neede  
     vcf_record_t *record;
     variant_stats_t *stats;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
         stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
-                                  strndup(record->reference, record->reference_len));
+                                  strndup(record->reference, record->reference_len),
+                                  num_phenotypes);
         
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
@@ -188,6 +200,15 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                 stats->genotypes_count[curr_position] += 1;
                 total_alleles_count += 2;
                 total_genotypes_count++;
+                
+                //Counting genotypes for Hardy-Weingberg (all phenotypes)
+                if (!allele1 && !allele2) { // 0|0
+                    stats->hw_all.n_AA++;
+                }else if ((!allele1 && allele2==1) || (allele1==1 && !allele2)) { // 0|1, 1|0
+                    stats->hw_all.n_Aa++;
+                }else if(allele1==1 && allele2==1){	// 1|1
+                    stats->hw_all.n_aa++;
+                }
             } else {
                 // Missing genotype (one or both alleles missing)
                 stats->missing_genotypes++;
@@ -232,6 +253,17 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                         cases_dominant++;
                     }
                 }
+                
+                //Counting genotypes for Hardy-Weingberg
+                if (!allele1 && !allele2) { // 0|0
+                    stats->pheno_stats[individuals[j]->phenotype].hw.n_AA++;//FIXME   phenotype --> [group|clasification|etc]_id
+                }else if ((!allele1 && allele2==1) || (allele1==1 && !allele2)) { // 0|1, 1|0
+                    stats->pheno_stats[individuals[j]->phenotype].hw.n_Aa++;//FIXME
+                }else if(allele1==1 && allele2==1){	// 1|1
+                    stats->pheno_stats[individuals[j]->phenotype].hw.n_aa++;//FIXME
+                }
+                      
+                
             }
         }
         
@@ -288,6 +320,14 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         
         stats->mgf = mgf;
         stats->mgf_genotype = copy_buf;
+        
+        //Testing for Hardy-Weinberg Equilibrium (HWE)
+        //printf("Iniciando hwe para el %d\n",i);
+        hardy_weinberg_test(&stats->hw_all);
+        for (int j = 0; j < num_phenotypes; j++) {
+            hardy_weinberg_test(&(stats->pheno_stats[j].hw));
+        }//printf("\n\n");
+        
         
         
         // Update variables finally used to update file_stats_t structure
@@ -386,6 +426,7 @@ sample_stats_t* sample_stats_new(char* name) {
     stats->name = strdup(name);
     stats->mendelian_errors = 0;
     stats->missing_genotypes = 0;
+    stats->homozygotes_number = 0;
     return stats;
 }
 
@@ -439,6 +480,13 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
                                    allele1, allele2, gt_position, record, sample_ids) > 0) {
                 #pragma omp atomic
                 (sample_stats[j]->mendelian_errors)++;
+            }
+            
+            //Count homozygotes
+            if(allele1 == allele2)
+            {
+                #pragma omp atomic
+                (sample_stats[j]->homozygotes_number)++;
             }
         }
         
@@ -498,4 +546,41 @@ static int is_mendelian_error(individual_t *father, individual_t *mother, indivi
     free(aux_chromosome);
     
     return is_error;
+}
+
+void hardy_weinberg_test(hardy_weinberg_stats_t *hw)
+{
+    int n = hw->n = hw->n_AA + hw->n_Aa + hw->n_aa;
+    int n_AA = hw->n_AA;
+    int n_Aa = hw->n_Aa;
+    int n_aa = hw->n_aa;
+    if (n)
+    {
+        float p = hw->p = (2.0*n_AA+n_Aa)/(2*n);
+        float q = hw->q = 1-hw->p;
+        
+        hw->e_AA = (p*p*n);
+        hw->e_Aa = (2*p*q*n);
+        hw->e_aa = (q*q*n);
+        
+        /* * */printf("Observed Values: %d/%d/%d\t", n_AA, n_Aa, n_aa,n);
+
+        //printf("\ni=%d, n = %d, p= %f, q= %f\n",i, n, p, q);
+             //   printf("Expected Values: %.2f,\t   %.2f,\t   %.2f,\te_n = %.4f\n", hw->e_AA, hw->e_Aa, hw->e_aa,hw->e_AA+hw->e_Aa+hw->e_aa);
+        //printf("O(HET) %f,\tE(HET) %f\n", ((float)n_Aa)/n, (float)e_Aa/n);
+        
+        if( hw->e_AA == n_AA) hw->e_AA = n_AA = 1;
+        if( hw->e_Aa == n_Aa) hw->e_Aa = n_Aa = 1;
+        if( hw->e_aa == n_aa) hw->e_aa = n_aa = 1;
+        
+        hw->chi2 = (n_AA - hw->e_AA)*(n_AA - hw->e_AA)/hw->e_AA 
+                 + (n_Aa - hw->e_Aa)*(n_Aa - hw->e_Aa)/hw->e_Aa
+                 + (n_aa - hw->e_aa)*(n_aa - hw->e_aa)/hw->e_aa; 
+        hw->p_value = 1-gsl_cdf_chisq_P(hw->chi2,1);
+        
+        //printf("Expected Values: %d, %d, %d, e_n = %d\n", e_AA, e_Aa, e_aa,e_AA+e_Aa+e_aa);
+        /*printf("CHI %f\t", hw->chi2);
+        printf("p-val %f\n", hw->p_value);*/
+    }
+    
 }

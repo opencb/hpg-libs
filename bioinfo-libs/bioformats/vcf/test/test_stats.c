@@ -59,7 +59,7 @@ START_TEST (biallelic) {
     sample = strdup("1:1/1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("1:./1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -96,8 +96,8 @@ START_TEST (multiallelic) {
     sample = strdup("0/2:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("2/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
-    
-    get_variants_stats(&record, 1, output_list, file_stats);
+
+    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -139,7 +139,7 @@ START_TEST (homozygous) {
     sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -261,7 +261,7 @@ START_TEST (from_CEU_exon) {
     sample = strdup("0/1:21"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/0:53"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -293,12 +293,12 @@ START_TEST(mendelian_errors) {
     
     khash_t(ids) *sample_ids = associate_samples_and_positions(vcf_file);
     individual_t **individuals = sort_individuals(vcf_file, ped_file);
-    
+
     for (int i = 0; i < get_num_vcf_samples(vcf_file); i++) {
-        fail_unless(individuals[i], "All individuals must exist");
+        fail_unless(individuals[i] != NULL, "All individuals must exist");
         if (i % 3 == 0) {
-            fail_unless(individuals[i]->father, "Children must have a father");
-            fail_unless(individuals[i]->mother, "Children must have a mother");
+            fail_unless(individuals[i]->father != NULL, "Children must have a father");
+            fail_unless(individuals[i]->mother != NULL, "Children must have a mother");
         }
     }
     
@@ -307,40 +307,110 @@ START_TEST(mendelian_errors) {
         sample_stats[j] = sample_stats_new(array_list_get(j, vcf_file->samples_names));
     }
     
-    get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
+    list_t * o_list = (list_t*) malloc (sizeof(list_t));
+    list_init("output", 1, 1000, o_list);
     
+    get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
+    get_variants_stats_tmp((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, get_phenotypes(ped_file), o_list, file_stats);
+    
+    variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(o_list);
+
     sample_stats_t *cur_stats = sample_stats[0];  // 3376
     fail_if(cur_stats->missing_genotypes != 2, "3376: 2 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 4, "3376: 4 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 14, "3376: 14 homocygotes count expected");
+    printf("HWE: chi2:%f p-value:%f\n",input_stats_array[0]->hw_all.chi2,input_stats_array[0]->hw_all.p_value);
     
     cur_stats = sample_stats[1];  // 3378
     fail_if(cur_stats->missing_genotypes != 1, "3378: 1 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 0, "3378: 0 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 19, "3378: 19 homocygotes count expected");
+    printf("HWE: chi2:%f p-value:%f\n",input_stats_array[1]->hw_all.chi2,input_stats_array[1]->hw_all.p_value);
     
     cur_stats = sample_stats[2];  // 3377
     fail_if(cur_stats->missing_genotypes != 1, "3377: 1 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 0, "3377: 0 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 19, "3377: 19 homocygotes count expected");
+    printf("HWE: chi2:%f p-value:%f\n",input_stats_array[2]->hw_all.chi2,input_stats_array[2]->hw_all.p_value);
     
     cur_stats = sample_stats[3];  // 3385
     fail_if(cur_stats->missing_genotypes != 1, "3385: 1 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 3, "3385: 3 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 20, "3385: 20 homocygotes count expected");
+    printf("HWE: chi2:%f p-value:%f\n",input_stats_array[3]->hw_all.chi2,input_stats_array[03]->hw_all.p_value);
     
     cur_stats = sample_stats[4];  // 3386
     fail_if(cur_stats->missing_genotypes != 2, "3386: 2 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 0, "3386: 0 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 14, "3386: 14 homocygotes count expected");
     
     cur_stats = sample_stats[5];  // 3387
     fail_if(cur_stats->missing_genotypes != 1, "3387: 1 missing GTs expected");
     fail_if(cur_stats->mendelian_errors != 0, "3387: 0 mendelian errors expected");
+    fail_if(cur_stats->homozygotes_number != 17, "3387: 17 homocygotes count expected");
 }
 END_TEST
+
+//START_TEST(homozygotes_count)
+//{
+    //vcf_file_t *vcf_file = vcf_open("sample_stats.vcf", 10);
+    //read_test_datasuite(vcf_file);
+    //array_list_t *datasuite = ((vcf_batch_t*) vcf_file->record_batches->first_p->data_p)->records;
+    
+    //ped_file_t *ped_file = ped_open("sample_stats.ped");
+    //ped_read(ped_file);
+    
+    //khash_t(ids) *sample_ids = associate_samples_and_positions(vcf_file);
+    //individual_t **individuals = sort_individuals(vcf_file, ped_file);
+    
+    //for (int i = 0; i < get_num_vcf_samples(vcf_file); i++) {
+        //fail_unless(individuals[i] != NULL, "All individuals must exist");
+        //if (i % 3 == 0) {
+            //fail_unless(individuals[i]->father != NULL, "Children must have a father");
+            //fail_unless(individuals[i]->mother != NULL, "Children must have a mother");
+        //}
+    //}
+    //sample_stats_t **sample_stats = malloc (get_num_vcf_samples(vcf_file) * sizeof(sample_stats_t*));
+    //for (int j = 0; j < get_num_vcf_samples(vcf_file); j++) {
+        //sample_stats[j] = sample_stats_new(array_list_get(j, vcf_file->samples_names));
+    //}
+    
+    //get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
+    
+    //sample_stats_t *cur_stats = sample_stats[0];  // 3376
+    //fail_if(cur_stats->missing_genotypes != 2, "3376: 2 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 4, "3376: 4 mendelian errors expected");
+    
+    //cur_stats = sample_stats[1];  // 3378
+    //fail_if(cur_stats->missing_genotypes != 1, "3378: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3378: 0 mendelian errors expected");
+    
+    //cur_stats = sample_stats[2];  // 3377
+    //fail_if(cur_stats->missing_genotypes != 1, "3377: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3377: 0 mendelian errors expected");
+    
+    //cur_stats = sample_stats[3];  // 3385
+    //fail_if(cur_stats->missing_genotypes != 1, "3385: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 3, "3385: 3 mendelian errors expected");
+    
+    //cur_stats = sample_stats[4];  // 3386
+    //fail_if(cur_stats->missing_genotypes != 2, "3386: 2 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3386: 0 mendelian errors expected");
+    
+    //cur_stats = sample_stats[5];  // 3387
+    //fail_if(cur_stats->missing_genotypes != 1, "3387: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3387: 0 mendelian errors expected");
+//}
+//END_TEST
 
 
 /* ******************************
  *      Main entry point        *
  * ******************************/
-
+void f();
 int main (int argc, char *argv) {
+	//f();
+    //return 0;
     Suite *fs = create_test_suite();
     SRunner *fs_runner = srunner_create(fs);
     srunner_run_all(fs_runner, CK_NORMAL);
@@ -361,6 +431,7 @@ Suite *create_test_suite(void) {
     
     TCase *tc_sample_stats = tcase_create("Sample stats");
     tcase_add_test(tc_sample_stats, mendelian_errors);
+    //tcase_add_test(tc_sample_stats, homozygotes_count);
             
     // Add test cases to a test suite
     Suite *fs = suite_create("VCF stats");
@@ -371,11 +442,80 @@ Suite *create_test_suite(void) {
 }
 
 void read_test_datasuite(vcf_file_t *file) {
-    if (vcf_parse_batches(400, file)) {
+    if (vcf_parse_batches(40000, file)) {
         fprintf(stderr, "Error reading file\n");
     }
-
+printf("Ho22o\n");
     printf("Read %zu/%zu batches\n", file->record_batches->length, file->record_batches->max_length);
     printf("Batch contains %zu records\n", ((vcf_batch_t*) file->record_batches->first_p->data_p)->records->size);
     
 }
+
+
+void f()
+{
+	setup_stats();
+    //vcf_file_t *vcf_file = vcf_open("sample_stats.vcf", 10);
+    vcf_file_t *vcf_file = vcf_open("/home/josemi/Downloads/500K_variants_147_samples.vcf", 10000);printf("Hoo\n");
+    read_test_datasuite(vcf_file);printf("Hoo\n");
+    array_list_t *datasuite = ((vcf_batch_t*) vcf_file->record_batches->first_p->data_p)->records;
+    
+    //ped_file_t *ped_file = ped_open("sample_stats.ped");
+    ped_file_t *ped_file = ped_open("/home/josemi/Downloads/500K_variants_147_samples.ped");
+printf("Hoo\n");    ped_read(ped_file);
+    
+    
+    khash_t(ids) *sample_ids = associate_samples_and_positions(vcf_file);
+    individual_t **individuals = sort_individuals(vcf_file, ped_file);
+    
+    //for (int i = 0; i < get_num_vcf_samples(vcf_file); i++) {
+        //fail_unless(individuals[i] != NULL, "All individuals must exist");
+        //if (i % 3 == 0) {
+            //fail_unless(individuals[i]->father != NULL, "Children must have a father");
+            //fail_unless(individuals[i]->mother != NULL, "Children must have a mother");
+        //}
+    //}
+    
+    sample_stats_t **sample_stats = malloc (get_num_vcf_samples(vcf_file) * sizeof(sample_stats_t*));
+    for (int j = 0; j < get_num_vcf_samples(vcf_file); j++) {
+        sample_stats[j] = sample_stats_new(array_list_get(j, vcf_file->samples_names));
+    }
+    
+    list_t * o_list = (list_t*) malloc (sizeof(list_t));
+    list_init("output", 1, 1000000, o_list);
+    
+   // get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
+    get_variants_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, o_list, file_stats);
+    
+    sample_stats_t *cur_stats = sample_stats[0];  // 3376
+    //fail_if(cur_stats->missing_genotypes != 2, "3376: 2 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 4, "3376: 4 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 14, "3376: 14 homocygotes count expected");
+    
+    //cur_stats = sample_stats[1];  // 3378
+    //fail_if(cur_stats->missing_genotypes != 1, "3378: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3378: 0 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 19, "3378: 19 homocygotes count expected");
+    
+    //cur_stats = sample_stats[2];  // 3377
+    //fail_if(cur_stats->missing_genotypes != 1, "3377: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3377: 0 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 19, "3377: 19 homocygotes count expected");
+    
+    //cur_stats = sample_stats[3];  // 3385
+    //fail_if(cur_stats->missing_genotypes != 1, "3385: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 3, "3385: 3 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 20, "3385: 20 homocygotes count expected");
+    
+    //cur_stats = sample_stats[4];  // 3386
+    //fail_if(cur_stats->missing_genotypes != 2, "3386: 2 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3386: 0 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 14, "3386: 14 homocygotes count expected");
+    
+    //cur_stats = sample_stats[5];  // 3387
+    //fail_if(cur_stats->missing_genotypes != 1, "3387: 1 missing GTs expected");
+    //fail_if(cur_stats->mendelian_errors != 0, "3387: 0 mendelian errors expected");
+    //fail_if(cur_stats->homozygotes_number != 17, "3387: 17 homocygotes count expected");
+}
+	
+	
