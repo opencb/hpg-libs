@@ -182,7 +182,7 @@ static ped_batch_t *current_batch;
     record_pheno    = identifier ;
     record_custom_field = (alnum | punct)+ ;
     
-    custom_fields   = ([\t ] record_custom_field >custom_field_begin %custom_field_end $err(custom_field_error))*;
+    custom_fields   = ([\t ]+ record_custom_field >custom_field_begin %custom_field_end $err(custom_field_error))*;
 
     record      = (record_family >family_begin %family_end $err(family_error) [\t ] 
                     record_indiv >indiv_begin %indiv_end $err(indiv_error) [\t ]
@@ -196,7 +196,7 @@ static ped_batch_t *current_batch;
     records     =  record ("\n" >linebreak record)* ;
 
     header_item =  identifier >header_item_begin %header_item_end $err(header_item_error) ;
-    header      =  "#" [\t ]? (header_item [\t ])* header_item? "\n";
+    header      =  "#" [\t ]? header_item ([\t ] header_item?)* "\n";
 
     # Machine start
     main        := (header)? ^"#" (records)? ("\n")* ;

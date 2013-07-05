@@ -186,14 +186,14 @@ static inline int report_variant_inheritance_data(variant_stats_t *var_stats, FI
                    var_stats->controls_percent_recessive);
 }
 
-static inline int report_variant_hardy_data(hardy_weinberg_stats_t hw, FILE *stats_fd) {
+static inline int report_variant_hardy_data(hardy_weinberg_stats_t *hw, FILE *stats_fd) {
     return fprintf(stats_fd, "%.2f\t%.2f\t%d/%d/%d\n",
-                   hw.chi2,
-                   hw.p_value,
-                   hw.n_AA,
-                   hw.n_Aa,
-                   hw.n_aa,
-                   hw.n);
+                   hw->chi2,
+                   hw->p_value,
+                   hw->n_AA,
+                   hw->n_Aa,
+                   hw->n_aa,
+                   hw->n);
 }
 
 static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, variant_stats_t **stats_batch) {
@@ -228,7 +228,7 @@ void report_vcf_variant_stats(FILE *stats_fd, void *db, khash_t(stats_chunks) *h
         report_variant_genotypes_stats(stats, stats_fd);
         report_variant_missing_data(stats, stats_fd);
         report_variant_inheritance_data(stats, stats_fd);
-        report_variant_hardy_data(stats->hw_all, stats_fd);
+        report_variant_hardy_data(&(stats->hw_all), stats_fd);
         // Update chunks
         if (db) {
             update_chunks_hash(stats->chromosome, INT_MAX, VCF_CHUNKSIZE, stats->position, stats->position, hash);
@@ -279,8 +279,8 @@ inline void report_vcf_sample_stats_header(FILE *stats_fd) {
  
 char *get_variant_phenotype_stats_output_filename(char* prefix, char* phenotype_name)
 {
-    char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(phenotype_name) + strlen("._stats-variants") + 2), sizeof(char));
-    sprintf(stats_filename, "%s.%s_stats-variants", prefix, phenotype_name);
+    char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(phenotype_name) + strlen(".()stats-variants") + 2), sizeof(char));
+    sprintf(stats_filename, "%s.(%s)stats-variants", prefix, phenotype_name);
     return stats_filename;
 } 
  
@@ -292,7 +292,8 @@ void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, varian
         
         // Write to plain text file
         fprintf(stats_fd, "%s\t%ld\t", stats->chromosome, stats->position);
-        report_variant_hardy_data(stats->pheno_stats[phenotype_id].hw, stats_fd);
+        report_variant_hardy_data(&(stats->pheno_stats[phenotype_id].hw), stats_fd);
+        
     }
 
 }

@@ -63,6 +63,16 @@ typedef struct hardy_weinberg_stats {
 typedef struct phenotype_stats {
     int phenotype;
     
+    int num_alleles;            /**< Number of alleles of the variant (1 reference + N alternates). */
+    int total_alleles_count;    /**< Total count of alleles of the phenotype  */
+    int *alleles_count;         /**< Times each allele has been counted. */
+    int total_genotypes_count;  /**< Total count of genotypes of the phenotype */
+    int *genotypes_count;       /**< Times each possible genotype has been counted. */
+    float *alleles_freq;        /**< Frequency of each allele in relation to the total. */
+    float *genotypes_freq;      /**< Frequency of each genotype in relation to the total. */
+    float maf;                  /**< Minimum allele frequency. */
+    float mgf;                  /**< Minimum genotype frequency. */
+    
     hardy_weinberg_stats_t hw;
     
 } phenotype_stats_t;
@@ -100,6 +110,7 @@ typedef struct variant_stats {
     float cases_percent_recessive;      /**< Percentage of cases that follow a recessive inheritance pattern */
     float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
     
+    int num_phenotypes;
     phenotype_stats_t *pheno_stats;   /**< Array for Phenotype stats*/
     hardy_weinberg_stats_t hw_all;   /**< All samples Hardy-Weinberg stats*/
 } variant_stats_t;

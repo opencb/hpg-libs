@@ -72,7 +72,8 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->cases_percent_recessive = 0.0f;
     stats->controls_percent_recessive = 0.0f;
     
-    memset(&(stats->hw_all),0, sizeof(phenotype_stats_t));
+    stats->num_phenotypes = num_phenotypes;
+    memset(&(stats->hw_all),0, sizeof(hardy_weinberg_stats_t));
     stats->pheno_stats = (phenotype_stats_t*)calloc(num_phenotypes , sizeof(phenotype_stats_t));
 
     return stats;
@@ -94,7 +95,16 @@ void variant_stats_free(variant_stats_t* stats) {
     if (stats->genotypes_count) { free(stats->genotypes_count); }
     if (stats->alleles_freq) { free(stats->alleles_freq); }
     if (stats->genotypes_freq) { free(stats->genotypes_freq); }
-    if (stats->pheno_stats) { free(stats->pheno_stats); }
+    if (stats->pheno_stats) {
+		for(int i = 0; i < stats->num_phenotypes; i++)
+		{
+			    if (stats->pheno_stats[i].alleles_count)   { free(stats->pheno_stats[i].alleles_count); }
+				if (stats->pheno_stats[i].genotypes_count) { free(stats->pheno_stats[i].genotypes_count); }
+				if (stats->pheno_stats[i].alleles_freq)    { free(stats->pheno_stats[i].alleles_freq); }
+				if (stats->pheno_stats[i].genotypes_freq)  { free(stats->pheno_stats[i].genotypes_freq); }
+		}
+		 free(stats->pheno_stats); 
+	}
     free(stats);
 }
 
@@ -130,13 +140,14 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
     int num_phenotypes = phenotype_ids?kh_size(phenotype_ids) :2;	//FIXME When the temporal function is removed, the "default value" is not neede  
     vcf_record_t *record;
     variant_stats_t *stats;
+    phenotype_stats_t *pheno_stats;
+    phenotype_stats_t *aux_pheno_stats;
     for (int i = 0; i < num_variants; i++) {
         record = variants[i];
         stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
                                   strndup(record->reference, record->reference_len),
                                   num_phenotypes);
-        
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
         cases_dominant = controls_dominant = cases_recessive = controls_recessive = 0;
@@ -159,6 +170,16 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         stats->alleles_freq = (float*) calloc (stats->num_alleles, sizeof(float));
         stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
+        for (int j = 0; j < num_phenotypes; j++) {
+            aux_pheno_stats = &stats->pheno_stats[j];
+            
+			aux_pheno_stats->num_alleles = stats->num_alleles;
+            aux_pheno_stats->alleles_count = (int*) calloc (stats->num_alleles, sizeof(int));
+			aux_pheno_stats->genotypes_count = (int*) calloc (stats->num_alleles * stats->num_alleles, sizeof(int));
+			aux_pheno_stats->alleles_freq = (float*) calloc (stats->num_alleles, sizeof(float));
+			aux_pheno_stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
+        }
+        
         // Get position where GT is in sample
         copy_buf = strndup(record->format, record->format_len);
         gt_position = get_field_position_in_format("GT", copy_buf);
@@ -176,6 +197,7 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
          * - (Dis)agreements with inheritance models
          */
         for (int j = 0; j < record->samples->size; j++) {
+            pheno_stats = individuals? &(stats->pheno_stats[individuals[j]->phenotype]) :NULL;
             sample = (char*) array_list_get(j, record->samples);
             
             // Get to GT position
@@ -195,12 +217,20 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
                 assert(allele2 <= stats->num_alleles);
                 assert(curr_position <= stats->num_alleles * stats->num_alleles);
                 
+                
                 stats->alleles_count[allele1] += 1;
                 stats->alleles_count[allele2] += 1;
                 stats->genotypes_count[curr_position] += 1;
                 total_alleles_count += 2;
                 total_genotypes_count++;
                 
+                if(pheno_stats){
+                    pheno_stats->total_alleles_count +=2;
+					pheno_stats->alleles_count[allele1] += 1;
+					pheno_stats->alleles_count[allele2] += 1;
+					pheno_stats->genotypes_count[curr_position] += 1;
+					pheno_stats->total_genotypes_count++;
+				}
                 //Counting genotypes for Hardy-Weingberg (all phenotypes)
                 if (!allele1 && !allele2) { // 0|0
                     stats->hw_all.n_AA++;
@@ -217,6 +247,10 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
                 } else {
                     stats->alleles_count[allele1]++;
                     total_alleles_count++;
+                    if(pheno_stats){
+                        pheno_stats->total_alleles_count++;
+                        pheno_stats->alleles_count[allele1]++;
+                    }
                 }
                     
                 if (allele2 < 0) { 
@@ -224,6 +258,10 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
                 } else {
                     stats->alleles_count[allele2]++;
                     total_alleles_count++;
+                    if(pheno_stats){
+                        pheno_stats->total_alleles_count++;
+                        pheno_stats->alleles_count[allele2]++;
+                    }
                 }
             }
             
@@ -256,11 +294,11 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
                 
                 //Counting genotypes for Hardy-Weingberg
                 if (!allele1 && !allele2) { // 0|0
-                    stats->pheno_stats[individuals[j]->phenotype].hw.n_AA++;//FIXME   phenotype --> [group|clasification|etc]_id
+                    pheno_stats->hw.n_AA++;//FIXME   phenotype --> [group|clasification|etc]_id
                 }else if ((!allele1 && allele2==1) || (allele1==1 && !allele2)) { // 0|1, 1|0
-                    stats->pheno_stats[individuals[j]->phenotype].hw.n_Aa++;//FIXME
+                    pheno_stats->hw.n_Aa++;
                 }else if(allele1==1 && allele2==1){	// 1|1
-                    stats->pheno_stats[individuals[j]->phenotype].hw.n_aa++;//FIXME
+                    pheno_stats->hw.n_aa++;
                 }
                       
                 
@@ -321,8 +359,46 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         stats->mgf = mgf;
         stats->mgf_genotype = copy_buf;
         
+        
+        
+        if(individuals){
+            for(int pheno_iter = 0; pheno_iter < num_phenotypes; pheno_iter++){
+                aux_pheno_stats = &(stats->pheno_stats[pheno_iter]);
+                maf = mgf = INT_MAX;
+                for (int j = 0; j < stats->num_alleles; j++) {
+                    aux_pheno_stats->alleles_freq[j] = (aux_pheno_stats->total_alleles_count > 0) ? (float) aux_pheno_stats->alleles_count[j] / aux_pheno_stats->total_alleles_count : 0;
+                    if (aux_pheno_stats->alleles_freq[j] < maf) {
+                        maf = aux_pheno_stats->alleles_freq[j];
+                    }
+                }
+                aux_pheno_stats->maf = maf;
+            
+                if(aux_pheno_stats->total_genotypes_count > 0)
+                    for (int j = 0; j < stats->num_alleles * stats->num_alleles; j++) {
+                        aux_pheno_stats->genotypes_freq[j] = (float) aux_pheno_stats->genotypes_count[j] / aux_pheno_stats->total_genotypes_count;
+                    }
+                
+                for (int j = 0; j < aux_pheno_stats->num_alleles; j++) {
+                    for (int k = j; k < aux_pheno_stats->num_alleles; k++) {
+                        int idx1 = j * aux_pheno_stats->num_alleles + k;
+                        if (j == k) {
+                            cur_gt_freq = aux_pheno_stats->genotypes_freq[idx1];
+                        } else {
+                            int idx2 = k * stats->num_alleles + j;
+                            cur_gt_freq = aux_pheno_stats->genotypes_freq[idx1] + aux_pheno_stats->genotypes_freq[idx2];
+                        }
+                        if (cur_gt_freq < mgf) 
+                            mgf = cur_gt_freq;
+                        
+                    }
+                }
+                aux_pheno_stats->mgf = mgf;
+            }
+        }
+        
+        
         //Testing for Hardy-Weinberg Equilibrium (HWE)
-        //printf("Iniciando hwe para el %d\n",i);
+        //printf("Start hwe for the %d variant\n",i);
         hardy_weinberg_test(&stats->hw_all);
         for (int j = 0; j < num_phenotypes; j++) {
             hardy_weinberg_test(&(stats->pheno_stats[j].hw));

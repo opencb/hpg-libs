@@ -102,6 +102,7 @@ khash_t(str)* get_phenotypes(ped_file_t *ped_file);
  *      int set_unaffected(const char* id, int field_number, ped_file_t *ped_file);
  *      int set_affected(const char* id, int field_number, ped_file_t *ped_file);
  */
-int set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
-int set_affected_phenotype(const char* id, ped_file_t *ped_file);
+void set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
+void set_affected_phenotype(const char* id, ped_file_t *ped_file);
+void set_custom_field(const char* id, ped_file_t *ped_file);
 #endif

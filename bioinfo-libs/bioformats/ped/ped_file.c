@@ -30,10 +30,12 @@ ped_file_t *ped_open(char *filename) {
                                                        (cp_destructor_fn) family_free // Value destructor function
                                                       );
     ped_file->phenotypes = kh_init(str);
-    set_unaffected_phenotype("1",ped_file);	//Sets the default value ("1") for the unaffected phenotype.
-    set_affected_phenotype("2",ped_file);		//Sets the default value ("2") for the affected phenotype.
+    //set_unaffected_phenotype("1",ped_file);	//Sets the default value ("1") for the unaffected phenotype.
+    //set_affected_phenotype("2",ped_file);		//Sets the default value ("2") for the affected phenotype.
+    ped_file->affected_id = -1;
+    ped_file->unaffected_id = -1;
     
-    ped_file->custom_field = strdup("AGE"); //FIXME: Will need a call like "set_custom_field"
+    set_custom_field("PHENO", ped_file);
     ped_file->num_field = 6;
     
     return ped_file;
@@ -152,7 +154,7 @@ khash_t(str)* get_phenotypes(ped_file_t *ped_file)
 	return ped_file->phenotypes;
 }
 
-int set_unaffected_phenotype(const char* id, ped_file_t *ped_file)
+void set_unaffected_phenotype(const char* id, ped_file_t *ped_file)
 {
     int ret;
     int k = kh_put(str, ped_file->phenotypes, id, &ret);
@@ -161,13 +163,20 @@ int set_unaffected_phenotype(const char* id, ped_file_t *ped_file)
 	//printf("UnAffected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->unaffected_id, id, k,  ret);
 }
 
-int set_affected_phenotype(const char* id, ped_file_t *ped_file)
+void set_affected_phenotype(const char* id, ped_file_t *ped_file)
 {
     int ret;
     int k = kh_put(str, ped_file->phenotypes, id, &ret);
     ped_file->affected_id = kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;
 
 	//printf("Affected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->affected_id, id, k,  ret);
+}
+
+void set_custom_field(const char* id, ped_file_t *ped_file)
+{
+    if(ped_file->custom_field)
+        free(ped_file->custom_field);
+    ped_file->custom_field = strdup(id);
 }
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
