@@ -11,7 +11,9 @@ ped_record_t* create_ped_record() {
     record->father_id = NULL;
     record->mother_id = NULL;
     record->sex = UNKNOWN_SEX;
-    record->phenotype = -9;
+    record->phenotype = NULL;
+    record->custom_field = NULL;
+    record->pheno_index = 0;
     return record;
 }
 
@@ -42,16 +44,28 @@ void set_ped_record_sex(enum Sex sex, ped_record_t* ped_record) {
 
 void set_ped_record_phenotype(char* phenotype, ped_record_t* ped_record, ped_file_t *ped_file) {
     
+    if(ped_file->num_field == 6)
+        set_ped_record_custom_field(phenotype, ped_record, ped_file);
+    
+    ped_record->phenotype = phenotype;   
+    LOG_DEBUG_F("set phenotype: %s\n", ped_record->phenotype);
+
+}
+
+void set_ped_record_custom_field(char* field, ped_record_t* ped_record, ped_file_t *ped_file){
+    ped_record->custom_field = field;
+    
     int ret = 888;
-    int k = kh_get(str, ped_file->phenotypes, phenotype);
+    int k = kh_get(str, ped_file->phenotypes, field);
     if(k == kh_end(ped_file->phenotypes))	//If k == kh_end, is missing
     {
 		//printf("Added phenotype. k = %d\n", k);
-		k = kh_put(str, ped_file->phenotypes, strdup(phenotype), &ret);
+		k = kh_put(str, ped_file->phenotypes, strdup(field), &ret);
 		kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;//ped_file->num_phenotypes;
     }
-    ped_record->phenotype = kh_value(ped_file->phenotypes, k);
+    ped_record->pheno_index = kh_value(ped_file->phenotypes, k);
     //printf("ped_read.c:48: El string %s tiene el khiter %d. Value %d.    RET = %d\n", phenotype, k, ped_record->phenotype, ret);
 	
-    LOG_DEBUG_F("set phenotype: %f\n", ped_record->phenotype);
+    LOG_DEBUG_F("set custom_field: $s . Index: %d\n",ped_record->custom_field, ped_record->pheno_index);
+    
 }

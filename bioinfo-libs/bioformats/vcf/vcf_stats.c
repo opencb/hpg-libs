@@ -563,7 +563,7 @@ void hardy_weinberg_test(hardy_weinberg_stats_t *hw)
         hw->e_Aa = (2*p*q*n);
         hw->e_aa = (q*q*n);
         
-        /* * */printf("Observed Values: %d/%d/%d\t", n_AA, n_Aa, n_aa,n);
+        /* * *///printf("Observed Values: %d/%d/%d\n", n_AA, n_Aa, n_aa,n);
 
         //printf("\ni=%d, n = %d, p= %f, q= %f\n",i, n, p, q);
              //   printf("Expected Values: %.2f,\t   %.2f,\t   %.2f,\te_n = %.4f\n", hw->e_AA, hw->e_Aa, hw->e_aa,hw->e_AA+hw->e_Aa+hw->e_aa);

@@ -33,6 +33,9 @@ ped_file_t *ped_open(char *filename) {
     set_unaffected_phenotype("1",ped_file);	//Sets the default value ("1") for the unaffected phenotype.
     set_affected_phenotype("2",ped_file);		//Sets the default value ("2") for the affected phenotype.
     
+    ped_file->custom_field = strdup("AGE"); //FIXME: Will need a call like "set_custom_field"
+    ped_file->num_field = 6;
+    
     return ped_file;
 }
 
@@ -188,8 +191,8 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     
     // If it is an ancestor with no sex defined, add to the list of unknown members
     if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
-        condition = get_condition_from_phenotype(record->phenotype, ped_file);
-        individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, NULL, NULL, family);
+        condition = get_condition_from_phenotype(record->pheno_index, ped_file);
+        individual = individual_new(strdup(record->individual_id), record->pheno_index, record->sex, condition, NULL, NULL, family);
         return family_add_unknown(individual, family);
     }
     
@@ -214,7 +217,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         
         // If the father struct members are missing, fill them
         if (father->condition == MISSING_CONDITION) {
-            father->phenotype = record->phenotype;
+            father->phenotype = record->pheno_index;
             father->condition = get_condition_from_phenotype(father->phenotype, ped_file);
             LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
         }
@@ -241,7 +244,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         
         // If the mother struct members are missing, fill them
         if (mother->condition == MISSING_CONDITION) {
-            mother->phenotype = record->phenotype;
+            mother->phenotype = record->pheno_index;
             mother->condition = get_condition_from_phenotype(mother->phenotype, ped_file);
             LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
         }
@@ -249,8 +252,8 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     // Create individual with the information extracted from the PED record
-    condition = get_condition_from_phenotype(record->phenotype, ped_file);
-    individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, father, mother, family);
+    condition = get_condition_from_phenotype(record->pheno_index, ped_file);
+    individual = individual_new(strdup(record->individual_id), record->pheno_index, record->sex, condition, father, mother, family);
     if (father || mother) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);

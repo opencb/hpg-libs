@@ -22,7 +22,11 @@ typedef struct ped_record {
     char *father_id;
     char *mother_id;
     enum Sex sex;
-    int phenotype;
+    char* phenotype;
+    char* custom_field;
+    
+    int pheno_index;
+    
 } ped_record_t;
 
 /**
@@ -40,10 +44,14 @@ typedef struct ped_file {
     
     cp_hashtable *families;
     
-    //TODO: Will have extra value for the number of the field to compare
     int unaffected_id;
     int affected_id;
     khash_t(str) *phenotypes;
+
+    //TODO: Will have extra value for the number of the field to compare
+    char* custom_field;
+    int num_field;
+
 } ped_file_t;
 
 #endif
