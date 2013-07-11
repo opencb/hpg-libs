@@ -1,6 +1,5 @@
 #include "http_utils.h"
 
-
 int init_http_environment(int ssl) {
     if (ssl) {
         return curl_global_init(CURL_GLOBAL_SSL);
@@ -12,8 +11,6 @@ int init_http_environment(int ssl) {
 int http_get(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer) {
     CURL *curl;
     CURLcode ret_code = CURLE_OK;
-
-    struct curl_httppost *formpost = NULL;
     char *aux_url;
     
     if (params != NULL && params_values != NULL) {
@@ -40,20 +37,16 @@ int http_get(char *url, char **params, char **params_values, int num_params, siz
         
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
-	// TODO CURLOPT_WRITEDATA
-	
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
-
 	
         // Option for avoiding a segfault caused by a signal in libcurl
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
         
         ret_code = curl_easy_perform(curl);
-        if (ret_code != 0) { fprintf(stderr, "ret_code = %s\n", curl_easy_strerror(ret_code)); }
+        if (ret_code != 0) { LOG_ERROR_F("ret_code = %s\n", curl_easy_strerror(ret_code)); }
 
         curl_easy_cleanup(curl);
-        curl_formfree(formpost);
     } else {
         ret_code = CURLE_FAILED_INIT;
     }
@@ -62,7 +55,7 @@ int http_get(char *url, char **params, char **params_values, int num_params, siz
 }
 
 
-int http_post(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*)) {
+int http_post(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer) {
     CURL *curl;
     CURLcode ret_code = CURLE_OK;
 
@@ -71,11 +64,10 @@ int http_post(char *url, char **params, char **params_values, int num_params, si
     
     // Set request parameters
     for (int i = 0; i < num_params; i++) {
-        curl_formadd(&formpost,
-                    &lastptr,
-                    CURLFORM_COPYNAME, params[i],
-                    CURLFORM_PTRCONTENTS, params_values[i],
-                    CURLFORM_END);
+        curl_formadd(&formpost, &lastptr,
+                     CURLFORM_COPYNAME, params[i],
+                     CURLFORM_PTRCONTENTS, params_values[i],
+                     CURLFORM_END);
     }
     
     curl = curl_easy_init();
@@ -86,12 +78,13 @@ int http_post(char *url, char **params, char **params_values, int num_params, si
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
         // Option for avoiding a segfault caused by a signal in libcurl
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
         
         ret_code = curl_easy_perform(curl);
-        if (ret_code != 0) { fprintf(stderr, "ret_code = %s\n", curl_easy_strerror(ret_code)); }
+        if (ret_code != 0) { LOG_ERROR_F("ret_code = %s\n", curl_easy_strerror(ret_code)); }
 
         curl_easy_cleanup(curl);
         curl_formfree(formpost);

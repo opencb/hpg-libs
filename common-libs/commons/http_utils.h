@@ -6,6 +6,8 @@
 
 #include <curl/curl.h>
 
+#include "log.h"
+
 /**
  * Initialize the environment, setting whether SSL should be active or not.
  * 
@@ -31,7 +33,7 @@ int http_get(char *url, char **params, char **params_values, int num_params, siz
  * @param params POST parameters of the request
  * @param write_function Function for managing the response contents
  */
-int http_post(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*));
+int http_post(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer);
 
 /**
  * Should an error occur, return the string message associated to a numerical code.
