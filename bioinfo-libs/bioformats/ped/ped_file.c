@@ -35,6 +35,7 @@ ped_file_t *ped_open(char *filename) {
     ped_file->affected_id = -1;
     ped_file->unaffected_id = -1;
     
+    ped_file->custom_field = NULL;
     set_custom_field("PHENO", ped_file);
     ped_file->num_field = 6;
     

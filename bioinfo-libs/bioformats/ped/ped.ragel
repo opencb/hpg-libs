@@ -175,7 +175,7 @@ static ped_batch_t *current_batch;
     identifier  = (alnum)+ ;
 
     # Records
-    record_family   = (alnum | punct)+ ;
+    record_family   = (alnum | (punct - '#')) (alnum | punct)* ;
     record_indiv    = (alnum | "_" )+ ;
     record_parent   = (alnum | "_" )+ | "." ;
     record_sex      = number | "." ;
@@ -199,7 +199,7 @@ static ped_batch_t *current_batch;
     header      =  "#" [\t ]? header_item ([\t ] header_item?)* "\n";
 
     # Machine start
-    main        := (header)? ^"#" (records)? ("\n")* ;
+    main        := (header)? (records)? ("\n")* ;
 
 
 }%%

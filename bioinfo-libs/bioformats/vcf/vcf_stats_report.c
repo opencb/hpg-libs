@@ -275,8 +275,30 @@ inline void report_vcf_sample_stats_header(FILE *stats_fd) {
 /* ***********************************************
  *          Variant Phenotype report             *
  * ***********************************************/
- 
- 
+
+//static int report_variant_phenotype_alleles_stats(phenotype_stats_t *pheno_stats, FILE *stats_fd) {
+    //int written = 0;
+    
+    //// Is indel?
+    //written += (pheno_stats->is_indel) ? fprintf(stats_fd, "Y\t") : fprintf(stats_fd, "N\t");
+    
+    //// Reference allele
+    //written += fprintf(stats_fd, "%s\t%d\t%.4f\t",
+                       //pheno_stats->ref_allele,
+                       //pheno_stats->alleles_count[0],
+                       //pheno_stats->alleles_freq[0]);
+
+    //// Alternate alleles
+    //for (int i = 1; i < pheno_stats->num_alleles; i++) {
+        //written += fprintf(stats_fd, "%s\t%d\t%.4f\t",
+                           //pheno_stats->alternates[i-1],
+                           //pheno_stats->alleles_count[i],
+                           //pheno_stats->alleles_freq[i]);
+    //}
+    
+    //return written;
+//}
+
 char *get_variant_phenotype_stats_output_filename(char* prefix, char* phenotype_name)
 {
     char *stats_filename = (char*) calloc ((strlen(prefix) + strlen(phenotype_name) + strlen(".()stats-variants") + 2), sizeof(char));
@@ -284,6 +306,42 @@ char *get_variant_phenotype_stats_output_filename(char* prefix, char* phenotype_
     return stats_filename;
 } 
  
+    //int num_alleles;            /**< Number of alleles of the variant (1 reference + N alternates). */
+    //int total_alleles_count;    /**< Total count of alleles of the phenotype  */
+    //int *alleles_count;         /**< Times each allele has been counted. */
+    //int total_genotypes_count;  /**< Total count of genotypes of the phenotype */
+    //int *genotypes_count;       /**< Times each possible genotype has been counted. */
+    //float *alleles_freq;        /**< Frequency of each allele in relation to the total. */
+    //float *genotypes_freq;      /**< Frequency of each genotype in relation to the total. */
+    //float maf;                  /**< Minimum allele frequency. */
+    //float mgf;                  /**< Minimum genotype frequency. */
+    /*
+static int report_variant_genotypes_stats(variant_stats_t *var_stats, FILE *stats_fd) {
+    int written = 0;
+    int gt_count = 0;
+    float gt_freq = 0;
+    
+    for (int i = 0; i < var_stats->num_alleles; i++) {
+        for (int j = i; j < var_stats->num_alleles; j++) {
+            int idx1 = i * var_stats->num_alleles + j;
+            if (i == j) {
+                gt_count = var_stats->genotypes_count[idx1];
+                gt_freq = var_stats->genotypes_freq[idx1];
+            } else {
+                int idx2 = j * var_stats->num_alleles + i;
+                gt_count = var_stats->genotypes_count[idx1] + var_stats->genotypes_count[idx2];
+                gt_freq = var_stats->genotypes_freq[idx1] + var_stats->genotypes_freq[idx2];
+            }
+
+            written += fprintf(stats_fd, "%s|%s\t%d\t%.4f\t",
+                               i == 0 ? var_stats->ref_allele : var_stats->alternates[i-1],
+                               j == 0 ? var_stats->ref_allele : var_stats->alternates[j-1],
+                               gt_count, gt_freq);
+        }
+    }
+    
+    return written;
+}*/
 
 void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, variant_stats_t **stats_batch, int phenotype_id) {
 
@@ -292,8 +350,48 @@ void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, varian
         
         // Write to plain text file
         fprintf(stats_fd, "%s\t%ld\t", stats->chromosome, stats->position);
-        report_variant_hardy_data(&(stats->pheno_stats[phenotype_id].hw), stats_fd);
+        //report_variant_phenotype_alleles_stats(stats->pheno_stats[phenotype_id], stats_fd);
+        fprintf(stats_fd, "%d\t", 
+                        stats->pheno_stats[phenotype_id].num_alleles);
         
+        char* allel_format = "[%s | %d | %f]\t";
+        fprintf(stats_fd, allel_format,
+                        stats->ref_allele ,
+                        stats->pheno_stats[phenotype_id].alleles_count[0],
+                        stats->pheno_stats[phenotype_id].alleles_freq[0]);
+        for(int i = 1; i < stats->pheno_stats[phenotype_id].num_alleles; i++)
+        {
+            fprintf(stats_fd, allel_format,
+                            stats->alternates[i-1] ,
+                            stats->pheno_stats[phenotype_id].alleles_count[i],
+                            stats->pheno_stats[phenotype_id].alleles_freq[i]);
+        }
+        fprintf(stats_fd, "%f\t", stats->pheno_stats[phenotype_id].maf);
+        
+        /*--------------------*/
+        int gt_count = 0;
+        float gt_freq = 0;
+        
+        for (int i = 0; i < stats->pheno_stats[phenotype_id].num_alleles; i++) {
+            for (int j = i; j < stats->pheno_stats[phenotype_id].num_alleles; j++) {
+                int idx1 = i * stats->pheno_stats[phenotype_id].num_alleles + j;
+                if (i == j) {
+                    gt_count = stats->pheno_stats[phenotype_id].genotypes_count[idx1];
+                    gt_freq = stats->pheno_stats[phenotype_id].genotypes_freq[idx1];
+                } else {
+                    int idx2 = j * stats->pheno_stats[phenotype_id].num_alleles + i;
+                    gt_count = stats->pheno_stats[phenotype_id].genotypes_count[idx1] + stats->pheno_stats[phenotype_id].genotypes_count[idx2];
+                    gt_freq = stats->pheno_stats[phenotype_id].genotypes_freq[idx1] + stats->pheno_stats[phenotype_id].genotypes_freq[idx2];
+                }
+
+                fprintf(stats_fd, "[%s|%s\t%d\t%.4f\t]",
+                                   i == 0 ? stats->ref_allele : stats->alternates[i-1],
+                                   j == 0 ? stats->ref_allele : stats->alternates[j-1],
+                                   gt_count, gt_freq);
+            }
+        }
+        
+        report_variant_hardy_data(&(stats->pheno_stats[phenotype_id].hw), stats_fd);
     }
 
 }
@@ -301,5 +399,5 @@ void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, varian
 
 inline void report_vcf_variant_phenotype_stats_header(FILE *stats_fd) {
     fprintf(stats_fd, 
-            "#CHROM\tPOS\t\tHWE CHI2\tHWE p-value\n");
+            "#CHROM\tPOS\NUM_ALLELES\t[ALLELES | COUNT | FREQ]*\tMAF\t[GENOTYPE | COUNT | FREQ]*\tMGF\tHWE_CHI2\tHWE_p-value\tHWE_COUNT(AA/Aa/aa)\n");
 }
