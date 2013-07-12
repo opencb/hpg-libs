@@ -67,8 +67,8 @@ static size_t save_mutation_phenotype_response(char *contents, size_t size, size
 
 
 
-int initialize_ws_buffers(int num_threads);
+void initialize_ws_buffers(int num_threads);
 
-int free_ws_buffers(int num_threads);
+void free_ws_buffers(int num_threads);
 
 #endif

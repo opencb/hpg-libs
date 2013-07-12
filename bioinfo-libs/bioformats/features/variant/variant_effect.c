@@ -237,7 +237,7 @@ static size_t save_mutation_phenotype_response(char *contents, size_t size, size
 }
 
 
-int initialize_ws_buffers(int num_threads) {
+void initialize_ws_buffers(int num_threads) {
     // Create a buffer for each thread
     effect_line = (char**) calloc (num_threads, sizeof(char*));
     max_line_size = (int*) calloc (num_threads, sizeof(int));
@@ -255,11 +255,9 @@ int initialize_ws_buffers(int num_threads) {
         snp_line[i] = (char*) calloc (snp_max_line_size[i], sizeof(char));
         mutation_line[i] = (char*) calloc (mutation_max_line_size[i], sizeof(char));
     }
-         
-    return 0;
 }
 
-int free_ws_buffers(int num_threads) {
+void free_ws_buffers(int num_threads) {
     // Free line buffers
     for (int i = 0; i < num_threads; i++) {
         free(effect_line[i]);
@@ -275,6 +273,4 @@ int free_ws_buffers(int num_threads) {
         
     free(mutation_max_line_size);
     free(mutation_line);
-    
-    return 0;
 }
