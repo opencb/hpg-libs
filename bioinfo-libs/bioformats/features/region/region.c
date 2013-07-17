@@ -191,7 +191,7 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
     return 0;
 }
 
-int compare_positions(uint32_t position_1, uint32_t position_2) {
+int compare_positions(size_t position_1, size_t position_2) {
     return position_1 - position_2;
 }
 
