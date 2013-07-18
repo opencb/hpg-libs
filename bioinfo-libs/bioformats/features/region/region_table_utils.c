@@ -1,60 +1,53 @@
 #include "region_table_utils.h"
 
-
 region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version) {
-    region_table_t *regions_table = create_region_table(url, species, version);
+    region_table_t *regions_table = new_region_table_from_ws(url, species, version);
 
-    char *str_1 = input_regions;
-    char *str_2 = (char*) malloc (64 * sizeof(char));
-    char *saveptr1, *saveptr2;
-    char *token, *subtoken;
-    size_t token_len, subtoken_len;
+    char *saveptr, *token;
+    size_t token_len;
 
-    int i = 0;
-    while ((token = strtok_r(str_1, ",", &saveptr1)) != NULL) {
-        region_t *region = (region_t*) malloc (sizeof(region_t));
-        token_len = strlen(token);
-        
-        LOG_DEBUG_F("token = %s, len = %zu\n", token, token_len);
-        
-        strncpy(str_2, token, 63);
-        str_2[token_len] = '\0';
-        
+    int num_regions;
+    char **regions_data = split(input_regions, ",", &num_regions);
+    
+    region_t *regions[num_regions];
+    
+    for (int i = 0; i < num_regions; i++) {
         // Set chromosome
-        subtoken = strtok_r(str_2, ":", &saveptr2);
-        subtoken_len = strlen(subtoken);
-        region->chromosome = (char*) malloc ((subtoken_len+1) * sizeof(char));
-        strncpy(region->chromosome, subtoken, subtoken_len);
-        region->chromosome[subtoken_len] = '\0';
+        token = strtok_r(regions_data[i], ":", &saveptr);
+        token_len = strlen(token);
+        char *chromosome = strndup(token, token_len);
         
         // Set start position
-        subtoken = strtok_r(NULL, "-", &saveptr2);
-        region->start_position = (subtoken != NULL) ? atol(subtoken) : 1;
+        token = strtok_r(NULL, "-", &saveptr);
+        size_t start_position, end_position;
+        start_position = (token != NULL) ? atol(token) : 1;
         
         // Set end position
-        subtoken = strtok_r(NULL, "-", &saveptr2);
-        if (subtoken != NULL) {
-            region->end_position = atol(subtoken);
+        token = strtok_r(NULL, "-", &saveptr);
+        if (token != NULL) {
+            end_position = atol(token);
         } else {
             if (as_positions) {
-                region->end_position = region->start_position;
+                end_position = start_position;
             } else {
-                region->end_position = UINT_MAX;
+                end_position = UINT_MAX;
             }
         }
         
-        LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
+        regions[i] = region_new(chromosome, start_position, end_position, NULL, NULL);
         
-        insert_region(region, regions_table);
-        
-        str_1 = NULL;
-        
-        i++;
+        LOG_DEBUG_F("region '%s:%u-%u'\n", regions[i]->chromosome, regions[i]->start_position, regions[i]->end_position);
     }
-
-    free(str_1); 
-    free(str_2);
-
+    
+    insert_regions(regions, num_regions, regions_table);
+    finish_region_table_loading(regions_table);
+    
+    for (int i = 0; i < num_regions; i++) {
+        free(regions_data[i]);
+        free(regions[i]);
+    }
+    free(regions_data);
+    
     return regions_table;
 }
 
@@ -64,7 +57,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_region_table(url, species, version);
+    region_table_t *regions_table = new_region_table_from_ws(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;
@@ -150,7 +143,7 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
         return NULL;
     } 
     
-    region_table_t *regions_table = create_region_table(url, species, version);
+    region_table_t *regions_table = new_region_table_from_ws(url, species, version);
     
     int ret_code = 0;
     size_t max_batches = 20, batch_size = 2000;

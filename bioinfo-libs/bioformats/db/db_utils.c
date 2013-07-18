@@ -348,7 +348,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
 
   if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
-    LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
+    LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
   }
 
   for (khiter_t k = kh_begin(hash); k != kh_end(hash); ++k) {
@@ -384,12 +384,12 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
       if (counter % 100000 == 0) {
 	// commit the current transaction
 	if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
-	  LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
+	  LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
 	}
 
 	// start a new transaction
 	if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
-	  LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
+	  LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
 	}
 	counter = 0;
       }
@@ -398,7 +398,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
   if (counter) {
     if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
-      LOG_ERROR_F("Database failed: %s (%d)\n", rc, errorMessage);
+      LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
     }
   }
 

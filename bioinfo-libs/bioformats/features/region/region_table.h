@@ -53,7 +53,7 @@ typedef struct region_table {
  * 	(Optional) File the list of ordered chromosomes is read from
  * @return A structure for a region table
  */
-region_table_t *create_region_table(const char *url, const char *species, const char *version);
+region_table_t *new_region_table_from_ws(const char *url, const char *species, const char *version);
 region_table_t *new_region_table(int num_chromosomes, char **chromosomes);
 
 /**

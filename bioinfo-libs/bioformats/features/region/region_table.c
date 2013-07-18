@@ -55,7 +55,7 @@ static void prepare_region_table_statements(region_table_t *table) {
 
 }
 
-region_table_t *create_region_table(const char *url, const char *species, const char *version) {
+region_table_t *new_region_table_from_ws(const char *url, const char *species, const char *version) {
     int num_chromosomes;
     
     // Initialize structure
