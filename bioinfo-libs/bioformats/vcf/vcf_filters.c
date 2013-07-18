@@ -913,7 +913,7 @@ static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, voi
         *buffer_ptr = buffer;
         buffer_size += size * nmemb;
     } else {
-        LOG_FATAL("Error while allocating memory for genes position (web service request)");
+        LOG_FATAL("Error while allocating memory for genes position (web service request)\n");
     }
 
     return size * nmemb;
@@ -937,7 +937,7 @@ static char* gene_ws_output_to_regions(char *buffer) {
                 free(regions);
                 regions = aux_values;
             } else {
-                LOG_FATAL("Error while allocating memory for genes position");
+                LOG_FATAL("Error while allocating memory for genes position\n");
             }
         }
 

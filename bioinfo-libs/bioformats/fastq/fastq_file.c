@@ -398,7 +398,7 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
 				accumulated_size += sequence_length + quality_length + header_length;
 			}
 		} else {
-			LOG_DEBUG("Read has different length in sequence and quality");
+			LOG_DEBUG("Read has different length in sequence and quality\n");
 		}
 
 	}
@@ -494,7 +494,7 @@ int fastq_fread_paired_batch_max_size2(fastq_batch_t *fq_batch, unsigned long ma
 
 				accumulated_size += sequence_length + quality_length;
 			} else {
-				LOG_DEBUG("Read has different length in sequence and quality");
+				LOG_DEBUG("Read has different length in sequence and quality\n");
 			}
 		} // end for
 		fq_file = fq_file1;
