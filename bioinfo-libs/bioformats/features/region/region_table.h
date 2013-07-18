@@ -31,6 +31,17 @@ typedef struct region_table {
         int is_ready;                   /**< Flag that notifies that chunks are saved and the storage is indexed */
         
         sqlite3_stmt *insert_region_stmt;
+
+        sqlite3_stmt *find_exact_region_stmt;
+        sqlite3_stmt *find_exact_region_type_stmt;
+        sqlite3_stmt *find_region_stmt;
+        sqlite3_stmt *find_region_type_stmt;
+
+        sqlite3_stmt *remove_exact_region_stmt;
+        sqlite3_stmt *remove_region_stmt;
+
+        sqlite3_stmt *get_chromosome_stmt;
+        sqlite3_stmt *count_in_chromosome_stmt;
 } region_table_t;
 
 
@@ -43,6 +54,7 @@ typedef struct region_table {
  * @return A structure for a region table
  */
 region_table_t *create_region_table(const char *url, const char *species, const char *version);
+region_table_t *new_region_table(int num_chromosomes, char **chromosomes);
 
 /**
  * Free the region table given as parameter.

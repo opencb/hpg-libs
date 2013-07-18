@@ -23,4 +23,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
 
 region_table_t *parse_regions_from_bed_file(char *filename, const char *url, const char *species, const char *version);
 
+int region_table_parse_from_gff_file(char *filename, region_table_t *regions_table);
+int region_table_parse_from_string(char *input_regions, region_table_t *regions_table);
+
 #endif
