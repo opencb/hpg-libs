@@ -364,7 +364,7 @@ array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 		array_list_p->items = items_aux;
 		array_list_p->capacity = new_capacity;
 	}else {
-		LOG_ERROR("Error in reallocate");
+		LOG_ERROR("Error in reallocate\n");
 	}
 	return array_list_p;
 }

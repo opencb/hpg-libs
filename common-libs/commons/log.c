@@ -25,13 +25,13 @@ void print_log_message(int level, char *log_level_word, char *filename, int num_
 
         // if 'verbose' logs are printed in stderr
         if(log_verbose) {
-            fprintf(stderr, "%s\t%s\t%s [%i] in %s(): %s\n", str_time, log_level_word, filename, num_line, func, msg);
+            fprintf(stderr, "%s\t%s\t%s [%i] in %s(): %s", str_time, log_level_word, filename, num_line, func, msg);
         }
 
         // if 'log_file' has been set up then logs are printed
         // logs are ALWAYS printed in log_file independently of 'verbose' parameter
         if(log_file) {
-            fprintf(log_file, "%s\t%s\t%s [%i] in %s(): %s\n", str_time, log_level_word, filename, num_line, func, msg);
+            fprintf(log_file, "%s\t%s\t%s [%i] in %s(): %s", str_time, log_level_word, filename, num_line, func, msg);
         }
 
     }
