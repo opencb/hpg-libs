@@ -9,13 +9,14 @@
 
 #include "string_utils.h"
 
-#define LOG_DEBUG_LEVEL		1
-#define LOG_INFO_LEVEL		2
-#define LOG_WARN_LEVEL		3
-#define LOG_ERROR_LEVEL		4
-#define LOG_FATAL_LEVEL		5
+#define LOG_DEBUG_LEVEL         1
+#define LOG_INFO_LEVEL          2
+#define LOG_WARN_LEVEL          3
+#define LOG_ERROR_LEVEL         4
+#define LOG_FATAL_LEVEL         5
+#define LOG_NOTHING_LEVEL       6
 
-#define LOG_DEFAULT_LEVEL	LOG_INFO_LEVEL
+#define LOG_DEFAULT_LEVEL       LOG_INFO_LEVEL
 
 /* **********************************************
  *                  Log macros                  *
@@ -96,9 +97,11 @@
 }
 
 #define LOG_FATAL_F(msg, ...) {            \
-    print_log_message_with_format(LOG_FATAL_LEVEL, "FATAL",     \
-    __FILE__, __LINE__, __func__, msg, __VA_ARGS__);             \
-    exit(-1);                                       \
+    if (LOG_FATAL_LEVEL >= log_level) { \
+        print_log_message_with_format(LOG_FATAL_LEVEL, "FATAL",     \
+        __FILE__, __LINE__, __func__, msg, __VA_ARGS__);             \
+        exit(1);                                       \
+    }   \
 }
 
 
