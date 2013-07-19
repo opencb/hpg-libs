@@ -311,22 +311,28 @@ char* lstrip(char *str);
 char* rstrip(char *str);
 
 /**
-*  @brief Splits a string into string fragments using a blank space separator (' ')
+*  @brief Splits a string in fragments using the separators provided as arguments 
 *  @param str string to split
-*  @return pointers to the splitted strings
+*  @param delimiters characters used to separate the fragments
+*  @param num_substrings [out] number of fragments returned
+*  @return pointers to the string fragments
 *  
-*  Splits a string into string fragments using a blank space separator (' ')
+*  Splits a string into fragments using the separators provided as arguments. The
+*  number of substrings returned is also provided in an output argument.
 */
 char** split(char *str, const char *delimiters, int *num_substrings);
 
 /**
-*  @brief Splits a string into string fragments using a blank space separator (' ')
+*  @brief Splits a string in fragments using the separators provided as arguments 
 *  @param str string to split
+*  @param delimiters characters used to separate the fragments
 *  @param limit maximum number of splitted strings
+*  @param num_substrings [out] number of fragments returned
 *  @return pointers to the splitted strings
 *  
-*  Splits a string into string fragments using a blank space separator (' ')
-*  No more than limit splitted fragments will be returned
+*  Splits a string into fragments using the separators provided as arguments. The
+*  number of substrings returned is also provided in an output argument. No more 
+*  than limit fragments will be returned.
 */
 char** splitn(char *str, const char *delimiters, int limit, int *num_substrings);
 
