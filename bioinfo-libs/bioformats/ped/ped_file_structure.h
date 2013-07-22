@@ -43,10 +43,12 @@ typedef struct ped_file {
     size_t data_len;
     
     cp_hashtable *families;
-    
+
     int unaffected_id;
     int affected_id;
     khash_t(str) *phenotypes;
+    int num_phenotypes;
+    int accept_new_values;
 
     //TODO: Will have extra value for the number of the field to compare
     char* custom_field;

@@ -72,7 +72,10 @@ typedef struct phenotype_stats {
     float *genotypes_freq;      /**< Frequency of each genotype in relation to the total. */
     float maf;                  /**< Minimum allele frequency. */
     float mgf;                  /**< Minimum genotype frequency. */
-    
+
+    int missing_alleles;        /**< Number of alleles whose information is missing. */
+    int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
+
     hardy_weinberg_stats_t hw;
     
 } phenotype_stats_t;
@@ -215,7 +218,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                        list_t *output_list, file_stats_t *file_stats);
 /* Temporaly changed. TODO: change correctly in all code */
 int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
-                       khash_t(str) *phenotype_ids, list_t *output_list, file_stats_t *file_stats);
+                       int num_phenotypes, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file

@@ -30,8 +30,8 @@ ped_file_t *ped_open(char *filename) {
                                                        (cp_destructor_fn) family_free // Value destructor function
                                                       );
     ped_file->phenotypes = kh_init(str);
-    //set_unaffected_phenotype("1",ped_file);	//Sets the default value ("1") for the unaffected phenotype.
-    //set_affected_phenotype("2",ped_file);		//Sets the default value ("2") for the affected phenotype.
+    ped_file->num_phenotypes = 0;
+    ped_file->accept_new_values = 1;
     ped_file->affected_id = -1;
     ped_file->unaffected_id = -1;
     
@@ -41,7 +41,6 @@ ped_file_t *ped_open(char *filename) {
     
     return ped_file;
 }
-
 
 //-----------------------------------------------------
 // ped_close and memory freeing
@@ -149,35 +148,58 @@ int get_num_families(ped_file_t* ped_file) {
 }
 
 
-khash_t(str)* get_phenotypes(ped_file_t *ped_file)
-{
+khash_t(str)* get_phenotypes(ped_file_t *ped_file){
 	assert(ped_file);
 	return ped_file->phenotypes;
 }
 
-void set_unaffected_phenotype(const char* id, ped_file_t *ped_file)
-{
+int get_num_phenotypes(ped_file_t* ped_file) {
+    assert(ped_file);
+    return ped_file->num_phenotypes;
+}
+
+void set_unaffected_phenotype(const char* id, ped_file_t *ped_file){
     int ret;
     int k = kh_put(str, ped_file->phenotypes, id, &ret);
-    ped_file->unaffected_id = kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;
-
+    ped_file->unaffected_id = kh_value(ped_file->phenotypes, k) = ped_file->num_phenotypes;
+    ped_file->num_phenotypes++;
 	//printf("UnAffected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->unaffected_id, id, k,  ret);
 }
 
-void set_affected_phenotype(const char* id, ped_file_t *ped_file)
-{
+void set_affected_phenotype(const char* id, ped_file_t *ped_file){
     int ret;
     int k = kh_put(str, ped_file->phenotypes, id, &ret);
-    ped_file->affected_id = kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;
-
+    ped_file->affected_id = kh_value(ped_file->phenotypes, k) = ped_file->num_phenotypes;
+    ped_file->num_phenotypes++;
 	//printf("Affected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->affected_id, id, k,  ret);
 }
 
-void set_custom_field(const char* id, ped_file_t *ped_file)
-{
-    if(ped_file->custom_field)
+void set_custom_field(const char* id, ped_file_t *ped_file){
+    if(ped_file->custom_field){
         free(ped_file->custom_field);
+    }
     ped_file->custom_field = strdup(id);
+}
+
+
+int set_phenotype_group(char** ids, int n , ped_file_t *ped_file){
+    int ret, fail = 0;
+    int k;
+    
+    for(int i = 0; i < n; i++){
+        //printf("Element %d from group %d : %s\n", i, ped_file->num_phenotypes, ids[i]);
+        k = kh_put(str, ped_file->phenotypes, ids[i], &ret);
+        if(!ret) {        //Phenotype already inserted. 
+            fail = 1;
+        }
+        kh_value(ped_file->phenotypes, k) = ped_file->num_phenotypes; //Overwritten value 
+    }
+    ped_file->num_phenotypes++;
+    if(fail){
+        return -1;
+    } else {
+        return ped_file->num_phenotypes;
+    }
 }
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
