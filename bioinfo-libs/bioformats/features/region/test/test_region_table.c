@@ -20,7 +20,7 @@ static region_t *reg_2, *reg_3, *reg_4_1, *reg_4_2, *reg_X_1, *reg_X_2, *reg_Y;
 
 void setup_region_table(void) {
     delete_files_by_extension("/tmp/", ".db");
-    table = create_region_table("http://ws.bioinfo.cipf.es/", "hsa", "latest");
+    table = new_region_table_from_ws("http://ws.bioinfo.cipf.es/", "hsa", "latest");
 }
 
 void teardown_region_table(void) {

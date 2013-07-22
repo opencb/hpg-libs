@@ -100,7 +100,7 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file) {
 //     }
 
     if ( cs ) {
-        LOG_INFO("Last state was not the expected");
+        LOG_INFO("Last state was not the expected\n");
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
@@ -178,7 +178,7 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
 //     }
 
     if ( cs ) {
-        LOG_INFO("Last state was not the expected");
+        LOG_INFO("Last state was not the expected\n");
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
@@ -222,7 +222,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     strm.next_in = Z_NULL;
     ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
     if (ret != Z_OK) {
-        LOG_ERROR("gzipped file could not be decompressed");
+        LOG_ERROR("gzipped file could not be decompressed\n");
         return 1;
     }
 
@@ -301,7 +301,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     }
 
     if ( cs ) {
-        LOG_INFO("Last state was not the expected");
+        LOG_INFO("Last state was not the expected\n");
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
@@ -348,7 +348,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     strm.next_in = Z_NULL;
     ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
     if (ret != Z_OK) {
-        LOG_ERROR("gzipped file could not be decompressed");
+        LOG_ERROR("gzipped file could not be decompressed\n");
         return 1;
     }
 
@@ -424,7 +424,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     }
 
     if ( cs ) {
-        LOG_INFO("Last state was not the expected");
+        LOG_INFO("Last state was not the expected\n");
     } 
 
     LOG_INFO_F("Records read = %zu\n", status->num_records);
@@ -552,7 +552,7 @@ int vcf_gzip_light_read(size_t batch_lines, vcf_file_t *file) {
     strm.next_in = Z_NULL;
     ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
     if (ret != Z_OK) {
-        LOG_ERROR("gzipped file could not be decompressed");
+        LOG_ERROR("gzipped file could not be decompressed\n");
         return 1;
     }
 
@@ -652,7 +652,7 @@ int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
     strm.next_in = Z_NULL;
     ret = inflateInit2 (&strm, 15 + 32);    // Using inflateInit2 for GZIP support
     if (ret != Z_OK) {
-        LOG_ERROR("gzipped file could not be decompressed");
+        LOG_ERROR("gzipped file could not be decompressed\n");
         return 1;
     }
 
@@ -752,7 +752,10 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
     // Read text of a batch from each file and call ragel parser in a loop
     while (num_eof_found < num_files) {
         for (int f = 0; f < num_files; f++) {
-            if (eof_found[f]) {
+            // Do not read from this file if:
+            // - EOF was found or 
+            // - Its list is full (otherwise  the reading of the other files will be blocked)
+            if (eof_found[f] || text_lists[f]->length == text_lists[f]->max_length) {
                 continue;
             }
 
@@ -782,7 +785,7 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
             // Enqueue current batch
             list_item_t *item = list_item_new(get_num_vcf_batches(files[f]), 1, data);
             list_insert_item(item, text_lists[f]);
-//             printf("Text batch inserted = '%.*s'\n", 200, data + strlen(data) - 200);
+            // printf("%d) Text batch inserted = '%.*s'\n", f, 200, data + strlen(data) - 200);
         }
     }
 

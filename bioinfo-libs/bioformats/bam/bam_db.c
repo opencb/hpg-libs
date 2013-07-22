@@ -17,6 +17,11 @@ bam_query_fields_t *bam_query_fields_new(char *id, char *chr, int chr_length,
 
   bam_query_fields_t *p = calloc(1, sizeof(bam_query_fields_t));
 
+  if (!chr) {
+    printf("id = %s, chr = %s, chr_length = %i, strand = %i, start = %i, end = %i, flag = %i, mquality = %u, num_erros = %i, num_indels = %i, indels_length = %i, template_length = %i\n", 
+	   id, chr, chr_length, strand, start, end, flag, mapping_quality, num_errors, num_indels, indels_length, template_length);
+  }
+
   p->id = strdup(id);
   p->chr = strdup(chr);
   p->chr_length = chr_length;
