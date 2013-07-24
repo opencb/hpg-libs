@@ -164,7 +164,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     if (!family->father) {
         // Non-existing father, set his ID from the record (if available)
         if (record->father_id) {
-            LOG_DEBUG_F("Set family %s father", family->id);
+            LOG_DEBUG_F("Set family %s father\n", family->id);
             father = individual_new(strdup(record->father_id), -9, MALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(father, family);
         }
@@ -186,12 +186,15 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
             LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
         }
         return 0;   // Nothing more to do, he already belongs to the family
+        
+    } else if (record->father_id && !strcasecmp(family->father->id, record->father_id)) {
+        father = family->father;
     }
     
     if (!family->mother) {
         // Non-existing mother, set his ID from the record (if available)
         if (record->mother_id) {
-            LOG_DEBUG_F("Set family %s mother", family->id);
+            LOG_DEBUG_F("Set family %s mother\n", family->id);
             mother = individual_new(strdup(record->mother_id), -9, FEMALE, MISSING_CONDITION, NULL, NULL, family);
             family_set_parent(mother, family);
         }
@@ -213,6 +216,9 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
             LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
         }
         return 0;   // Nothing more to do, he already belongs to the family
+        
+    } else if (record->mother_id && !strcasecmp(family->mother->id, record->mother_id)) {
+        mother = family->mother;
     }
     
     // Create individual with the information extracted from the PED record
