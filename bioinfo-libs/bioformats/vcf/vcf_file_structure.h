@@ -8,6 +8,7 @@
 
 #include <bioformats/ped/ped_file.h>
 #include <commons/log.h>
+#include <commons/string_utils.h>
 #include <containers/array_list.h>
 #include <containers/khash.h>
 #include <containers/list.h>
@@ -29,6 +30,11 @@
 /** @cond PRIVATE */
 extern int mmap_vcf;
 /** @endcond */
+
+enum variant_type { VARIANT_SNV, VARIANT_INDEL, VARIANT_SV };
+
+enum structural_variation_direction { SV_DIRECTION_LEFT, SV_DIRECTION_RIGHT };
+enum structural_variation_type { SV_INS, SV_DEL, SV_DUP, SV_INV, SV_CNV, SV_TRANSLOC };
 
 /**
  * @brief Structure that specifies a VCF file.
@@ -70,30 +76,42 @@ typedef struct vcf_header_entry {
 } vcf_header_entry_t;
 
 
+typedef struct vcf_structural_variation {
+    char* chromosome;                                   /**< Chromosome the breakend is connected to, whenever proceeds */
+    int chromosome_len;                                 /**< Length of the chromosome field */
+    unsigned long position;                             /**< Position the breakend is connected to, whenever proceeds */
+    size_t length;                                      /**< Length of the structural variant, whenever proceeds */
+    enum structural_variation_type type;                /**< Type of the structural variation (insertion, deletion, translocation...) */
+    enum structural_variation_direction direction;      /**< Direction of the breakend (left/right) */
+} vcf_structural_variation_t;
+
 /**
  * @brief Entry in the VCF document body.
  * @details Entry in the body of the VCF file. Each entry corresponds with one line in the file.
  */
 typedef struct vcf_record {
-    char* chromosome;           /**< Chromosome where the remarkable variation took place */
-    unsigned long position;     /**< Position in chromosome where the remarkable variation took place */
-    char* id;                   /**< Unique identifier of the mutation, if existing */
-    char* reference;            /**< Reference allele in that position */
-    char* alternate;            /**< Alternate alleles found in that position */
-    float quality;              /**< Quality of the reading */
-    char* filter;               /**< PASS if all filters applied were passed, another value if one of the filters failed */
-    char* info;                 /**< Miscellaneous information about the reading */
-    char* format;               /**< Format of the sample data stored */
+    char* chromosome;                   /**< Chromosome where the remarkable variation took place */
+    unsigned long position;             /**< Position in chromosome where the remarkable variation took place */
+    char* id;                           /**< Unique identifier of the mutation, if existing */
+    char* reference;                    /**< Reference allele in that position */
+    char* alternate;                    /**< Alternate alleles found in that position */
+    float quality;                      /**< Quality of the reading */
+    char* filter;                       /**< PASS if all filters applied were passed, another value if one of the filters failed */
+    char* info;                         /**< Miscellaneous information about the reading */
+    char* format;                       /**< Format of the sample data stored */
 
-    int chromosome_len;         /**< Length of the chromosome field */
-    int id_len;                 /**< Length of the ID field */
-    int reference_len;          /**< Length of the reference allele field */
-    int alternate_len;          /**< Length of the alternate alleles field */
-    int filter_len;             /**< Length of the filter field */
-    int info_len;               /**< Length of the info field */
-    int format_len;             /**< Length of the format field */
+    enum variant_type type;             /**< Type of the variant (SNV, INDEL or structural) */
+    vcf_structural_variation_t *sv;     /**< Extra information that exists whenever this is a structural variation */
     
-    array_list_t *samples;      /**< Values of the samples in this position */
+    int chromosome_len;                 /**< Length of the chromosome field */
+    int id_len;                         /**< Length of the ID field */
+    int reference_len;                  /**< Length of the reference allele field */
+    int alternate_len;                  /**< Length of the alternate alleles field */
+    int filter_len;                     /**< Length of the filter field */
+    int info_len;                       /**< Length of the info field */
+    int format_len;                     /**< Length of the format field */
+    
+    array_list_t *samples;              /**< Values of the samples in this position */
 } vcf_record_t;
 
 
@@ -166,6 +184,7 @@ void vcf_record_free(vcf_record_t *record);
  **/
 void vcf_record_free_deep(vcf_record_t *record);
 
+void vcf_structural_variant_free(vcf_structural_variation_t *sv);
 
 
 /* ********************************************************
@@ -420,6 +439,8 @@ void set_vcf_record_id(char* id, int length, vcf_record_t* record);
  * @param record The record whose attribute will be set
  **/
 void set_vcf_record_reference(char* reference, int length, vcf_record_t* record);
+
+void set_vcf_record_type(enum variant_type type, vcf_record_t* record);
 
 /**
  * @brief Sets the alternate allele of a VCF record.

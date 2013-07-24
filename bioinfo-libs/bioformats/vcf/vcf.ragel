@@ -11,7 +11,7 @@
 
     action linebreak {
         lines++;
-//        printf("lines read = %d\n", lines);
+//        LOG_INFO_F("lines read = %d\n", lines);
     }
     
     action fileformat_begin {
@@ -23,7 +23,7 @@
     }
 
     action fileformat_error {
-        printf("Line %d (%s): Error in file format\n", lines, file->filename);
+        LOG_ERROR_F("Line %d (%s): Error in file format\n", lines, file->filename);
     }
 
     action header_entry_begin {
@@ -35,7 +35,7 @@
     }
 
     action header_error {
-        printf("Line %zu (%s): Error in header\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in header\n", lines, file->filename);
     }
 
     action header_id_begin {
@@ -77,12 +77,12 @@
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
         {
             add_vcf_batch(status->current_batch, file);
-//             printf("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
+            LOG_DEBUG_F("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
             status->current_batch = vcf_batch_new(batch_size);
             
             if (p+1) {
                 status->current_batch->text = p+1;
-//                 printf("batch text = '%.*s'\n", 50, status->current_batch->text);
+                LOG_DEBUG_F("batch text = '%.*s'\n", 50, status->current_batch->text);
             }
             batches++;
         }
@@ -103,7 +103,7 @@
     }
 
     action chrom_error {
-        printf("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -118,7 +118,7 @@
     }
 
     action pos_error {
-        printf("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -131,7 +131,7 @@
     }
 
     action id_error {
-        printf("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -144,7 +144,7 @@
     }
 
     action ref_error {
-        printf("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -153,17 +153,27 @@
     }
 
     action alt_end {
-        if (!strncmp("0",     ts, 1) || !strncmp("<DEL>", ts, 5) || !strncmp("<INS>", ts, 5) ||
-            !strncmp("<DUP>", ts, 5) || !strncmp("<INV>", ts, 5) || !strncmp("<CNV>", ts, 5) ||
-            !strncmp("<DUP:TANDEM>", ts, 5) || !strncmp("<DEL:ME:", ts, 8) || !strncmp("<INS:ME:", ts, 8)) {
+        if (!strncmp("0", ts, 1)) {
             set_vcf_record_alternate(".", 1, status->current_record);
         } else {
             set_vcf_record_alternate(ts, p-ts, status->current_record);
         }
     }
 
+    action alt_snv_end { 
+        set_vcf_record_type(VARIANT_SNV, status->current_record);
+    }
+
+    action alt_indel_end {
+        set_vcf_record_type(VARIANT_INDEL, status->current_record);
+    }
+
+    action alt_sv_end {
+        set_vcf_record_type(VARIANT_SV, status->current_record);
+    }
+
     action alt_error {
-        printf("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -182,7 +192,7 @@
     }
 
     action qual_error {
-        printf("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -195,7 +205,7 @@
     }
 
     action filter_error {
-        printf("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -208,7 +218,7 @@
     }
 
     action info_error {
-        printf("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -221,7 +231,7 @@
     }
 
     action format_error {
-        printf("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -234,7 +244,7 @@
     }
 
     action sample_error {
-        printf("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 
@@ -267,9 +277,17 @@
     record_pos  = (digit)+ ;
     record_id   = (alnum | "_")+ | "." ;
     record_ref  = bases ;
-    record_alt  = ((bases | ".") ("," (bases | "."))* )+ | "0" | 
-                   "<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" |
-                   "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">" ;
+
+    record_alt_snv = ((bases | ".") ("," (bases | "."))* )+ | "0";
+    record_alt_indel = "<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" |
+                   "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">";
+    record_alt_sv = "]" record_chrom ":" record_pos "]" (bases)+ | 
+                   "[" record_chrom ":" record_pos "[" (bases)+ | 
+                   (bases)+ "]" record_chrom ":" record_pos "]" |  
+                   (bases)+ "[" record_chrom ":" record_pos "[" ;
+    record_alt = record_alt_snv %alt_snv_end |
+                 record_alt_indel %alt_indel_end |
+                 record_alt_sv %alt_sv_end ;
     record_qual = number | "." ;
 
     filter_value    = (alnum | "_" | "." | "," )+ ;
