@@ -512,7 +512,7 @@ filter_t **sort_filter_chain(filter_chain *chain, int *num_filters);
  */
 //array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, filter_t **filters, int num_filters);
 array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed, individual_t **individuals, 
-                               khash_t(ids) *individuals_ids, filter_t **filters, int num_filters);
+                               khash_t(ids) *individuals_ids, int num_variables, filter_t **filters, int num_filters);
 
 /**
  * @brief Deallocates memory allocated to store a filter chain

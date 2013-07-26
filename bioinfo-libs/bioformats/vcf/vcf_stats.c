@@ -108,12 +108,12 @@ void variant_stats_free(variant_stats_t* stats) {
     free(stats);
 }
 
-int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
+int get_variants_stats_old(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
                         list_t *output_list, file_stats_t *file_stats) {
-    get_variants_stats_tmp(variants, num_variants,individuals,sample_ids, 0,output_list, file_stats);
+    get_variants_stats(variants, num_variants,individuals,sample_ids, 0,output_list, file_stats);
 }
-int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
-                        int num_phenotypes, list_t *output_list, file_stats_t *file_stats) {
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
+                        int num_variables, list_t *output_list, file_stats_t *file_stats) {
     assert(variants);
     assert(output_list);
     assert(file_stats);
@@ -148,7 +148,7 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         float cases_recessive;
         float controls_recessive;
     }   *pheno_count, *aux_pheno_count;
-    pheno_count = malloc(sizeof(struct phenotype_stats_var_count)*num_phenotypes);
+    pheno_count = malloc(sizeof(struct phenotype_stats_var_count)*num_variables);
     
     // Variant stats management
     vcf_record_t *record;
@@ -159,12 +159,12 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
                                   strndup(record->reference, record->reference_len),
-                                  num_phenotypes);
+                                  num_variables);
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
         cases_dominant = controls_dominant = cases_recessive = controls_recessive = 0;
         maf = mgf = INT_MAX;
-        memset(pheno_count, 0, sizeof(struct phenotype_stats_var_count)*(num_phenotypes+1));
+        memset(pheno_count, 0, sizeof(struct phenotype_stats_var_count)*(num_variables));
         
         // Create list of alternates
         copy_buf = strndup(record->alternate, record->alternate_len);
@@ -183,7 +183,7 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         stats->alleles_freq = (float*) calloc (stats->num_alleles, sizeof(float));
         stats->genotypes_freq = (float*) calloc (stats->num_alleles * stats->num_alleles, sizeof(float));
         
-        for (int j = 0; j < num_phenotypes; j++) {
+        for (int j = 0; j < num_variables; j++) {
             aux_pheno_stats = &stats->pheno_stats[j];
             
             aux_pheno_stats->num_alleles = stats->num_alleles;
@@ -406,7 +406,7 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         
         
         if(individuals){
-            for(int pheno_iter = 0; pheno_iter < num_phenotypes; pheno_iter++){
+            for(int pheno_iter = 0; pheno_iter < num_variables; pheno_iter++){
                 aux_pheno_stats = &(stats->pheno_stats[pheno_iter]);
                 aux_pheno_count = &(pheno_count[pheno_iter]);
                 
@@ -452,7 +452,7 @@ int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual
         //Testing for Hardy-Weinberg Equilibrium (HWE)
         //printf("Start hwe for the %d variant\n",i);
         hardy_weinberg_test(&stats->hw_all);
-        for (int j = 0; j < num_phenotypes; j++) {
+        for (int j = 0; j < num_variables; j++) {
             hardy_weinberg_test(&(stats->pheno_stats[j].hw));
         }//printf("\n\n");
         

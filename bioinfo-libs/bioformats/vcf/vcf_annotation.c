@@ -5,7 +5,7 @@ void precalculate_aux_values_for_annotation(int calculate_stats, int calculate_d
                                             int *dp, int *mq0, double *mq) {
     // Variant statistics
     if (calculate_stats) {
-        get_variants_stats(&record, 1, NULL, NULL, stats_list, file_stats);
+        get_variants_stats(&record, 1, NULL, NULL,0, stats_list, file_stats);
         list_item_t *item = list_remove_item(stats_list);
         *variant_stats = item->data_p;
         list_item_free(item);

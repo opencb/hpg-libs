@@ -218,11 +218,11 @@ void sample_stats_free(sample_stats_t *stats);
  * @param file_stats [in,out] The statistics of the VCF file
  * @return Whether the statistics were successfully retrieved
  **/
-int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+int get_variants_stats_old(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
                        list_t *output_list, file_stats_t *file_stats);
 /* Temporaly changed. TODO: change correctly in all code */
-int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
-                       int num_phenotypes, list_t *output_list, file_stats_t *file_stats);
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                       int num_variables, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file

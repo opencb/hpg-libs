@@ -59,7 +59,7 @@ START_TEST (biallelic) {
     sample = strdup("1:1/1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("1:./1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL,0, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -97,7 +97,7 @@ START_TEST (multiallelic) {
     sample = strdup("2/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
 
-    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL,0, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -139,7 +139,7 @@ START_TEST (homozygous) {
     sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("./.:1"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL,0, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -261,7 +261,7 @@ START_TEST (from_CEU_exon) {
     sample = strdup("0/1:21"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/0:53"); add_vcf_record_sample(sample, strlen(sample), record);
     
-    get_variants_stats(&record, 1, NULL, NULL, output_list, file_stats);
+    get_variants_stats(&record, 1, NULL, NULL,0, output_list, file_stats);
     fail_if(output_list->length == 0, "There must be one element processed");
     
     variant_stats_t *result = (variant_stats_t*) output_list->first_p->data_p;
@@ -311,7 +311,7 @@ START_TEST(mendelian_errors) {
     list_init("output", 1, 1000, o_list);
     
     get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
-    get_variants_stats_tmp((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,  get_num_variables(ped_file), o_list, file_stats);
+    get_variants_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,  get_num_variables(ped_file), o_list, file_stats);
     
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(o_list);
 
@@ -484,8 +484,8 @@ printf("Hoo\n");    ped_read(ped_file);
     list_t * o_list = (list_t*) malloc (sizeof(list_t));
     list_init("output", 1, 1000000, o_list);
     
-   // get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
-    get_variants_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, o_list, file_stats);
+    get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
+    get_variants_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,get_num_variables(ped_file), o_list, file_stats);
     
     sample_stats_t *cur_stats = sample_stats[0];  // 3376
     //fail_if(cur_stats->missing_genotypes != 2, "3376: 2 missing GTs expected");
