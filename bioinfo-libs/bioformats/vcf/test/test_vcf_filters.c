@@ -222,7 +222,7 @@ START_TEST (missing_values) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)missing_values_datasuite->items), missing_values_datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)missing_values_datasuite->items), missing_values_datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -253,7 +253,7 @@ START_TEST (num_alelles_basic) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)num_alleles_datasuite->items), num_alleles_datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)num_alleles_datasuite->items), num_alleles_datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -301,7 +301,7 @@ START_TEST (num_alelles_all_included) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -333,7 +333,7 @@ START_TEST (num_alelles_all_excluded) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -366,7 +366,7 @@ START_TEST (snp_include) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -402,7 +402,7 @@ START_TEST (snp_exclude) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -440,7 +440,7 @@ START_TEST (region_chrom_1) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     
@@ -477,7 +477,7 @@ START_TEST (region_chrom_1_2) {
     list_t *output_list = (list_t*)malloc(sizeof(list_t));
     list_init("list",1,10000,output_list);
     file_stats_t * file_s = file_stats_new();
-    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL, output_list, file_s);
+    get_variants_stats(((vcf_record_t**)datasuite->items), datasuite->size, NULL, NULL,0, output_list, file_s);
     fail_if(output_list->length == 0, "There must be one element processed");
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(output_list);
     printf("Hoo\n");

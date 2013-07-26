@@ -98,10 +98,19 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file);
 
 khash_t(str)* get_phenotypes(ped_file_t *ped_file);
 
-/*TODO: This call will change to generic one where you can specify a other fields, even custom fields (phenotype, sex, age?, ...)
- *      int set_unaffected(const char* id, int field_number, ped_file_t *ped_file);
- *      int set_affected(const char* id, int field_number, ped_file_t *ped_file);
- */
-int set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
-int set_affected_phenotype(const char* id, ped_file_t *ped_file);
+/**
+ * Select the affected/unaffected ID for the samples in the selected phenotype field
+ * Only affects to the "condition" in individual struct
+ * */
+void set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
+void set_affected_phenotype(const char* id, ped_file_t *ped_file);
+
+/**
+ * Changes the variable field. By default, "PHENO" or field number 6
+ * */
+void set_variable_field(const char* id, int num_field, ped_file_t *ped_file);
+
+int set_phenotype_group(char** ids, int n , ped_file_t *ped_file);
+khash_t(str)* get_phenotypes(ped_file_t *ped_file);
+int get_num_variables(ped_file_t* ped_file);
 #endif
