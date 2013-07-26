@@ -29,13 +29,20 @@ ped_file_t *ped_open(char *filename) {
                                                        NULL,                    // Value copy function
                                                        (cp_destructor_fn) family_free // Value destructor function
                                                       );
-    ped_file->phenotypes = kh_init(str);
-    set_unaffected_phenotype("1",ped_file);	//Sets the default value ("1") for the unaffected phenotype.
-    set_affected_phenotype("2",ped_file);		//Sets the default value ("2") for the affected phenotype.
+    ped_file->variables = kh_init(str);
+    ped_file->num_variables = 0;
+    ped_file->accept_new_values = 1;
+    
+    ped_file->affected = NULL;
+    ped_file->unaffected = NULL;
+    set_unaffected_phenotype("1", ped_file);
+    set_affected_phenotype("2", ped_file);
+    
+    ped_file->variable_field = NULL;
+    ped_file->num_field = 0;
     
     return ped_file;
 }
-
 
 //-----------------------------------------------------
 // ped_close and memory freeing
@@ -48,10 +55,13 @@ void ped_close(ped_file_t *ped_file, int free_families, int free_phenotype) {
     }
     // Free phenotype hash if asked to
     if (free_phenotype) {
-		kh_destroy(str,ped_file->phenotypes);
+		kh_destroy(str,ped_file->variables);
 	} 
     
     munmap((void*) ped_file->data, ped_file->data_len);
+    if(ped_file->affected) free(ped_file->affected);
+    if(ped_file->unaffected) free(ped_file->unaffected);
+    if(ped_file->variable_field) free(ped_file->variable_field);
     free(ped_file);
 }
 
@@ -60,6 +70,8 @@ void ped_record_free(ped_record_t* ped_record) {
     free(ped_record->individual_id);
     if (ped_record->father_id) { free(ped_record->father_id); }
     if (ped_record->mother_id) { free(ped_record->mother_id); }
+    if (ped_record->phenotype) { free(ped_record->phenotype); }
+    if (ped_record->custom_field) { free(ped_record->custom_field); }
     free(ped_record);
 }
 
@@ -143,28 +155,58 @@ int get_num_families(ped_file_t* ped_file) {
 }
 
 
-khash_t(str)* get_phenotypes(ped_file_t *ped_file)
-{
+khash_t(str)* get_phenotypes(ped_file_t *ped_file){
 	assert(ped_file);
-	return ped_file->phenotypes;
+	return ped_file->variables;
 }
 
-int set_unaffected_phenotype(const char* id, ped_file_t *ped_file)
-{
-    int ret;
-    int k = kh_put(str, ped_file->phenotypes, id, &ret);
-    ped_file->unaffected_id = kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;
-
-	//printf("UnAffected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->unaffected_id, id, k,  ret);
+int get_num_variables(ped_file_t* ped_file) {
+    assert(ped_file);
+    return ped_file->num_variables;
 }
 
-int set_affected_phenotype(const char* id, ped_file_t *ped_file)
-{
-    int ret;
-    int k = kh_put(str, ped_file->phenotypes, id, &ret);
-    ped_file->affected_id = kh_value(ped_file->phenotypes, k) = kh_size(ped_file->phenotypes)-1;
+void set_unaffected_phenotype(const char* id, ped_file_t *ped_file){
+    assert(ped_file);
+    if(ped_file->unaffected)
+        free(ped_file->unaffected);
+    ped_file->unaffected = strdup(id);
+}
 
-	//printf("Affected id: %d es generado con el string %s. khiter %d.  RET : %d\n", ped_file->affected_id, id, k,  ret);
+void set_affected_phenotype(const char* id, ped_file_t *ped_file){
+    assert(ped_file);
+    if(ped_file->affected)
+        free(ped_file->affected);
+    ped_file->affected = strdup(id);
+}
+
+void set_variable_field(const char* id, int num_field, ped_file_t *ped_file){
+    assert(ped_file);
+    if(ped_file->variable_field){
+        free(ped_file->variable_field);
+    }
+    ped_file->variable_field = strdup(id);
+    ped_file->num_field;
+}
+
+
+int set_phenotype_group(char** ids, int n , ped_file_t *ped_file){
+    int ret, fail = 0;
+    int k;
+    
+    for(int i = 0; i < n; i++){
+        //printf("Element %d from group %d : %s\n", i, ped_file->num_phenotypes, ids[i]);
+        k = kh_put(str, ped_file->variables, ids[i], &ret);
+        if(!ret) {        //Phenotype already inserted. 
+            fail = 1;
+        }
+        kh_value(ped_file->variables, k) = ped_file->num_variables; //Overwritten value 
+    }
+    ped_file->num_variables++;
+    if(fail){
+        return -1;
+    } else {
+        return ped_file->num_variables;
+    }
 }
 
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
@@ -185,11 +227,11 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     }
     
     LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", record->family_id, record->individual_id, record->father_id, record->mother_id);
-    
+
     // If it is an ancestor with no sex defined, add to the list of unknown members
     if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
         condition = get_condition_from_phenotype(record->phenotype, ped_file);
-        individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, NULL, NULL, family);
+        individual = individual_new(strdup(record->individual_id), record->var_index, record->sex, condition, NULL, NULL, family);
         return family_add_unknown(individual, family);
     }
     
@@ -214,8 +256,8 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         
         // If the father struct members are missing, fill them
         if (father->condition == MISSING_CONDITION) {
-            father->phenotype = record->phenotype;
-            father->condition = get_condition_from_phenotype(father->phenotype, ped_file);
+            father->variable = record->var_index;
+            father->condition = get_condition_from_phenotype(record->phenotype, ped_file);
             LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
         }
         return 0;   // Nothing more to do, he already belongs to the family
@@ -223,7 +265,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     } else if (record->father_id && !strcasecmp(family->father->id, record->father_id)) {
         father = family->father;
     }
-    
+
     if (!family->mother) {
         // Non-existing mother, set his ID from the record (if available)
         if (record->mother_id) {
@@ -244,8 +286,8 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
         
         // If the mother struct members are missing, fill them
         if (mother->condition == MISSING_CONDITION) {
-            mother->phenotype = record->phenotype;
-            mother->condition = get_condition_from_phenotype(mother->phenotype, ped_file);
+            mother->variable = record->var_index;
+            mother->condition = get_condition_from_phenotype(record->phenotype, ped_file);
             LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
         }
         return 0;   // Nothing more to do, he already belongs to the family
@@ -256,7 +298,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     
     // Create individual with the information extracted from the PED record
     condition = get_condition_from_phenotype(record->phenotype, ped_file);
-    individual = individual_new(strdup(record->individual_id), record->phenotype, record->sex, condition, father, mother, family);
+    individual = individual_new(strdup(record->individual_id), record->var_index, record->sex, condition, father, mother, family);
     if (father || mother) {
         LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
         family_add_child(individual, family);

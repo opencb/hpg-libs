@@ -63,6 +63,23 @@ typedef struct hardy_weinberg_stats {
 typedef struct phenotype_stats {
     int phenotype;
     
+    int num_alleles;            /**< Number of alleles of the variant (1 reference + N alternates). */
+    int *alleles_count;         /**< Times each allele has been counted. */
+    int *genotypes_count;       /**< Times each possible genotype has been counted. */
+    float *alleles_freq;        /**< Frequency of each allele in relation to the total. */
+    float *genotypes_freq;      /**< Frequency of each genotype in relation to the total. */
+    float maf;                  /**< Minimum allele frequency. */
+    float mgf;                  /**< Minimum genotype frequency. */
+
+    int missing_alleles;        /**< Number of alleles whose information is missing. */
+    int missing_genotypes;      /**< Number of genotypes with at least one allele missing. */
+
+    float cases_percent_dominant;       /**< Percentage of cases that follow a dominant inheritance pattern */
+    float controls_percent_dominant;    /**< Percentage of controls that follow a dominant inheritance pattern */
+    float cases_percent_recessive;      /**< Percentage of cases that follow a recessive inheritance pattern */
+    float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
+    
+
     hardy_weinberg_stats_t hw;
     
 } phenotype_stats_t;
@@ -100,6 +117,7 @@ typedef struct variant_stats {
     float cases_percent_recessive;      /**< Percentage of cases that follow a recessive inheritance pattern */
     float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
     
+    int num_phenotypes;
     phenotype_stats_t *pheno_stats;   /**< Array for Phenotype stats*/
     hardy_weinberg_stats_t hw_all;   /**< All samples Hardy-Weinberg stats*/
 } variant_stats_t;
@@ -200,11 +218,11 @@ void sample_stats_free(sample_stats_t *stats);
  * @param file_stats [in,out] The statistics of the VCF file
  * @return Whether the statistics were successfully retrieved
  **/
-int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+int get_variants_stats_old(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
                        list_t *output_list, file_stats_t *file_stats);
 /* Temporaly changed. TODO: change correctly in all code */
-int get_variants_stats_tmp(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
-                       khash_t(str) *phenotype_ids, list_t *output_list, file_stats_t *file_stats);
+int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids, 
+                       int num_variables, list_t *output_list, file_stats_t *file_stats);
 
 /**
  * @brief Given a list of variants, gets the statistics related to their samples and also the ones that apply to the VCF file
