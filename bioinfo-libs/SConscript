@@ -12,7 +12,7 @@ env.Decider('MD5-timestamp')
 if debug == 1:
     env['CFLAGS'] += ' -O0 -g'
 else:
-    env['CFLAGS'] += ' -O3'
+    env['CFLAGS'] += ' -O3 -g'
 
 env['objects'] = []
 

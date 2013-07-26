@@ -137,7 +137,7 @@ static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t n
     size_t new_len = s->length + size*nmemb;
     s->data = realloc(s->data, new_len+1);
     if (s->data == NULL) {
-        LOG_FATAL("Can't allocate enough memory for getting chromosomes");
+        LOG_FATAL("Can't allocate enough memory for getting chromosomes\n");
     }
     memcpy(s->data+s->length, contents, size*nmemb);
     s->data[new_len] = '\0';
@@ -191,7 +191,7 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
     return 0;
 }
 
-int compare_positions(uint32_t position_1, uint32_t position_2) {
+int compare_positions(size_t position_1, size_t position_2) {
     return position_1 - position_2;
 }
 
