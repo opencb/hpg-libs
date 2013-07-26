@@ -23,9 +23,9 @@ typedef struct ped_record {
     char *mother_id;
     enum Sex sex;
     char* phenotype;
-    char* custom_field;
+    char* custom_field;     /**< Value in the variable column. */
     
-    int pheno_index;
+    int var_index;        /**< Variable index in the variables' khash */
     
 } ped_record_t;
 
@@ -44,15 +44,14 @@ typedef struct ped_file {
     
     cp_hashtable *families;
 
-    int unaffected_id;
-    int affected_id;
-    khash_t(str) *phenotypes;
-    int num_phenotypes;
-    int accept_new_values;
+    char* unaffected;
+    char* affected;
+    khash_t(str) *variables;   /**<  Differents values in the variable field */
+    int num_variables;         /**<  Number of differents phenotypes */
+    int accept_new_values;      /**<  Boolean. New values will be accepted in the khash while reading the ped file  */
 
-    //TODO: Will have extra value for the number of the field to compare
-    char* custom_field;
-    int num_field;
+    char* variable_field;         /**<  Name of the variable field */
+    int num_field;              /**<  Number of the column from the variable field */
 
 } ped_file_t;
 

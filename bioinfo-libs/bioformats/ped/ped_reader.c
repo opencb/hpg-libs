@@ -709,7 +709,7 @@ tr29:
 	{
         char* field_name = strndup(ts, p-ts);
         custom_field_count++;
-        if (!strncmp(field_name, file->custom_field,sizeof(field_name))) {
+        if (!strncmp(field_name, file->variable_field,sizeof(field_name))) {
             file->num_field = custom_field_count;
         }
         free(field_name);
@@ -739,7 +739,7 @@ tr30:
 	{
         char* field_name = strndup(ts, p-ts);
         custom_field_count++;
-        if (!strncmp(field_name, file->custom_field,sizeof(field_name))) {
+        if (!strncmp(field_name, file->variable_field,sizeof(field_name))) {
             file->num_field = custom_field_count;
         }
         free(field_name);

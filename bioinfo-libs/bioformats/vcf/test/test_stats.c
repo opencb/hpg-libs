@@ -311,7 +311,7 @@ START_TEST(mendelian_errors) {
     list_init("output", 1, 1000, o_list);
     
     get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
-    get_variants_stats_tmp((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,  get_num_phenotypes(ped_file), o_list, file_stats);
+    get_variants_stats_tmp((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,  get_num_variables(ped_file), o_list, file_stats);
     
     variant_stats_t **input_stats_array = (variant_stats_t**) list_to_array(o_list);
 

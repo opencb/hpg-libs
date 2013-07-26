@@ -108,9 +108,9 @@ void set_affected_phenotype(const char* id, ped_file_t *ped_file);
 /**
  * Changes the variable field. By default, "PHENO" or field number 6
  * */
-void set_custom_field(const char* id, ped_file_t *ped_file);
+void set_variable_field(const char* id, int num_field, ped_file_t *ped_file);
 
 int set_phenotype_group(char** ids, int n , ped_file_t *ped_file);
 khash_t(str)* get_phenotypes(ped_file_t *ped_file);
-int get_num_phenotypes(ped_file_t* ped_file);
+int get_num_variables(ped_file_t* ped_file);
 #endif

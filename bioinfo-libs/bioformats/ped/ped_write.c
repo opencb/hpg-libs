@@ -39,7 +39,9 @@ void write_ped_individual(individual_t* individual, FILE* fd) {
     fprintf(fd, "%s\t%s\t%d\t%d\n", (individual->father == NULL) ? "0" : individual->father->id,
                                 (individual->mother == NULL) ? "0" : individual->mother->id,
                                 individual->sex,
-                                individual->phenotype);
+                                individual->condition == UNAFFECTED? "1" : (individual->condition == AFFECTED? "2" : "0")
+                                );
+
 }
 
 
@@ -57,13 +59,11 @@ void write_ped_record(ped_record_t* ped_record, FILE *fd) {
     assert(ped_record);
     assert(fd);
     
-    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s\t%s\t%d", 
+    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s", 
                     ped_record->family_id, 
                     ped_record->individual_id, 
                     ped_record->father_id, 
                     ped_record->mother_id, 
                     ped_record->sex,
-                    ped_record->phenotype,
-                    ped_record->custom_field,
-                    ped_record->pheno_index);
+                    ped_record->phenotype); //Doesn't print the custom field value
 }

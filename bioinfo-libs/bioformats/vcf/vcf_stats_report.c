@@ -262,7 +262,6 @@ void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sampl
     for (int i = 0; i < num_samples; i++) {
         sam_stats = stats[i];
         fprintf(stats_fd, "%s\t\t%zu\t\t%zu\n", sam_stats->name, sam_stats->missing_genotypes, sam_stats->mendelian_errors);
-        sample_stats_free(sam_stats);
     }
 }
 
@@ -330,6 +329,12 @@ void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, varian
             }
         }
         
+        fprintf(stats_fd, "%.2f | %.2f\t%.2f | %.2f\t",
+               stats->pheno_stats[phenotype_id].cases_percent_dominant,
+               stats->pheno_stats[phenotype_id].controls_percent_dominant,
+               stats->pheno_stats[phenotype_id].cases_percent_recessive,
+               stats->pheno_stats[phenotype_id].controls_percent_recessive);
+        
         report_variant_hardy_data(&(stats->pheno_stats[phenotype_id].hw), stats_fd);
     }
 
@@ -338,5 +343,5 @@ void report_vcf_variant_phenotype_stats(FILE *stats_fd, int num_variants, varian
 
 inline void report_vcf_variant_phenotype_stats_header(FILE *stats_fd) {
     fprintf(stats_fd, 
-            "#CHROM\tPOS\tList of [ALLELES | COUNT | FREQ]\tMAF\tList of [GENOTYPE | COUNT | FREQ]\tMGF\tHWE_CHI2\tHWE_p-value\tHWE_COUNT(AA/Aa/aa)\n");
+            "#CHROM\tPOS\tList of [ALLELES | COUNT | FREQ]\tMAF\tList of [GENOTYPE | COUNT | FREQ]\tMGF\tAFF | UNAFF dominant\t%% AFF | UNAFF recessive\tHWE_CHI2\tHWE_p-value\tHWE_COUNT(AA/Aa/aa)\n");
 }
