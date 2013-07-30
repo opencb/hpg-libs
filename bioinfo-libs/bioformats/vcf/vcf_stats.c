@@ -252,7 +252,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                 // Missing genotype (one or both alleles missing)
                 stats->missing_genotypes++;
                 if (allele1 < 0) { 
-                    stats->missing_alleles++; 
+                    stats->missing_alleles++;
                 } else {
                     stats->alleles_count[allele1]++;
                     total_alleles_count++;

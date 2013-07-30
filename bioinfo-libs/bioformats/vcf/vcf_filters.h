@@ -40,8 +40,8 @@ enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, 
 enum inheritance_pattern { DOMINANT, RECESSIVE };
 
 /**
- * @brief Arguments for the filter by coverage
- * @details The only argument of a filter by coverage is the minimum coverage of a record, as specified 
+ * @brief Arguments for the filter by coverage 
+* @details The only argument of a filter by coverage is the minimum coverage of a record, as specified 
  * on its INFO field.
  **/
 typedef struct {
@@ -50,10 +50,10 @@ typedef struct {
 
 /**
  * @brief Arguments for the filter by Minumum Allele Frequency (MAF)
- * @details The only argument of a filter by MAF is the maximum MAF of a record.
+ * @details The only argument of the filter is the MAF of a record.
  **/
 typedef struct {
-    float max_maf;      /**< Maximum MAF a record must have */
+    float min_maf;      /**< Minumum Allele Frequency (MAF) a record must have */
 } maf_filter_args;
 
 /**
@@ -273,17 +273,17 @@ void coverage_filter_free(filter_t *filter);
 
 
 /**
- * @brief Creates a new filter by maximum MAF.
- * @details Creates a new filter by maximum MAF.
+ * @brief Creates a new filter by MAF.
+ * @details Creates a new filter by MAF.
  *
- * @param max_maf Maximum MAF for the records to pass the filter
+ * @param max_maf MAF of the records that pass the filter
  * @return The new filter
  **/
-filter_t *maf_filter_new(float max_maf);
+filter_t *maf_filter_new(float min_maf);
 
 /**
- * @brief Deallocates memory of a filter by maximum MAF.
- * @details Deallocates memory of a filter by maximum MAF.
+ * @brief Deallocates memory of a filter by MAF.
+ * @details Deallocates memory of a filter by MAF.
  *
  * @param filter The filter to deallocate
  **/

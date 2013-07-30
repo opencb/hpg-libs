@@ -63,10 +63,9 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t *failed, vari
     array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
     size_t filter_name_len = strlen(filter_name);
 
-    float max_maf = ((maf_filter_args*) args)->max_maf;
+    float min_maf = ((maf_filter_args*) args)->min_maf;
     float record_maf = 1.0;
 
-    list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
@@ -81,7 +80,7 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t *failed, vari
             record_maf = fmin(record_maf, variant_stats->alleles_freq[j]);
         }
         
-        if (record_maf <= max_maf) {
+        if (record_maf >= min_maf) {
             array_list_insert(record, passed);
         } else {
             annotate_failed_record(filter_name, filter_name_len, record);
@@ -378,10 +377,10 @@ void coverage_filter_free(filter_t *filter) {
 }
 
 
-filter_t *maf_filter_new(float max_maf) {
+filter_t *maf_filter_new(float min_maf) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
-    sprintf(filter->name, "maf%.0f", max_maf * 100);
-    sprintf(filter->description, "MAF <= %.0f%%", max_maf * 100);
+    sprintf(filter->name, "maf%.0f", min_maf * 100);
+    sprintf(filter->description, "MAF <= %.0f%%", min_maf * 100);
     
     filter->type = MAF;
     filter->filter_func = maf_filter;
@@ -389,7 +388,7 @@ filter_t *maf_filter_new(float max_maf) {
     filter->priority = 3;
     
     maf_filter_args *filter_args = (maf_filter_args*) malloc (sizeof(maf_filter_args));
-    filter_args->max_maf = max_maf;
+    filter_args->min_maf = min_maf;
     filter->args = filter_args;
     
     return filter;
