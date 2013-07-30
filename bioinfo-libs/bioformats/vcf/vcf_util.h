@@ -21,6 +21,11 @@
  */
 
 
+/**
+ * @brief Status when reading a genotype alleles
+ * @details Status when reading a genotype alleles (all available, something missing, haploid...)
+ */
+enum alleles_code { ALLELES_OK, FIRST_ALLELE_MISSING, SECOND_ALLELE_MISSING, ALL_ALLELES_MISSING, HAPLOID };
 
 /**
  * @brief Flag which defines whether VCF files will be memory-mapped instead of using the I/O API.
@@ -78,16 +83,17 @@ char *get_field_value_in_sample(char *sample, int position);
  * @brief Given the value of a sample and the position of its genotype, returns the value of its alleles
  * @details A sample in a VCF file is described in the FORMAT column, so its values are of the form 
  * value1:value2:value3. Given the position where the genotype field is, this function returns
- * the value of its alleles.
+ * the value of its alleles. In a haploid position, only the first allele is retrieved.
  *
  * @param sample The contents of a sample column
  * @param genotype_position Position of the genotype field
  * @param allele1 [out] Value of the first allele
  * @param allele2 [out] Value of the second allele
- * @return 0 if both alleles are present, 1 if the first one is missing, 2 if the second one is missing,
- * 3 if both are missing
+ * @return ALLELES_OK if both alleles are present, FIRST_ALLELE_MISSING if the first one is missing, 
+ * SECOND_ALLELE_MISSING if the second one is missing, ALL_ALLELES_MISSING if both are missing, 
+ * HAPLOID if the position is haploid
  * @see get_field_position_in_format()
  **/
-int get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
+enum alleles_code get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
 
 #endif

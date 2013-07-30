@@ -110,16 +110,16 @@ int check_mendel(char *chromosome, int father_allele1, int father_allele2, int m
         }
 
     } else {
-        if ( child_allele1 && child_allele2 &&
+        // Chromosome X in inherited only from the mother and it is haploid
+        if ( child_allele1 && 
              !mother_allele1 && !mother_allele2 ) {
             mendel_type = 9;
         }
 
-        if ( !child_allele1 && !child_allele2 &&
+        if ( !child_allele1 && 
              mother_allele1 && mother_allele2 ) {
             mendel_type = 10;
         }
-
     }
         
     return mendel_type;

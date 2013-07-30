@@ -176,7 +176,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
             // Check missing alleles and genotypes
-            if (!alleles_code) {
+            if (alleles_code == ALLELES_OK) {
                 // Both alleles set
                 curr_position = allele1 * (stats->num_alleles) + allele2;
                 assert(allele1 <= stats->num_alleles);
@@ -188,6 +188,10 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                 stats->genotypes_count[curr_position] += 1;
                 total_alleles_count += 2;
                 total_genotypes_count++;
+            } else if (alleles_code == HAPLOID) {
+                // Haploid (chromosomes X/Y)
+                stats->alleles_count[allele1]++;
+                total_alleles_count++;
             } else {
                 // Missing genotype (one or both alleles missing)
                 stats->missing_genotypes++;
@@ -207,7 +211,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
             }
             
             // Include statistics that depend on pedigree information
-            if (individuals && !alleles_code) {
+            if (individuals && (alleles_code == ALLELES_OK || alleles_code == HAPLOID)) {
                 // Check mendelian errors (pedigree data must be given)
                 if (sample_ids) {
                     if (is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
@@ -216,20 +220,22 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                     }
                 }
 
-                // Check inheritance models
-                if (individuals[j]->condition == UNAFFECTED) {
-                    if (!allele1 && !allele2) { // 0|0
-                        controls_dominant++;
-                        controls_recessive++;
-                    } else if ((!allele1 && allele2) || (allele1 && !allele2)) { // 0|1 or 1|0
-                        controls_recessive++;
-                    }
-                } else if (individuals[j]->condition == AFFECTED) {
-                    if (allele1 && allele2 && allele1 == allele2) { // 1|1, 2|2, and so on
-                        cases_recessive++;
-                        cases_dominant++;
-                    } else if (allele1 || allele2) { // 0|1, 1|0, 1|2, 2|1, 1|3, and so on
-                        cases_dominant++;
+                if (alleles_code != HAPLOID) {
+                    // Check inheritance models
+                    if (individuals[j]->condition == UNAFFECTED) {
+                        if (!allele1 && !allele2) { // 0|0
+                            controls_dominant++;
+                            controls_recessive++;
+                        } else if ((!allele1 && allele2) || (allele1 && !allele2)) { // 0|1 or 1|0
+                            controls_recessive++;
+                        }
+                    } else if (individuals[j]->condition == AFFECTED) {
+                        if (allele1 && allele2 && allele1 == allele2) { // 1|1, 2|2, and so on
+                            cases_recessive++;
+                            cases_dominant++;
+                        } else if (allele1 || allele2) { // 0|1, 1|0, 1|2, 2|1, 1|3, and so on
+                            cases_dominant++;
+                        }
                     }
                 }
             }
@@ -424,7 +430,7 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
             LOG_DEBUG_F("sample = %s, alleles = %d/%d\n", sample, allele1, allele2);
             
             // Find the missing alleles
-            if (alleles_code > 0) {
+            if (alleles_code != ALLELES_OK) {
                 // Missing genotype (one or both alleles missing)
                 #pragma omp atomic
                 (sample_stats[j]->missing_genotypes)++;
@@ -434,7 +440,7 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
             assert(individuals[j]);
             
             // Check mendelian errors
-            if (individuals && sample_ids && !alleles_code &&
+            if (individuals && sample_ids && alleles_code == ALLELES_OK &&
                     is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
                                    allele1, allele2, gt_position, record, sample_ids) > 0) {
                 #pragma omp atomic
@@ -479,8 +485,8 @@ static int is_mendelian_error(individual_t *father, individual_t *mother, indivi
     //LOG_DEBUG_F("Samples: Father = %s\tMother = %s\tChild = %d/%d\n", sample_data[father_pos], sample_data[mother_pos], child_allele1, child_allele2);
 
     // If any parent's alleles can't be read or is missing, can't decide
-    if (get_alleles(father_sample, gt_position, &father_allele1, &father_allele2) ||
-        get_alleles(mother_sample, gt_position, &mother_allele1, &mother_allele2)) {
+    if (get_alleles(father_sample, gt_position, &father_allele1, &father_allele2) != ALLELES_OK ||
+        get_alleles(mother_sample, gt_position, &mother_allele1, &mother_allele2) != ALLELES_OK) {
         free(father_sample);
         free(mother_sample);
         return -1;
