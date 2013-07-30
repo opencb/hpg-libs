@@ -121,16 +121,50 @@ static ped_batch_t *current_batch;
     action pheno_end {
         if (strncmp(".", ts, 1)) {
             char *field = strndup(ts, p-ts);
-            float phenotype = atof(field);
-            set_ped_record_phenotype(phenotype, current_record);
-            free(field);
+            set_ped_record_phenotype(field, current_record, file);
         }
     }
 
     action pheno_error {
         printf("Line %zu: Error in 'phenotype' field\n", lines);
     }
+    
+    action header_item_begin {
+        ts = p;
+    }
+    
+    action header_item_end {
+        char* field_name = strndup(ts, p-ts);
+        custom_field_count++;
+        if (!strncmp(field_name, file->variable_field,sizeof(field_name))) {
+            file->num_field = custom_field_count;
+        }
+        free(field_name);
+    }
 
+    action header_item_error {
+        printf("Line %zu: Error in 'header' field\n", lines);
+    }
+    
+    action ini_custom_field{
+        custom_field_count = 6;
+    }
+    
+    action custom_field_begin {
+        ts = p;
+    }
+
+    action custom_field_end {
+        char* field_name = strndup(ts, p-ts);
+        custom_field_count++;
+        if (custom_field_count == file->num_field) {
+            set_ped_record_custom_field(field_name, current_record, file);
+        }
+    }
+
+    action custom_field_error {
+        printf("Line %zu: Error in 'phenotype' field\n", lines);
+    }
 
     #################################################
     #               Machine definition              #
@@ -138,28 +172,34 @@ static ped_batch_t *current_batch;
 
     number      = (digit)+ ("." (digit)+)? ;    # Integer or floating-point number
     bases       = ("A" | "C" | "G" | "T" | "N")+ ;
-    identifier  = (alnum)+ ;
+    identifier  = (alnum | " ")+ ;
 
     # Records
-    record_family   = (alnum | punct)+ ;
+    record_family   = (alnum | (punct - '#')) (alnum | punct)* ;
     record_indiv    = (alnum | "_" )+ ;
     record_parent   = (alnum | "_" )+ | "." ;
     record_sex      = number | "." ;
-    record_pheno    = number ;
+    record_pheno    = identifier ;
+    record_custom_field = (alnum | punct | " ")+ ;
+    
+    custom_fields   = ([\t]+ record_custom_field >custom_field_begin %custom_field_end $err(custom_field_error))*;
 
-    record      = (record_family >family_begin %family_end $err(family_error) [\t ] 
-                    record_indiv >indiv_begin %indiv_end $err(indiv_error) [\t ]
-                    record_parent >father_begin %father_end $err(father_error) [\t ]
-                    record_parent >mother_begin %mother_end $err(mother_error) [\t ]
-                    record_sex >sex_begin %sex_end $err(sex_error) [\t ] 
-                    record_pheno >pheno_begin %pheno_end $err(pheno_error) 
-                    ( any - "\n" )* 
+    record      = (record_family >family_begin %family_end $err(family_error) [\t] 
+                    record_indiv >indiv_begin %indiv_end $err(indiv_error) [\t]
+                    record_parent >father_begin %father_end $err(father_error) [\t]
+                    record_parent >mother_begin %mother_end $err(mother_error) [\t]
+                    record_sex >sex_begin %sex_end $err(sex_error) [\t] 
+                    record_pheno >pheno_begin %pheno_end $err(pheno_error)
+                    custom_fields >ini_custom_field
                     (space)* )
                     >record_begin %record_end ;
     records     =  record ("\n" >linebreak record)* ;
 
+    header_item =  identifier >header_item_begin %header_item_end $err(header_item_error) ;
+    header      =  "#" [\t ]? header_item ([\t] header_item?)* "\n";
+
     # Machine start
-    main        := (records)? ("\n")* ;
+    main        := (header)? (records)? ("\n")* ;
 
 
 }%%
@@ -175,6 +215,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     char *ts, *te;
     int stack[4];
     int top, act;
+    int custom_field_count = 0;
 
     current_batch = ped_batch_new(batch_size);
 

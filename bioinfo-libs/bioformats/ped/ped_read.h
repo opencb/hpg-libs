@@ -29,6 +29,8 @@ void set_ped_record_mother_id(char* mother_id, ped_record_t* ped_record);
 
 void set_ped_record_sex(enum Sex sex, ped_record_t* ped_record);
 
-void set_ped_record_phenotype(float phenotype, ped_record_t* ped_record);
+void set_ped_record_phenotype(char* phenotype, ped_record_t* ped_record, ped_file_t* ped_file);
+
+void set_ped_record_custom_field(char* field, ped_record_t* ped_record, ped_file_t *ped_file);
 
 #endif
