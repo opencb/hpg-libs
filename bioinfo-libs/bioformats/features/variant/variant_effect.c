@@ -25,22 +25,17 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
     int variants_len = 512, current_index = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     const char *output_format = "txt";
-    
-    int chr_len, reference_len, alternate_len;
     int new_len_range;
 
     for (int i = 0; i < num_records; i++) {
         vcf_record_t *record = records[i];
-        chr_len = record->chromosome_len;
-        reference_len = record->reference_len;
-        alternate_len = record->alternate_len;
         
         int num_alternates;
-        char *alternates_aux = strndup(record->alternate, alternate_len);
+        char *alternates_aux = strndup(record->alternate, record->alternate_len);
         char **alternates = split(alternates_aux, ",", &num_alternates);
 
         // If a position has many alternates, each pair reference-alternate will be concatenated
-        new_len_range = (current_index + chr_len + reference_len + alternate_len + 32) * num_alternates;
+        new_len_range = (current_index + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
 
         // Reallocate memory if next record won't fit
         if (variants_len < (current_index + new_len_range + 1)) {
@@ -53,16 +48,47 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
             }
         }
 
-        for (int j = 0; j < num_alternates; j++) {
-            // Append region info to buffer
-    //         printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
-            strncat(variants, record->chromosome, chr_len);
+        if (record->type == VARIANT_SNV) {
+            for (int j = 0; j < num_alternates; j++) {
+                // Append region info to buffer
+        //         printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
+                strncat(variants, record->chromosome, record->chromosome_len);
+                strncat(variants, ":", 1);
+                current_index += record->chromosome_len + 1;
+                sprintf(variants + current_index, "%lu:", record->position);
+                strncat(variants, record->reference, record->reference_len);
+                strncat(variants, ":", 1);
+                strcat(variants, alternates[j]);
+                strncat(variants, ",", 1);
+                current_index = strlen(variants);
+            }
+        } else if (record->type == VARIANT_INDEL) {
+            strncat(variants, record->chromosome, record->chromosome_len);
             strncat(variants, ":", 1);
-            current_index += chr_len + 1;
+            current_index += record->chromosome_len + 1;
             sprintf(variants + current_index, "%lu:", record->position);
-            strncat(variants, record->reference, reference_len);
+            strncat(variants, record->reference, record->reference_len);
             strncat(variants, ":", 1);
-            strcat(variants, alternates[j]);
+            switch(record->sv->type) {
+                case SV_INS:
+                    strncat(variants, "INS", 3);
+                    break;
+                case SV_DEL:
+                    strncat(variants, "DEL", 3);
+                    break;
+                case SV_DUP:
+                    strncat(variants, "DUP", 3);
+                    break;
+                case SV_INV:
+                    strncat(variants, "INV", 3);
+                    break;
+                case SV_CNV:
+                    strncat(variants, "CNV", 3);
+                    break;
+            }
+            strncat(variants, ":", 1);
+            current_index = strlen(variants);
+            sprintf(variants + current_index, "%zu", record->sv->length);
             strncat(variants, ",", 1);
             current_index = strlen(variants);
         }
@@ -74,8 +100,7 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
         free(alternates_aux);
     }
     
-    LOG_DEBUG_F("variants = %.*s\n", 100, variants);
-//     LOG_DEBUG_F("excludes = %s\n", excludes);
+    LOG_DEBUG_F("variants = %s\n", variants);
     
     char *params[3] = { "of", "variants", "exclude" };
     char *params_values[3] = { output_format, variants, excludes };
@@ -94,16 +119,15 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
     int variants_len = 512, current_index = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     
-    int id_len, new_len_range;
+    int new_len_range;
 
     for (int i = 0; i < num_records; i++) {
         vcf_record_t *record = records[i];
-        if (!strcmp(".", record->id)) {
+        if (!strncmp(".", record->id, record->id_len)) {
             continue;
         }
         
-        id_len = record->id_len;
-        new_len_range = current_index + id_len + 32;
+        new_len_range = current_index + record->id_len + 32;
         
 //         LOG_DEBUG_F("%s:%lu:%s:%s\n", record->chromosome, record->position, record->reference, record->alternate);
         
@@ -117,9 +141,9 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
         }
         
         // Append region info to buffer
-        strncat(variants, record->id, id_len);
+        strncat(variants, record->id, record->id_len);
         strncat(variants, ",", 1);
-        current_index += id_len + 2;
+        current_index += record->id_len + 2;
     }
     
     LOG_DEBUG_F("snps = %s\n", variants);
@@ -147,30 +171,79 @@ int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int nu
 
     for (int i = 0; i < num_records; i++) {
         vcf_record_t *record = records[i];
-        if (strcmp(".", record->id)) {
+        if (strncmp(".", record->id, record->id_len)) {
             continue;
         }
         
-        chr_len = record->chromosome_len;
-        reference_len = record->reference_len;
-        alternate_len = record->alternate_len;
-        new_len_range = current_index + chr_len + reference_len + alternate_len + 32;
         
-//         LOG_DEBUG_F("mutation phenotype of %s:%lu:%s:%s\n", record->chromosome, record->position, record->reference, record->alternate);
-        
+        int num_alternates;
+        char *alternates_aux = strndup(record->alternate, record->alternate_len);
+        char **alternates = split(alternates_aux, ",", &num_alternates);
+
+        // If a position has many alternates, each pair reference-alternate will be concatenated
+        new_len_range = (current_index + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
+
         // Reallocate memory if next record won't fit
         if (variants_len < (current_index + new_len_range + 1)) {
             char *aux = (char*) realloc(variants, (variants_len + new_len_range + 1) * sizeof(char));
             if (aux) { 
                 variants = aux; 
                 variants_len += new_len_range;
+            } else {
+                LOG_FATAL("Not enough memory for composing URL request\n");
             }
         }
-        
-        // Append region info to buffer
-        sprintf(variants + current_index, "%.*s:%lu:%.*s:%.*s,", chr_len, record->chromosome, record->position, 
-                reference_len, record->reference, alternate_len, record->alternate);
-        current_index = strlen(variants);
+
+        if (record->type == VARIANT_SNV) {
+            for (int j = 0; j < num_alternates; j++) {
+                // Append region info to buffer
+        //         printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
+                strncat(variants, record->chromosome, record->chromosome_len);
+                strncat(variants, ":", 1);
+                current_index += record->chromosome_len + 1;
+                sprintf(variants + current_index, "%lu:", record->position);
+                strncat(variants, record->reference, record->reference_len);
+                strncat(variants, ":", 1);
+                strcat(variants, alternates[j]);
+                strncat(variants, ",", 1);
+                current_index = strlen(variants);
+            }
+        } else if (record->type == VARIANT_INDEL) {
+            strncat(variants, record->chromosome, record->chromosome_len);
+            strncat(variants, ":", 1);
+            current_index += record->chromosome_len + 1;
+            sprintf(variants + current_index, "%lu:", record->position);
+            strncat(variants, record->reference, record->reference_len);
+            strncat(variants, ":", 1);
+            switch(record->sv->type) {
+                case SV_INS:
+                    strncat(variants, "INS", 3);
+                    break;
+                case SV_DEL:
+                    strncat(variants, "DEL", 3);
+                    break;
+                case SV_DUP:
+                    strncat(variants, "DUP", 3);
+                    break;
+                case SV_INV:
+                    strncat(variants, "INV", 3);
+                    break;
+                case SV_CNV:
+                    strncat(variants, "CNV", 3);
+                    break;
+            }
+            strncat(variants, ":", 1);
+            current_index = strlen(variants);
+            sprintf(variants + current_index, "%zu", record->sv->length);
+            strncat(variants, ",", 1);
+            current_index = strlen(variants);
+        }
+
+        for (int j = 0; j < num_alternates; j++) {
+            free(alternates[j]);
+        }
+        free(alternates);
+        free(alternates_aux);
     }
     
     LOG_DEBUG_F("mutations = %s\n", variants);
