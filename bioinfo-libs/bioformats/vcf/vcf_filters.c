@@ -380,7 +380,7 @@ void coverage_filter_free(filter_t *filter) {
 filter_t *maf_filter_new(float min_maf) {
     filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
     sprintf(filter->name, "maf%.0f", min_maf * 100);
-    sprintf(filter->description, "MAF <= %.0f%%", min_maf * 100);
+    sprintf(filter->description, "MAF >= %.0f%%", min_maf * 100);
     
     filter->type = MAF;
     filter->filter_func = maf_filter;
