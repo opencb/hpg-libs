@@ -48,10 +48,10 @@ typedef struct ped_file {
     char* affected;
     khash_t(str) *variables;   /**<  Differents values in the variable field */
     int num_variables;         /**<  Number of differents phenotypes */
-    int accept_new_values;      /**<  Boolean. New values will be accepted in the khash while reading the ped file  */
+    int accept_new_values;     /**<  Boolean. New values will be accepted in the khash while reading the ped file  */
 
-    char* variable_field;         /**<  Name of the variable field */
-    int num_field;              /**<  Number of the column from the variable field */
+    char* variable_field;      /**<  Name of the variable field */
+    int num_field;             /**<  Number of the column from the variable field */
 
 } ped_file_t;
 

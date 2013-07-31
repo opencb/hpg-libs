@@ -185,7 +185,7 @@ void set_variable_field(const char* id, int num_field, ped_file_t *ped_file){
         free(ped_file->variable_field);
     }
     ped_file->variable_field = strdup(id);
-    ped_file->num_field;
+    ped_file->num_field = num_field;
 }
 
 
