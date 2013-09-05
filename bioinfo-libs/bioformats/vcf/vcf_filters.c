@@ -303,6 +303,31 @@ array_list_t *indel_filter(array_list_t *input_records, array_list_t *failed, va
     return passed;
 }
 
+array_list_t *variant_type_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    enum variant_type type = ((variant_type_filter_args*)f_args)->type;
+
+    LOG_DEBUG_F("variant_type_filter (variant_type  %d) over %zu records\n", type, input_records->size);
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        
+        if (record->type == type) {
+            array_list_insert(record, passed);
+        } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
+            array_list_insert(record, failed);
+        }
+    }
+
+    return passed;
+}
+
 array_list_t *inheritance_pattern_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *f_args) {
     assert(input_records);
     assert(failed);
@@ -633,6 +658,41 @@ filter_t *indel_filter_new(int include_indels) {
 }
 
 void indel_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+
+filter_t *variant_type_filter_new(enum variant_type type) {
+    filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
+    char *type_name;
+    switch(type) {
+        case VARIANT_SNV:
+            type_name = "SNV";
+            break;
+        case VARIANT_INDEL:
+            type_name = "INDEL";
+            break;
+        case VARIANT_SV:
+            type_name = "STRUCTURAL";
+            break;
+    }
+    snprintf(filter->name, 5 + strlen(type_name), "type%s", type_name);
+    snprintf(filter->description, 17 + strlen(type_name), "To be a %s variant", type_name);
+    filter->type = VARIANT_TYPE;
+    filter->filter_func = variant_type_filter;
+    filter->free_func = variant_type_filter_free;
+    filter->priority = 5;
+
+    variant_type_filter_args *filter_args = (variant_type_filter_args*) malloc (sizeof(variant_type_filter_args));
+    filter_args->type = type;
+    filter->args = filter_args;
+
+    return filter;
+}
+
+void variant_type_filter_free(filter_t *filter) {
     assert(filter);
     free(filter->args);
     free(filter);
