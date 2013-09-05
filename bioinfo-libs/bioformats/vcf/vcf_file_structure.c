@@ -47,14 +47,7 @@ vcf_record_t *vcf_record_copy(vcf_record_t *orig) {
     
     // Structural variation info
     if (orig->sv) {
-        record->sv = (vcf_structural_variation_t*) calloc (1, sizeof(vcf_structural_variation_t));
-        if (record->sv->chromosome) {
-            record->sv->chromosome = strndup(orig->sv->chromosome, orig->sv->chromosome_len);
-            record->sv->chromosome_len = orig->sv->chromosome_len;
-        }
-        record->sv->position = orig->sv->position;
-        record->sv->length = orig->sv->length;
-        record->sv->type = orig->sv->type;
+        record->sv = orig->sv;
     }
     
     // Samples
@@ -67,7 +60,6 @@ vcf_record_t *vcf_record_copy(vcf_record_t *orig) {
 
 void vcf_record_free(vcf_record_t *record) {
     assert(record);
-    vcf_structural_variant_free(record->sv);
     array_list_free(record->samples, free);
     free(record);
 }
@@ -81,14 +73,14 @@ void vcf_record_free_deep(vcf_record_t *record) {
     free(record->filter);
     free(record->info);
     free(record->format);
-    vcf_structural_variant_free(record->sv);
     array_list_free(record->samples, free);
     free(record);
 }
 
 void vcf_structural_variant_free(vcf_structural_variation_t *sv) {
     if (sv) {
-        if (sv->chromosome) { free(sv->chromosome); }
+        if (sv->src_chromosome) { free(sv->src_chromosome); }
+        if (sv->dest_chromosome) { free(sv->dest_chromosome); }
         free(sv);
     }
 }
@@ -109,6 +101,133 @@ int add_vcf_sample_name(char *name, int length, vcf_file_t *file) {
     assert(file);
     return array_list_insert(strndup(name, length), file->samples_names);
 }
+
+static inline char* compose_structural_variant_key(vcf_structural_variation_t *sv) {
+    char *key = calloc(sv->src_chromosome_len + sv->dest_chromosome_len + 64, sizeof(char));
+    sprintf(key, "%.*s:%ld>%.*s:%ld", 
+            sv->src_chromosome_len, sv->src_chromosome, sv->src_position, 
+            sv->dest_chromosome_len, sv->dest_chromosome, sv->dest_position);
+    LOG_DEBUG_F("key = %s\n", key);
+    return key;
+}
+
+int add_structural_variant(vcf_record_t *record, vcf_file_t *file) {
+    vcf_structural_variation_t *sv;
+    char *key;
+    int ret = 0;
+    khiter_t iter;
+    
+    // Structural variation info
+    switch(record->type) {
+        case VARIANT_SNV:
+            ret = 1;
+            break;
+            
+        case VARIANT_INDEL:
+            sv = calloc (1, sizeof(vcf_structural_variation_t));
+            if (starts_with(record->alternate, "<INS")) {
+                sv->type = SV_INS;
+            } else if (starts_with(record->alternate, "<DEL")) {
+                sv->type = SV_DEL;
+            } else if (starts_with(record->alternate, "<DUP")) {
+                sv->type = SV_DUP;
+            } else if (starts_with(record->alternate, "<INV")) {
+                sv->type = SV_INV;
+            } else if (starts_with(record->alternate, "<CNV")) {
+                sv->type = SV_CNV;
+            }
+            sv->src_chromosome = strndup(record->chromosome, record->chromosome_len);
+            sv->src_chromosome_len = record->chromosome_len;
+            sv->src_position = record->position;
+            sv->dest_chromosome = strdup("0");
+            sv->dest_chromosome_len = 1;
+            sv->dest_position = 0;
+            
+            // If the variant was marked as INDEL, retrieve its length from the SVLEN field at INFO
+            char *aux_info = strndup(record->info, record->info_len);
+            char *svlen_text = get_field_value_in_info("SVLEN", aux_info);
+            if (svlen_text) {
+                sv->length = abs(atoi(svlen_text));
+                LOG_DEBUG_F("Structural variant INDEL %.*s of length %zu\n", record->alternate_len, record->alternate, sv->length);
+            }
+            free(aux_info);
+            
+            // Put structural variant into khash in vcf_file_t
+            key = compose_structural_variant_key(sv);
+            iter = kh_put(struct_variants, file->structural_variants, key, &ret);
+            if (ret) {
+                kh_value(file->structural_variants, iter) = sv;
+            } else {
+                LOG_ERROR_F("Structural variant from %.*s:%ld to %.*s:%ld could not be inserted\n", 
+                            sv->src_chromosome_len, sv->src_chromosome, sv->src_position, 
+                            sv->dest_chromosome_len, sv->dest_chromosome, sv->dest_position);
+            }
+            
+            // Let the record point to the same structural variant
+            record->sv = sv;
+            
+            LOG_DEBUG_F("Structural variant INDEL %.*s of type %d\n", record->alternate_len, record->alternate, record->sv->type, sv->length);
+            break;
+            
+        case VARIANT_SV:
+            sv = calloc (1, sizeof(vcf_structural_variation_t));
+            
+            char delim[2];
+            memset(delim, 0, 2 * sizeof(char));
+            // Split chromosome and position from a structure like "]1:1111]A"
+            if (record->alternate[0] == ']' || record->alternate[0] == '[') {
+                delim[0] = record->alternate[0];
+            } else if (record->alternate[record->alternate_len - 1] == ']' || record->alternate[record->alternate_len - 1] == '[') {
+                delim[0] = record->alternate[record->alternate_len - 1];
+            }
+            
+            int num_substrings, num_sub_substrings;
+            char *aux = strndup(record->alternate, record->alternate_len);
+            char **substrings = split(aux, delim, &num_substrings);
+            char **sub_substrings = split(substrings[1], ":", &num_sub_substrings);
+
+            sv->src_chromosome = strndup(record->chromosome, record->chromosome_len);
+            sv->src_chromosome_len = record->chromosome_len;
+            sv->src_position = record->position;
+            sv->dest_chromosome = sub_substrings[0];
+            sv->dest_chromosome_len = strlen(sub_substrings[0]);
+            sv->dest_position = atol(sub_substrings[1]);
+            sv->direction = (delim[0] == ']') ? SV_DIRECTION_LEFT : SV_DIRECTION_RIGHT;
+            sv->type = SV_TRANSLOC;
+            
+            free(sub_substrings[1]);
+            free(sub_substrings);
+            for (int i = 0; i < num_substrings; i++) {
+                free(substrings[i]);
+            }
+            free(substrings);
+            free(aux);
+
+            // Put structural variant into khash in vcf_file_t
+            key = compose_structural_variant_key(sv);
+            iter = kh_put(struct_variants, file->structural_variants, key, &ret);
+            if (ret) {
+                kh_value(file->structural_variants, iter) = sv;
+            } else {
+                LOG_ERROR_F("Structural variant from %.*s:%ld to %.*s:%ld could not be inserted\n", 
+                            sv->src_chromosome_len, sv->src_chromosome, sv->src_position, 
+                            sv->dest_chromosome_len, sv->dest_chromosome, sv->dest_position);
+            }
+            
+            // Let the record point to the same structural variant
+            record->sv = sv;
+            
+            LOG_DEBUG_F("SV with breakend %.*s:%ld ---> %.*s:%ld (dir %d)\n", 
+                        record->chromosome_len, record->chromosome, record->position, 
+                        record->sv->dest_chromosome_len, record->sv->dest_chromosome, record->sv->dest_position,
+                        record->sv->direction);
+            
+            break;
+    }
+    
+    return ret;
+}
+
 
 int add_text_batch(char *batch, vcf_file_t *file) {
     assert(batch);
@@ -329,66 +448,6 @@ void set_vcf_record_alternate(char* alternate, int length, vcf_record_t* record)
     record->alternate = alternate;
     record->alternate_len = length;
 //     LOG_DEBUG_F("set alternate: %s\n", record->alternate);
-    
-    // Structural variation info
-    switch(record->type) {
-        case VARIANT_SNV:
-            break;
-            
-        case VARIANT_INDEL:
-            record->sv = calloc (1, sizeof(vcf_structural_variation_t));
-            if (starts_with(alternate, "<INS")) {
-                record->sv->type = SV_INS;
-            } else if (starts_with(alternate, "<DEL")) {
-                record->sv->type = SV_DEL;
-            } else if (starts_with(alternate, "<DUP")) {
-                record->sv->type = SV_DUP;
-            } else if (starts_with(alternate, "<INV")) {
-                record->sv->type = SV_INV;
-            } else if (starts_with(alternate, "<CNV")) {
-                record->sv->type = SV_CNV;
-            }
-            
-            LOG_DEBUG_F("Structural variant INDEL %.*s of type %d\n", length, alternate, record->sv->type);
-            break;
-            
-        case VARIANT_SV:
-            record->sv = calloc (1, sizeof(vcf_structural_variation_t));
-            char delim[2];
-            // Split chromosome and position from a structure like "]1:1111]A"
-            if (alternate[0] == ']' || alternate[0] == '[') {
-                delim[0] = alternate[0];
-                delim[1] = '\0';
-            } else if (alternate[length - 1] == ']' || alternate[length - 1] == '[') {
-                delim[0] = alternate[length - 1];
-                delim[1] = '\0';
-            }
-            
-            int num_substrings, num_sub_substrings;
-            char *aux = strndup(alternate, length);
-            char **substrings = split(aux, delim, &num_substrings);
-            char **sub_substrings = split(substrings[1], ":", &num_sub_substrings);
-
-            record->sv->chromosome = sub_substrings[0];
-            record->sv->chromosome_len = strlen(sub_substrings[0]);
-            record->sv->position = atol(sub_substrings[1]);
-            record->sv->direction = (delim[0] == ']') ? SV_DIRECTION_LEFT : SV_DIRECTION_RIGHT;
-            record->sv->type = SV_TRANSLOC;
-
-            free(sub_substrings[1]);
-            free(sub_substrings);
-            for (int i = 0; i < num_substrings; i++) {
-                free(substrings[i]);
-            }
-            free(substrings);
-            free(aux);
-
-            LOG_DEBUG_F("SV with breakend %.*s:%ld ---> %.*s:%ld (dir %d)\n", 
-                        record->chromosome_len, record->chromosome, record->position, 
-                        record->sv->chromosome_len, record->sv->chromosome, record->sv->position,
-                        record->sv->direction);
-            break;
-    }
 }
 
 void set_vcf_record_quality(float quality, vcf_record_t* record) {
@@ -411,17 +470,6 @@ void set_vcf_record_info(char* info, int length, vcf_record_t* record) {
     record->info = info;
     record->info_len = length;
 //     LOG_DEBUG_F("set info: %s\n", record->info);
-    
-    // If the variant was marked as INDEL, retrieve its length from the SVLEN field at INFO
-    if (record->type == VARIANT_INDEL) {
-        char *aux_info = strndup(info, length);
-        char *svlen_text = get_field_value_in_info("SVLEN", aux_info);
-        if (svlen_text) {
-            record->sv->length = abs(atoi(svlen_text));
-            LOG_DEBUG_F("Structural variant INDEL %.*s of length %zu\n", record->alternate_len, record->alternate, record->sv->length);
-        }
-        free(aux_info);
-    }
 }
 
 void set_vcf_record_format(char* format, int length, vcf_record_t* record) {

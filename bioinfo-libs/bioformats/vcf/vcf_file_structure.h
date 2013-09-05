@@ -37,31 +37,6 @@ enum structural_variation_direction { SV_DIRECTION_LEFT, SV_DIRECTION_RIGHT };
 enum structural_variation_type { SV_INS, SV_DEL, SV_DUP, SV_INV, SV_CNV, SV_TRANSLOC };
 
 /**
- * @brief Structure that specifies a VCF file.
- * @details Structure that specifies a VCF file. The physical file is defined by its file descriptor, 
- * its filename and the mode it has been open.
- *
- * It contains a header with several entries, and a body with several records.
- */
-typedef struct vcf_file {
-    char* filename;     /**< Name of the file to interact with */
-    char* mode;         /**< Mode the file is open (w/r/a) */
-    FILE *fd;           /**< Should the file be loaded using IO functions, the file descriptor is set */
-    
-    char *data;         /**< Should the file be loaded using mmap, its contents are set */
-    size_t data_len;    /**< Length of the contents of the file, when apply */
-
-    char* format;       /**< Format and version (set in the first line of the VCF file) */
-    int format_len;     /**< Length of the format field */
-    
-    array_list_t *header_entries;   /**< Entries in the header of the file (metadata) */
-    array_list_t *samples_names;    /**< Names of the sequenced samples */
-    
-    list_t *text_batches;           /**< Blocks of text read from the file */
-    list_t *record_batches;         /**< Blocks of records who constitute the body/data of the file */
-} vcf_file_t;
-
-/**
  * @brief Entry in the VCF document header.
  * @details Entry in the header of the VCF file. An entry can be of the form:
  * 
@@ -77,9 +52,12 @@ typedef struct vcf_header_entry {
 
 
 typedef struct vcf_structural_variation {
-    char* chromosome;                                   /**< Chromosome the breakend is connected to, whenever proceeds */
-    int chromosome_len;                                 /**< Length of the chromosome field */
-    unsigned long position;                             /**< Position the breakend is connected to, whenever proceeds */
+    char* src_chromosome;                              /**< Chromosome the breakend connects from, whenever proceeds */
+    int src_chromosome_len;                            /**< Length of the src_chromosome field */
+    unsigned long src_position;                        /**< Position the breakend connects from, whenever proceeds */
+    char* dest_chromosome;                              /**< Chromosome the breakend is connected to, whenever proceeds */
+    int dest_chromosome_len;                            /**< Length of the dest_chromosome field */
+    unsigned long dest_position;                        /**< Position the breakend is connected to, whenever proceeds */
     size_t length;                                      /**< Length of the structural variant, whenever proceeds */
     enum structural_variation_type type;                /**< Type of the structural variation (insertion, deletion, translocation...) */
     enum structural_variation_direction direction;      /**< Direction of the breakend (left/right) */
@@ -125,6 +103,43 @@ typedef struct vcf_batch {
     char *text;                 /**< Input buffer with the data for the records */
 } vcf_batch_t;
 
+
+/**
+ * Hash table that links samples and their positions in the VCF file.
+ */
+KHASH_MAP_INIT_STR(ids, int);
+
+/**
+ * Hash table of structural variants in the VCF file.
+ */
+KHASH_MAP_INIT_STR(struct_variants, vcf_structural_variation_t*);
+
+/**
+ * @brief Structure that specifies a VCF file.
+ * @details Structure that specifies a VCF file. The physical file is defined by its file descriptor, 
+ * its filename and the mode it has been open.
+ *
+ * It contains a header with several entries, and a body with several records.
+ */
+typedef struct vcf_file {
+    char* filename;     /**< Name of the file to interact with */
+    char* mode;         /**< Mode the file is open (w/r/a) */
+    FILE *fd;           /**< Should the file be loaded using IO functions, the file descriptor is set */
+    
+    char *data;         /**< Should the file be loaded using mmap, its contents are set */
+    size_t data_len;    /**< Length of the contents of the file, when apply */
+
+    char* format;       /**< Format and version (set in the first line of the VCF file) */
+    int format_len;     /**< Length of the format field */
+    
+    array_list_t *header_entries;   /**< Entries in the header of the file (metadata) */
+    array_list_t *samples_names;    /**< Names of the sequenced samples */
+    
+    list_t *text_batches;           /**< Blocks of text read from the file */
+    list_t *record_batches;         /**< Blocks of records who constitute the body/data of the file */
+    
+    khash_t(struct_variants) *structural_variants;
+} vcf_file_t;
 
 
 /* ********************************************************
@@ -211,6 +226,16 @@ int add_vcf_header_entry(vcf_header_entry_t *header_entry, vcf_file_t *file);
  * @return If the sample was successfully added
  **/
 int add_vcf_sample_name(char *name, int length, vcf_file_t *file);
+
+/**
+ * @brief Adds a structural variant to a VCF file.
+ * @details Adds a structural variant to a VCF file.
+ * 
+ * @param record The record where the structural variant was found
+ * @param file The file the structural variant will be added to
+ * @return If the structural variant was successfully added
+ */
+int add_structural_variant(vcf_record_t *record, vcf_file_t *file);
 
 int add_text_batch(char *batch, vcf_file_t *file);
 
@@ -502,8 +527,6 @@ void set_vcf_record_format(char* format, int length, vcf_record_t* record);
 void add_vcf_record_sample(char* sample, int length, vcf_record_t* record);
 
 
-
-KHASH_MAP_INIT_STR(ids, int);
 
 individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped);
 

@@ -89,6 +89,8 @@
 
         // If not a blank line, add status->current record to status->current batch
         add_record_to_vcf_batch(status->current_record, status->current_batch);
+        // If the record is a structural variant, add it to the set in the VCF file
+        add_structural_variant(status->current_record, file);
         status->num_records++;
         status->num_samples = 0;
         

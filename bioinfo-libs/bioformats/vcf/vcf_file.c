@@ -53,6 +53,9 @@ vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches) {
     } else {
         list_init("vcf_file batches", 1, max_simultaneous_batches, vcf_file->record_batches);
     }
+    
+    // Initialize structural variants
+    vcf_file->structural_variants = kh_init(struct_variants);
 
     return vcf_file;
 }
@@ -86,6 +89,9 @@ vcf_file_t *vcf_file_new(char *filename, size_t max_simultaneous_batches) {
         list_init("vcf_file batches", 1, max_simultaneous_batches, vcf_file->record_batches);
     }
 
+    // Initialize structural variants
+    vcf_file->structural_variants = kh_init(struct_variants);
+
     return vcf_file;
 }
 
@@ -100,6 +106,17 @@ void vcf_close(vcf_file_t *vcf_file) {
     array_list_free(vcf_file->header_entries, vcf_header_entry_free);
     list_free_deep(vcf_file->text_batches, free);
     list_free_deep(vcf_file->record_batches, vcf_batch_free);
+    
+    khash_t(struct_variants) *structural_variants = vcf_file->structural_variants;
+    for (int k = kh_begin(structural_variants); k < kh_end(structural_variants); k++) {
+        if (kh_exist(structural_variants, k)) {
+            vcf_structural_variation_t *sv = kh_value(structural_variants, k);
+            vcf_structural_variant_free(sv); // Free data structure
+            free(kh_key(structural_variants, k)); // Free key in hashtable
+            kh_del(struct_variants, structural_variants, k); // Remove value from hashtable
+        }
+    }
+    kh_destroy(struct_variants, vcf_file->structural_variants);
 
     if (mmap_vcf) {
         munmap((void*) vcf_file->data, vcf_file->data_len);
