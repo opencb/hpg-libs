@@ -296,7 +296,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
                 }
                 
                 // Stats only for variables in variable_group
-                if(individuals[j]->variable >= 0) {
+                if(num_variables > 0 && individuals[j]->variable >= 0) {
                     aux_pheno_stats = &(stats->pheno_stats[individuals[j]->variable]);
                     aux_pheno_count = &(pheno_count[individuals[j]->variable]);
                     aux_pheno_count->samples_num++;

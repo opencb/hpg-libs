@@ -13,7 +13,7 @@ ped_record_t* create_ped_record() {
     record->sex = UNKNOWN_SEX;
     record->phenotype = NULL;
     record->custom_field = NULL;
-    record->var_index = 0;
+    record->var_index = -1;
     return record;
 }
 
