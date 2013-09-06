@@ -22,11 +22,13 @@
 
 
 int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, char *excludes) {
-    int variants_len = 512, current_index = 0;
+    int variants_len = 512, current_len = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     const char *output_format = "txt";
     int new_len_range;
 
+    CURLcode ret_code = CURLE_OK;
+    
     for (int i = 0; i < num_records; i++) {
         vcf_record_t *record = records[i];
         
@@ -35,10 +37,10 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
         char **alternates = split(alternates_aux, ",", &num_alternates);
 
         // If a position has many alternates, each pair reference-alternate will be concatenated
-        new_len_range = (current_index + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
+        new_len_range = (current_len + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
 
         // Reallocate memory if next record won't fit
-        if (variants_len < (current_index + new_len_range + 1)) {
+        if (variants_len < (current_len + new_len_range + 1)) {
             char *aux = (char*) realloc(variants, (variants_len + new_len_range + 1) * sizeof(char));
             if (aux) { 
                 variants = aux; 
@@ -54,19 +56,19 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
         //         printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
                 strncat(variants, record->chromosome, record->chromosome_len);
                 strncat(variants, ":", 1);
-                current_index += record->chromosome_len + 1;
-                sprintf(variants + current_index, "%lu:", record->position);
+                current_len += record->chromosome_len + 1;
+                sprintf(variants + current_len, "%lu:", record->position);
                 strncat(variants, record->reference, record->reference_len);
                 strncat(variants, ":", 1);
                 strcat(variants, alternates[j]);
                 strncat(variants, ",", 1);
-                current_index = strlen(variants);
+                current_len = strlen(variants);
             }
         } else if (record->type == VARIANT_INDEL) {
             strncat(variants, record->chromosome, record->chromosome_len);
             strncat(variants, ":", 1);
-            current_index += record->chromosome_len + 1;
-            sprintf(variants + current_index, "%lu:", record->position);
+            current_len += record->chromosome_len + 1;
+            sprintf(variants + current_len, "%lu:", record->position);
             strncat(variants, record->reference, record->reference_len);
             strncat(variants, ":", 1);
             switch(record->sv->type) {
@@ -87,10 +89,10 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
                     break;
             }
             strncat(variants, ":", 1);
-            current_index = strlen(variants);
-            sprintf(variants + current_index, "%zu", record->sv->length);
+            current_len = strlen(variants);
+            sprintf(variants + current_len, "%zu", record->sv->length);
             strncat(variants, ",", 1);
-            current_index = strlen(variants);
+            current_len = strlen(variants);
         }
 
         for (int j = 0; j < num_alternates; j++) {
@@ -102,10 +104,12 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
     
     LOG_DEBUG_F("variants = %s\n", variants);
     
-    char *params[3] = { "of", "variants", "exclude" };
-    char *params_values[3] = { output_format, variants, excludes };
-    
-    CURLcode ret_code = http_post(url, params, params_values, 3, save_effect_response, NULL);
+    if (current_len > 0) {
+        char *params[3] = { "of", "variants", "exclude" };
+        char *params_values[3] = { output_format, variants, excludes };
+
+        ret_code = http_post(url, params, params_values, 3, save_effect_response, NULL);
+    }
     
     free(variants);
     
