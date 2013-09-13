@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <commons/log.h>
 #include <containers/list.h>
 #include <containers/cprops/linked_list.h>
 

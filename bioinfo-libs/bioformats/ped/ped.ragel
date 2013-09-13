@@ -51,7 +51,7 @@ static ped_batch_t *current_batch;
     }
 
     action family_error {
-        printf("Line %zu (%s): Error in 'family' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'family' field\n", lines + 1, file->filename);
     }
 
     action indiv_begin {
@@ -63,7 +63,7 @@ static ped_batch_t *current_batch;
     }
 
     action indiv_error {
-        printf("Line %zu (%s): Error in 'individual' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'individual' field\n", lines + 1, file->filename);
     }
 
     action father_begin {
@@ -77,7 +77,7 @@ static ped_batch_t *current_batch;
     }
 
     action father_error {
-        printf("Line %zu (%s): Error in 'father' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'father' field\n", lines + 1, file->filename);
     }
 
     action mother_begin {
@@ -91,7 +91,7 @@ static ped_batch_t *current_batch;
     }
 
     action mother_error {
-        printf("Line %zu (%s): Error in 'mother' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'mother' field\n", lines + 1, file->filename);
     }
 
     action sex_begin {
@@ -111,7 +111,7 @@ static ped_batch_t *current_batch;
     }
 
     action sex_error {
-        printf("Line %zu (%s): Error in 'sex' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'sex' field\n", lines + 1, file->filename);
     }
 
     action pheno_begin {
@@ -126,7 +126,7 @@ static ped_batch_t *current_batch;
     }
 
     action pheno_error {
-        printf("Line %zu: Error in 'phenotype' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'phenotype' field\n", lines + 1, file->filename);
     }
     
     action header_item_begin {
@@ -143,7 +143,7 @@ static ped_batch_t *current_batch;
     }
 
     action header_item_error {
-        printf("Line %zu: Error in 'header' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'header' field\n", lines + 1, file->filename);
     }
     
     action ini_custom_field{
@@ -163,7 +163,7 @@ static ped_batch_t *current_batch;
     }
 
     action custom_field_error {
-        printf("Line %zu: Error in 'phenotype' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in '%s' field\n", lines + 1, file->filename, current_record->custom_field);
     }
 
     #################################################

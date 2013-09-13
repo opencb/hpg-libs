@@ -59,49 +59,49 @@ case 21:
 tr0:
 #line 53 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'family' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'family' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr3:
 #line 65 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'individual' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'individual' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr7:
 #line 79 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'father' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'father' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr11:
 #line 93 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'mother' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'mother' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr15:
 #line 113 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'sex' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'sex' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr19:
 #line 128 "ped.ragel"
 	{
-        printf("Line %zu: Error in 'phenotype' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'phenotype' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr26:
 #line 145 "ped.ragel"
 	{
-        printf("Line %zu: Error in 'header' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'header' field\n", lines + 1, file->filename);
     }
 	goto st0;
 tr44:
 #line 165 "ped.ragel"
 	{
-        printf("Line %zu: Error in 'phenotype' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in '%s' field\n", lines + 1, file->filename, current_record->custom_field);
     }
 	goto st0;
 #line 108 "ped_reader.c"
@@ -853,14 +853,14 @@ case 20:
 	case 1: 
 #line 53 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'family' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'family' field\n", lines + 1, file->filename);
     }
 	break;
 	case 2: 
 	case 3: 
 #line 65 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'individual' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'individual' field\n", lines + 1, file->filename);
     }
 	break;
 	case 4: 
@@ -868,7 +868,7 @@ case 20:
 	case 15: 
 #line 79 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'father' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'father' field\n", lines + 1, file->filename);
     }
 	break;
 	case 6: 
@@ -876,7 +876,7 @@ case 20:
 	case 14: 
 #line 93 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'mother' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'mother' field\n", lines + 1, file->filename);
     }
 	break;
 	case 8: 
@@ -886,13 +886,13 @@ case 20:
 	case 13: 
 #line 113 "ped.ragel"
 	{
-        printf("Line %zu (%s): Error in 'sex' field\n", lines, file->filename);
+        LOG_ERROR_F("Line %zu (%s): Error in 'sex' field\n", lines + 1, file->filename);
     }
 	break;
 	case 10: 
 #line 128 "ped.ragel"
 	{
-        printf("Line %zu: Error in 'phenotype' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'phenotype' field\n", lines + 1, file->filename);
     }
 	break;
 	case 16: 
@@ -902,7 +902,7 @@ case 20:
 	case 20: 
 #line 145 "ped.ragel"
 	{
-        printf("Line %zu: Error in 'header' field\n", lines);
+        LOG_ERROR_F("Line %zu (%s): Error in 'header' field\n", lines + 1, file->filename);
     }
 	break;
 	case 27: 
