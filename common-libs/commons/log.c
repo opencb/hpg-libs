@@ -25,7 +25,8 @@ void print_log_message(int level, char *log_level_word, char *filename, int num_
 
         // if 'verbose' logs are printed in stderr
         if(log_verbose) {
-            fprintf(stderr, "%s\t%s\t%s [%i] in %s(): %s", str_time, log_level_word, filename, num_line, func, msg);
+            FILE *ostream = (level < LOG_WARN_LEVEL) ? stdout : stderr;
+            fprintf(ostream, "%s\t%s\t%s [%i] in %s(): %s", str_time, log_level_word, filename, num_line, func, msg);
         }
 
         // if 'log_file' has been set up then logs are printed
@@ -49,12 +50,13 @@ void print_log_message_with_format(int level, char *log_level_word, char *filena
         
         // if 'verbose' logs are printed in stdout
         if (log_verbose) {
-            fprintf(stderr, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
+            FILE *ostream = (level < LOG_WARN_LEVEL) ? stdout : stderr;
+            fprintf(ostream, "%s\t%s\t%s [%i] in %s(): ", str_time, log_level_word, filename, num_line, func);
 
             if (args != NULL) {
-            	vfprintf(stderr, msg_format, args);
+            	vfprintf(ostream, msg_format, args);
             } else {
-            	fprintf(stderr, "No arguments provided\n");
+            	fprintf(ostream, "No arguments provided\n");
             }
         }
 
