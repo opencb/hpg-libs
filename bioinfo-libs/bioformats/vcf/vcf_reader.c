@@ -773,7 +773,7 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
                         lines++;
                     }
                 } else {
-                    printf("EOF found in file %d\n", f);
+                    LOG_DEBUG_F("EOF found in file %d\n", f);
                     eof_found[f] = 1;
                     num_eof_found++;
                     list_decr_writers(text_lists[f]);
@@ -785,7 +785,7 @@ int vcf_light_multiread(list_t **text_lists, size_t batch_lines, vcf_file_t **fi
             // Enqueue current batch
             list_item_t *item = list_item_new(get_num_vcf_batches(files[f]), 1, data);
             list_insert_item(item, text_lists[f]);
-            // printf("%d) Text batch inserted = '%.*s'\n", f, 200, data + strlen(data) - 200);
+            LOG_DEBUG_F("%s) Text batch inserted = '%.*s'\n", files[f]->filename, 300, data);
         }
     }
 
