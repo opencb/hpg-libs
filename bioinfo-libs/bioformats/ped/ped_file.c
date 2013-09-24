@@ -135,22 +135,42 @@ int ped_read(ped_file_t *ped_file) {
             individual_t *individual = kh_value(family->members, k);
             if (strcmp(individual->father_id, "0")) {
                 khiter_t iter = kh_get(family_members, family->members, individual->father_id);
+                // Check the father is also included in the PED file
                 if (iter != kh_end(family->members)) {
                     individual_t *father = kh_value(family->members, iter);
+                    if (father->sex != MALE) {  // Check the father is, in fact, a man
+                        LOG_FATAL_F("Father %s of individual %s is not a man\n", father->id, individual->id);
+                    }
+                    
                     individual->father = father;
                     individual_add_child(individual, father);
+                } else {
+                    LOG_WARN_F("Child %s references father %s who does not exist in the PED file\n",
+                               individual->id, individual->father_id);
                 }
             }
+            
             if (strcmp(individual->mother_id, "0")) {
                 khiter_t iter = kh_get(family_members, family->members, individual->mother_id);
+                // Check the mother is also included in the PED file
                 if (iter != kh_end(family->members)) {
                     individual_t *mother = kh_value(family->members, iter);
+                    if (mother->sex != FEMALE) {  // Check the mother is, in fact, a woman
+                        LOG_FATAL_F("Mother %s of individual %s is not a woman\n", mother->id, individual->id);
+                    }
+                    
                     individual->mother = mother;
                     individual_add_child(individual, mother);
+                } else {
+                    LOG_WARN_F("Child %s references mother %s who does not exist in the PED file\n",
+                               individual->id, individual->mother_id);
                 }
             }
         }
     }
+    
+    // Only for testing purposes
+    // ped_write(ped_file, "/tmp/variant/pedoutput.ped");
     
     free(families);
     
@@ -199,11 +219,13 @@ int ped_add_individual(individual_t *individual, ped_file_t *ped_file) {
     assert(individual);
     assert(ped_file);
     int ret = 0;
-    // TODO Do not accept repeated entries
     khiter_t iter = kh_put(family_members, ped_file->people, strdup(individual->id), &ret);
     if (ret) {
         kh_value(ped_file->people, iter) = individual;
         return 0;
+    } else {
+        // Do not accept repeated entries
+        LOG_FATAL_F("Individual %s appears more than once in the PED file\n", individual->id);
     }
     return 1;
 }
@@ -224,6 +246,12 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", 
                 record->family_id, record->individual_id, record->father_id, record->mother_id);
 
+    if (!strcmp(record->individual_id, record->father_id)) {
+        LOG_FATAL_F("Individual %s has the same ID as his/her father\n", record->individual_id);
+    } else if (!strcmp(record->individual_id, record->mother_id)) {
+        LOG_FATAL_F("Individual %s has the same ID as his/her mother\n", record->individual_id);
+    }
+    
     // Create individual
     enum Condition condition = get_condition_from_phenotype(record->phenotype, ped_file);
     individual_t *individual = individual_new_ids_only(strdup(record->individual_id), record->var_index, record->sex, condition, 
@@ -291,7 +319,21 @@ family_t **ped_flatten_families(ped_file_t *ped_file, int *num_families) {
     int curr_family = 0;
     for (int k = kh_begin(hash_families); k < kh_end(hash_families); k++) {
         if (!kh_exist(hash_families, k)) { continue; }
+        
         flat_families[curr_family] = kh_value(hash_families, k);
+        
+/*
+        family_t *family = flat_families[curr_family];
+        assert(family->id);
+        printf("Family %s\t\t", family->id);
+        for (int k = kh_begin(family->members); k < kh_end(family->members); k++) {
+            if (!kh_exist(family->members, k)) { continue; }
+            individual_t *individual = kh_value(family->members, k);
+            printf("%s\t", individual->id);
+        }
+        printf("\n");
+*/
+        
         curr_family++;
     }
     *num_families = curr_family;
