@@ -53,6 +53,8 @@ void individual_init_ids_only(char *id, float variable, enum Sex sex, enum Condi
 void individual_free(individual_t *individual) {
     assert(individual);
     free(individual->id);
+    free(individual->father_id);
+    free(individual->mother_id);
     linked_list_free(individual->children, NULL);
     free(individual);
 }
@@ -152,13 +154,21 @@ int family_add_unknown(individual_t *individual, family_t *family) {
 
 void family_free(family_t *family) {
     assert(family);
-    
     free(family->id);
-    // TODO Free people inside the 'members' hashtable
+    // Free people inside the 'members' hashtable
+    for (int k = kh_begin(family->members); k < kh_end(family->members); k++) {
+        if (!kh_exist(family->members, k)) { continue; }
+
+        individual_t *ind = kh_value(family->members, k);
+        individual_free(ind);
+        free(kh_key(family->members, k));
+        kh_del(family_members, family->members, k);
+    }
+    
     kh_destroy(family_members, family->members);
     kh_destroy(family_members, family->founders);
-    
     linked_list_free(family->unknown, NULL);
+    
     free(family);
 }
 

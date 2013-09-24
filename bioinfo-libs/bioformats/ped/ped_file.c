@@ -152,6 +152,8 @@ int ped_read(ped_file_t *ped_file) {
         }
     }
     
+    free(families);
+    
     list_free_deep(ped_batches, NULL);
     
     return ret_code;
@@ -225,7 +227,7 @@ int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
     // Create individual
     enum Condition condition = get_condition_from_phenotype(record->phenotype, ped_file);
     individual_t *individual = individual_new_ids_only(strdup(record->individual_id), record->var_index, record->sex, condition, 
-                                         strdup(record->father_id), strdup(record->mother_id), family);
+                                                       strdup(record->father_id), strdup(record->mother_id), family);
     
     // Add individual to pedigree file
     ped_add_individual(individual, ped_file);

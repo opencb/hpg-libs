@@ -132,7 +132,7 @@ static ped_batch_t *current_batch;
     action header_item_end {
         char* field_name = strndup(ts, p-ts);
         custom_field_count++;
-        if (!strncmp(field_name, file->variable_field,sizeof(field_name))) {
+        if (file->variable_field && !strcmp(field_name, file->variable_field)) {
             file->num_field = custom_field_count;
         }
         free(field_name);
