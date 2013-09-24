@@ -3,15 +3,14 @@
 
 #include <sys/types.h>
 
-
+#include <bioformats/family/family.h>
 #include <commons/file_utils.h>
-
 #include <containers/cprops/hashtable.h>
 #include <containers/khash.h>
 
-#include <bioformats/family/family.h>
 
 KHASH_MAP_INIT_STR(str, int);
+KHASH_MAP_INIT_STR(family, family_t*);
 
 /**
  * Entry in the PED document body.
@@ -43,6 +42,8 @@ typedef struct ped_file {
     size_t data_len;
     
     cp_hashtable *families;
+    khash_t(family_members) *people;   /**< All people read from the file */
+//    khash_t(family) *families;
 
     char* unaffected;
     char* affected;

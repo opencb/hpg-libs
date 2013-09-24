@@ -4,11 +4,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
-
 #include <commons/log.h>
 #include <commons/string_utils.h>
 #include <containers/linked_list.h>
-
+#include <containers/khash.h>
 
 enum Sex { MALE, FEMALE, UNKNOWN_SEX };
 
@@ -24,24 +23,29 @@ enum Condition { MISSING_CONDITION, AFFECTED, UNAFFECTED, UNKNOWN_CONDITION };
  * Entry in the PED document body, representing an individual and member of a family.
  */
 typedef struct individual {
-    char *id;   /**< Unique ID of the individual **/
-    int variable;    /**< Index for the variable group of the sample */
-    enum Sex sex;   /**< Sex of the individual */
-    enum Condition condition;  /**< Whether the individual is affected by a disease or not, or its data are missing */
-    struct individual *father;  /**< Father of the individual (NULL in case he's parent in a family) */
-    struct individual *mother;  /**< Mother of the individual (NULL in case he's parent in a family) */
-    struct family *family;  /**< Family of the individual **/
+    char *id;                           /**< Unique ID of the individual **/
+    char *father_id;                    /**< Unique ID of the individual's father */
+    char *mother_id;                    /**< Unique ID of the individual's mother */
+    int variable;                       /**< Index for the variable group of the sample */
+    enum Sex sex;                       /**< Sex of the individual */
+    enum Condition condition;           /**< Whether the individual is affected by a disease or not, or its data are missing */
+    struct individual *father;          /**< Father of the individual (NULL in case of family founders, or father not found) */
+    struct individual *mother;          /**< Mother of the individual (NULL in case of family founders, or mother not found) */
+    linked_list_t *children;            /**< Children whose father/mother is this individual */
+    struct family *family;              /**< Family the individual belongs to */
 } individual_t;
+
+
+KHASH_MAP_INIT_STR(family_members, individual_t*);
 
 /**
  * Family described in a PED document
  */
 typedef struct family {
-    char *id;               /**< Unique ID of the family **/
-    individual_t *father;   /**< Man in the root of the genealogical tree */
-    individual_t *mother;   /**< Woman in the root of the genealogical tree */
-    linked_list_t *children;      /**< Children of the main roots in the genealogical tree */
-    linked_list_t *unknown;       /**< Unclassified samples because they have no parents and no sex */
+    char *id;                           /**< Unique ID of the family */
+    khash_t(family_members) *members;   /**< All family members */
+    khash_t(family_members) *founders;  /**< Members that lack father and mother */
+    linked_list_t *unknown;             /**< Unclassified samples because they have no parents and no sex */
 } family_t;
 
 
@@ -61,7 +65,11 @@ typedef struct family {
  * @param family family of the individual
  * @return The newly created individual
  */
-individual_t *individual_new(char *id, float variable, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family);
+individual_t *individual_new(char *id, float variable, enum Sex sex, enum Condition condition, 
+                             individual_t *father, individual_t *mother, family_t *family);
+
+individual_t *individual_new_ids_only(char *id, float variable, enum Sex sex, enum Condition condition, 
+                                      char *father_id, char *mother_id, family_t *family);
 
 /**
  * Fills member of an already existing individual with the characteristics provided as arguments.
@@ -74,14 +82,19 @@ individual_t *individual_new(char *id, float variable, enum Sex sex, enum Condit
  * @param family family of the individual
  * @param individual individual whose members are being filled
  */
-void individual_init(char *id, float variable, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family, individual_t *individual);
+void individual_init(char *id, float variable, enum Sex sex, enum Condition condition, 
+                     individual_t *father, individual_t *mother, family_t *family, individual_t *individual);
 
+void individual_init_ids_only(char *id, float variable, enum Sex sex, enum Condition condition, 
+                              char *father_id, char *mother_id, family_t *family, individual_t *individual);
 /**
  * Free memory associated to an individual.
  * 
  * @param individual individual to be freed
  */
 void individual_free(individual_t *individual);
+
+int individual_add_child(individual_t *child, individual_t *individual);
 
 
 /*
@@ -115,11 +128,18 @@ int family_set_parent(individual_t *parent, family_t *family);
  * 
  * @param child the individual to set as child
  * @param family the family where the individual could belong to
- * @return 0 if the individual was succcessfully set, 1-2 if one of the arguments is NULL, 
- * 3 if the family already contains the individual
+ * @return 0 if the individual was successfully set, 1 if the family already contains the individual
  */
 int family_add_child(individual_t *child, family_t *family);
 
+/**
+ * Adds an individual to a family, only if it is not part of the family yet.
+ * 
+ * @param individual the individual to add to the family
+ * @param family the family where the individual could belong to
+ * @return 0 if the individual was successfully added, -1 if the family already contains the individual
+ */
+int family_add_member(individual_t *individual, family_t *family);
 
 int family_add_unknown(individual_t *individual, family_t *family);
 

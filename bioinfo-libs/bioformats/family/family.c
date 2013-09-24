@@ -5,27 +5,60 @@
  * Individual management functions
  */
 
-individual_t *individual_new(char *id, float variable, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family) {
+individual_t *individual_new(char *id, float variable, enum Sex sex, enum Condition condition, 
+                             individual_t *father, individual_t *mother, family_t *family) {
     individual_t *individual = (individual_t*) malloc (sizeof(individual_t));
     individual_init(id, variable, sex, condition, father, mother, family, individual);
     return individual;
 }
 
-void individual_init(char *id, float variable, enum Sex sex, enum Condition condition, individual_t *father, individual_t *mother, family_t *family, individual_t *individual) {
+individual_t *individual_new_ids_only(char *id, float variable, enum Sex sex, enum Condition condition, 
+                             char *father_id, char *mother_id, family_t *family) {
+    individual_t *individual = (individual_t*) malloc (sizeof(individual_t));
+    individual_init_ids_only(id, variable, sex, condition, father_id, mother_id, family, individual);
+    return individual;
+}
+
+
+void individual_init(char *id, float variable, enum Sex sex, enum Condition condition, 
+                    individual_t *father, individual_t *mother, family_t *family, individual_t *individual) {
     assert(individual);
     individual->id = id;
     individual->variable = variable;
     individual->condition = condition;
     individual->sex = sex;
+    individual->father_id = father->id;
+    individual->mother_id = mother->id;
     individual->father = father;
     individual->mother = mother;
+    individual->children = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
+    individual->family = family;
+}
+
+void individual_init_ids_only(char *id, float variable, enum Sex sex, enum Condition condition, 
+                              char *father_id, char *mother_id, family_t *family, individual_t *individual) {
+    assert(individual);
+    individual->id = id;
+    individual->variable = variable;
+    individual->condition = condition;
+    individual->sex = sex;
+    individual->father_id = father_id;
+    individual->mother_id = mother_id;
+    individual->father = NULL;
+    individual->mother = NULL;
+    individual->children = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
     individual->family = family;
 }
 
 void individual_free(individual_t *individual) {
     assert(individual);
     free(individual->id);
+    linked_list_free(individual->children, NULL);
     free(individual);
+}
+
+int individual_add_child(individual_t *child, individual_t *individual) {
+    return !linked_list_insert(child, individual->children);
 }
 
 int individual_compare(individual_t *a, individual_t *b) {
@@ -53,124 +86,88 @@ int individual_compare(individual_t *a, individual_t *b) {
 family_t *family_new(char *id) {
     family_t *family = (family_t*) calloc (1, sizeof(family_t));
     family->id = id;
-    family->children = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
+    family->members = kh_init(family_members);
+    family->founders = kh_init(family_members);
     family->unknown = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
     
     return family;
 }
 
-int family_set_parent(individual_t *parent, family_t *family) {
-    if (!parent) {
-        return -1;
+static int family_add_founder(individual_t *individual, family_t *family) {
+    assert(individual);
+    assert(family);
+   
+    int ret = 0;
+    khiter_t iter = kh_put(family_members, family->founders, strdup(individual->id), &ret);
+    if (ret) {
+        kh_value(family->founders, iter) = individual;
+        return 0;
     }
-    if (!family) {
-        return -2;
-    }
-    if (parent->sex == UNKNOWN_SEX) {
-        return -3;
-    }
-    if (family_contains_individual(parent, family)) {
-        return -4;
-    }
-    
-    if (parent->sex == MALE) {
-        if (family->father) {
-            return 1;
-        } else {
-            family->father = parent;
-        }
-        assert(family->father);
-    } else if (parent->sex == FEMALE) {
-        if (family->mother) {
-            return 2;
-        } else {
-            family->mother = parent;
-        }
-        assert(family->mother);
-    }
-    return 0;
+    return 1;
 }
 
-int family_add_child(individual_t *child, family_t *family) {
-    if (!child) {
+int family_add_member(individual_t *individual, family_t *family) {
+    assert(individual);
+    assert(family);
+    
+    if (family_contains_individual(individual, family)) {
+        // TODO return correct error code
         return -1;
     }
-    if (!family) {
-        return -2;
-    }
-    if (family_contains_individual(child, family)) {
-        return -3;
+    
+    int ret = 0;
+    // Combine the exit codes of adding the individual to the members...
+    khiter_t iter = kh_put(family_members, family->members, strdup(individual->id), &ret);
+    if (ret) {
+        kh_value(family->members, iter) = individual;
+        ret = 0;
     }
     
-    assert(family->children);
+    // ...and founders, if applies
+    if (!strcmp(individual->father_id, "0") && !strcmp(individual->mother_id, "0")) {
+        ret |= family_add_founder(individual, family);
+    }
     
-    return linked_list_insert(child, family->children) == 0;
+    return ret;
 }
 
 int family_add_unknown(individual_t *individual, family_t *family) {
-    if (!individual) {
+    assert(individual);
+    assert(family);
+    
+    if (family_contains_individual(individual, family)) {
+        // TODO return correct error code
         return -1;
     }
-    if (!family) {
-        return -2;
-    }
-    if (family_contains_individual(individual, family)) {
-        return -3;
-    }
     
-    assert(family->unknown);
-    
-    return linked_list_insert(individual, family->unknown) == 0;
+    int ret = 0;
+    khiter_t iter = kh_put(family_members, family->members, strdup(individual->id), &ret);
+    if (ret) {
+        kh_value(family->members, iter) = individual;
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 void family_free(family_t *family) {
     assert(family);
     
     free(family->id);
-    if (family->father) { individual_free(family->father); }
-    if (family->mother) { individual_free(family->mother); }
+    // TODO Free people inside the 'members' hashtable
+    kh_destroy(family_members, family->members);
+    kh_destroy(family_members, family->founders);
     
-    void *free_func = family->children->size ? individual_free : NULL;
-    linked_list_free(family->children, free_func);
-    
-    free_func = family->unknown->size ? individual_free : NULL;
-    linked_list_free(family->unknown, free_func);
+    linked_list_free(family->unknown, NULL);
     free(family);
 }
 
 individual_t *family_contains_individual(individual_t *individual, family_t *family) {
-    if (individual_compare(individual, family->father) == 0) {
-        LOG_DEBUG_F("Individual %s:%s found as father\n", family->id, individual->id);
-        return family->father;
+    assert(individual->id);
+    assert(family->members);
+    khiter_t iter = kh_get(family_members, family->members, individual->id);
+    if (iter != kh_end(family->members)) {
+        return kh_value(family->members, iter);
     }
-    if (individual_compare(individual, family->mother) == 0) {
-        LOG_DEBUG_F("Individual %s:%s found as mother\n", family->id, individual->id);
-        return family->mother;
-    }
-    
-    linked_list_iterator_t *iterator = linked_list_iterator_new(family->children);
-    individual_t *child = NULL;
-    while (child = linked_list_iterator_curr(iterator)) {
-        if (individual_compare(individual, child) == 0) {
-            LOG_DEBUG_F("Individual %s:%s found as child\n", family->id, individual->id);
-            linked_list_iterator_free(iterator);
-            return child;
-        }
-        linked_list_iterator_next(iterator);
-    }
-    linked_list_iterator_free(iterator);
-    
-    iterator = linked_list_iterator_new(family->unknown);
-    individual_t *unknown = NULL;
-    while (unknown = linked_list_iterator_curr(iterator)) {
-        if (individual_compare(individual, unknown) == 0) {
-            LOG_DEBUG_F("Individual %s:%s found as unknown member\n", family->id, individual->id);
-            linked_list_iterator_free(iterator);
-            return unknown;
-        }
-        linked_list_iterator_next(iterator);
-    }
-    linked_list_iterator_free(iterator);
-    
     return NULL;
 }

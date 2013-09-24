@@ -12,19 +12,12 @@ int ped_write_to_file(ped_file_t *ped_file, FILE *fd) {
     LOG_DEBUG_F("Number of families read: %d\n", num_families);
     for (int i = 0; i < num_families; i++) {
         family = families[i];
-        // Write mother and father
-        write_ped_individual(family->father, fd);
-        write_ped_individual(family->mother, fd);
-        // Write children
-        LOG_DEBUG_F("Family %s has %ld children\n", family->id, family->children->size);
-            
-        linked_list_iterator_t *iterator = linked_list_iterator_new(family->children);
-        individual_t *child = NULL;
-        while (child = linked_list_iterator_curr(iterator)) {
-            write_ped_individual(child, fd);
-            linked_list_iterator_next(iterator);
+        
+        for (int k = kh_begin(family->members); k < kh_end(family->members); k++) {
+            if (!kh_exist(family->members, k)) { continue; }
+            individual_t *individual = kh_value(family->members, k);
+            write_ped_individual(individual, fd);
         }
-        linked_list_iterator_free(iterator);
     }
     
     return 0;
@@ -35,12 +28,21 @@ void write_ped_individual(individual_t* individual, FILE* fd) {
     assert(individual);
     assert(fd);
     
-    fprintf(fd, "%s\t%s\t", individual->family->id, individual->id);
-    fprintf(fd, "%s\t%s\t%d\t%d\n", (individual->father == NULL) ? "0" : individual->father->id,
-                                (individual->mother == NULL) ? "0" : individual->mother->id,
-                                individual->sex,
-                                individual->condition == UNAFFECTED? "1" : (individual->condition == AFFECTED? "2" : "0")
-                                );
+    char *cond_str;
+    switch(individual->condition) {
+        case UNAFFECTED:
+            cond_str = "1";
+            break;
+        case AFFECTED:
+            cond_str = "2";
+            break;
+        default:
+            cond_str = "0";
+            break;
+    }
+    
+    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s\n", individual->family->id, individual->id, 
+            individual->father_id, individual->mother_id, individual->sex, cond_str);
 
 }
 
@@ -59,11 +61,7 @@ void write_ped_record(ped_record_t* ped_record, FILE *fd) {
     assert(ped_record);
     assert(fd);
     
-    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s", 
-                    ped_record->family_id, 
-                    ped_record->individual_id, 
-                    ped_record->father_id, 
-                    ped_record->mother_id, 
-                    ped_record->sex,
-                    ped_record->phenotype); //Doesn't print the custom field value
+    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s", ped_record->family_id, ped_record->individual_id, 
+            ped_record->father_id, ped_record->mother_id, ped_record->sex,
+            ped_record->phenotype); //Doesn't print the custom field value
 }

@@ -112,7 +112,7 @@ int main (int argc, char *argv[])
     }
 }
 
-    ped_close(file, 0);
+    ped_close(file, 1, 1);
     free(read_list);
 
     return 0;

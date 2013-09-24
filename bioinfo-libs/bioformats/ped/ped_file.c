@@ -29,6 +29,8 @@ ped_file_t *ped_open(char *filename) {
                                                        NULL,                    // Value copy function
                                                        (cp_destructor_fn) family_free // Value destructor function
                                                       );
+    ped_file->people = kh_init(family_members);
+    
     ped_file->variables = kh_init(str);
     ped_file->num_variables = 0;
     ped_file->accept_new_values = 1;
@@ -52,11 +54,12 @@ void ped_close(ped_file_t *ped_file, int free_families, int free_phenotype) {
     // Free families if asked to
     if (free_families) {
         cp_hashtable_destroy(ped_file->families);
+        kh_destroy(family_members, ped_file->people);
     }
     // Free phenotype hash if asked to
     if (free_phenotype) {
-		kh_destroy(str,ped_file->variables);
-	} 
+        kh_destroy(str,ped_file->variables);
+    } 
     
     munmap((void*) ped_file->data, ped_file->data_len);
     if(ped_file->affected) free(ped_file->affected);
@@ -84,6 +87,8 @@ int ped_read(ped_file_t *ped_file) {
     list_t *ped_batches = (list_t*) malloc (sizeof(list_t));
     list_init("batches", 1, 100, ped_batches);
     
+    // Read the whole file in batches
+    // Do not link children with their parents, only sets their IDs
 #pragma omp parallel sections
 {
 #pragma omp section
@@ -115,6 +120,38 @@ int ped_read(ped_file_t *ped_file) {
         }
     }
 }
+    
+    // Link children with their parents
+    family_t **families = (family_t**) cp_hashtable_get_values(ped_file->families);
+    int num_families = get_num_families(ped_file);
+    
+    for (int f = 0; f < num_families; f++) {
+        family_t *family = families[f];
+        for (int k = kh_begin(family->members); k < kh_end(family->members); k++) {
+            if (!kh_exist(family->members, k)) {
+                continue;
+            }
+
+            individual_t *individual = kh_value(family->members, k);
+            if (strcmp(individual->father_id, "0")) {
+                khiter_t iter = kh_get(family_members, family->members, individual->father_id);
+                if (iter != kh_end(family->members)) {
+                    individual_t *father = kh_value(family->members, iter);
+                    individual->father = father;
+                    individual_add_child(individual, father);
+                }
+            }
+            if (strcmp(individual->mother_id, "0")) {
+                khiter_t iter = kh_get(family_members, family->members, individual->mother_id);
+                if (iter != kh_end(family->members)) {
+                    individual_t *mother = kh_value(family->members, iter);
+                    individual->mother = mother;
+                    individual_add_child(individual, mother);
+                }
+            }
+        }
+    }
+    
     list_free_deep(ped_batches, NULL);
     
     return ret_code;
@@ -146,6 +183,8 @@ int ped_write(ped_file_t *ped_file, char *filename) {
 //-----------------------------------------------------
 
 int add_family(family_t* family, ped_file_t* ped_file) {
+    assert(family);
+    assert(ped_file);
     return cp_hashtable_put(ped_file->families, family->id, family) == NULL;
 }
 
@@ -154,10 +193,120 @@ int get_num_families(ped_file_t* ped_file) {
     return cp_hashtable_count(ped_file->families);
 }
 
+int ped_add_individual(individual_t *individual, ped_file_t *ped_file) {
+    assert(individual);
+    assert(ped_file);
+    int ret = 0;
+    // TODO Do not accept repeated entries
+    khiter_t iter = kh_put(family_members, ped_file->people, strdup(individual->id), &ret);
+    if (ret) {
+        kh_value(ped_file->people, iter) = individual;
+        return 0;
+    }
+    return 1;
+}
+
+int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
+    assert(record);
+    assert(ped_file);
+    
+    // Get family or, should it not exist yet, create it
+    family_t *family = cp_hashtable_get(ped_file->families, record->family_id);
+    if (family == NULL) {
+        family = family_new(strdup(record->family_id));
+        if (add_family(family, ped_file)) {
+            return ALREADY_EXISTING_FAMILY;
+        }
+    }
+    
+    LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", 
+                record->family_id, record->individual_id, record->father_id, record->mother_id);
+
+    // Create individual
+    enum Condition condition = get_condition_from_phenotype(record->phenotype, ped_file);
+    individual_t *individual = individual_new_ids_only(strdup(record->individual_id), record->var_index, record->sex, condition, 
+                                         strdup(record->father_id), strdup(record->mother_id), family);
+    
+    // Add individual to pedigree file
+    ped_add_individual(individual, ped_file);
+    
+    // If it is an ancestor with no sex defined, add to the list of unknown members in the family
+    if (!strcmp(record->father_id, "0") && !strcmp(record->mother_id, "0") && record->sex == UNKNOWN_SEX) {
+        return family_add_unknown(individual, family);
+    }
+    
+    // Otherwise, add as a normal member
+    return family_add_member(individual, family);
+}
+
+
+family_t **ped_flatten_families(ped_file_t *ped_file, int *num_families) {
+    khash_t(family) *hash_families = kh_init(family);
+    
+    family_t **families = (family_t**) cp_hashtable_get_values(ped_file->families);
+    for (int f = 0; f < get_num_families(ped_file); f++) {
+        family_t *family = families[f];
+        for (int k = kh_begin(family->members); k < kh_end(family->members); k++) {
+            if (!kh_exist(family->members, k)) { continue; }
+
+            individual_t *individual = kh_value(family->members, k);
+            if (individual->father && individual->mother) {
+                // Compose the key in the hashtable as "fatherid_motherid"
+                char *family_key = calloc(strlen(individual->father_id) + strlen(individual->mother_id) + 2, sizeof(char));
+                sprintf(family_key, "%s_%s", individual->father_id, individual->mother_id);
+                
+                // If the family has already been flattened, add the child as new member
+                // Otherwise, create the family and add both parents and child
+                khiter_t fam_iter = kh_get(family, hash_families, family_key);
+                family_t* flat_family = NULL;
+                
+                if (fam_iter != kh_end(hash_families)) {
+                    flat_family = kh_value(hash_families, fam_iter);
+                    family_add_member(individual, flat_family);
+                } else {
+                    // Configure family
+                    flat_family = family_new(individual->family->id);
+                    family_add_member(individual->father, flat_family);
+                    family_add_member(individual->mother, flat_family);
+                    family_add_member(individual, flat_family);
+                    
+                    // Add new family
+                    int ret = 0;
+                    khiter_t iter = kh_put(family, hash_families, family_key, &ret);
+                    if (ret) {
+                        kh_value(hash_families, iter) = flat_family;
+                    } else {
+                        free(flat_family); // Do not free members!
+                        LOG_ERROR_F("Could not process family with pair of founders '%s'\n", family_key);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Retrieve the families in an array
+    family_t **flat_families = malloc(kh_n_buckets(hash_families) * sizeof(family_t*));
+    int curr_family = 0;
+    for (int k = kh_begin(hash_families); k < kh_end(hash_families); k++) {
+        if (!kh_exist(hash_families, k)) { continue; }
+        flat_families[curr_family] = kh_value(hash_families, k);
+        curr_family++;
+    }
+    *num_families = curr_family;
+    
+    kh_destroy(family, hash_families);
+    
+    return flat_families;
+}
+
+
+//-----------------------------------------------------
+// phenotypes management
+//-----------------------------------------------------
 
 khash_t(str)* get_phenotypes(ped_file_t *ped_file){
-	assert(ped_file);
-	return ped_file->variables;
+    assert(ped_file);
+    return ped_file->variables;
 }
 
 int get_num_variables(ped_file_t* ped_file) {
@@ -208,110 +357,3 @@ int set_phenotype_group(char** ids, int n , ped_file_t *ped_file){
         return ped_file->num_variables;
     }
 }
-
-int add_ped_record(ped_record_t* record, ped_file_t *ped_file) {
-    assert(record);
-    assert(ped_file);
-    
-    int result = 0;
-    individual_t *father = NULL, *mother = NULL, *individual = NULL;
-    enum Condition condition = MISSING_CONDITION;
-    
-    // Get family or, should it not exist yet, create it
-    family_t *family = cp_hashtable_get(ped_file->families, record->family_id);
-    if (family == NULL) {
-        family = family_new(strdup(record->family_id));
-        if (add_family(family, ped_file)) {
-            return ALREADY_EXISTING_FAMILY;
-        }
-    }
-    
-    LOG_DEBUG_F("family id = %s\tindiv id = %s\tfather id = %s\tmother id = %s\n", record->family_id, record->individual_id, record->father_id, record->mother_id);
-
-    // If it is an ancestor with no sex defined, add to the list of unknown members
-    if (!record->father_id && !record->mother_id && record->sex == UNKNOWN_SEX) {
-        condition = get_condition_from_phenotype(record->phenotype, ped_file);
-        individual = individual_new(strdup(record->individual_id), record->var_index, record->sex, condition, NULL, NULL, family);
-        return family_add_unknown(individual, family);
-    }
-    
-    // Get parents from family or, should they not exist yet, create them
-    if (!family->father) {
-        // Non-existing father, set his ID from the record (if available)
-        if (record->father_id) {
-            LOG_DEBUG_F("Set family %s father\n", family->id);
-            father = individual_new(strdup(record->father_id), -9, MALE, MISSING_CONDITION, NULL, NULL, family);
-            family_set_parent(father, family);
-        }
-    
-    } else if (record->father_id && strcasecmp(family->father->id, record->father_id)) {
-        // Father already exists and IDs do not match, error!
-        return FATHER_APPEARS_MORE_THAN_ONCE;
-    
-    } else if (!strcasecmp(family->father->id, record->individual_id)) {
-        // The father was created while reading one of his children
-        // Should his status be 'missing', fill the phenotypical information
-        father = family->father;
-        LOG_DEBUG_F("Father already found, condition = %d\n", father->condition);
-        
-        // If the father struct members are missing, fill them
-        if (father->condition == MISSING_CONDITION) {
-            father->variable = record->var_index;
-            father->condition = get_condition_from_phenotype(record->phenotype, ped_file);
-            LOG_DEBUG_F("Father modified, condition = %d\n", father->condition);
-        }
-        return 0;   // Nothing more to do, he already belongs to the family
-        
-    } else if (record->father_id && !strcasecmp(family->father->id, record->father_id)) {
-        father = family->father;
-    }
-
-    if (!family->mother) {
-        // Non-existing mother, set his ID from the record (if available)
-        if (record->mother_id) {
-            LOG_DEBUG_F("Set family %s mother\n", family->id);
-            mother = individual_new(strdup(record->mother_id), -9, FEMALE, MISSING_CONDITION, NULL, NULL, family);
-            family_set_parent(mother, family);
-        }
-    
-    } else if (record->mother_id && strcasecmp(family->mother->id, record->mother_id)) {
-        // Mother already exists and IDs do not match, error!
-        return MOTHER_APPEARS_MORE_THAN_ONCE;
-    
-    } else if (!strcasecmp(family->mother->id, record->individual_id)) {
-        // The mother was created while reading one of his children
-        // Should his status be 'missing', fill the phenotypical information
-        mother = family->mother;
-        LOG_DEBUG_F("Mother already found, condition = %d\n", mother->condition);
-        
-        // If the mother struct members are missing, fill them
-        if (mother->condition == MISSING_CONDITION) {
-            mother->variable = record->var_index;
-            mother->condition = get_condition_from_phenotype(record->phenotype, ped_file);
-            LOG_DEBUG_F("Mother modified, condition = %d\n", mother->condition);
-        }
-        return 0;   // Nothing more to do, he already belongs to the family
-        
-    } else if (record->mother_id && !strcasecmp(family->mother->id, record->mother_id)) {
-        mother = family->mother;
-    }
-    
-    // Create individual with the information extracted from the PED record
-    condition = get_condition_from_phenotype(record->phenotype, ped_file);
-    individual = individual_new(strdup(record->individual_id), record->var_index, record->sex, condition, father, mother, family);
-    if (father || mother) {
-        LOG_DEBUG_F("** add family %s child (id %s)\n", family->id, individual->id);
-        family_add_child(individual, family);
-    } else {
-        LOG_DEBUG_F("** set family %s parent of sex %d (id %s)\n", family->id, individual->sex, individual->id);
-        result = family_set_parent(individual, family);
-        if (result == 1) {
-            result = FATHER_APPEARS_MORE_THAN_ONCE;
-        } else if (result == 2) {
-            result = MOTHER_APPEARS_MORE_THAN_ONCE;
-        }
-    }
-
-    return result;
-}
-

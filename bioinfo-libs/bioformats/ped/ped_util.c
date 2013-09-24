@@ -18,12 +18,14 @@ enum Condition get_condition_from_phenotype(int phenotype, ped_file_t *ped_file)
 }*/
 
 enum Condition get_condition_from_phenotype(char* phenotype, ped_file_t *ped_file) {
-    
-    if (!strcmp(phenotype,ped_file->unaffected)) {LOG_DEBUG_F("Phenotype %s is UNAFFECTED \n", phenotype);
+    if (!strcmp(phenotype, ped_file->unaffected)) {
+        LOG_DEBUG_F("Phenotype %s is UNAFFECTED \n", phenotype);
         return UNAFFECTED;
-    } else if (!strcmp(phenotype,ped_file->affected)) {LOG_DEBUG_F("Phenotype %s is AFFECTED\n", phenotype);
+    } else if (!strcmp(phenotype, ped_file->affected)) {
+        LOG_DEBUG_F("Phenotype %s is AFFECTED\n", phenotype);
         return AFFECTED;
-    } else {LOG_DEBUG_F("Phenotype %s is UNKNOWN\n", phenotype);
+    } else {
+        LOG_DEBUG_F("Phenotype %s is UNKNOWN\n", phenotype);
         return UNKNOWN_CONDITION;
     }
 }

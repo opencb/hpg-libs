@@ -28,23 +28,11 @@
 #include "ped_util.h"
 #include "ped_write.h"
 
-#define INIT_RECORD_SIZE    100
 
 
-//====================================================================================
-//  ped_file.h
-//
-//  ped_file_t structures and prototypes
-//====================================================================================
-
-
-//====================================================================================
-//  Function prototypes
-//====================================================================================
-
-/*
- * Physical file management
- */
+/* **************************************
+ *      Physical file management        *
+ * **************************************/
 
 /**
  * Open a file stream in a given file mode (r/w/a) and initialize the associated 
@@ -86,15 +74,35 @@ int ped_read_batches(list_t *batches_list, size_t batch_size, ped_file_t *ped_fi
  */
 int ped_write(ped_file_t *ped_file, char *filename);
 
-/*
- * Header and record entries management
- */
+
+
+/* **************************************
+ * Header and record entries management *
+ * **************************************/
 
 int add_family(family_t *family, ped_file_t *ped_file);
 
 int get_num_families(ped_file_t *ped_file);
 
+int ped_add_individual(individual_t *individual, ped_file_t *ped_file);
+
 int add_ped_record(ped_record_t* record, ped_file_t *ped_file);
+
+/**
+ * Given a collection of families read from a PED file and possibly with multiple generations,
+ * returns them transformed into single-generation combinations: father-mother-children 
+ * (like trios, quartets, and so on).
+ * 
+ * @param ped_file The file the families were read from
+ * @param num_families[inout] The number of families after reorganizing
+ * @return The families flattened into single generation ones
+ */
+family_t **ped_flatten_families(ped_file_t *ped_file, int *num_families);
+
+
+/* **************************************
+ *        Phenotypes management         *
+ * **************************************/
 
 khash_t(str)* get_phenotypes(ped_file_t *ped_file);
 
@@ -103,6 +111,7 @@ khash_t(str)* get_phenotypes(ped_file_t *ped_file);
  * Only affects to the "condition" in individual struct
  * */
 void set_unaffected_phenotype(const char* id, ped_file_t *ped_file);
+
 void set_affected_phenotype(const char* id, ped_file_t *ped_file);
 
 /**
@@ -111,6 +120,9 @@ void set_affected_phenotype(const char* id, ped_file_t *ped_file);
 void set_variable_field(const char* id, int num_field, ped_file_t *ped_file);
 
 int set_phenotype_group(char** ids, int n , ped_file_t *ped_file);
+
 khash_t(str)* get_phenotypes(ped_file_t *ped_file);
+
 int get_num_variables(ped_file_t* ped_file);
+
 #endif

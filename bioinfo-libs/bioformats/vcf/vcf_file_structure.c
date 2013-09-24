@@ -498,72 +498,22 @@ void add_vcf_record_sample(char* sample, int length, vcf_record_t* record) {
  * *******************/
 
 individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped) {
-    family_t *family;
-    family_t **families = (family_t**) cp_hashtable_get_values(ped->families);
-    int num_families = get_num_families(ped);
-
     individual_t **individuals = calloc (get_num_vcf_samples(vcf), sizeof(individual_t*));
     khash_t(ids) *positions = associate_samples_and_positions(vcf);
     int pos = 0;
 
-    for (int f = 0; f < num_families; f++) {
-        family = families[f];
-        individual_t *father = family->father;
-        individual_t *mother = family->mother;
+    for (int k = kh_begin(ped->people); k < kh_end(ped->people); k++) {
+        if (!kh_exist(ped->people, k)) { continue; }
 
-        if (father != NULL) {
-            pos = 0;
-            LOG_DEBUG_F("father ID = %s\n", father->id);
-            khiter_t iter = kh_get(ids, positions, father->id);
-            if (iter != kh_end(positions)) {
-                pos = kh_value(positions, iter);
-                individuals[pos] = father;
-            }
+        individual_t *individual = kh_value(ped->people, k);
+        khiter_t iter = kh_get(ids, positions, individual->id);
+        if (iter != kh_end(positions)) {
+            pos = kh_value(positions, iter);
+            individuals[pos] = individual;
         }
-
-        if (mother != NULL) {
-            pos = 0;
-            LOG_DEBUG_F("mother ID = %s\n", mother->id);
-            khiter_t iter = kh_get(ids, positions, mother->id);
-            if (iter != kh_end(positions)) {
-                pos = kh_value(positions, iter);
-                individuals[pos] = mother;
-            }
-        }
-
-        linked_list_iterator_t *iterator = linked_list_iterator_new(family->children);
-        individual_t *child = NULL;
-        while (child = linked_list_iterator_curr(iterator)) {
-            pos = 0;
-            LOG_DEBUG_F("child ID = %s\n", child->id);
-            khiter_t iter = kh_get(ids, positions, child->id);
-            if (iter != kh_end(positions)) {
-                pos = kh_value(positions, iter);
-                individuals[pos] = child;
-            }
-            linked_list_iterator_next(iterator);
-        }
-        linked_list_iterator_free(iterator);
-        
-        iterator = linked_list_iterator_new(family->unknown);
-        individual_t *unknown = NULL;
-        while (unknown = linked_list_iterator_curr(iterator)) {
-            pos = 0;
-            LOG_DEBUG_F("unknown ID = %s\n", unknown->id);
-            khiter_t iter = kh_get(ids, positions, unknown->id);
-            if (iter != kh_end(positions)) {
-                pos = kh_value(positions, iter);
-                individuals[pos] = unknown;
-            }
-            linked_list_iterator_next(iterator);
-        }
-        linked_list_iterator_free(iterator);
-        
-        assert(father || mother || linked_list_size(family->unknown) > 0);
     }
-
+    
     kh_destroy(ids, positions);
-    free(families);
 
     return individuals;
 }

@@ -94,15 +94,14 @@ void variant_stats_free(variant_stats_t* stats) {
     if (stats->alleles_freq) { free(stats->alleles_freq); }
     if (stats->genotypes_freq) { free(stats->genotypes_freq); }
     if (stats->pheno_stats) {
-		for(int i = 0; i < stats->num_phenotypes; i++)
-		{
-			    if (stats->pheno_stats[i].alleles_count)   { free(stats->pheno_stats[i].alleles_count); }
-				if (stats->pheno_stats[i].genotypes_count) { free(stats->pheno_stats[i].genotypes_count); }
-				if (stats->pheno_stats[i].alleles_freq)    { free(stats->pheno_stats[i].alleles_freq); }
-				if (stats->pheno_stats[i].genotypes_freq)  { free(stats->pheno_stats[i].genotypes_freq); }
-		}
-		 free(stats->pheno_stats); 
-	}
+        for(int i = 0; i < stats->num_phenotypes; i++) {
+            if (stats->pheno_stats[i].alleles_count)   { free(stats->pheno_stats[i].alleles_count); }
+            if (stats->pheno_stats[i].genotypes_count) { free(stats->pheno_stats[i].genotypes_count); }
+            if (stats->pheno_stats[i].alleles_freq)    { free(stats->pheno_stats[i].alleles_freq); }
+            if (stats->pheno_stats[i].genotypes_freq)  { free(stats->pheno_stats[i].genotypes_freq); }
+        }
+        free(stats->pheno_stats); 
+    }
     free(stats);
 }
 
