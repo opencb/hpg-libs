@@ -28,7 +28,7 @@ void write_ped_individual(individual_t* individual, FILE* fd) {
     assert(individual);
     assert(fd);
     
-    char *cond_str;
+    char *cond_str = NULL;
     switch(individual->condition) {
         case UNAFFECTED:
             cond_str = "1";
@@ -41,8 +41,22 @@ void write_ped_individual(individual_t* individual, FILE* fd) {
             break;
     }
     
-    fprintf(fd, "%s\t%s\t%s\t%s\t%d\t%s\n", individual->family->id, individual->id, 
-            individual->father_id, individual->mother_id, individual->sex, cond_str);
+    char *sex_str = NULL;
+    switch(individual->sex) {
+        case MALE:
+            sex_str = "1";
+            break;
+        case FEMALE:
+            sex_str = "2";
+            break;
+        default:
+            sex_str = "0";
+            break;
+    }
+    
+    
+    fprintf(fd, "%s\t%s\t%s\t%s\t%s\t%s\n", individual->family->id, individual->id, 
+            individual->father_id, individual->mother_id, sex_str, cond_str);
 
 }
 
