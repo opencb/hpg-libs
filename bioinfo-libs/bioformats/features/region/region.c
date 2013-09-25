@@ -78,7 +78,6 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
 
         free(s.data);
 
-        /* always cleanup */
         curl_easy_cleanup(curl);
         
         free(url);
@@ -172,27 +171,29 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
     //     printf("chr1 = %s\t", chromosome_1);
     //     printf("chr 2 = %s\t", chromosome_2);
     //     printf("num chr = %d\n", num_chromosomes);
-    int chr_1_found = 0, chr_2_found = 0;
     for (int i = 0; i < num_chromosomes; i++) {
-    assert(chromosome_ordering[i]);
-//         printf("* 0\n");
-    if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0) {
-//             printf("* 1\n");
-        if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
-//                 printf("* 2\n");
-            return 0;
+        assert(chromosome_ordering[i]);
+        if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0) {
+            // If the first chromosome is found first, then it is lower/equals to the second
+            if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
+                return 0;
+            }
+            return -1;
+        } else if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
+            // If the second chromosome is found first, then it is lower/equals to the first
+            return 1;
         }
-        return -1;
-    } else if (strcasecmp(chromosome_ordering[i], chromosome_2) == 0) {
-//             printf("* 4\n");
-        return 1;
-    }
     }
     return 0;
 }
 
 int compare_positions(size_t position_1, size_t position_2) {
-    return position_1 - position_2;
+    if (position_1 < position_2) {
+        return -1;
+    } else if (position_1 > position_2) {
+        return 1;
+    }
+    return 0;
 }
 
 int compare_position_ranges(region_t *region_1, region_t *region_2) {
@@ -219,5 +220,15 @@ int region_contains_other(region_t *container, region_t *content) {
         return -1;
     }
 
+    return 0;
+}
+
+int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes) {
+    for (int i = 0; i < num_chromosomes; i++) {
+        assert(chromosome_ordering[i]);
+        if (strcasecmp(chromosome_ordering[i], chromosome) == 0) {
+            return 1;
+        }
+    }
     return 0;
 }

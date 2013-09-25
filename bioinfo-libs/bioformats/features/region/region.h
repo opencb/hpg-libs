@@ -114,4 +114,18 @@ int compare_position_ranges(region_t *region_1, region_t *region_2);
  */
 int region_contains_other(region_t *container, region_t *content);
 
+/**
+ * Given a list of chromosomes of certain species, check whether the provided chromosome is valid.
+ * 
+ * @param chromosome
+ *      The chromosome to check
+ * @param chromosome_ordering
+ *      The list of a species chromosomes
+ * @param num_chromosomes
+ *      The number of species chromosomes
+ * @return 
+ *      Whether the chromosome is valid given a list of species chromosomes
+ */
+int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes);
+
 #endif
