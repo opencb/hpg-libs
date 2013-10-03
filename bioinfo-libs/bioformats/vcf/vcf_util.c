@@ -11,6 +11,7 @@ size_t count_regions(char *regions_string) {
     return ++num_regions;
 }
 
+
 char *get_field_value_in_info(const char *field, char *info) {
     assert(field);
     assert(info);
@@ -42,6 +43,80 @@ char *get_field_value_in_info(const char *field, char *info) {
     return value;
 }
 
+char *set_field_value_in_info(char *key, char *value, int append, char *info_in, int info_len) {
+    assert(info_in);
+    assert(key);
+    assert(value);
+    
+    char **splits_info, **splits_key;
+    char *aux_string, *key_string, *val_string;
+    char *copy_buf;
+    int num_splits, num_key_val;
+    int find = 0;
+
+    char *info = strndup(info_in, info_len);
+    if(strcmp(info, ".") == 0) {
+        copy_buf = (char*) calloc(strlen(key) + strlen(value) + 1 + 1, sizeof(char));
+        strcpy(copy_buf, key);
+        strcat(copy_buf, "=");
+        strcat(copy_buf, value);
+        
+        free(info);
+        return copy_buf;
+    } else {
+        splits_info = split(info, ";", &num_splits);
+        copy_buf = (char*) calloc(info_len + strlen(key) + strlen(value) + 1 + 1 + 1, sizeof(char));
+        
+        for (int i = 0; i < num_splits; i++) {
+            aux_string = strdup(splits_info[i]);
+            splits_key = split(aux_string, "=", &num_key_val);
+            key_string = strdup(splits_key[0]);
+            val_string = strdup(splits_key[1]);
+            
+            if (strcmp(key, key_string) == 0) {
+                strcat(copy_buf, key_string);
+                strcat(copy_buf, "=");
+                if (append) { strcat(copy_buf, val_string); }
+                
+                if (!strstr(val_string, value)) {
+                    if(append) { strcat(copy_buf, ","); }
+                    strcat(copy_buf, value);    
+                }
+                find = 1;
+            } else {
+                strcat(copy_buf, key_string);
+                strcat(copy_buf, "=");
+                strcat(copy_buf, val_string);
+            }
+            if (i < (num_splits - 1)) {
+                strcat(copy_buf, ";");
+            }
+
+            free(splits_key[0]);
+            free(splits_key[1]);
+            free(splits_key);
+            free(key_string);
+            free(val_string);
+            free(aux_string);
+        }
+        if (find == 0) {
+            strcat(copy_buf, ";");
+            strcat(copy_buf, key);
+            strcat(copy_buf, "=");
+            strcat(copy_buf, value);
+        }
+        
+        for (int i = 0; i < num_splits; i++) {
+            free(splits_info[i]);
+        }
+        free(splits_info);
+        
+        free(info);
+        return copy_buf;
+    }
+}
+
+
 int get_field_position_in_format(const char *field, char *format) {
     assert(field);
     assert(format);
@@ -57,6 +132,7 @@ int get_field_position_in_format(const char *field, char *format) {
     return (token == NULL) ? -1 : field_pos;
 }
 
+
 char *get_field_value_in_sample(char *sample, int position) {
     assert(sample);
     assert(position >= 0);
@@ -71,6 +147,35 @@ char *get_field_value_in_sample(char *sample, int position) {
     
     return token;
 }
+
+void set_field_value_in_sample(char **sample, int position, char* value) {
+    assert(sample);
+    assert(value);
+    assert(position >= 0);
+
+    int field_pos = 0;
+    int num_splits;
+
+    char **splits = split(*sample, ":", &num_splits);
+    *sample = realloc(*sample, (strlen(*sample) + strlen(value) + 1) * sizeof(char));
+    strcpy(*sample, "");
+    for (int i = 0; i < num_splits; i++) {
+        if (i == position) {
+            strcat(*sample, value);
+        } else {
+            strcat(*sample, splits[i]);
+        }
+
+        if (i < (num_splits - 1)) {
+            strcat(*sample, ":");
+        }
+    }
+    for (int i = 0; i < num_splits; i++) {
+        free(splits[i]);
+    }
+    free(splits);
+}
+
 
 enum alleles_code get_alleles(char* sample, int genotype_position, int* allele1, int* allele2) {
     assert(sample);
@@ -126,33 +231,5 @@ enum alleles_code get_alleles(char* sample, int genotype_position, int* allele1,
 //     LOG_DEBUG_F("allele2 = %s\n", allele);
     
     return ret_code;
-}
-
-void set_field_value_in_sample(char **sample, int position, char* value) {
-    assert(sample);
-    assert(value);
-    assert(position >= 0);
-
-    int field_pos = 0;
-    int num_splits;
-
-    char **splits = split(*sample, ":", &num_splits);
-    *sample = realloc(*sample, (strlen(*sample) + strlen(value) + 1) * sizeof(char));
-    strcpy(*sample, "");
-    for (int i = 0; i < num_splits; i++) {
-        if (i == position) {
-            strcat(*sample, value);
-        } else {
-            strcat(*sample, splits[i]);
-        }
-
-        if (i < (num_splits - 1)) {
-            strcat(*sample, ":");
-        }
-    }
-    for (int i = 0; i < num_splits; i++) {
-        free(splits[i]);
-    }
-    free(splits);
 }
 

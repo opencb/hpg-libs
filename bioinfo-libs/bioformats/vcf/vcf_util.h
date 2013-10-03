@@ -46,6 +46,7 @@ int mmap_vcf;
  **/
 size_t count_regions(char *regions_string);
 
+
 /**
  * @brief Given the acronym of a field of the INFO column, retrieves its value
  * @details The INFO column in a VCF file is composed of pairs (acronym, value). The structure is 
@@ -58,6 +59,9 @@ size_t count_regions(char *regions_string);
  **/
 char *get_field_value_in_info(const char *field, char *info);
 
+char *set_field_value_in_info(char *key, char *value, int append, char *info_in, int info_len);
+
+
 /**
  * @brief Given the acronym of a field in the FORMAT column, retrives its position
  * @details The FORMAT column in a VCF file is of the form acronym1:acronym2:...:acronymN. Given one 
@@ -69,6 +73,7 @@ char *get_field_value_in_info(const char *field, char *info);
  **/
 int get_field_position_in_format(const char *field, char *format);
 
+
 /**
  * @brief Retrieves the value of the i-th field of a sample
  * @details Retrieves the value of the i-th colon-separated field in a sample.
@@ -78,6 +83,9 @@ int get_field_position_in_format(const char *field, char *format);
  * @return The text of the value (must be cast by the user)
  **/
 char *get_field_value_in_sample(char *sample, int position);
+
+void set_field_value_in_sample(char **sample, int position, char* value);
+
 
 /**
  * @brief Given the value of a sample and the position of its genotype, returns the value of its alleles
@@ -96,7 +104,5 @@ char *get_field_value_in_sample(char *sample, int position);
  **/
 enum alleles_code get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
 
-
-void set_field_value_in_sample(char **sample, int position, char* value);
 
 #endif
