@@ -96,4 +96,7 @@ char *get_field_value_in_sample(char *sample, int position);
  **/
 enum alleles_code get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
 
+
+void set_field_value_in_sample(char **sample, int position, char* value);
+
 #endif
