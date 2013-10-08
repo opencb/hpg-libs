@@ -1,0 +1,12 @@
+
+*.o
+*.a
+*.test
+build/*
+*~
+*anjuta*
+*sonar*
+*kdev*
+math_utils.h.gch
+.sconsign.dblite
+old
