@@ -3,12 +3,20 @@ import os
 Import('debug', 'compiler')
 
 # Initialize environment
-env = Environment(CC = compiler, 
-                  CFLAGS = '-std=c99 -fopenmp -D_GNU_SOURCE ',
-                  CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '#', '.' ],
-                  LIBPATH = ['/usr/lib' ])
+if compiler == 'icc':
+    env = Environment(tools = [ 'default', 'intelc' ],
+                      CFLAGS = '-std=c99 -msse4.2 -openmp -D_GNU_SOURCE ',
+                      CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '#', '.' ],
+                      LIBPATH = ['/usr/lib' ],
+                      LIBS = [ 'irc' ])
+else:
+    env = Environment(tools = [ 'default' ],
+                      CFLAGS = '-std=c99 -fopenmp -D_GNU_SOURCE ',
+                      CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '#', '.' ],
+                      LIBPATH = ['/usr/lib' ])
 env.Decider('MD5-timestamp')
 
+# Debug mode
 if debug == 1:
     env['CFLAGS'] += ' -O0 -g'
 else:
