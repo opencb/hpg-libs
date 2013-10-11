@@ -34,6 +34,7 @@ else:
     cpropsenv['CFLAGS'] += '-O3'
 cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c'])
 
+
 # Compile commons/sqlite objects
 sqliteenv = Environment(CC = compiler,
                         CFLAGS = '-DHAVE_CONFIG_H -fPIC -DPIC ',
@@ -78,8 +79,26 @@ else:
     configenv['CFLAGS'] += '-O2 -g'
 config_obj = configenv.Object(Glob('commons/config/*.c'))
 
+
+# Compile commons/config objects
+janssonenv = Environment(CC = compiler,
+                        CFLAGS = '-DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC ',
+                        CPPPATH = ['#', 'commons/jansson/' ],
+                        LIBPATH = ['/usr/lib' ])
+
+janssonenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    janssonenv['CFLAGS'] += '-O0 -g'
+else:
+    janssonenv['CFLAGS'] += '-O2 -g'
+jansson_obj = janssonenv.Object(Glob('commons/jansson/*.c'))
+
+
+
 # Objects
-env.Library('common', commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj)
+env.Library('common', commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj)
 
 # Run tests
 containers_test = SConscript("containers/test/SConscript", exports = ['env', 'debug'] )
+

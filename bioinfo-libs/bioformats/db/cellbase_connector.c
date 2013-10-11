@@ -29,7 +29,7 @@ char *compose_cellbase_ws_request(const char *db_host_url, const char *db_versio
     
     // URL Constants
     const char *ws_root_url = "cellbase/rest/";
-    const char *ws_extra_params = "?header=false";
+    const char *ws_extra_params = "?header=false&of=json";
     
     // Length of URL parts
     const int host_url_len = strlen(db_host_url);
