@@ -907,7 +907,7 @@ static char *gene_ws_geturl(const char *host_url, const char *species, const cha
     // Full URL: ws.bioinfo.cipf.es/cellbase/rest/latest/hsa/feature/gene/<gene_name>/info?header=false
     const char *ws_root_url = "cellbase/rest/";
     const char *ws_name_url = "feature/gene/";
-    const char *ws_info = "info?header=false";
+    const char *ws_info = "info?header=false&of=json";
     
     // Length of URL parts
     const int host_url_len = strlen(host_url);
@@ -979,42 +979,44 @@ static size_t gene_ws_get_output (char *contents, size_t size, size_t nmemb, voi
 }
 
 static char* gene_ws_output_to_regions(char *buffer) {
-    int num_substrings;
-    int len = 64, curr_len = 0;
-    char *dup = strdup(buffer);
-    char *regions = (char*) calloc (len, sizeof(char));
-    char **contents_split = split(dup, "\n\t", &num_substrings);
+    json_error_t error;
+    json_t *root = json_loadb(buffer, strlen(buffer), 0, &error);
+    
+    if (!root) {
+        LOG_WARN_F("Non-valid response from genes web service: '%s'\n", error.text);
+        json_decref(root);
+        return NULL;
+    }
+    if(!json_is_array(root)) {
+        LOG_WARN("Non-valid response from genes web service: Data is not a JSON array\n");
+        json_decref(root);
+        return NULL;
+    }
+    
+    char *regions = (char*) calloc (strlen(buffer), sizeof(char));
+    size_t curr_len = 0;
+    
+    for(int i = 0; i < json_array_size(root); i++) {
+        json_t *data, *subdata, *chromosome, *start, *end;
+        char *chromosome_str, *start_str, *end_str;
+        long start_value, end_value;
 
-    // Get fields 5-7 (chr:start-end) from each line
-    // They are separated by 11 fields
-    for (int i = 5; i < num_substrings; i += 11) {
-        curr_len += strlen(contents_split[i]) + strlen(contents_split[i+1]) + strlen(contents_split[i+2]) + 4; // Extra for : - , and blank
-
-        if (curr_len > len) {
-            char *aux_values = (char*) realloc (regions, curr_len);
-            if (aux_values) {
-                free(regions);
-                regions = aux_values;
-            } else {
-                LOG_FATAL("Error while allocating memory for genes position\n");
-            }
-        }
-
-        strcat(regions, contents_split[i]);
-        strncat(regions, ":", 1);
-
-        strcat(regions, contents_split[i+1]);
-        strncat(regions, "-", 1);
-
-        strcat(regions, contents_split[i+2]);
-
-        if (i+11 < num_substrings) {
-            strncat(regions, ",", 1);
+        data = json_array_get(root, i);
+        for(int j = 0; j < json_array_size(data); j++) {
+            subdata = json_array_get(data, j);
+            
+            chromosome = json_object_get(subdata, "chromosome");
+            chromosome_str = json_string_value(chromosome);
+            start = json_object_get(subdata, "start");
+            start_value = json_integer_value(start);
+            end = json_object_get(subdata, "end");
+            end_value = json_integer_value(end);
+            
+            sprintf(regions + curr_len, "%s:%ld-%ld,", chromosome_str, start_value, end_value);
+            curr_len = strlen(regions);
         }
     }
-
-    free(dup);
-    free(contents_split);
-
+    
+    regions[strlen(regions) - 2] = '\0'; // Remove last comma
     return regions;
 }
