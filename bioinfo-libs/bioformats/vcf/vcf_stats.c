@@ -608,8 +608,6 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
                 continue;
             }
             
-            assert(individuals[j]);
-            
             // Check mendelian errors
             if (individuals && sample_ids && alleles_code == ALLELES_OK &&
                     is_mendelian_error(individuals[j]->father, individuals[j]->mother, individuals[j], 
