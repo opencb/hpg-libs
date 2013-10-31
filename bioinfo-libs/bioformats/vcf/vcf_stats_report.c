@@ -201,7 +201,7 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
     variant_stats_t *var_stats;
     for (int i = 0; i < num_variants; i++) {
         var_stats = stats_batch[i];
-        vcf_query_fields_t *f = vcf_query_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, 
+        vcf_query_fields_t *f = vcf_query_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, var_stats->alt_alleles,
                                                      var_stats->maf_allele, var_stats->maf, var_stats->mgf_genotype, var_stats->mgf, 
                                                      var_stats->missing_alleles, var_stats->missing_genotypes,
                                                      var_stats->mendelian_errors, var_stats->is_indel,

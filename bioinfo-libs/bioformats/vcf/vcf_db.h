@@ -9,17 +9,15 @@
 #include <commons/sqlite/sqlite3.h>
 #include <containers/array_list.h>
 
-//------------------------------------------------------------------------
 
 #define VCF_CHUNKSIZE 2000
-
-//------------------------------------------------------------------------
 
 typedef struct vcf_query_fields {
     char *chromosome;
     unsigned long position;
     
     char *allele_ref;                   /**< Reference allele of the variant. */
+    char *allele_alt;                   /**< Alternative allele(s) of the variant. */
     char *allele_maf;                   /**< Allele with MAF of the variant. */
     char *genotype_maf;                 /**< Genotype with MAF of the variant. */
     
@@ -37,25 +35,21 @@ typedef struct vcf_query_fields {
     float controls_percent_recessive;   /**< Percentage of controls that follow a recessive inheritance pattern */
 } vcf_query_fields_t;
 
-//------------------------------------------------------------------------
 
-vcf_query_fields_t *vcf_query_fields_new(char *chr, unsigned long position, char *allele_ref, char *allele_maf, float allele_maf_freq, 
-                                         char *genotype_maf, float genotype_maf_freq, int missing_alleles, int missing_genotypes,
-                                         int mendelian_errors, int is_indel, float cases_percent_dominant, float controls_percent_dominant,
+vcf_query_fields_t *vcf_query_fields_new(char *chr, unsigned long position, char *allele_ref, char *allele_alt, 
+                                         char *allele_maf, float allele_maf_freq, char *genotype_maf, float genotype_maf_freq, 
+                                         int missing_alleles, int missing_genotypes, int mendelian_errors, int is_indel, 
+                                         float cases_percent_dominant, float controls_percent_dominant,
                                          float cases_percent_recessive, float controls_percent_recessive);
 
 void vcf_query_fields_free(vcf_query_fields_t *p);
 
 void print_vcf_query_fields(vcf_query_fields_t *p);
 
-//------------------------------------------------------------------------
-// 
-//------------------------------------------------------------------------
 
-int create_vcf_query_fields(sqlite3 *db);
-int create_vcf_index(sqlite3 *db);
+int pre_variant_stats_db(sqlite3 *db);
+int post_variant_stats_db(sqlite3 *db);
 
-//------------------------------------------------------------------------
 
 int insert_vcf_query_fields(void *custom_fields, sqlite3 *db);
 
@@ -63,11 +57,6 @@ int insert_vcf_query_fields_list(array_list_t *list, sqlite3 *db);
 
 int prepare_statement_vcf_query_fields(sqlite3 *db, sqlite3_stmt **stmt);
 
-int insert_statement_vcf_query_fields(void *custom_fields, 
-				      sqlite3_stmt *stmt, sqlite3 *db);
-
-
-//------------------------------------------------------------------------
-//------------------------------------------------------------------------
+int insert_statement_vcf_query_fields(void *custom_fields, sqlite3_stmt *stmt, sqlite3 *db);
 
 #endif // end of VCF_DB_H

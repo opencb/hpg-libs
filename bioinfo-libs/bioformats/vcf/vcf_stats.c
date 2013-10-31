@@ -40,7 +40,7 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
  *     Per variant statistics   *
  * ******************************/
  
-variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, int num_phenotypes) {
+variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, char *alt_alleles, int num_phenotypes) {
     assert(chromosome);
     assert(ref_allele);
     
@@ -48,6 +48,7 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->chromosome = chromosome;
     stats->position = position;
     stats->ref_allele = ref_allele;
+    stats->alt_alleles = alt_alleles;
     stats->alternates = NULL;
     stats->maf_allele = NULL;
     stats->mgf_genotype = NULL;
@@ -157,6 +158,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
                                   strndup(record->reference, record->reference_len),
+                                  strndup(record->alternate, record->alternate_len),
                                   num_variables);
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
