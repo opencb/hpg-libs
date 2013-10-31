@@ -201,7 +201,7 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
     variant_stats_t *var_stats;
     for (int i = 0; i < num_variants; i++) {
         var_stats = stats_batch[i];
-        vcf_query_fields_t *f = vcf_query_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, var_stats->alt_alleles,
+        variant_stats_db_fields_t *f = variant_stats_db_fields_new(var_stats->chromosome, var_stats->position, var_stats->ref_allele, var_stats->alt_alleles,
                                                      var_stats->maf_allele, var_stats->maf, var_stats->mgf_genotype, var_stats->mgf, 
                                                      var_stats->missing_alleles, var_stats->missing_genotypes,
                                                      var_stats->mendelian_errors, var_stats->is_indel,
@@ -211,9 +211,9 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
         array_list_insert(f, fields);
     }
     
-    insert_vcf_query_fields_list(fields, db);
+    insert_variant_stats_db_fields_list(fields, db);
     
-    array_list_free(fields, vcf_query_fields_free);
+    array_list_free(fields, variant_stats_db_fields_free);
 }
 
 
@@ -257,11 +257,33 @@ char *get_sample_stats_output_filename(char *prefix) {
     return stats_filename;
 }
 
+static void report_vcf_sample_stats_sqlite3(sqlite3 *db, size_t num_samples, sample_stats_t **stats) {
+    array_list_t *fields = array_list_new(num_samples + 1, 1.1, COLLECTION_MODE_ASYNCHRONIZED);
+    
+    sample_stats_t *sam_stats;
+    for (int i = 0; i < num_samples; i++) {
+        sam_stats = stats[i];
+        sample_stats_db_fields_t *f = sample_stats_db_fields_new(sam_stats->name, 
+                sam_stats->missing_genotypes, sam_stats->mendelian_errors);
+        
+        array_list_insert(f, fields);
+    }
+    
+    insert_sample_stats_db_fields_list(fields, db);
+    
+    array_list_free(fields, sample_stats_db_fields_free);
+}
+
 void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {
     sample_stats_t *sam_stats;
     for (int i = 0; i < num_samples; i++) {
         sam_stats = stats[i];
         fprintf(stats_fd, "%s\t\t%zu\t\t%zu\n", sam_stats->name, sam_stats->missing_genotypes, sam_stats->mendelian_errors);
+    }
+    
+    // Write to database (optional)
+    if (db) {
+        report_vcf_sample_stats_sqlite3((sqlite3 *) db, num_samples, stats);
     }
 }
 
