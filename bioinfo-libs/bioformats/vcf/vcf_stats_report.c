@@ -263,7 +263,7 @@ static void report_vcf_sample_stats_sqlite3(sqlite3 *db, size_t num_samples, sam
     sample_stats_t *sam_stats;
     for (int i = 0; i < num_samples; i++) {
         sam_stats = stats[i];
-        sample_stats_db_fields_t *f = sample_stats_db_fields_new(sam_stats->name, 
+        sample_stats_db_fields_t *f = sample_stats_db_fields_new(strdup(sam_stats->name), 
                 sam_stats->missing_genotypes, sam_stats->mendelian_errors);
         
         array_list_insert(f, fields);
