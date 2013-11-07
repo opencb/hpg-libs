@@ -1,6 +1,6 @@
 Import('debug')
 
-env = Environment(CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
+env = Environment(CFLAGS = '-std=c99 -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -Wuninitialized -Wmissing-braces ',
                   LIBS = ['gsl'], 
                   CPPPATH = [ '.', 'data' ])
 

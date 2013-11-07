@@ -2,7 +2,7 @@ Import('debug', 'compiler')
 
 # Initialize environment
 env = Environment(CC = compiler,
-                  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 ',
+                  CFLAGS = '-std=c99 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 -Wuninitialized -Wmissing-braces ',
                   CPPPATH = ['#', '/usr/include/libxml2', '.' ],
                   LIBPATH = ['/usr/lib' ])
 
