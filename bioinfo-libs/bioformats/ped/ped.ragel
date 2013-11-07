@@ -168,7 +168,7 @@ static ped_batch_t *current_batch;
 
     number      = (digit)+ ("." (digit)+)? ;    # Integer or floating-point number
     bases       = ("A" | "C" | "G" | "T" | "N")+ ;
-    identifier  = (alnum | " ")+ ;
+    identifier  = (alnum | " " | "_" | "-" )+ ;
 
     # Records
     record_family   = (alnum | (punct - '#')) (alnum | punct)* ;

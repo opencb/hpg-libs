@@ -83,6 +83,7 @@ void variant_stats_free(variant_stats_t* stats) {
     
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
+    if (stats->alt_alleles) { free(stats->alt_alleles); }
     if (stats->mgf_genotype) { free(stats->mgf_genotype); }
     if (stats->alternates) {
         for (int i = 0; i < stats->num_alleles-1; i++) {

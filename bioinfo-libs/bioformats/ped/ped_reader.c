@@ -307,8 +307,10 @@ st10:
 		goto _test_eof10;
 case 10:
 #line 310 "ped_reader.c"
-	if ( (*p) == 32 )
-		goto tr20;
+	switch( (*p) ) {
+		case 32: goto tr20;
+		case 95: goto tr20;
+	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr20;
@@ -341,11 +343,12 @@ st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-#line 345 "ped_reader.c"
+#line 347 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr39;
 		case 10: goto tr40;
 		case 32: goto tr42;
+		case 95: goto st23;
 	}
 	if ( (*p) < 48 ) {
 		if ( 11 <= (*p) && (*p) <= 13 )
@@ -386,7 +389,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 390 "ped_reader.c"
+#line 393 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto st24;
 		case 10: goto tr46;
@@ -492,7 +495,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 496 "ped_reader.c"
+#line 499 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr46;
 		case 32: goto st26;
@@ -533,7 +536,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 537 "ped_reader.c"
+#line 540 "ped_reader.c"
 	switch( (*p) ) {
 		case 10: goto tr46;
 		case 32: goto st26;
@@ -561,7 +564,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 565 "ped_reader.c"
+#line 568 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr49;
 		case 10: goto tr50;
@@ -583,7 +586,7 @@ st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-#line 587 "ped_reader.c"
+#line 590 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr18;
 		case 46: goto st12;
@@ -617,7 +620,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 621 "ped_reader.c"
+#line 624 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr14;
 		case 95: goto st14;
@@ -641,7 +644,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 645 "ped_reader.c"
+#line 648 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr10;
 		case 95: goto st15;
@@ -662,6 +665,7 @@ case 16:
 	switch( (*p) ) {
 		case 9: goto st17;
 		case 32: goto tr28;
+		case 95: goto tr29;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
@@ -676,8 +680,10 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-	if ( (*p) == 32 )
-		goto tr29;
+	switch( (*p) ) {
+		case 32: goto tr29;
+		case 95: goto tr29;
+	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr29;
@@ -697,11 +703,12 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 701 "ped_reader.c"
+#line 707 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr30;
 		case 10: goto tr31;
 		case 32: goto st18;
+		case 95: goto st18;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
@@ -727,11 +734,12 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 731 "ped_reader.c"
+#line 738 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto st19;
 		case 10: goto st28;
 		case 32: goto tr29;
+		case 95: goto tr29;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
@@ -757,7 +765,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 761 "ped_reader.c"
+#line 769 "ped_reader.c"
 	if ( (*p) == 10 )
 		goto st22;
 	if ( (*p) > 34 ) {
@@ -776,11 +784,12 @@ st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 780 "ped_reader.c"
+#line 788 "ped_reader.c"
 	switch( (*p) ) {
 		case 9: goto tr30;
 		case 10: goto tr31;
 		case 32: goto tr29;
+		case 95: goto tr29;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
@@ -960,7 +969,7 @@ case 20:
         current_record = NULL;
     }
 	break;
-#line 964 "ped_reader.c"
+#line 973 "ped_reader.c"
 	}
 	}
 
@@ -979,7 +988,7 @@ case 20:
     }
 
     if ( cs < 
-#line 983 "ped_reader.c"
+#line 992 "ped_reader.c"
 21
 #line 231 "ped.ragel"
  ) 
@@ -987,7 +996,7 @@ case 20:
         LOG_ERROR("The file was not successfully read\n");
         LOG_INFO_F("Last state is %d, but %d was expected\n", 
                 cs, 
-#line 991 "ped_reader.c"
+#line 1000 "ped_reader.c"
 21
 #line 235 "ped.ragel"
 );
@@ -996,7 +1005,7 @@ case 20:
     LOG_INFO_F("PED records read = %zu\n", num_records);
 
     return cs < 
-#line 1000 "ped_reader.c"
+#line 1009 "ped_reader.c"
 21
 #line 240 "ped.ragel"
 ;
