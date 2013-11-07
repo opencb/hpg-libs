@@ -182,7 +182,7 @@ enum alleles_code get_alleles(char* sample, int genotype_position, int* allele1,
     assert(allele1);
     assert(allele2);
     
-    char *aux_buffer, *allele, *genotype;
+    char *aux_buffer, *allele, *genotype = NULL;
     enum alleles_code ret_code = ALLELES_OK;
     int cur_pos = -1;
     
