@@ -120,7 +120,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     
     char *copy_buf = NULL, *sample;
     
-    int num_alternates, gt_position, curr_position;
+    int num_alternates, gt_position, curr_position = 0;
     int allele1, allele2, alleles_code;
     
     // Temporary variables for file stats updating
