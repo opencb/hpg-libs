@@ -93,7 +93,7 @@ config_obj = configenv.Object(Glob('commons/config/*.c'))
 
 
 # Compile commons/config objects
-janssonenv = Environment(CC = compiler,
+janssonenv = Environment(tools = build_tools,
                         CFLAGS = '-DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC ',
                         CPPPATH = ['#', 'commons/jansson/' ],
                         LIBPATH = ['/usr/lib' ])
