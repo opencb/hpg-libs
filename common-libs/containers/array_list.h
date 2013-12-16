@@ -51,13 +51,13 @@ typedef struct array_list {
  * array_list functions
  */
 
+array_list_t* array_list_dup(array_list_t *array_list_p);
+
 array_list_t* array_list_new(size_t initial_capacity, float realloc_factor, int SYNC_MODE);
 
 //void array_list_init(size_t initial_capacity, float realloc_factor, int SYNC_MODE, array_list_t* array_list_p);
 
 void array_list_free(array_list_t* list_p, void (*data_callback) (void* data));
-
-
 
 size_t array_list_capacity(array_list_t *array_list_p);
 

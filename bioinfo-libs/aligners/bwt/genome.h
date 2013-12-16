@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "commons/log.h"
 #include "containers/cprops/hashtable.h"
