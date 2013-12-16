@@ -182,7 +182,7 @@ enum alleles_code get_alleles(char* sample, int genotype_position, int* allele1,
     assert(allele1);
     assert(allele2);
     
-    char *aux_buffer, *allele, *genotype;
+    char *aux_buffer, *allele, *genotype = NULL;
     enum alleles_code ret_code = ALLELES_OK;
     int cur_pos = -1;
     
@@ -200,6 +200,13 @@ enum alleles_code get_alleles(char* sample, int genotype_position, int* allele1,
         genotype = strtok_r(sample, ":", &aux_buffer);
         sample = NULL;
         cur_pos++;
+    }
+    
+    if (genotype == NULL) {     // calling strtok with NULL would not mean what we want
+        *allele1 = -1;
+        *allele2 = -1;
+        ret_code = ALL_ALLELES_MISSING;
+        return ret_code;    //if genotype is NULL, the previous while() was skipped, and we don't have the string with the alleles
     }
     
 //     LOG_DEBUG_F("genotype = %s\n", genotype);

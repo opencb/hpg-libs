@@ -9,13 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <bioformats/db/cellbase_connector.h>
+#include <bioformats/features/region/region_table_utils.h>
+#include <commons/jansson/jansson.h>
 #include <commons/log.h>
-
 #include <containers/array_list.h>
 #include <containers/list.h>
 #include <containers/cprops/heap.h>
-
-#include <bioformats/features/region/region_table_utils.h>
 
 #include "vcf_file_structure.h"
 #include "vcf_stats.h"

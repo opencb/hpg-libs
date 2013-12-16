@@ -40,7 +40,7 @@ void update_file_stats(int variants_count, int samples_count, int snps_count, in
  *     Per variant statistics   *
  * ******************************/
  
-variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, int num_phenotypes) {
+variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, char *alt_alleles, int num_phenotypes) {
     assert(chromosome);
     assert(ref_allele);
     
@@ -48,6 +48,7 @@ variant_stats_t* variant_stats_new(char *chromosome, unsigned long position, cha
     stats->chromosome = chromosome;
     stats->position = position;
     stats->ref_allele = ref_allele;
+    stats->alt_alleles = alt_alleles;
     stats->alternates = NULL;
     stats->maf_allele = NULL;
     stats->mgf_genotype = NULL;
@@ -82,6 +83,7 @@ void variant_stats_free(variant_stats_t* stats) {
     
     if (stats->chromosome) { free(stats->chromosome); }
     if (stats->ref_allele) { free(stats->ref_allele); }
+    if (stats->alt_alleles) { free(stats->alt_alleles); }
     if (stats->mgf_genotype) { free(stats->mgf_genotype); }
     if (stats->alternates) {
         for (int i = 0; i < stats->num_alleles-1; i++) {
@@ -118,7 +120,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
     
     char *copy_buf = NULL, *sample;
     
-    int num_alternates, gt_position, curr_position;
+    int num_alternates, gt_position, curr_position = 0;
     int allele1, allele2, alleles_code;
     
     // Temporary variables for file stats updating
@@ -157,6 +159,7 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         stats = variant_stats_new(strndup(record->chromosome, record->chromosome_len), 
                                   record->position, 
                                   strndup(record->reference, record->reference_len),
+                                  strndup(record->alternate, record->alternate_len),
                                   num_variables);
         // Reset counters
         total_alleles_count = total_genotypes_count = 0;
@@ -605,8 +608,6 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
                 (sample_stats[j]->missing_genotypes)++;
                 continue;
             }
-            
-            assert(individuals[j]);
             
             // Check mendelian errors
             if (individuals && sample_ids && alleles_code == ALLELES_OK &&

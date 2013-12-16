@@ -1,6 +1,5 @@
 Import('debug', 'compiler')
 
-
 if compiler == 'icc':
    env = Environment(tools = [ 'default', 'intelc' ],
                      CFLAGS = '-std=c99 -openmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE',

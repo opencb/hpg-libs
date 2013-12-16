@@ -98,6 +98,7 @@ typedef struct variant_stats {
     unsigned long position;     /**< Position of the variant. */
     
     char *ref_allele;           /**< Reference allele of the variant. */
+    char *alt_alleles;          /**< Alternates alleles of the variant (all joined). */
     char **alternates;          /**< List of alternate alleles of the variant. */
     char *maf_allele;           /**< Allele with MAF. */
     char *mgf_genotype;         /**< Genotype with MGF. */
@@ -170,10 +171,11 @@ void file_stats_free(file_stats_t *stats);
  * @param chromosome Chromosome of the variant in the genome
  * @param position Position of the variant in the chromosome
  * @param ref_allele Reference allele
+ * @param alt_alleles Alternative alleles
  * @param num_phenotypes Number of different phenotypes
  * @return A new variant_stats_t structure
  */
-variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, int num_phenotypes);
+variant_stats_t *variant_stats_new(char *chromosome, unsigned long position, char *ref_allele, char *alt_alleles, int num_phenotypes);
 
 /**
  * @brief Deallocates memory associated to a variant_stats_t structure

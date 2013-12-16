@@ -55,7 +55,13 @@ void print_item(void *item);
 
 linked_list_iterator_t* linked_list_iterator_new(linked_list_t *linked_list_p);
 
+linked_list_iterator_t* linked_list_iterator_new_by_item(linked_list_t *linked_list_p, linked_list_item_t *item);
+
 linked_list_iterator_t* linked_list_iterator_init(linked_list_t *linked_list_p, linked_list_iterator_t *iterator_p);
+
+linked_list_iterator_t* linked_list_iterator_init_by_item(linked_list_t *linked_list_p, 
+							  linked_list_item_t *item,
+							  linked_list_iterator_t *iterator_p);
 
 void linked_list_iterator_free(linked_list_iterator_t *iterator_p);
 
@@ -74,6 +80,8 @@ void* linked_list_iterator_first(linked_list_iterator_t *iterator_p);
 int linked_list_iterator_insert(void *item, linked_list_iterator_t *iterator_p);
 
 void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p);
+
+linked_list_item_t* linked_list_iterator_remove_2(linked_list_iterator_t *iterator_p);
 
 /*****************************************************************/
 

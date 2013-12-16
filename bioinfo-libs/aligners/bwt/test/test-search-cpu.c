@@ -18,13 +18,14 @@ int main(int argc, char *argv[]) {
   int end_seed = atoi(argv[5]);
 
   // initializations
-  initReplaceTable();
+  //  initReplaceTable();
 
   size_t len = strlen(seq);
 
-  bwt_optarg_t *bwt_optarg = bwt_optarg_new(num_errors, 1, 100000, 1, 0, 0);
+  bwt_optarg_t *bwt_optarg = bwt_optarg_new(num_errors, 0, 500, 500);
   bwt_index_t *bwt_index = bwt_index_new(index_dirname);
 
+  /*
   // seed
   {
     array_list_t *mapping_list = array_list_new(100000, 1.25f, 
@@ -45,24 +46,20 @@ int main(int argc, char *argv[]) {
 	     region->chromosome_id, region->strand, region->start, region->end);
     }
   }
-
+  */
 
 
   // seq
   {
-    char aux[len + 1];
-    memset(aux, 0, len + 1);
-    memcpy(aux, seq + start_seed, end_seed - start_seed + 1);
-
     alignment_t *alig;
     array_list_t *mapping_list = array_list_new(100000, 1.25f, 
 						COLLECTION_MODE_SYNCHRONIZED);
     
     size_t num_mappings;
     
-    num_mappings = bwt_map_seq(aux, bwt_optarg, 
-			       bwt_index, mapping_list);
-    printf("aux seq: %s\n", aux);
+    num_mappings = bwt_map_forward_inexact_seq(seq, bwt_optarg, 
+					       bwt_index, mapping_list);
+    printf("aux seq: %s\n", seq);
     printf("num_mappings = %lu\n", num_mappings);
     for (size_t i = 0; i < num_mappings; i++) {
       alig = array_list_get(i, mapping_list);
@@ -71,7 +68,6 @@ int main(int argc, char *argv[]) {
 	     alig->seq_strand, alig->chromosome, alig->position);
     }
   }
-
 
   printf("Done.\n");
 

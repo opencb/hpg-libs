@@ -36,14 +36,34 @@ array_list_t* array_list_new(size_t initial_capacity, float realloc_factor, int 
 	array_list_p->realloc_factor = realloc_factor;
 	array_list_p->mode = SYNC_MODE;
 	array_list_p->compare_fn = compare_items;
-
+	array_list_p->flag = 0;
 	array_list_p->items = (void**) malloc(initial_capacity * sizeof(void*));
-
-//	array_list_init(10, 1.5, COLLECTION_MODE_SYNCHRONIZED, array_list_p);
 
 	pthread_mutex_init(&(array_list_p->lock), NULL);
 
 	return array_list_p;
+}
+
+array_list_t* array_list_dup(array_list_t *array_list_p) {
+        array_list_t* new_list = NULL;
+
+        if(array_list_p != NULL) {
+	  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	      pthread_mutex_lock(&array_list_p->lock);
+	  }
+
+	  new_list = array_list_new(array_list_p->size, array_list_p->realloc_factor, array_list_p->mode);
+	  for (size_t i = 0; i < array_list_p->size; i++) {
+	    array_list_insert(array_list_get(i, array_list_p), new_list);
+	  }
+
+	  if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	    pthread_mutex_unlock(&array_list_p->lock);
+	  }
+
+	}
+
+	return new_list;
 }
 
 //void array_list_init(size_t initial_capacity, float realloc_factor, int SYNC_MODE, array_list_t *array_list_p) {
@@ -61,10 +81,12 @@ array_list_t* array_list_new(size_t initial_capacity, float realloc_factor, int 
 int array_list_clear(array_list_t *array_list_p,  void (*data_callback) (void* data)) {
 	if(array_list_p != NULL) {
 		// Free c
-		for(size_t i=0; i < array_list_p->size; i++) {
-			if(data_callback != NULL && array_list_p->items != NULL && array_list_p->items[i] != NULL) {
-				data_callback(array_list_p->items[i]);
-			}
+	        if (data_callback != NULL) {
+		        for(size_t i=0; i < array_list_p->size; i++) {
+			        if(array_list_p->items != NULL && array_list_p->items[i] != NULL) {
+				        data_callback(array_list_p->items[i]);
+			        }
+		         }
 		}
 		// Set default parameters
 		array_list_p->size = 0;
@@ -188,7 +210,7 @@ int array_list_insert_at(size_t index, void *item_p, array_list_t *array_list_p)
 				array_list_p->items[i] = array_list_p->items[i-1];
 			}
 			array_list_p->items[index] = item_p;
-            array_list_p->size++;
+			array_list_p->size++;
 
 			if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 				pthread_mutex_unlock(&array_list_p->lock);
@@ -281,7 +303,7 @@ void* array_list_remove_at(size_t index, array_list_t *array_list_p) {
 		}
 
 		void *aux = array_list_p->items[index];
-		for(size_t i=index; i<array_list_p->size; i++) {
+		for(size_t i=index; i<array_list_p->size - 1; i++) {
 			array_list_p->items[i] = array_list_p->items[i+1];
 		}
 
@@ -303,7 +325,7 @@ void** array_list_remove_range(size_t start, size_t end, array_list_t *array_lis
 
 void* array_list_get(size_t index, array_list_t *array_list_p) {
 	void *item_p;
-	if(array_list_p != NULL && index >= 0 && index <= array_list_p->size) {
+	if(array_list_p != NULL && index >= 0 && index < array_list_p->size) {
 	    if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 		    pthread_mutex_lock(&array_list_p->lock);
 	    }
@@ -364,7 +386,7 @@ array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
 		array_list_p->items = items_aux;
 		array_list_p->capacity = new_capacity;
 	}else {
-		LOG_ERROR("Error in reallocate\n");
+		LOG_ERROR("Error in reallocate");
 	}
 	return array_list_p;
 }

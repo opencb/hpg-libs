@@ -40,7 +40,7 @@ int create_stats_db(const char *db_name, int chunksize,
   rc = exec_sql(sql, *db);
 
   // create global stats table and index, and insert the chunksize
-  sprintf(sql, "CREATE TABLE global_stats (name TEXT PRIMARY KEY, title TEXT, value TEXT)");
+  sprintf(sql, "CREATE TABLE IF NOT EXISTS global_stats (name TEXT PRIMARY KEY, title TEXT, value TEXT)");
   rc = exec_sql(sql, *db);
 
 
@@ -49,7 +49,7 @@ int create_stats_db(const char *db_name, int chunksize,
   rc = insert_global_stats("CHR_PREFIX", "Chromosome prefix", "", *db);
 
   // create chunks table
-  sprintf(sql, "CREATE TABLE chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
+  sprintf(sql, "CREATE TABLE IF NOT EXISTS chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
   rc = exec_sql(sql, *db);
 
   // create record_query_fields table for bam, vcf.. files
@@ -164,11 +164,11 @@ int create_regions_db(const char *db_name, int chunksize, sqlite3** db) {
   rc = exec_sql(sql, *db);
 
   // create regions table
-  sprintf(sql, "CREATE TABLE regions (chromosome TEXT, start INT, end INT, strand CHARACTER(1), type TEXT)");
+  sprintf(sql, "CREATE TABLE IF NOT EXISTS regions (chromosome TEXT, start INT, end INT, strand CHARACTER(1), type TEXT)");
   rc = exec_sql(sql, *db);
 
   // create chunks table
-  sprintf(sql, "CREATE TABLE chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
+  sprintf(sql, "CREATE TABLE IF NOT EXISTS chunk (chromosome TEXT, chunk_id INT, start INT, end INT, features_count INT)");
   rc = exec_sql(sql, *db);
 
   sprintf(sql, "END TRANSACTION");

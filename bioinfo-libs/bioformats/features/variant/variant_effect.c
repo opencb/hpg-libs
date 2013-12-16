@@ -109,6 +109,8 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
         char *params_values[3] = { output_format, variants, excludes };
 
         ret_code = http_post(url, params, params_values, 3, save_effect_response, NULL);
+    } else {
+        ret_code = -1;
     }
     
     free(variants);
@@ -156,6 +158,8 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
         char *params[2] = { "of", "snps" };
         char *params_values[2] = { output_format, variants };
         ret_code = http_post(url, params, params_values, 2, save_snp_phenotype_response, NULL);
+    } else {
+        ret_code = -1;
     }
     
     free(variants);
@@ -170,22 +174,18 @@ int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int nu
     int variants_len = 512, current_index = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     
-    int chr_len, reference_len, alternate_len;
-    int new_len_range;
-
     for (int i = 0; i < num_records; i++) {
         vcf_record_t *record = records[i];
-        if (strncmp(".", record->id, record->id_len)) {
+        if (strcmp(".", record->id)) {
             continue;
         }
-        
         
         int num_alternates;
         char *alternates_aux = strndup(record->alternate, record->alternate_len);
         char **alternates = split(alternates_aux, ",", &num_alternates);
 
         // If a position has many alternates, each pair reference-alternate will be concatenated
-        new_len_range = (current_index + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
+        int new_len_range = (current_index + record->chromosome_len + record->reference_len + record->alternate_len + 32) * num_alternates;
 
         // Reallocate memory if next record won't fit
         if (variants_len < (current_index + new_len_range + 1)) {
@@ -199,9 +199,9 @@ int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int nu
         }
 
         if (record->type == VARIANT_SNV) {
+            printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
             for (int j = 0; j < num_alternates; j++) {
                 // Append region info to buffer
-        //         printf("record chromosome = %.*s\n", record->chromosome_len, record->chromosome);
                 strncat(variants, record->chromosome, record->chromosome_len);
                 strncat(variants, ":", 1);
                 current_index += record->chromosome_len + 1;
@@ -256,6 +256,8 @@ int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int nu
         char *params[2] = { "of", "variants" };
         char *params_values[2] = { output_format, variants };
         ret_code = http_post(url, params, params_values, 2, save_mutation_phenotype_response, NULL);
+    } else {
+        ret_code = -1;
     }
     
     free(variants);
@@ -310,6 +312,7 @@ static size_t save_mutation_phenotype_response(char *contents, size_t size, size
         LOG_FATAL("Error while allocating memory for mutation phenotype web service response");
     }
     
+    printf("mutation phenotype = '%s'\n", mutation_line[tid]);
     return size * nmemb;
 }
 
