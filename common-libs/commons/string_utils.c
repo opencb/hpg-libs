@@ -393,42 +393,6 @@ int strcasecmp(const char *s1, const char *s2) {
   return c1 - c2;
 }
 
-//-----------------------------------------------------------
-// functions to encode and decode nucleotied sequences
-//-----------------------------------------------------------
-// enum bases{DD=-1,AA=0,CC=1,GG=2,TT=3}; //Lexicographic order
-// const char alph_rep[] ={'A','C','G','T'};
-int table[128] = {};
-
-void initTable() {
-  table['a'] = AA;
-  table['A'] = AA;
-  table['c'] = CC;
-  table['C'] = CC;
-  table['t'] = TT;
-  table['T'] = TT;
-  table['g'] = GG;
-  table['G'] = GG;
-  table['n'] = AA;
-  table['N'] = AA;
-}
-
-char* encodeBases(char* dest, char* src, unsigned int length) {
-  unsigned int i;
-  for (i=0; i<length; i++)
-    dest[i] = table[(int)src[i]];
-  dest[length] = '\0';
-  return dest;
-}
-
-char* decodeBases(char* dest, char* src, unsigned int length) {
-  unsigned int i;
-  for (i=0; i<length; i++)
-    dest[i] = alph_rep[(int)src[i]];
-  dest[length] = '\0';
-  return dest;
-}
-
 //-----------------------------------------------------------------
 // Return the substring from start to first blank
 // If first position contains '@' this not 
@@ -447,7 +411,9 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
     str_pos = 0;
   }
   
-  while ((str_p[str_pos] != ' ') && (str_pos < length)) {
+  while ((str_p[str_pos] != ' ') && 
+	 (str_p[str_pos] != '/') && 
+	 (str_pos < length)) {
     //printf("-->%c/%i\n", str_p[str_pos], str_pos);
     str_out_p[res_pos] = str_p[str_pos];
     //printf("<--%c/%i\n", str_out_p[res_pos], res_pos);
@@ -460,4 +426,3 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
   res_pos++;
   return res_pos;
 }
-

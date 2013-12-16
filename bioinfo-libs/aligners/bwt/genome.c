@@ -337,12 +337,13 @@ unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
     LOG_FATAL_F("Error to opening '%s' file\n", dna_binary_filename);
   }
 
-  struct stat st;                                                                                                                                                     
+  struct stat st;                                                                                                                                                 
   stat(dna_binary_filename, &st);     
-  *size = st.st_size;                                                                                                                                           
+  *size = st.st_size;                                                                                                               
   LOG_DEBUG_F("Size File %lu\n", *size);
 
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
+
   fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
   
   fclose(binary_fd);

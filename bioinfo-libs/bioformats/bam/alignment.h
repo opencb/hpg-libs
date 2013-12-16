@@ -43,7 +43,7 @@ typedef struct alignment {
     short int template_length;		/**< Template length. */
     int map_quality;			/**< Map quality. */
     int num_cigar_operations;		/**< Number of CIGAR operations. */
-
+    int map_len;
     //flags
     uint8_t is_paired_end;		/**< 0: single end, 1: paired end. */ 
     uint8_t is_paired_end_mapped;	/**< 0: pair not mapped, 1: pair mapped. */
@@ -55,8 +55,6 @@ typedef struct alignment {
     uint8_t secondary_alignment;		/**< 0: not primary, 1 primary. */
     uint8_t fails_quality_check;	/**< 0: meet quality checks, 1: quality checks not meeted. */ 
     uint8_t pc_optical_duplicate;	/**< 0: not duplicate, 1: duplicate. */
-    uint8_t large_hard_clipping;        /**< 0: CIGAR contains a hard clipping, 1: CIGAR not contains 
-					        a hard clipping */
 
     char* query_name;			/**< Query template name. */
     char* sequence;			/**< Sequence of nts. */
@@ -108,7 +106,7 @@ alignment_t* alignment_new();
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, short int large_hard_clipping, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -290,6 +288,8 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
 /* **********************************************************************
  *      	Functions to manage CIGAR                		*
  * *********************************************************************/
+
+char select_op(unsigned char status);
 
 /**
  */

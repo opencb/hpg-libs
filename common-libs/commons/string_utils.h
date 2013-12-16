@@ -311,28 +311,22 @@ char* lstrip(char *str);
 char* rstrip(char *str);
 
 /**
-*  @brief Splits a string in fragments using the separators provided as arguments 
+*  @brief Splits a string into string fragments using a blank space separator (' ')
 *  @param str string to split
-*  @param delimiters characters used to separate the fragments
-*  @param num_substrings [out] number of fragments returned
-*  @return pointers to the string fragments
+*  @return pointers to the splitted strings
 *  
-*  Splits a string into fragments using the separators provided as arguments. The
-*  number of substrings returned is also provided in an output argument.
+*  Splits a string into string fragments using a blank space separator (' ')
 */
 char** split(char *str, const char *delimiters, int *num_substrings);
 
 /**
-*  @brief Splits a string in fragments using the separators provided as arguments 
+*  @brief Splits a string into string fragments using a blank space separator (' ')
 *  @param str string to split
-*  @param delimiters characters used to separate the fragments
 *  @param limit maximum number of splitted strings
-*  @param num_substrings [out] number of fragments returned
 *  @return pointers to the splitted strings
 *  
-*  Splits a string into fragments using the separators provided as arguments. The
-*  number of substrings returned is also provided in an output argument. No more 
-*  than limit fragments will be returned.
+*  Splits a string into string fragments using a blank space separator (' ')
+*  No more than limit splitted fragments will be returned
 */
 char** splitn(char *str, const char *delimiters, int limit, int *num_substrings);
 
@@ -350,43 +344,5 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
  * 	   than, equal to or greater than s2.
  */
 int strcasecmp(const char *s1, const char *s2);
-
-/* ******************************************************************************
- *    		Functions to encode/decode nucleotid sequences			*
- * *****************************************************************************/
-
-enum bases{ DD = -1, AA = 0, CC = 1, GG = 2, TT = 3 }; //Lexicographic order
-static const char alph_rep[] ={'A', 'C', 'G', 'T'};
-
-/**
- *  @brief Inits table for nucleotide coding/decoding 
- *  @return void
- * 
- *  Inits table[128] for nucleotide coding/decoding 
- */
-void initTable();
-
-/**
- *  @brief Encodes a sequence of plain nucleotides
- *  @param dest pointer to destination char with encoded nucleotides
- *  @param src pointer to char with plain nucleotides
- *  @param length length of the nucleotide sequence
- *  @return pointer to char 
- * 
- *  Encodes a sequence of plain nucleotides
- */
-char* encodeBases(char *dest, char* src, unsigned int length);
-
-/**
- *  @brief Decodes a sequence of encoded nucleotides
- *  @param dest pointer to destination char with plain nucleotides
- *  @param src pointer to char with encoded nucleotides
- *  @param length length of the nucleotide sequence
- *  @return pointer to char 
- * 
- *  Decodes a sequence of encoded nucleotides
- */
-char* decodeBases(char *dest, char* src, unsigned int length);
-
 
 #endif	/*    STRING_UTILS_H	*/
