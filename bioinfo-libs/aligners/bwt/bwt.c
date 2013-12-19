@@ -595,7 +595,7 @@ void seq_reverse_complementary(char *seq, unsigned int len){
     }
     else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
        seq[j] = 'A';
-    }else {
+    } else {
        seq[j] = 'N';
     }
     j++;  
@@ -1857,7 +1857,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
      const int MAX_BWT_ALIGNMENTS = 10;
      int filter_exceeded = 0;
      //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-     seq_strand = strdup(seq);
+     seq_strand = seq;
      error = MISMATCH;
 
 
@@ -1884,7 +1884,8 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 			 index->forward_rev, index->backward_rev, 
 				     &r_list, index->bwt_config.nA);      
 	       if (r_list.num_results) {
-		    seq_reverse_complementary(seq_strand, len);
+		 seq_strand = read->revcomp;
+		 //seq_reverse_complementary(seq_strand, len);
 	       }
 	  }
 
@@ -2170,7 +2171,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 
      free(r_list.list);
      free(code_seq);
-     free(seq_strand);
+     //free(seq_strand);
      free(k0);
      free(l0);
      free(k1);

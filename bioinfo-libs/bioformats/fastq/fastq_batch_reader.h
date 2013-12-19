@@ -10,6 +10,7 @@
 #include "containers/list.h"
 #include "fastq_batch.h"
 #include "fastq_file.h"
+#include "fastq_gzfile.h"
 
 //#include "timing.h"
 //#include "buffers.h"
@@ -42,18 +43,24 @@ typedef struct fastq_batch_reader_input {
   char *filename2;
   int flags;
   int batch_size;
+  int gzip;
   list_t *list;
 
-  // internal
+  // internal for fastq
   fastq_file_t *fq_file1;
   fastq_file_t *fq_file2;
+
+  // internal for gzip fastq
+  fastq_gzfile_t *fq_gzip_file1;
+  fastq_gzfile_t *fq_gzip_file2;  
+
 } fastq_batch_reader_input_t;
 
 
 //------------------------------------------------------------------------------------
 
 void fastq_batch_reader_input_init(char *filename1, char *filename2, int flags,
-				   int batch_size, list_t *list, 
+				   int batch_size, list_t *list, int gzip,
 				   fastq_batch_reader_input_t* input);
 
 //-----------------------------------------------------

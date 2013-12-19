@@ -68,6 +68,7 @@ size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_gzfile_t *fq
 
 size_t fastq_gzread_bytes_se(array_list_t *reads, size_t bytes, fastq_gzfile_t *fq_file);
 
+size_t fastq_gzread_bytes_pe(array_list_t *reads, size_t bytes_to_read, fastq_gzfile_t *fq_gzfile1, fastq_gzfile_t *fq_gzfile2);
 
 /*
  * PAIRED-END READ FUNCTIONS
