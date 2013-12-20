@@ -23,6 +23,7 @@
 typedef struct fastq_read {
     char *id;			/**< Id of the read. */
     char *sequence;		/**< Sequence of nts. */
+    char *revcomp;              /**< RevComp of Sequence */
     char *quality;		/**< Qualities. */
 
     int length;

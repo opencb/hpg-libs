@@ -5,26 +5,51 @@
 
 
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
-	fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
+  fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
+  
+  //size_t id_length = strlen(id); // + 1;
+  int seq_length = strlen(sequence); // + 1;
+  
+  fq_read->id = strdup(id);
+  fq_read->sequence = strdup(sequence);  
+  fq_read->revcomp = (char *)malloc((seq_length + 1)*sizeof(char));
 
-	//size_t id_length = strlen(id); // + 1;
-	size_t seq_length = strlen(sequence); // + 1;
-	
-	fq_read->id = strdup(id);
-	//printf("%s\n", sequence);
-	fq_read->sequence = strdup(sequence);
-	//fq_read->sequence = strndup(sequence, seq_length + 1);
-	//printf("%s\n", fq_read->sequence);
-	fq_read->quality = strdup(quality);
-	fq_read->length = seq_length;
+  int j = 0;
+  for (int i = seq_length - 1; i >= 0; i--) {
+    if (fq_read->sequence[i] == 'A' || 
+	fq_read->sequence[i] == 'a') {
+      fq_read->revcomp[j] = 'T';
+    } else if (fq_read->sequence[i] == 'C' || 
+	       fq_read->sequence[i] == 'c') {
+      fq_read->revcomp[j] = 'G';
+    } else if (fq_read->sequence[i] == 'G' ||
+	       fq_read->sequence[i] == 'g') {
+      fq_read->revcomp[j] = 'C';
+    }
+    else if (fq_read->sequence[i] == 'T' || 
+	     fq_read->sequence[i] == 't') {
+      fq_read->revcomp[j] = 'A';
+    } else {
+      fq_read->revcomp[j] = 'N';
+    }
+    j++;
+  }
+  fq_read->revcomp[j] = '\0';
 
-	return fq_read;
+  //fq_read->sequence = strndup(sequence, seq_length + 1);
+  //printf("%s\n", fq_read->sequence);
+  fq_read->quality = strdup(quality);
+  fq_read->length = seq_length;
+  
+  return fq_read;
+
 }
 
 fastq_read_t *fastq_read_dup(fastq_read_t *fq) {
   fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
   fq_read->id = strdup(fq->id);
   fq_read->sequence = strdup(fq->sequence);
+  fq_read->revcomp = strdup(fq->revcomp);
   fq_read->quality = strdup(fq->quality);
   fq_read->length = fq->length;
 
@@ -59,6 +84,7 @@ void fastq_read_free(fastq_read_t *fq_read) {
 
 	if (fq_read->id != NULL) free(fq_read->id);
 	if (fq_read->sequence != NULL) free(fq_read->sequence);
+	if (fq_read->revcomp != NULL) free(fq_read->revcomp);
 	if (fq_read->quality != NULL) free(fq_read->quality);
 
 	free(fq_read);
