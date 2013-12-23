@@ -282,10 +282,17 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     index_to_data += copy_length;
 
     //convert cigar to uint32_t format
-    convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
+    //if (alignment_p->is_seq_mapped) {
+      convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
 
-    copy_length = (4 * alignment_p->num_cigar_operations);
-    index_to_data += copy_length;
+      copy_length = (4 * alignment_p->num_cigar_operations);
+      index_to_data += copy_length;
+      //} else {
+      //uint32_t *cigar_uint32 = 0;
+      //memcpy(data, &cigar_uint32, 4);
+      //copy_length = 4;
+      //index_to_data += copy_length;
+      //}
 
     //convert sequence to uint8_t format
     convert_to_sequence_uint8_t(&data[index_to_data], alignment_p->sequence, sequence_length);
@@ -564,6 +571,7 @@ char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
 }
 
 void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations) {
+
     int cigar_string_length = strlen(cigar);
     uint32_t cigar_uint32_position;
     int cigar_position, cigar_operation, cigar_acc_num_operations = 0;
@@ -603,13 +611,14 @@ void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operati
                     cigar_operation = BAM_CDIFF;
                     break;
             }
-
+	    
             cigar_uint32_position = (uint32_t)((cigar_acc_num_operations << 4) + cigar_operation);
-
+	    
             memcpy(data, &cigar_uint32_position, 4);
             data += 4;
-
+	    
             cigar_acc_num_operations = 0;
+	    
         }
     }
 }

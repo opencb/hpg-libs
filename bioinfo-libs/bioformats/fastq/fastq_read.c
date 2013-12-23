@@ -7,10 +7,12 @@
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
   fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
   
-  //size_t id_length = strlen(id); // + 1;
-  int seq_length = strlen(sequence); // + 1;
+  size_t id_length = strlen(id);
+  int seq_length = strlen(sequence);
   
-  fq_read->id = strdup(id);
+  fq_read->id = (char *)malloc(sizeof(char)*id_length);
+  get_to_first_blank(id, id_length, fq_read->id);
+
   fq_read->sequence = strdup(sequence);  
   fq_read->revcomp = (char *)malloc((seq_length + 1)*sizeof(char));
 

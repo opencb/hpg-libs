@@ -2049,7 +2049,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		   // save all into one alignment structure and insert to the list
 		   //printf("*****Alignments %i:%lu\n", idx, start_mapping);
 		   alignment = alignment_new();
-		   alignment_init_single_end(NULL, strdup(seq_dup), strdup(quality_clipping), !type, 
+		   alignment_init_single_end(strdup(read->id), strdup(seq_dup), strdup(quality_clipping), !type, 
 					     idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
 					     start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
 					     strdup(cigar), num_cigar_ops, error == 0 ? 0 : 1, 1, (num_mappings > 0), 0, NULL, alignment);
@@ -2157,9 +2157,9 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
        //printf("BWT:Report Total mappings %i\n", num_mappings);
        for (int i = 0; i < num_mapping; i++) {
 	 alignment = array_list_get(i, mapping_list);
-	 header_len = strlen(read->id);
-	 alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
-	 get_to_first_blank(read->id, header_len, alignment->query_name);
+	 //header_len = strlen(read->id);
+	 //alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	 //get_to_first_blank(read->id, header_len, alignment->query_name);
 	 bwt_cigar_cpy(alignment, read->quality);
 	 //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
 	 //************************* OPTIONAL FIELDS ***************************//
