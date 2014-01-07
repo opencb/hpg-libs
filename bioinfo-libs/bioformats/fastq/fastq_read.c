@@ -10,7 +10,9 @@ fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
   size_t id_length = strlen(id);
   int seq_length = strlen(sequence);
   
-  fq_read->id = (char *)malloc(sizeof(char)*id_length);
+  fq_read->id = (char *)malloc(sizeof(char)*(id_length + 1));
+  //printf("READ-ID(%i): %s\n", id_length, id);
+
   get_to_first_blank(id, id_length, fq_read->id);
 
   fq_read->sequence = strdup(sequence);  

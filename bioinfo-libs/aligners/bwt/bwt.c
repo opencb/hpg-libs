@@ -3874,7 +3874,6 @@ size_t bwt_generate_cals(char *seq,
   //printf(" len=%i, seed_size=%i, num_seeds=%i, seq=%s\n", len, seed_size, num_seeds, seq);
   uint8_t *code_seq = (uint8_t *) malloc(len * sizeof(uint8_t));
 
-
   encode_bases(code_seq, seq, len, index->bwt_config.table);
 
   //Second first seed
