@@ -3930,8 +3930,9 @@ size_t bwt_generate_cals(char *seq,
 
   size_t min_cal_size = cal_optarg->min_cal_size;
   const int max_intron_size = cal_optarg->max_intron_size;
+
   
-  if (min_cal_size != 20) { printf("%i\n", min_cal_size); exit(-1); }
+  //if (min_cal_size != 20) { printf("%i\n", min_cal_size); exit(-1); }
   //printf("%i - %i\n", min_cal_size, max_intron_size);
   size_t read_length = len;
   //min_cal_size = 20;

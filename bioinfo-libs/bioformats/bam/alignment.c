@@ -283,16 +283,11 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
 
     //convert cigar to uint32_t format
     //if (alignment_p->is_seq_mapped) {
-      convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
-
-      copy_length = (4 * alignment_p->num_cigar_operations);
-      index_to_data += copy_length;
-      //} else {
-      //uint32_t *cigar_uint32 = 0;
-      //memcpy(data, &cigar_uint32, 4);
-      //copy_length = 4;
-      //index_to_data += copy_length;
-      //}
+    //printf("CIGAR: %s\n", alignment_p->cigar);
+    convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
+    
+    copy_length = (4 * alignment_p->num_cigar_operations);
+    index_to_data += copy_length;
 
     //convert sequence to uint8_t format
     convert_to_sequence_uint8_t(&data[index_to_data], alignment_p->sequence, sequence_length);
@@ -326,7 +321,12 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     bam_p->core.isize = (int32_t) alignment_p->template_length;
     bam_p->core.l_qname = strlen(alignment_p->query_name) + 1;
     bam_p->core.n_cigar = (uint32_t) alignment_p->num_cigar_operations;
-    bam_p->core.l_qseq = (int32_t)(int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p)); //lenght from CIGAR
+
+    if (alignment_p->num_cigar_operations <= 0) {
+      bam_p->core.l_qseq = strlen(alignment_p->sequence);
+    } else {
+      bam_p->core.l_qseq = (int32_t)(int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p)); //lenght from CIGAR  
+    }
 
     //setting flags
     if (alignment_p->is_paired_end)   bam_p->core.flag += BAM_FPAIRED;
