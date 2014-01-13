@@ -6,12 +6,13 @@
 
 void fastq_batch_reader_input_init(char *filename1, char *filename2,
 				   int flags, int batch_size, list_t *list, 
-				   fastq_batch_reader_input_t *input) {
+				   int gzip, fastq_batch_reader_input_t *input) {
   input->filename1 = filename1;
   input->filename2 = filename2;
   input->flags = flags;
   input->batch_size = batch_size;
   input->list = list;
+  input->gzip = gzip;
 
   // internal
   input->fq_file1 = NULL;

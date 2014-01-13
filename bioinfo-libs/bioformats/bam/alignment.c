@@ -282,8 +282,10 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     index_to_data += copy_length;
 
     //convert cigar to uint32_t format
+    //if (alignment_p->is_seq_mapped) {
+    //printf("CIGAR: %s\n", alignment_p->cigar);
     convert_to_cigar_uint32_t(&data[index_to_data], alignment_p->cigar, alignment_p->num_cigar_operations);
-
+    
     copy_length = (4 * alignment_p->num_cigar_operations);
     index_to_data += copy_length;
 
@@ -319,7 +321,12 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     bam_p->core.isize = (int32_t) alignment_p->template_length;
     bam_p->core.l_qname = strlen(alignment_p->query_name) + 1;
     bam_p->core.n_cigar = (uint32_t) alignment_p->num_cigar_operations;
-    bam_p->core.l_qseq = (int32_t)(int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p)); //lenght from CIGAR
+
+    if (alignment_p->num_cigar_operations <= 0) {
+      bam_p->core.l_qseq = strlen(alignment_p->sequence);
+    } else {
+      bam_p->core.l_qseq = (int32_t)(int32_t)bam_cigar2qlen(&bam_p->core, bam1_cigar(bam_p)); //lenght from CIGAR  
+    }
 
     //setting flags
     if (alignment_p->is_paired_end)   bam_p->core.flag += BAM_FPAIRED;
@@ -564,6 +571,7 @@ char* convert_to_cigar_string(uint32_t* cigar_p, int num_cigar_operations) {
 }
 
 void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operations) {
+
     int cigar_string_length = strlen(cigar);
     uint32_t cigar_uint32_position;
     int cigar_position, cigar_operation, cigar_acc_num_operations = 0;
@@ -603,13 +611,14 @@ void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operati
                     cigar_operation = BAM_CDIFF;
                     break;
             }
-
+	    
             cigar_uint32_position = (uint32_t)((cigar_acc_num_operations << 4) + cigar_operation);
-
+	    
             memcpy(data, &cigar_uint32_position, 4);
             data += 4;
-
+	    
             cigar_acc_num_operations = 0;
+	    
         }
     }
 }

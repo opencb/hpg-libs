@@ -45,7 +45,7 @@ if debug == 1:
     cpropsenv['CFLAGS'] += '-O0 -g'
 else:
     cpropsenv['CFLAGS'] += '-O3 -g'
-cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c'])
+cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c', 'containers/cprops/trie.c', 'containers/cprops/mtab.c'])
 
 # Compile commons/sqlite objects
 sqliteenv = Environment(tools = build_tools,

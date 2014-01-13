@@ -595,7 +595,7 @@ void seq_reverse_complementary(char *seq, unsigned int len){
     }
     else if (seq_tmp[i] == 'T' || seq_tmp[i] == 't'){
        seq[j] = 'A';
-    }else {
+    } else {
        seq[j] = 'N';
     }
     j++;  
@@ -1857,7 +1857,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
      const int MAX_BWT_ALIGNMENTS = 10;
      int filter_exceeded = 0;
      //seq_dup = (char *)malloc(sizeof(char)*(len + 1));
-     seq_strand = strdup(seq);
+     seq_strand = seq;
      error = MISMATCH;
 
 
@@ -1884,7 +1884,8 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 			 index->forward_rev, index->backward_rev, 
 				     &r_list, index->bwt_config.nA);      
 	       if (r_list.num_results) {
-		    seq_reverse_complementary(seq_strand, len);
+		 seq_strand = read->revcomp;
+		 //seq_reverse_complementary(seq_strand, len);
 	       }
 	  }
 
@@ -2048,7 +2049,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		   // save all into one alignment structure and insert to the list
 		   //printf("*****Alignments %i:%lu\n", idx, start_mapping);
 		   alignment = alignment_new();
-		   alignment_init_single_end(NULL, strdup(seq_dup), strdup(quality_clipping), !type, 
+		   alignment_init_single_end(strdup(read->id), strdup(seq_dup), strdup(quality_clipping), !type, 
 					     idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
 					     start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
 					     strdup(cigar), num_cigar_ops, error == 0 ? 0 : 1, 1, (num_mappings > 0), 0, NULL, alignment);
@@ -2156,9 +2157,9 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
        //printf("BWT:Report Total mappings %i\n", num_mappings);
        for (int i = 0; i < num_mapping; i++) {
 	 alignment = array_list_get(i, mapping_list);
-	 header_len = strlen(read->id);
-	 alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
-	 get_to_first_blank(read->id, header_len, alignment->query_name);
+	 //header_len = strlen(read->id);
+	 //alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
+	 //get_to_first_blank(read->id, header_len, alignment->query_name);
 	 bwt_cigar_cpy(alignment, read->quality);
 	 //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
 	 //************************* OPTIONAL FIELDS ***************************//
@@ -2170,7 +2171,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 
      free(r_list.list);
      free(code_seq);
-     free(seq_strand);
+     //free(seq_strand);
      free(k0);
      free(l0);
      free(k1);
@@ -3873,7 +3874,6 @@ size_t bwt_generate_cals(char *seq,
   //printf(" len=%i, seed_size=%i, num_seeds=%i, seq=%s\n", len, seed_size, num_seeds, seq);
   uint8_t *code_seq = (uint8_t *) malloc(len * sizeof(uint8_t));
 
-
   encode_bases(code_seq, seq, len, index->bwt_config.table);
 
   //Second first seed
@@ -3929,8 +3929,9 @@ size_t bwt_generate_cals(char *seq,
 
   size_t min_cal_size = cal_optarg->min_cal_size;
   const int max_intron_size = cal_optarg->max_intron_size;
+
   
-  if (min_cal_size != 20) { printf("%i\n", min_cal_size); exit(-1); }
+  //if (min_cal_size != 20) { printf("%i\n", min_cal_size); exit(-1); }
   //printf("%i - %i\n", min_cal_size, max_intron_size);
   size_t read_length = len;
   //min_cal_size = 20;
