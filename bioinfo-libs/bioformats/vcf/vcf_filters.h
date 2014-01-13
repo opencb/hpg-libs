@@ -35,13 +35,13 @@
 /**
  * @brief The type of the filter to apply
  **/
-enum filter_type { COVERAGE, MAF, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP, INDEL, VARIANT_TYPE, INHERITANCE_PATTERN };
+enum filter_type { COVERAGE, MAF, MENDELIAN_ERRORS, MISSING_VALUES, NUM_ALLELES, QUALITY, REGION, SNP, INDEL, VARIANT_TYPE, INHERITANCE_PATTERN };
 
 enum inheritance_pattern { DOMINANT, RECESSIVE };
 
 /**
  * @brief Arguments for the filter by coverage 
-* @details The only argument of a filter by coverage is the minimum coverage of a record, as specified 
+ * @details The only argument of a filter by coverage is the minimum coverage of a record, as specified 
  * on its INFO field.
  **/
 typedef struct {
@@ -49,12 +49,20 @@ typedef struct {
 } coverage_filter_args;
 
 /**
- * @brief Arguments for the filter by Minumum Allele Frequency (MAF)
+ * @brief Arguments for the filter by Minimum Allele Frequency (MAF)
  * @details The only argument of the filter is the MAF of a record.
  **/
 typedef struct {
     float min_maf;      /**< Minumum Allele Frequency (MAF) a record must have */
 } maf_filter_args;
+
+/**
+ * @brief Arguments for the filter by number of mendelian errors
+ * @details The only argument of a filter by number of mendelian errors is the maximum percentage in a record.
+ **/
+typedef struct {
+    int max_mendelian_errors;      /**< Maximum number of mendelian errors a record must have */
+} mendelian_errors_filter_args;
 
 /**
  * @brief Arguments for the filter by percentage of missing values
@@ -177,6 +185,17 @@ array_list_t *coverage_filter(array_list_t *input_records, array_list_t *failed,
  * @return Records that passed the filter's test
  */
 array_list_t *maf_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *args);
+
+/**
+ * @brief Given a list of records, check which ones have a number of mendelian errors less or equals to the one specified.
+ * @details Given a list of records, check which ones have a number of mendelian errors less or equals to the one specified.
+ * 
+ * @param input_records List of records to filter
+ * @param[out] failed Records that failed the filter's test
+ * @param args Filter arguments
+ * @return Records that passed the filter's test
+ */
+array_list_t *mendelian_errors_filter(array_list_t *input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void *args);
 
 /**
  * @brief Given a list of records, check which ones have a percentage of missing values less or equals to the one specified.
@@ -310,10 +329,29 @@ void maf_filter_free(filter_t *filter);
 
 
 /**
+ * @brief Creates a new filter by maximum number of mendelian errors.
+ * @details Creates a new filter by maximum number of mendelian errors.
+ *
+ * @param max_mendelian_errors Maximum number of mendelian errors for the records to pass the filter
+ * @return The new filter
+ **/
+filter_t *mendelian_errors_filter_new(int max_mendelian_errors);
+
+/**
+ * @brief Deallocates memory of a filter by maximum number of mendelian errors.
+ * @details Deallocates memory of a filter by maximum number of mendelian errors.
+ *
+ * @param filter The filter to deallocate
+ **/
+void mendelian_errors_filter_free(filter_t *filter);
+
+
+
+/**
  * @brief Creates a new filter by maximum percentage of missing values.
  * @details Creates a new filter by maximum percentage of missing values.
  *
- * @param max_maf Maximum percentage of missing values for the records to pass the filter
+ * @param max_missing Maximum percentage of missing values for the records to pass the filter
  * @return The new filter
  **/
 filter_t *missing_values_filter_new(float max_missing);
