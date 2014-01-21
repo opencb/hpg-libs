@@ -31,9 +31,24 @@ int http_get(char *url, char **params, char **params_values, int num_params, siz
  * 
  * @param url URL to request
  * @param params POST parameters of the request
+ * @param params_values Values of the POST parameters
+ * @param num_params Number of POST parameters
  * @param write_function Function for managing the response contents
  */
 int http_post(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer);
+
+/**
+ * Request a URL with the provided parameters using HTTP POST method and arguments in 
+ * multipart/form-data format. A callback function can be provided for its invocation 
+ * when the response is served.
+ * 
+ * @param url URL to request
+ * @param params POST parameters of the request
+ * @param params_values Values of the POST parameters
+ * @param num_params Number of POST parameters
+ * @param write_function Function for managing the response contents
+ */
+int http_post_multipart_formdata(char *url, char **params, char **params_values, int num_params, size_t (*write_function) (char*, size_t, size_t, void*), void *buffer);
 
 /**
  * Should an error occur, return the string message associated to a numerical code.
