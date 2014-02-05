@@ -119,6 +119,8 @@ int linked_list_insert_all_at(size_t index, void** item_p, size_t num_items, lin
 
 void* linked_list_remove(void *item, linked_list_t *linked_list_p);
 
+void* linked_list_remove_item(linked_list_item_t *list_item, linked_list_t *linked_list_p);
+
 void* linked_list_remove_first(linked_list_t *linked_list_p);
 
 void* linked_list_remove_last(linked_list_t *linked_list_p);
