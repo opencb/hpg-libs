@@ -799,7 +799,7 @@ void bwt_map_inexact_array_list_by_filter_bs(array_list_t *reads,
 
 //-----------------------------------------------------------------------------
 
-inline size_t seeding_bs(char *code_seq, size_t seq_len, size_t num_seeds,
+static inline size_t seeding_bs(char *code_seq, size_t seq_len, size_t num_seeds,
 			 size_t seed_size, size_t min_seed_size,
 			 bwt_optarg_t *bwt_optarg, bwt_index_t *index,
 			 array_list_t *mapping_list) {

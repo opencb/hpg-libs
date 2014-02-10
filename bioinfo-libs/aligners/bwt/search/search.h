@@ -6,7 +6,7 @@
 #include "results.h"
 #include "runtime.h"
 
-inline void BWExactSearchBackward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
+static inline void BWExactSearchBackward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
 
         intmax_t k, l, k2, l2;
 	int16_t i;
@@ -35,7 +35,7 @@ inline void BWExactSearchBackward(uint8_t *W, bwt_index *index, result *r, resul
 
 }
 
-inline void BWExactSearchForward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
+static inline void BWExactSearchForward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
 
         intmax_t k, l, k2, l2;
 	int16_t i;
@@ -64,7 +64,7 @@ inline void BWExactSearchForward(uint8_t *W, bwt_index *index, result *r, result
 
 }
 
-inline bool BWExactFinalResultBackward(uint8_t *W, bwt_index *index, result *r_iterator, results_list *rl_final, int16_t block_size, int16_t last_block) {
+static inline bool BWExactFinalResultBackward(uint8_t *W, bwt_index *index, result *r_iterator, results_list *rl_final, int16_t block_size, int16_t last_block) {
 
 	intmax_t k, l;
 	int16_t start, pos;
@@ -111,7 +111,7 @@ inline bool BWExactFinalResultBackward(uint8_t *W, bwt_index *index, result *r_i
 
 }
 
-inline bool BWExactFinalResultForward(uint8_t *W, bwt_index *index, result *r_iterator, results_list *rl_final, int16_t block_size, int16_t last_block) {
+static inline bool BWExactFinalResultForward(uint8_t *W, bwt_index *index, result *r_iterator, results_list *rl_final, int16_t block_size, int16_t last_block) {
 
 	intmax_t k, l;
 	int16_t pos, end;
@@ -158,7 +158,7 @@ inline bool BWExactFinalResultForward(uint8_t *W, bwt_index *index, result *r_it
 
 }
 
-inline void change_direction(bwt_index *backward, bwt_index *forward, result *res) {
+static inline void change_direction(bwt_index *backward, bwt_index *forward, result *res) {
 
 	intmax_t k, l, ki, li, aux, aux2;
 	int16_t start, end, err_offset;

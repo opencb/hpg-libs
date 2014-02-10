@@ -38,7 +38,7 @@ void read_config(char *nucleotide, bool *duplicate_strand, const char *directory
 void encode_reference(ref_vector *X, exome *ex, const char *ref_path, bwt_config_t *bwt_config);
 bool nextFASTAToken(FILE *queries_file, char *uncoded, uint8_t *coded, uintmax_t *nquery, bwt_config_t *bwt_config);
 
-inline uintmax_t binsearch(uintmax_t *array, uintmax_t size, uintmax_t key) {
+static inline uintmax_t binsearch(uintmax_t *array, uintmax_t size, uintmax_t key) {
 
   if( !array ) return 0;
 
