@@ -3,7 +3,34 @@
 # This dir can be built standalone by executing scons here, or together
 # by executing scons in the parent directory
 
+#Compiler configure
 debug = int(ARGUMENTS.get('debug', '0'))
 compiler = ARGUMENTS.get('compiler', 'gcc')
 
-SConscript('SConscript', exports = ['debug', 'compiler'])
+#Initialize the environment with path variables, CFLAGS, and so on
+#system_include = '/home/rmoreno/local/include'
+#system_libs = '/home/rmoreno/local/lib'
+system_include = '/usr/include'
+system_libs = '/usr/lib'
+
+build_tools = ['default']
+
+#Set environment
+env = Environment(
+        tools = build_tools,
+        CFLAGS = ' -std=c99 -fopenmp -D_GNU_SOURCE -D_XOPEN_SOURCE=600',
+        CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include],
+        LIBPATH = [system_libs],
+	LIBS = ['xml2', 'm', 'z'])
+
+env.Decider('MD5-timestamp')
+env.objects = []
+
+#if debug == 1:
+#        env['CFLAGS'] += '-O0 -g'
+#else:
+#        env['CFLAGS'] += '-O3 -g'
+
+
+#Targets
+SConscript('SConscript', exports = ['env', 'debug', 'compiler'])

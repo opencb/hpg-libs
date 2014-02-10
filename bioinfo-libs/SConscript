@@ -1,33 +1,22 @@
 import os
 
-Import('debug', 'compiler')
+Import('env', 'debug', 'compiler')
 
 # Initialize environment
-if compiler == 'icc':
-    env = Environment(tools = [ 'default', 'intelc' ],
-                      CFLAGS = '-std=c99 -msse4.2 -openmp -D_GNU_SOURCE ',
-                      CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '#', '.' ],
-                      LIBPATH = ['/usr/lib' ],
-                      LIBS = [ 'irc' ])
-else:
-    env = Environment(tools = [ 'default' ],
-                      CFLAGS = '-std=c99 -fopenmp -D_GNU_SOURCE ',
-                      CPPPATH = [os.getcwd(), ARGUMENTS.get('commons-path', os.getcwd() + '/../common-libs/'), '#', '.' ],
-                      LIBPATH = ['/usr/lib' ])
-
-env.Decider('MD5-timestamp')
+bioenv = env.Clone()
+bioenv.Decider('MD5-timestamp')
 
 # Debug mode
 if debug == 1:
-    env['CFLAGS'] += ' -O0 -g'
+    bioenv['CFLAGS'] += ' -O0 -g'
 else:
-    env['CFLAGS'] += ' -O3 -g'
+    bioenv['CFLAGS'] += ' -O3 -g'
 
-env['objects'] = []
+bioenv['objects'] = []
 
 # Targets
-SConscript(['bioformats/SConscript',], exports = ['env'])
-SConscript(['aligners/SConscript',], exports = ['env'])
+SConscript(['bioformats/SConscript',], exports = ['bioenv'])
+SConscript(['aligners/SConscript',], exports = ['bioenv'])
 
-env.Library('bioinfo', env['objects'])
+env.Library('bioinfo', bioenv['objects'])
 

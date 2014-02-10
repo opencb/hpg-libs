@@ -1,116 +1,87 @@
-Import('debug', 'compiler')
-
 import os
 
-build_tools = [ 'default' ]
-if compiler == 'icc':
-    build_tools.append('intelc')
+Import('env', 'debug', 'compiler')
+
+#New environment for commons
+commonsenv = env.Clone()
 
 # Initialize environment
-if compiler == 'icc':
-    env = Environment(tools = build_tools,
-                      CFLAGS = '-std=c99 -msse4.2 -openmp -D_GNU_SOURCE -D_XOPEN_SOURCE=600',
-                      CPPPATH = ['#', '/usr/include/libxml2', '.' ],
-                      LIBPATH = ['/usr/lib' ],
-                      LIBS = [ 'irc' ])
-else:
-    env = Environment(tools = build_tools, 
-                      CFLAGS = '-std=c99 -fopenmp -D_GNU_SOURCE -D_XOPEN_SOURCE=600',
-                      CPPPATH = ['#', '/usr/include/libxml2', '.' ],
-                      LIBPATH = ['/usr/lib' ])
-
-env.Decider('MD5-timestamp')
+commonsenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    env['CFLAGS'] += '-O0 -g'
+    commonsenv['CFLAGS'] += ' -O0 -g'
 else:
-    env['CFLAGS'] += '-O3 -g'
-
-
-
-# Targets
-commons_obj = env.Object(Glob('commons/*.c'))
-containers_obj = env.Object(Glob('containers/*.c'))
-
+    commonsenv['CFLAGS'] += ' -O3 -g'
 
 # Compile containers/cprops objects but ONLY those used for our libraries
-cpropsenv = Environment(tools = build_tools,
-                        CFLAGS = '-D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H ',
-                        CPPPATH = ['#', '/usr/include/libxml2', '.' ],
-                        LIBPATH = ['/usr/lib' ])
-
+cpropsenv = commonsenv.Clone()
+cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H'
 cpropsenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    cpropsenv['CFLAGS'] += '-O0 -g'
+    cpropsenv['CFLAGS'] += ' -O0 -g'
 else:
-    cpropsenv['CFLAGS'] += '-O3 -g'
-cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c', 'containers/cprops/trie.c', 'containers/cprops/mtab.c'])
+    cpropsenv['CFLAGS'] += ' -O3 -g'
 
 # Compile commons/sqlite objects
-sqliteenv = Environment(tools = build_tools,
-                        CFLAGS = '-DHAVE_CONFIG_H -fPIC -DPIC ',
-                        CPPPATH = ['#', '.' ],
-                        LIBPATH = ['/usr/lib' ])
-
+sqliteenv = commonsenv.Clone()
+sqliteenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
 sqliteenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    sqliteenv['CFLAGS'] += '-O0 -g'
+    sqliteenv['CFLAGS'] += ' -O0 -g'
 else:
-    sqliteenv['CFLAGS'] += '-O2 -g'
-sqlite_obj = sqliteenv.Object(Glob('commons/sqlite/*.c'))
-
+    sqliteenv['CFLAGS'] += ' -O2 -g'
 
 # Compile commons/argtable objects
-argtableenv = Environment(tools = build_tools,
-                        CFLAGS = '-DHAVE_CONFIG_H -fPIC -DPIC ',
-                        CPPPATH = ['#', '.' ],
-                        LIBPATH = ['/usr/lib' ])
-
+argtableenv = commonsenv.Clone()
+argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
 argtableenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    argtableenv['CFLAGS'] += '-O0 -g'
+    argtableenv['CFLAGS'] += ' -O0 -g'
 else:
-    argtableenv['CFLAGS'] += '-O2 -g'
-argtable_obj = argtableenv.Object(Glob('commons/argtable/*.c'))
-
+    argtableenv['CFLAGS'] += ' -O2 -g'
 
 # Compile commons/config objects
-configenv = Environment(tools = build_tools,
-                        CFLAGS = '-DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter ',
-                        CPPPATH = ['#', '.' ],
-                        LIBPATH = ['/usr/lib' ])
+configenv = commonsenv.Clone()
+configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
+configenv.Decider('MD5-timestamp')
 
+# Compile commons/config objects
+configenv = commonsenv.Clone()
+configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
 configenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    configenv['CFLAGS'] += '-O0 -g'
+    configenv['CFLAGS'] += ' -O0 -g'
 else:
-    configenv['CFLAGS'] += '-O2 -g'
-config_obj = configenv.Object(Glob('commons/config/*.c'))
+    configenv['CFLAGS'] += ' -O2 -g'
 
 
 # Compile commons/config objects
-janssonenv = Environment(tools = build_tools,
-                        CFLAGS = '-DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC ',
-                        CPPPATH = ['#', 'commons/jansson/' ],
-                        LIBPATH = ['/usr/lib' ])
-
+janssonenv = commonsenv.Clone()
+janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
+janssonenv['CPPPATH'] += ['commons/jansson/']
 janssonenv.Decider('MD5-timestamp')
 
 if debug == 1:
-    janssonenv['CFLAGS'] += '-O0 -g'
+    janssonenv['CFLAGS'] += ' -O0 -g'
 else:
-    janssonenv['CFLAGS'] += '-O2 -g'
+    janssonenv['CFLAGS'] += ' -O2 -g'
+
+# Targets
+commons_obj = commonsenv.Object(Glob('commons/*.c'))
+containers_obj = commonsenv.Object(Glob('containers/*.c'))
+cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c', 'containers/cprops/trie.c', 'containers/cprops/mtab.c'])
+sqlite_obj = sqliteenv.Object(Glob('commons/sqlite/*.c'))
+argtable_obj = argtableenv.Object(Glob('commons/argtable/*.c'))
+config_obj = configenv.Object(Glob('commons/config/*.c'))
 jansson_obj = janssonenv.Object(Glob('commons/jansson/*.c'))
 
-
-
 # Objects
-env.Library('common', commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj)
+env.objects += commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
+env.Library('common', env.objects)
 
 # Run tests
-containers_test = SConscript("containers/test/SConscript", exports = ['env', 'debug'] )
-
+containers_test = SConscript("containers/test/SConscript", exports = ['env'] )
