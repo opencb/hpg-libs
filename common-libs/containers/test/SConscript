@@ -1,6 +1,6 @@
 import os
 
-Import('env')
+Import('commonsenv')
 
 commons_path = os.getcwd() + '/../../'
 
@@ -11,7 +11,7 @@ commons_path = os.getcwd() + '/../../'
 #    LINKFLAGS = [ '-openmp' ]
 #)
 
-containerstest = env.Clone()
+containerstest = commonsenv.Clone()
 containerstest['CPPPATH'] += [commons_path]
 containerstest['LIBS'] += ['check']
 

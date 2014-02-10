@@ -80,8 +80,8 @@ config_obj = configenv.Object(Glob('commons/config/*.c'))
 jansson_obj = janssonenv.Object(Glob('commons/jansson/*.c'))
 
 # Objects
-env.objects += commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
-env.Library('common', env.objects)
+commonsenv['objects'] += commons_obj + containers_obj + cprops_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
+commonsenv.Library('common', commonsenv['objects'])
 
 # Run tests
-containers_test = SConscript("containers/test/SConscript", exports = ['env'] )
+containers_test = SConscript("containers/test/SConscript", exports = ['commonsenv'] )

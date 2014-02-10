@@ -18,5 +18,5 @@ bioenv['objects'] = []
 SConscript(['bioformats/SConscript',], exports = ['bioenv'])
 SConscript(['aligners/SConscript',], exports = ['bioenv'])
 
-env.Library('bioinfo', bioenv['objects'])
+bioenv.Library('bioinfo', bioenv['objects'])
 

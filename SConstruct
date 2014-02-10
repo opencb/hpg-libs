@@ -9,8 +9,6 @@ debug = int(ARGUMENTS.get('debug', '0'))
 compiler = ARGUMENTS.get('compiler', 'gcc')
 
 #Paths
-#system_include = '/home/rmoreno/local/include'
-#system_libpath = '/home/rmoreno/local/lib'
 system_include = '/usr/include'
 system_libpath = '/usr/lib'
 
@@ -33,7 +31,7 @@ if compiler == 'icc':
 	env['CFLAGS'] += ' -msse4.2'
 	env['LIBS'] += ['irc']
 
-env.objects = []
+env['objects'] = []
 env.Decider('MD5-timestamp')
 
 SConscript('common-libs/SConscript', exports = ['env', 'debug', 'compiler'])
