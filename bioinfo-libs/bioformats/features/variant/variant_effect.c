@@ -108,7 +108,7 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
         char *params[3] = { "of", "variants", "exclude" };
         char *params_values[3] = { output_format, variants, excludes };
 
-        ret_code = http_post(url, params, params_values, 3, save_effect_response, NULL);
+        ret_code = http_post_multipart_formdata(url, params, params_values, 3, save_effect_response, NULL);
     } else {
         ret_code = -1;
     }
@@ -157,7 +157,7 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
     if (current_index > 0) {
         char *params[2] = { "of", "snps" };
         char *params_values[2] = { output_format, variants };
-        ret_code = http_post(url, params, params_values, 2, save_snp_phenotype_response, NULL);
+        ret_code = http_post_multipart_formdata(url, params, params_values, 2, save_snp_phenotype_response, NULL);
     } else {
         ret_code = -1;
     }
@@ -255,7 +255,7 @@ int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int nu
     if (current_index > 0) {
         char *params[2] = { "of", "variants" };
         char *params_values[2] = { output_format, variants };
-        ret_code = http_post(url, params, params_values, 2, save_mutation_phenotype_response, NULL);
+        ret_code = http_post_multipart_formdata(url, params, params_values, 2, save_mutation_phenotype_response, NULL);
     } else {
         ret_code = -1;
     }
