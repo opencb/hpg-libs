@@ -142,7 +142,7 @@ void free_comp_matrix(comp_matrix *reverse, comp_matrix *strand);
 #ifdef __SSE4_2__
 #define popcount(x) _mm_popcnt_u32(x)
 #else
-inline unsigned int popcount(uint32_t i) {
+static inline unsigned int popcount(uint32_t i) {
   i = i - ((i >> 1) & 0x55555555);
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
   return (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
@@ -154,7 +154,7 @@ inline unsigned int popcount(uint32_t i) {
 #ifdef __SSE4_2__
 #define popcount(x) _mm_popcnt_u64(x)
 #else
-inline unsigned int popcount(uint64_t i) {
+static inline unsigned int popcount(uint64_t i) {
   i = i - ((i >> 1) & 0x5555555555555555);
   i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
   return (((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56;
@@ -163,7 +163,7 @@ inline unsigned int popcount(uint64_t i) {
 
 #endif
 
-inline SA_TYPE get_O(SA_TYPE n, SA_TYPE m, comp_matrix *O) {
+static inline SA_TYPE get_O(SA_TYPE n, SA_TYPE m, comp_matrix *O) {
 
 #if defined FM_COMP_32 || FM_COMP_64
 
@@ -180,7 +180,7 @@ inline SA_TYPE get_O(SA_TYPE n, SA_TYPE m, comp_matrix *O) {
 
 }
 
-inline uint8_t get_B_from_O(SA_TYPE m, comp_matrix *O) {
+static inline uint8_t get_B_from_O(SA_TYPE m, comp_matrix *O) {
 
 #if defined FM_COMP_32 || FM_COMP_64
 
@@ -205,7 +205,7 @@ inline uint8_t get_B_from_O(SA_TYPE m, comp_matrix *O) {
 
 }
 
-inline SA_TYPE getScompValue(SA_TYPE m, comp_vector *Scomp, vector *C, comp_matrix *O) {
+static inline SA_TYPE getScompValue(SA_TYPE m, comp_vector *Scomp, vector *C, comp_matrix *O) {
 
   SA_TYPE i,j;
   uint8_t b_aux;
@@ -234,7 +234,7 @@ inline SA_TYPE getScompValue(SA_TYPE m, comp_vector *Scomp, vector *C, comp_matr
 
 }
 
-inline SA_TYPE getRcompValue(SA_TYPE m, comp_vector *Rcomp, vector *C, comp_matrix *O) {
+static inline SA_TYPE getRcompValue(SA_TYPE m, comp_vector *Rcomp, vector *C, comp_matrix *O) {
 
 	SA_TYPE i, j, k;
 	uint8_t b_aux;

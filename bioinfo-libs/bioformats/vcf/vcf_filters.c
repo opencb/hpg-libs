@@ -91,6 +91,37 @@ array_list_t* maf_filter(array_list_t* input_records, array_list_t *failed, vari
     return passed;
 }
 
+array_list_t* mendelian_errors_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* args) {
+    assert(input_records);
+    assert(failed);
+    
+    array_list_t *passed = array_list_new(input_records->size + 1, 1, COLLECTION_MODE_ASYNCHRONIZED);
+    size_t filter_name_len = strlen(filter_name);
+
+    int max_errors = ((mendelian_errors_filter_args*) args)->max_mendelian_errors;
+    float allele_count;
+
+    variant_stats_t *variant_stats;
+    // The stats returned by get_variants_stats are related to a record in the same
+    // position of the input_records list, so when a variant_stats_t fulfills the condition,
+    // it means the related vcf_record_t passes the filter
+    vcf_record_t *record;
+    for (int i = 0; i < input_records->size; i++) {
+        record = input_records->items[i];
+        variant_stats = input_stats[i];
+        allele_count = 0;
+        
+        if (variant_stats->mendelian_errors <= max_errors) {
+            array_list_insert(record, passed);
+        } else {
+            annotate_failed_record(filter_name, filter_name_len, record);
+            array_list_insert(record, failed);
+        }
+    }
+    
+    return passed;
+}
+
 array_list_t* missing_values_filter(array_list_t* input_records, array_list_t *failed, variant_stats_t **input_stats, char *filter_name, void* args) {
     assert(input_records);
     assert(failed);
@@ -420,6 +451,30 @@ filter_t *maf_filter_new(float min_maf) {
 }
 
 void maf_filter_free(filter_t *filter) {
+    assert(filter);
+    free(filter->args);
+    free(filter);
+}
+
+
+filter_t* mendelian_errors_filter_new(int max_mendelian_errors) {
+    filter_t *filter = (filter_t*) malloc (sizeof(filter_t));
+    sprintf(filter->name, "mendel%d", max_mendelian_errors);
+    sprintf(filter->description, "Mendelian errors <= %d", max_mendelian_errors);
+    
+    filter->type = MENDELIAN_ERRORS;
+    filter->filter_func = mendelian_errors_filter;
+    filter->free_func = mendelian_errors_filter_free;
+    filter->priority = 3;
+    
+    mendelian_errors_filter_args *filter_args = (mendelian_errors_filter_args*) malloc (sizeof(mendelian_errors_filter_args));
+    filter_args->max_mendelian_errors = max_mendelian_errors;
+    filter->args = filter_args;
+    
+    return filter;
+}
+
+void mendelian_errors_filter_free(filter_t* filter) {
     assert(filter);
     free(filter->args);
     free(filter);
