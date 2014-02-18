@@ -960,7 +960,7 @@ static char *gene_ws_geturl(const char *host_url, const char *species, const cha
     
     // URL Constants
     // Full URL: ws.bioinfo.cipf.es/cellbase/rest/latest/hsa/feature/gene/<gene_name>/info?header=false
-    const char *ws_root_url = "cellbase/rest/";
+    const char *ws_root_url = "rest/";
     const char *ws_name_url = "feature/gene/";
     const char *ws_info = "info?header=false&of=json";
     

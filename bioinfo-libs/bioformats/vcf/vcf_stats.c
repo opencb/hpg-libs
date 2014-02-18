@@ -480,21 +480,29 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         }
         
         /* 
-         * 3 possibilities for being an INDEL:
+         * 4 possibilities for being an INDEL:
          * - The value of the ALT field is <DEL> or <INS>
          * - The REF allele is not . but the ALT is
          * - The REF allele is . but the ALT is not
          * - The REF field length is different than the ALT field length
+         * When checking REF vs ALT, all alternatives must be traversed
          */
+        stats->is_indel = 0;
         if ((strncmp(".", stats->ref_allele, 1) && !strncmp(".", record->alternate, 1)) ||
             (strncmp(".", record->alternate, 1) && !strncmp(".", stats->ref_allele, 1)) ||
             !strncmp("<INS>", record->alternate, record->alternate_len) ||
-            !strncmp("<DEL>", record->alternate, record->alternate_len) ||
-             record->reference_len != record->alternate_len) {
+            !strncmp("<DEL>", record->alternate, record->alternate_len)) {
             stats->is_indel = 1;
             indels_count++;
         } else {
-            stats->is_indel = 0;
+            for (int j = 0; j < stats->num_alleles - 1; j++) {
+                size_t alt_len = strlen(stats->alternates[j]);
+                if (record->reference_len != alt_len) {
+                    stats->is_indel = 1;
+                    indels_count++;
+                    break;
+                }
+            }
         }
             
         int ref_len = strlen(stats->ref_allele);
