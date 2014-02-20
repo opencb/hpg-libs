@@ -11,6 +11,11 @@
 #include "commons/log.h"
 #include "containers/cprops/hashtable.h"
 
+//===============================================
+
+#define SA_MODE  0
+#define BWT_MODE 1
+
 //====================================================================================
 //  structures and prototypes
 //====================================================================================
@@ -26,7 +31,8 @@ typedef struct genome {
   char **code_table;
 } genome_t;
 
-genome_t* genome_new(char* sequence_filename, char* directory);
+genome_t* genome_new(char* sequence_filename, 
+		     char* directory, int mode);
 
 void genome_free(genome_t* genome_p);
 

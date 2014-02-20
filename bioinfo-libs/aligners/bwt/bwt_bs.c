@@ -1049,7 +1049,7 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 	      while (s != NULL) {
 		if (s->read_end < s_first->read_start) {
 		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 0);	
+						s->genome_start, s->genome_end, 0, 0, 0);	
 		  array_list_insert(seed_region, cal->candidates_seeds_start);
 		}
 		s = linked_list_iterator_next(&itr2);
@@ -1075,7 +1075,7 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 	      while (s != NULL) {
 		if (s->read_start > s_last->read_end) {
 		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 1);	
+						s->genome_start, s->genome_end, 1, 0, 0);	
 		  array_list_insert(seed_region, cal->candidates_seeds_end);
 		}
 		s = linked_list_iterator_next(&itr2);
