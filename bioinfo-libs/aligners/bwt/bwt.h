@@ -37,6 +37,10 @@
   #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+#define SEED_MISMATCH    0
+#define SEED_INSERTION   1
+#define SEED_DELETION    2
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -75,9 +79,27 @@ void cal_optarg_free(cal_optarg_t *optarg);
 
 //-----------------------------------------------------------------------------
 
+typedef struct bwt_err {
+  int pos;
+  char name;
+} bwt_err_t;
+
+inline bwt_err_t *bwt_err_new(int pos, char name) {
+  bwt_err_t *bwt_err = (bwt_err_t *)malloc(sizeof(bwt_err_t));
+  bwt_err->pos = pos;
+  bwt_err->name = name;
+
+  return bwt_err;
+  
+}
+
+void bwt_err_free(bwt_err_t *p);
+
+//-----------------------------------------------------------------------------
+
 typedef struct seed_region {
-  size_t read_start;
-  size_t read_end;
+  int read_start;
+  int read_end;
   size_t genome_start;
   size_t genome_end;
   int id;
@@ -88,13 +110,20 @@ typedef struct seed_region {
   int chromosome_id;
   int num_mismatches;
 
+  int pos_err;
+  int type_err;
+  array_list_t *errors_list;
+
   void *info;
 } seed_region_t;
 
-seed_region_t *seed_region_new(size_t read_start, size_t read_end, 
-			       size_t genome_start, size_t genome_end, int id);
+seed_region_t *seed_region_new(int read_start, int read_end, 
+			       size_t genome_start, size_t genome_end, int id,
+			       int pos_err, int type_err);
 
 void seed_region_free();
+
+void seed_region_simple_free(seed_region_t *seed_region);
 
 //-----------------------------------------------------------------------------
 
@@ -109,7 +138,7 @@ typedef struct cal {
   int r_flank;
   int fill_gaps;
   int num_targets;
-
+  int type_seeds;
   int num_mismatches;
 
   linked_list_t *sr_list;
@@ -127,9 +156,24 @@ cal_t *cal_new(const size_t chromosome_id,
                linked_list_t *sr_list,
                linked_list_t *sr_duplicate_list);
 
-void cal_free(cal_t *cal);
+cal_t *cal_simple_new(const size_t chromosome_id, 
+		      const short int strand,
+		      const size_t start, 
+		      const size_t end);
 
+void cal_free(cal_t *cal);
+void cal_simple_free(cal_t *cal);
 void cal_print(cal_t *cal);
+
+//-----------------------------------------------------------------------------
+
+typedef struct simple_seed {
+  size_t start;
+  size_t end;
+} simple_seed_t;
+
+simple_seed_t *simple_seed_new(size_t read_start, size_t read_end);
+void simple_seed_free(simple_seed_t *simple_seed);
 
 //-----------------------------------------------------------------------------
 
@@ -155,6 +199,9 @@ typedef struct region {
   size_t seq_end;
   size_t seq_len;
   int id;
+
+  int pos_err;
+  int type_err;
 } region_t;
 
 region_t *region_bwt_new(const size_t chromosome_id, 
@@ -177,6 +224,10 @@ typedef struct short_cal {
   size_t num_seeds;
   size_t seq_start;
   size_t seq_end;
+
+  int pos_err;
+  int type_err;
+  
   linked_list_t *sr_list;
   linked_list_t *sr_duplicate_list;
   unsigned char *seeds_ids_array;
@@ -188,7 +239,9 @@ short_cal_t *short_cal_new(const size_t start,
 			   const size_t seq_end,
 			   const size_t seq_len,
 			   const int max_seeds,
-			   const int id);
+			   const int id,
+			   const int pos_err,
+			   const int pos_type);
 
 void short_cal_free(short_cal_t *short_cal_p);
 
@@ -457,7 +510,8 @@ size_t bwt_generate_cal_list_linked_list(array_list_t *mapping_list,
 					 size_t nchromosomes,
 					 array_list_t *cal_list,
 					 size_t read_length,
-					 size_t min_cal_size);
+					 size_t min_cal_size,
+					 int type_seeds);
 
 
 /*size_t bwt_generate_cal_list_linked_list_rna(array_list_t *mapping_list,
