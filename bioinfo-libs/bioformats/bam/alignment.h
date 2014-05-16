@@ -41,6 +41,7 @@ typedef struct alignment {
     short int mate_chromosome;		/**< Chromosome of the mate. */
     short int template_length;		/**< Template length. */
     int map_quality;			/**< Map quality. */
+    int mapq;
     int num_cigar_operations;		/**< Number of CIGAR operations. */
     int map_len;
     //flags
