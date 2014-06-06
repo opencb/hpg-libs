@@ -92,7 +92,7 @@ static char *compose_chromosomes_ws_request(const char *host_url, const char *sp
     }
     
     // URL Constants
-    const char *ws_root_url = "cellbase/rest/";
+    const char *ws_root_url = "rest/";
     const char *ws_name_url = "chromosomes";
     
     // Length of URL parts
