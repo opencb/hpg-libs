@@ -12,8 +12,9 @@ else:
                      LIBS = ['gsl'], 
                      CPPPATH = [ '.', 'data' ])
 
-for dir in os.getenv('CPATH').split(':'):
-    env.Append(CPPPATH=[dir])
+if os.environ.has_key('CPATH'):
+    for dir in os.getenv('CPATH').split(':'):
+        env.Append(CPPPATH=[dir])
 
 env.Decider('MD5-timestamp')
 

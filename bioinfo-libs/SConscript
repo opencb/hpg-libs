@@ -6,12 +6,6 @@ Import('env', 'debug', 'compiler')
 bioenv = env.Clone()
 bioenv.Decider('MD5-timestamp')
 
-for dir in os.getenv('CPATH').split(':'):
-    env.Append(CPPPATH=[dir])
-
-for dir in os.getenv('LIBRARY_PATH').split(':'):
-    env.Append(LIBPATH=[dir])
-
 # Debug mode
 if debug == 1:
     bioenv['CFLAGS'] += ' -O0 -g'
