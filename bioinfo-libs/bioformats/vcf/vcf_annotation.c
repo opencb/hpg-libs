@@ -75,10 +75,10 @@ char *get_annotation_allele_freq(variant_stats_t *variant_stats, int *output_len
     strncat(result, "AF=", 3);
     
     for (int j = 1; j < variant_stats->num_alleles - 1; j++) {
-        sprintf(result + len, "%.3f,", variant_stats->alleles_freq[j] / (1 - variant_stats->alleles_freq[0]));
+        sprintf(result + len, "%.3f,", variant_stats->alleles_freq[j]);
         len = strlen(result);
     }
-    sprintf(result+len, "%.3f", variant_stats->alleles_freq[variant_stats->num_alleles - 1] / (1 - variant_stats->alleles_freq[0]));
+    sprintf(result+len, "%.3f", variant_stats->alleles_freq[variant_stats->num_alleles - 1]);
     len = strlen(result);
     
     *output_len = len;
