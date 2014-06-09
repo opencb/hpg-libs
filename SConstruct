@@ -26,6 +26,14 @@ env = Environment(tools = build_tools,
 		  LINKFLAGS = ['-fopenmp'],
 		  LIBS = ['xml2', 'm', 'z', 'curl'])
 
+if os.environ.has_key('CPATH'):
+    for dir in os.getenv('CPATH').split(':'):
+        env.Append(CPPPATH=[dir])
+
+if os.environ.has_key('LIBRARY_PATH'):
+    for dir in os.getenv('LIBRARY_PATH').split(':'):
+        env.Append(LIBPATH=[dir])
+
 if compiler == 'icc':
 	env['tools'] += ['intelc']
 	env['CFLAGS'] += ' -msse4.2'
