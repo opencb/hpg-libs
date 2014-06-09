@@ -3,6 +3,7 @@
 # This dir can be built standalone by executing scons here, or together
 # by executing scons in the parent directory
 import sys
+import os
 
 #Compiler configure
 debug = int(ARGUMENTS.get('debug', '0'))
