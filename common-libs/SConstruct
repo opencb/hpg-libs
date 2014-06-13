@@ -21,7 +21,7 @@ env = Environment(
         CFLAGS = ' -std=c99 -fopenmp -D_GNU_SOURCE -D_XOPEN_SOURCE=600',
         CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include],
         LIBPATH = [system_libs],
-	LIBS = ['xml2', 'm', 'z'])
+      	LIBS = ['xml2', 'm', 'z'])
 
 env.Decider('MD5-timestamp')
 env.objects = []

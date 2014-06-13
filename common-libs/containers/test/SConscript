@@ -13,7 +13,7 @@ commons_path = os.getcwd() + '/../../'
 
 containerstest = commonsenv.Clone()
 containerstest['CPPPATH'] += [commons_path]
-containerstest['LIBS'] += ['check']
+containerstest['LIBS'] += ['check', 'm', 'rt']
 
 check_linked_list = containerstest.Program('linked_list.test', 
                     	         	   source = ['linked_list_test.c', 

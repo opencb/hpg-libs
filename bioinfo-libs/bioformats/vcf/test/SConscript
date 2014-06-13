@@ -8,7 +8,7 @@ commons_path = os.getcwd() + '/../../../../common-libs/'
 env = penv.Clone()
 env.Append(
     LIBPATH = ['/usr/lib', '/usr/local/lib', '#libs', commons_path ],
-    LIBS = [ 'check', 'common', 'curl', 'm', 'z', 'gsl', 'gslcblas' ],
+    LIBS = [ 'check', 'common', 'curl', 'm', 'z', 'gsl', 'gslcblas', 'dl', 'rt' ],
     LINKFLAGS = ['-fopenmp' ]
 )
 
