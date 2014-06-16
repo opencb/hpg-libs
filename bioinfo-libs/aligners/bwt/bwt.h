@@ -440,6 +440,9 @@ size_t bwt_map_exact_seeds_by_region(int start_position, int end_position,
 				     char *seq, int seed_size, int min_seed_size,
 				     bwt_optarg_t *bwt_optarg, bwt_index_t *index, 
 				     array_list_t *mapping_list);
+
+void insert_seeds_and_merge(array_list_t *mapping_list, linked_list_t ***cals_list,  size_t max_cal_distance);
+
 //-----------------------------------------------------------------------------
 // cal functions
 //-----------------------------------------------------------------------------
