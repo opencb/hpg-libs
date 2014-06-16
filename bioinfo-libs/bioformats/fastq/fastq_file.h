@@ -22,7 +22,7 @@
 
 #define MAX_FASTQ_FILENAME_LENGTH		1024	// Maximum filenname length
 #define MAX_READ_ID_LENGTH			2048	// Maximum read ID length
-#define MAX_READ_SEQUENCE_LENGTH		8192	// Maximum read sequence length
+#define MAX_READ_SEQUENCE_LENGTH	       64000	// Maximum read sequence length
 
 #define MAX_NUM_PRODUCERS			10
 

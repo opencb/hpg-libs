@@ -3,6 +3,7 @@
 # This dir can be built standalone by executing scons here, or together
 # by executing scons in the parent directory
 import sys
+import os
 
 #Compiler configure
 debug = int(ARGUMENTS.get('debug', '0'))
@@ -25,6 +26,14 @@ env = Environment(tools = build_tools,
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = ['-fopenmp'],
 		  LIBS = ['xml2', 'm', 'z', 'curl'])
+
+if os.environ.has_key('CPATH'):
+    for dir in os.getenv('CPATH').split(':'):
+        env.Append(CPPPATH=[dir])
+
+if os.environ.has_key('LIBRARY_PATH'):
+    for dir in os.getenv('LIBRARY_PATH').split(':'):
+        env.Append(LIBPATH=[dir])
 
 if compiler == 'icc':
 	env['tools'] += ['intelc']

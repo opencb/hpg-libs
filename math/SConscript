@@ -1,3 +1,4 @@
+import os
 Import('debug', 'compiler')
 
 if compiler == 'icc':
@@ -10,6 +11,10 @@ else:
                      CFLAGS = '-std=c99 -fopenmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
                      LIBS = ['gsl'], 
                      CPPPATH = [ '.', 'data' ])
+
+if os.environ.has_key('CPATH'):
+    for dir in os.getenv('CPATH').split(':'):
+        env.Append(CPPPATH=[dir])
 
 env.Decider('MD5-timestamp')
 

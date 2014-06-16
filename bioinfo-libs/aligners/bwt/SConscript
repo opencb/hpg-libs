@@ -1,6 +1,6 @@
 import os
 
-print os.getcwd()
+#print os.getcwd()
 
 Import('aligners_env')
 
@@ -11,7 +11,7 @@ aligners_env['objects'] += aligners_env.Object(Split('bwt_commons.c'))
 
 #print bwt_env['objects']
 
-formats = ['csalib', 'dbwt', 'search', 'test']
+formats = ['csalib', 'dbwt', 'search']
 for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['aligners_env', 'bwt_env'])
 
@@ -20,5 +20,5 @@ for dir in formats:
 #aligners_env['objects'] += penv.Object(Split('bwt.c bwt_bs.c BW_io.c BW_search.c BW_preprocess.c genome.c'))
 
 
-aligners_env['CFLAGS'] += " -DFM_COMP_64 "
+aligners_env['CFLAGS'] += " -DFM_COMP_64 -g"
 aligners_env['objects'] += aligners_env.Object(Split('genome.c bwt.c bwt_bs.c'))

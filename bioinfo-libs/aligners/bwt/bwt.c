@@ -92,14 +92,15 @@ void *__bwt_generate_anchor_list(size_t k_start, size_t l_start, int len_calc, b
 void append_seed_region_linked_list(linked_list_t* sr_list,
 				    size_t read_start, size_t read_end, 
 				    size_t genome_start, size_t genome_end, 
-				    int seed_id);
+				    int seed_id, int pos_err, int type_err, int type_seeds);
 
 //------------------------------------------------------------------------------
 
 void seed_region_select_linked_list(linked_list_t* sr_list, linked_list_t* sr_duplicate_list, 
 				    size_t read_start, size_t read_end,
 				    size_t genome_start, size_t genome_end,
-				    int seed_id, unsigned char *seeds_ids_array);
+				    int seed_id, int pos_err, int type_err, 
+				    unsigned char *seeds_ids_array);
 
 //------------------------------------------------------------------------------
 
@@ -109,6 +110,9 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 // Paratemers for the candidate alignment localizations (CALs)
 //------------------------------------------------------------------------------
 
+void bwt_err_free(bwt_err_t *p) {
+  if (p) { free(p); }
+}
 
 
 cal_optarg_t *cal_optarg_new(const size_t min_cal_size, 
@@ -143,6 +147,20 @@ void cal_optarg_free(cal_optarg_t *optarg) {
 
 //------------------------------------------------------------------------------
 
+simple_seed_t *simple_seed_new(size_t read_start, size_t read_end) {
+  simple_seed_t *ss = (simple_seed_t *)malloc(sizeof(simple_seed_t));
+  ss->start = read_start;
+  ss->end = read_end;
+
+  return ss;
+}
+
+void simple_seed_free(simple_seed_t *simple_seed) {
+  free(simple_seed);
+}
+
+//------------------------------------------------------------------------------
+
 cal_t *cal_new(const size_t chromosome_id, 
 	       const short int strand,
 	       const size_t start, 
@@ -163,7 +181,8 @@ cal_t *cal_new(const size_t chromosome_id,
   cal->read_area = 0;
   cal->info = NULL;
   cal->fill_gaps = 0;
-  cal->num_targets;
+  //cal->num_targets;
+  cal->type_seeds = 0;
   cal->candidates_seeds_start = array_list_new(10, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
   cal->candidates_seeds_end = array_list_new(10, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
   //TODO: Good CAL Selector??Mmm...
@@ -182,6 +201,30 @@ cal_t *cal_new(const size_t chromosome_id,
   return cal;
 }
 
+cal_t *cal_simple_new(const size_t chromosome_id, 
+		      const short int strand,
+		      const size_t start, 
+		      const size_t end) {		 
+  cal_t *cal = (cal_t *)malloc(sizeof(cal_t));  
+
+  cal->chromosome_id = chromosome_id;
+  cal->start = start;
+  cal->end = end;
+  cal->strand = strand;
+  cal->sr_list = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
+
+  cal->info = NULL;
+
+  return cal;
+
+}
+
+void cal_simple_free(cal_t *cal) {
+  if (cal) {
+    if (cal->sr_list) linked_list_free(cal->sr_list, (void *) seed_region_free);
+    free(cal);
+  }
+}
 
 void cal_free(cal_t *cal) {
   if (cal) {
@@ -205,12 +248,12 @@ void cal_print(cal_t *cal) {
     for (linked_list_item_t *item = cal->sr_list->first; 
 	 item != NULL; item = item->next) {
       seed_region_t *seed = item->item;
-      printf(" [%lu|%lu - %lu|%lu] ", seed->genome_start, seed->read_start, 
+      printf(" (%i)[%lu|%lu - %lu|%lu] ", seed->id, seed->genome_start, seed->read_start, 
 	     seed->read_end, seed->genome_end);
     }
     printf("\n");
   }
-
+  /*
   if (cal->sr_duplicate_list != NULL && cal->sr_duplicate_list->size > 0) {
     printf("\t SEEDS DUPLICATE LIST: ");
     for (linked_list_item_t *item = cal->sr_duplicate_list->first; 
@@ -221,12 +264,14 @@ void cal_print(cal_t *cal) {
     }
     printf("\n");
   }
-
+  */
 }
 
 //------------------------------------------------------------------------------
 
-seed_region_t *seed_region_new(size_t read_start, size_t read_end, size_t genome_start, size_t genome_end, int id) {
+seed_region_t *seed_region_new(int read_start, int read_end, size_t genome_start, 
+			       size_t genome_end, int id, int pos_err, int type_err) {
+
   seed_region_t *seed_region = (seed_region_t *)malloc(sizeof(seed_region_t));
 
   seed_region->read_start = read_start;
@@ -238,11 +283,24 @@ seed_region_t *seed_region_new(size_t read_start, size_t read_end, size_t genome
   seed_region->fusion_left = 0;
   seed_region->fusion_right = 0;
 
+  seed_region->pos_err = pos_err;
+  seed_region->type_err = type_err;
+  seed_region->errors_list = NULL;
+
   return seed_region;
 }
 
 void seed_region_free(seed_region_t *seed_region) {
   if (seed_region->info) free(seed_region->info);
+  if (seed_region->errors_list) {
+    array_list_free(seed_region->errors_list, (void *)bwt_err_free);
+    seed_region->errors_list = NULL;
+  }
+
+  free(seed_region);
+}
+
+void seed_region_simple_free(seed_region_t *seed_region) {
   free(seed_region);
 }
 
@@ -254,7 +312,9 @@ short_cal_t *short_cal_new(const size_t start,
 			   const size_t seq_end,
 			   const size_t seq_len,
 			   const int max_seeds,
-			   const int id) {
+			   const int id,
+			   const int pos_err,
+			   const int type_err) {
 
   short_cal_t *short_cal = (short_cal_t *)malloc(sizeof(short_cal_t));  
   
@@ -271,7 +331,9 @@ short_cal_t *short_cal_new(const size_t start,
   short_cal->seeds_ids_array[id] = 1;
 
   short_cal->sr_list = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
-  seed_region_t *seed_region = seed_region_new(seq_start, seq_end, start, end, id);
+  seed_region_t *seed_region = seed_region_new(seq_start, seq_end, start, 
+					       end, id, pos_err, type_err);
+
   //  printf("\tInsert New [Seed:=%lu-%lu]\n", seq_start, seq_end);
   linked_list_insert(seed_region, short_cal->sr_list);
   short_cal->sr_duplicate_list = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
@@ -1202,7 +1264,7 @@ size_t bwt_map_exact_seed(uint8_t *seq, size_t seq_len,
 	// save all into one alignment structure and insert to the list
 	//printf("\t\t Region%i[%i:%lu-%lu]\n", !type, idx, start_mapping, start_mapping + len);
 	region = region_bwt_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len, id);
-	
+
 	if (!array_list_insert((void*) region, mapping_list)){
 	  printf("Error to insert item into array list\n");
 	}
@@ -1343,7 +1405,7 @@ size_t bwt_map_inexact_seed(char *code_seq, size_t seq_len,
   int aux_seq_start, aux_seq_end;
   unsigned int num_mappings = 0;
   char plusminus[2] = "-+";
-  size_t idx, key, direction, error, pos;
+  size_t idx, key, direction, error;
   //results_list *r_list;
   results_list r_list;
   result *r;
@@ -1367,6 +1429,8 @@ size_t bwt_map_inexact_seed(char *code_seq, size_t seq_len,
   
   int back0_nt, forw0_nt, back1_nt, forw1_nt;
   
+  int pos, final_pos, final_err;
+
   BWExactSearchVectorBackward(code_seq, seq_start, seq_end, 0, size_SA(index->backward)-1,
 			      k1, l1, index->backward);
   
@@ -1427,6 +1491,38 @@ size_t bwt_map_inexact_seed(char *code_seq, size_t seq_len,
 	len_calc++;
       }
 
+      //Bug, correct the cigar I & D
+      pos = r->err_pos[0];      
+      if (error == DELETION || pos == 0 || pos == len -1) {
+	if (type) {
+	  final_pos = pos;
+	} else {
+	  final_pos = len - 1 - pos;
+	}
+      } else {
+	if (error == INSERTION) {
+	  if (type) {
+	    if (r->dir) { final_pos = pos; }
+	    else { final_pos = pos + 1; }
+	  } else {
+	    if (r->dir) { final_pos = len - pos; }
+	    else { final_pos = len - pos - 1; }	    
+	  }
+	}
+      }
+
+      if (error == MISMATCH) {
+	final_err = -1;
+      } else {
+	if (error == DELETION) {
+	  final_err = SEED_INSERTION;
+	} else {
+	  final_err = SEED_DELETION;
+	}
+      }
+      final_err += seq_start;
+      //End
+
       if ((r->l - r->k + 1) < max_mappings) {//bwt_optarg->filter_read_mappings) {
 	k_start = r->k;
 	l_start = r->l;
@@ -1464,7 +1560,12 @@ size_t bwt_map_inexact_seed(char *code_seq, size_t seq_len,
 	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
 	  // save all into one alignment structure and insert to the list
 	  region = region_bwt_new(idx, !type, start_mapping, start_mapping + len - 1, aux_seq_start, aux_seq_end, seq_len, seed_id);
-	  //printf("Report Region in position [%i:%lu-%lu]\n", idx, start_mapping, start_mapping + end);
+	  
+	  region->pos_err = final_pos;
+	  region->type_err = final_err;
+
+	  //printf("Report Region in position [%i:%lu-%lu]\n", idx, start_mapping, start_mapping + len - 1);
+	  //printf("BWT-ERR: %i, %i\n", region->pos_err, region->type_err);
 	    
 	  if(!array_list_insert((void*) region, tmp_mapping_list)){
 	    printf("Error to insert item into array list\n");
@@ -1776,6 +1877,8 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 			      bwt_optarg_t *bwt_optarg, 
 			      bwt_index_t *index, 
 			      array_list_t *mapping_list) {
+
+  //return array_list_size(mapping_list);
    
      char *seq = read->sequence;
      alignment_t *alignment;
@@ -1918,6 +2021,8 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		    len_calc++;
 	       }
 
+	       if (error != 0) { continue; }
+
 	       // generating cigar
 	       sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
 	       if (error == 0) {
@@ -1971,8 +2076,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		   else{ 
 		     sprintf(cigar, "1M1D%luM\0", len - 1); 
 		   }
-		 } else {
-		   
+		 } else {		   
 		   if(type) {
 		     if(r->dir)
 		       sprintf(cigar, "%iM1D%luM\0", pos, len - pos);
@@ -2010,8 +2114,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		 } else {
 		   if(type) { 
 		     sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
-		   }
-		   else{ 
+		   } else { 
 		     sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
 		   }
 		   num_cigar_ops = 3;
@@ -2045,7 +2148,8 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 
 		 idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
 		 if(key + len_calc <= index->karyotype.offset[idx]) {
-		   start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+		   //start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+		   start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]); //¿+/-1?
 		   // save all into one alignment structure and insert to the list
 		   //printf("*****Alignments %i:%lu\n", idx, start_mapping);
 		   alignment = alignment_new();
@@ -2161,7 +2265,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 	 //alignment->query_name = (char *) malloc(sizeof(char) * (header_len + 1));
 	 //get_to_first_blank(read->id, header_len, alignment->query_name);
 	 bwt_cigar_cpy(alignment, read->quality);
-	 //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                                                                                     
+	 //alignment->quality = strdup(&(batch->quality[batch->data_indices[i]]));                   
 	 //************************* OPTIONAL FIELDS ***************************//
 	 alignment = add_optional_fields(alignment, num_mappings, len);
        }
@@ -3293,7 +3397,7 @@ size_t bwt_map_inexact_seeds_seq(char *seq, size_t seed_size, size_t min_seed_si
   for (size_t i = 0; i < num_seeds; i++) {
     //memcpy(aux_seq, seq + offset, seed_size);
     //aux_seq[offset + seed_size] = '\0';
-    //printf("Seq(%i-%i): %s\n", offset, offset + seed_size - 1, aux_seq);
+    //printf("Seq(%i-%i)\n", offset, offset + seed_size - 1);
     
     bwt_map_inexact_seed(code_seq, len, offset, offset + seed_size - 1,
 			 bwt_optarg, index, mapping_list, seq_id);
@@ -3896,8 +4000,10 @@ size_t bwt_generate_cals(char *seq,
     // first 'pasada'
   offset = 0;
   for (size_t i = 0; i < num_seeds; i++) {
+    //printf("SEED %i-%i\n", offset, offset + seed_size - 1);
     bwt_map_exact_seed(code_seq, len, offset, offset + seed_size - 1,
 		       bwt_optarg, index, mapping_list, seed_id++);
+    //printf("\tMapping list %i\n", array_list_size(mapping_list));
     insert_seeds_and_merge(mapping_list, cals_list,  len);
     offset += seed_size;
   }
@@ -3944,14 +4050,16 @@ size_t bwt_generate_cals(char *seq,
       list_item_cal = linked_list_iterator_list_item_curr(&itr);
       while ((list_item_cal != NULL )) {
 	short_cal = (short_cal_t *)list_item_cal->item;
+	//printf("%i:%i-%i\n", j + 1, short_cal->start, short_cal->end);
 	if (short_cal->end - short_cal->start + 1 >= min_cal_size) {
+	  //printf("Yes\n");
 	  linked_list_t *list_aux = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
 	  while (s = (seed_region_t *)linked_list_remove_last(short_cal->sr_list)) {
 	    //TODO: Change all parameters to seed_region_t
 	    append_seed_region_linked_list(list_aux,
 					   s->read_start, s->read_end, 
 					   s->genome_start, s->genome_end, 
-					   s->id);	    
+					   s->id, 0, 0, 0);	    
 	    seed_region_free(s);	    
 	  }
 	  cal = cal_new(j, i, short_cal->start, 
@@ -3965,8 +4073,10 @@ size_t bwt_generate_cals(char *seq,
 	  s_first = (seed_region_t *)linked_list_get_first(list_aux);	  
 	  s_last = (seed_region_t *)linked_list_get_last(list_aux);
 	  
-	  if (s_first && s_first->read_start > seed_size) {
+	  //printf("%i > %i", s_first->read_start, seed_size);
+	  if (s_first && s_first->read_start >= seed_size) {
 	    //Search start seed <-----
+	    //printf("Search <-------");
 	    list_item_aux = list_item_cal->prev;
 	    while (list_item_aux) {
 	      short_cal_aux = list_item_aux->item;
@@ -3981,7 +4091,7 @@ size_t bwt_generate_cals(char *seq,
 	      while (s != NULL) {
 		if (s->read_end < s_first->read_start) {
 		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 0);	
+						s->genome_start, s->genome_end, 0, 0, 0);	
 		  array_list_insert(seed_region, cal->candidates_seeds_start);
 		}
 		s = linked_list_iterator_next(&itr2);
@@ -4007,7 +4117,7 @@ size_t bwt_generate_cals(char *seq,
 	      while (s != NULL) {
 		if (s->read_start > s_last->read_end) {
 		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 1);	
+						s->genome_start, s->genome_end, 1, 0, 0);	
 		  array_list_insert(seed_region, cal->candidates_seeds_end);
 		}
 		s = linked_list_iterator_next(&itr2);
@@ -4179,7 +4289,7 @@ size_t bwt_generate_cals_between_coords(int strand_target, int chromosome_target
 	    append_seed_region_linked_list(list_aux,
 					   s->read_start, s->read_end, 
 					   s->genome_start, s->genome_end, 
-					   s->id);  
+					   s->id, 0, 0, 0);  
 	    seed_region_free(s);
 	  }
 	  cal = cal_new(j, i, short_cal->start, 
@@ -4386,13 +4496,14 @@ void print_se_region_cp(short_cal_t *short_cal, void* dummy){
 void seed_region_select_linked_list(linked_list_t* sr_list, linked_list_t* sr_duplicate_list, 
 				    size_t read_start, size_t read_end,
 				    size_t genome_start, size_t genome_end,
-				    int seed_id, unsigned char *seeds_ids_array) {
+				    int seed_id, int pos_err, int type_err,
+				    unsigned char *seeds_ids_array) {
   //printf("\tInsert [Seed:=%lu-%lu](%i): ", read_start, read_end, seed_id);
   seed_region_t *item;
   if (!seeds_ids_array[seed_id]) { 
     //printf(" Not in!!\n");
     seeds_ids_array[seed_id]++;
-    item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id);
+    item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id, pos_err, type_err);
     linked_list_insert(item, sr_list);
   } else {
     //printf(" In!!\n");
@@ -4411,7 +4522,7 @@ void seed_region_select_linked_list(linked_list_t* sr_list, linked_list_t* sr_du
       }
       linked_list_iterator_free(itr);
     }
-    item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id);
+    item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id, pos_err, type_err);
     linked_list_insert(item, sr_duplicate_list);
     seeds_ids_array[seed_id]++;
   }
@@ -4460,13 +4571,22 @@ void seed_region_select_linked_list(linked_list_t* sr_list, linked_list_t* sr_du
 void append_seed_region_linked_list(linked_list_t* sr_list,
 				    size_t read_start, size_t read_end, 
 				    size_t genome_start, size_t genome_end, 
-				    int seed_id) {
+				    int seed_id, int pos_err, int type_err, int type_seeds) {
   unsigned char actualization = 0;
   seed_region_t *item, *item_aux, *new_item, *item_free;
   linked_list_iterator_t* itr = linked_list_iterator_new(sr_list);
   
   if (linked_list_size(sr_list) <= 0) {
-    new_item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id);
+    new_item = seed_region_new(read_start, read_end, genome_start, genome_end, 
+			       seed_id, pos_err, type_err);
+
+    if (type_seeds) {
+      new_item->errors_list = array_list_new(10, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+      if (pos_err != -1) {
+	bwt_err_t *err = bwt_err_new(pos_err, type_err == SEED_INSERTION ? 'I' : 'D');
+	array_list_insert(err, new_item->errors_list);
+      }
+    }
     linked_list_insert(new_item, sr_list);
     //printf("Call linked_list_insert\n");
   } else {
@@ -4482,7 +4602,15 @@ void append_seed_region_linked_list(linked_list_t* sr_list,
            *       |-------| |--------|                *
            ********************************************/
 	  //printf("\t Insert now before %lu\n", item->start);
-	  new_item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id);
+	  new_item = seed_region_new(read_start, read_end, genome_start, 
+				     genome_end, seed_id, pos_err, type_err);
+	  if (type_seeds) {
+	    new_item->errors_list = array_list_new(10, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+	    if (pos_err != -1) {
+	      bwt_err_t *err = bwt_err_new(pos_err, type_err == SEED_INSERTION ? 'I' : 'D');
+	      array_list_insert(err, new_item->errors_list);
+	    }
+	  }
 	  linked_list_iterator_insert(new_item, itr);
 	  //printf("Call linked_list_iterator_insert\n");
 	  linked_list_iterator_prev(itr);
@@ -4510,6 +4638,10 @@ void append_seed_region_linked_list(linked_list_t* sr_list,
 	    item->read_end = read_end;
 	    item->genome_end = genome_end;
 	    actualization = 1;
+	  }
+	  if (pos_err != -1 && type_seeds) {
+	    bwt_err_t *err = bwt_err_new(pos_err, type_err == SEED_INSERTION ? 'I' : 'D');
+	    array_list_insert(err, item->errors_list);	  
 	  }
 	}
 	break;
@@ -4539,6 +4671,10 @@ void append_seed_region_linked_list(linked_list_t* sr_list,
 	  item->read_end = read_end;
 	  item->genome_end = genome_end;
 	  actualization = 1;
+	  if (pos_err != -1 && type_seeds) {
+	    bwt_err_t *err = bwt_err_new(pos_err, type_err == SEED_INSERTION ? 'I' : 'D');
+	    array_list_insert(err, item->errors_list);	  
+	  }
 	  break;
 	}
       } // end else
@@ -4555,7 +4691,15 @@ void append_seed_region_linked_list(linked_list_t* sr_list,
        *                 item    new item                    * 
        *              |-------| |--------|                   *    
        *******************************************************/
-      new_item = seed_region_new(read_start, read_end, genome_start, genome_end, seed_id);
+      new_item = seed_region_new(read_start, read_end, genome_start, 
+				 genome_end, seed_id, pos_err, type_err);
+      if (type_seeds) {
+	new_item->errors_list = array_list_new(10, 1.25f, COLLECTION_MODE_ASYNCHRONIZED);
+	if (pos_err != -1) {
+	  bwt_err_t *err = bwt_err_new(pos_err, type_err == SEED_INSERTION ? 'I' : 'D');
+	  array_list_insert(err, new_item->errors_list);
+	}
+      }
       //printf("\tInsert at END\n");
       linked_list_insert_last(new_item, sr_list);
       //printf("Call linked_list_insert_last\n");
@@ -4582,10 +4726,18 @@ void append_seed_region_linked_list(linked_list_t* sr_list,
 	    //printf("\t\tActualization end value %d\n", item_aux->end);
 	    item->read_end = item_aux->read_end;
 	    item->genome_end = item_aux->genome_end;
+	    if (type_seeds && item_aux->errors_list) {
+	      for (int i = 0; i < array_list_size(item_aux->errors_list); i++) {
+		array_list_insert(array_list_get(i, item_aux->errors_list), item->errors_list);
+	      }
+	    }
 	  }
           //printf("\t\tDelete item %d-%d\n", item_aux->start, item_aux->end);
 	  item_free = linked_list_iterator_remove(itr);
-	  if (item_free) { seed_region_free(item_free); }
+	  if (item_free) { 
+	    //if (type_seeds && item_free->errors_list) { array_list_free(item_free->errors_list, (void *)NULL); }
+	    seed_region_free(item_free);
+	  }
 	  //printf("\t\tDelete OK!\n");
 	  item_aux = linked_list_iterator_curr(itr);
 	}                                                                                             
@@ -4629,7 +4781,10 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
   //printf("LINKED LIST INSERT %lu|%i-%i|%lu:\n", start, seq_start, seq_end, end);
 
   if (linked_list_size(list_p) <= 0) {
-    new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, max_seeds, region->id);
+    new_item_p = short_cal_new(start, end, seq_start, seq_end, 
+			       seq_len, max_seeds, region->id,
+			       region->pos_err,
+			       region->type_err);
     linked_list_insert(new_item_p, list_p);
   } else {
     item = (short_cal_t *)linked_list_iterator_curr(itr);
@@ -4644,7 +4799,11 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
            ********************************************/
 
 	  //printf("\t Insert now before %lu\n", item->start);
-	  new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, max_seeds, region->id);
+	  new_item_p = short_cal_new(start, end, seq_start, seq_end,
+				     seq_len, max_seeds, region->id,
+				     region->pos_err,
+				     region->type_err);
+
 	  linked_list_iterator_insert(new_item_p, itr);
 	  linked_list_iterator_prev(itr);
 	} else {
@@ -4660,6 +4819,8 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 	  //item->seq_start = seq_start;
 	  seed_region_select_linked_list(item->sr_list, item->sr_duplicate_list, 
 					 seq_start, seq_end, start, end, region->id,
+					 region->pos_err,
+					 region->type_err,
 					 item->seeds_ids_array);
 	  if (end > item->end) {
 	    /**************************************************
@@ -4688,7 +4849,10 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 	  //printf("\tFusion!\n");
 	  item->num_seeds++;
 	  seed_region_select_linked_list(item->sr_list, item->sr_duplicate_list, seq_start,
-					 seq_end, start, end, region->id, item->seeds_ids_array);
+					 seq_end, start, end, region->id, 
+					 region->pos_err,
+					 region->type_err,
+					 item->seeds_ids_array);
 	  break;
 	} else if (item->end + max_cal_distance >= start) {
 	  /********************************************                                              
@@ -4701,7 +4865,10 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 	  item->end = end;
 	  //item->seq_end = seq_end;
 	  seed_region_select_linked_list(item->sr_list, item->sr_duplicate_list, seq_start,
-					 seq_end, start, end, region->id, item->seeds_ids_array);
+					 seq_end, start, end, region->id,
+					 region->pos_err,
+					 region->type_err,
+					 item->seeds_ids_array);
 	  actualization = 1;
 	  item->num_seeds++;
 	  break;
@@ -4720,7 +4887,8 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
        *                 item    new item                    * 
        *              |-------| |--------|                   *    
        *******************************************************/
-      new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, max_seeds, region->id);
+      new_item_p = short_cal_new(start, end, seq_start, seq_end, seq_len, max_seeds, region->id,
+				 region->pos_err, region->type_err);
       //printf("\tInsert at END\n");
       linked_list_insert_last(new_item_p, list_p);
     }
@@ -4750,7 +4918,9 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 	    while (seed_region_aux = linked_list_remove_first(item_aux->sr_list)) {
 	      seed_region_select_linked_list(item->sr_list, item->sr_duplicate_list, seed_region_aux->read_start, 
 					     seed_region_aux->read_end, seed_region_aux->genome_start,
-					     seed_region_aux->genome_end, seed_region_aux->id, item->seeds_ids_array);
+					     seed_region_aux->genome_end, seed_region_aux->id, 
+					     seed_region_aux->pos_err, seed_region_aux->type_err,
+					     item->seeds_ids_array);
 	      seed_region_free(seed_region_aux);
 	    }
 
@@ -4955,7 +5125,8 @@ size_t bwt_generate_cal_list_linked_list(array_list_t *mapping_list,
 					 size_t nchromosomes,
 					 array_list_t *cal_list,
 					 size_t read_length,
-					 size_t min_cal_size) {
+					 size_t min_cal_size,
+					 int type_seeds) {
   //  printf("::: CALS PROCESS with max seeds %i:::\n", *max_seeds);
   short_cal_t *short_cal, *short_cal_aux;
   linked_list_item_t *list_item_cal, *list_item_aux, *list_item_s;
@@ -5022,76 +5193,77 @@ size_t bwt_generate_cal_list_linked_list(array_list_t *mapping_list,
 	    append_seed_region_linked_list(list_aux,
 					   s->read_start, s->read_end, 
 					   s->genome_start, s->genome_end, 
-					   s->id);	    
+					   s->id, s->pos_err, s->type_err, type_seeds);	    
 	    seed_region_free(s);	    
 	  }
 	  cal = cal_new(j, i, short_cal->start, 
 			short_cal->end, short_cal->num_seeds, 
 			list_aux, short_cal->sr_duplicate_list);
+	  cal->type_seeds = type_seeds;
  	  array_list_insert(cal, cal_list);
 
 	  short_cal->sr_duplicate_list = NULL;
 
-	  //============= Search if one seed map near to this CAL ================//
-	  s_first = (seed_region_t *)linked_list_get_first(list_aux);	  
-	  s_last = (seed_region_t *)linked_list_get_last(list_aux);
+	  if (!type_seeds) {
+	    //============= Search if one seed map near to this CAL ================//
+	    s_first = (seed_region_t *)linked_list_get_first(list_aux);	  
+	    s_last = (seed_region_t *)linked_list_get_last(list_aux);
 
-	  if (s_first && s_first->read_start > seed_size) {
-	    //Search start seed <-----
-	    list_item_aux = list_item_cal->prev;
-	    while (list_item_aux) {
-	      short_cal_aux = list_item_aux->item;
-	      if (!short_cal_aux ||
-		  short_cal_aux->end - short_cal_aux->start + 1 >= min_cal_size || 
-		  short_cal->start - short_cal_aux->end >= max_intron_size) {
-		break;
-	      }
+	    if (s_first && s_first->read_start >= seed_size) {
+	      //Search start seed <-----
+	      list_item_aux = list_item_cal->prev;
+	      while (list_item_aux) {
+		short_cal_aux = list_item_aux->item;
+		if (!short_cal_aux ||
+		    short_cal_aux->end - short_cal_aux->start + 1 >= min_cal_size || 
+		    short_cal->start - short_cal_aux->end >= max_intron_size) {
+		  break;
+		}
 	   
-	      linked_list_iterator_init(short_cal_aux->sr_list, &itr2);
-	      s = linked_list_iterator_curr(&itr2);
-	      while (s != NULL) {
-		if (s->read_end < s_first->read_start) {
-		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 0);	
-		  array_list_insert(seed_region, cal->candidates_seeds_start);
-		}
-		s = linked_list_iterator_next(&itr2);
+		linked_list_iterator_init(short_cal_aux->sr_list, &itr2);
+		s = linked_list_iterator_curr(&itr2);
+		while (s != NULL) {
+		  if (s->read_end < s_first->read_start) {
+		    seed_region = seed_region_new(s->read_start, s->read_end,
+						  s->genome_start, s->genome_end, 0, 0, 0);	
+		    array_list_insert(seed_region, cal->candidates_seeds_start);
+		  }
+		  s = linked_list_iterator_next(&itr2);
 
+		}
+		list_item_aux = list_item_aux->prev;	      
 	      }
-	      list_item_aux = list_item_aux->prev;	      
+	    }	
+
+	    if (s_last && s_last->read_end < read_length - seed_size) {
+	      // Search start seed ----->
+	      list_item_aux = list_item_cal->next;
+	      while (list_item_aux) {
+		short_cal_aux = list_item_aux->item;
+		if (!short_cal_aux ||
+		    short_cal_aux->end - short_cal_aux->start + 1 >= min_cal_size || 
+		    short_cal_aux->start - short_cal->end >= max_intron_size) {
+		  break;
+		}
+
+		linked_list_iterator_init(short_cal_aux->sr_list, &itr2);
+		s = linked_list_iterator_curr(&itr2);
+		while (s != NULL) {
+		  if (s->read_start > s_last->read_end) {
+		    seed_region = seed_region_new(s->read_start, s->read_end,
+						  s->genome_start, s->genome_end, 1, 0, 0);	
+		    array_list_insert(seed_region, cal->candidates_seeds_end);
+		  }
+		  s = linked_list_iterator_next(&itr2);
+		}
+		list_item_aux = list_item_aux->next;
+	      }	    
 	    }
-	  }	
-
-	  if (s_last && s_last->read_end < read_length - seed_size) {
-	    // Search start seed ----->
-	    list_item_aux = list_item_cal->next;
-	    while (list_item_aux) {
-	      short_cal_aux = list_item_aux->item;
-	      if (!short_cal_aux ||
-		  short_cal_aux->end - short_cal_aux->start + 1 >= min_cal_size || 
-		  short_cal_aux->start - short_cal->end >= max_intron_size) {
-		break;
-	      }
-
-	      linked_list_iterator_init(short_cal_aux->sr_list, &itr2);
-	      s = linked_list_iterator_curr(&itr2);
-	      while (s != NULL) {
-		if (s->read_start > s_last->read_end) {
-		  seed_region = seed_region_new(s->read_start, s->read_end,
-						s->genome_start, s->genome_end, 1);	
-		  array_list_insert(seed_region, cal->candidates_seeds_end);
-		}
-		s = linked_list_iterator_next(&itr2);
-	      }
-	      list_item_aux = list_item_aux->next;
-	    }	    
-	  }
 	  	  
-	  //printf("\t First Seed [%i-%i]\n", s_first->read_start, s_first->read_end);
-	  //printf("\t Last Seed [%i-%i]\n", s_last->read_start, s_last->read_end);
-
-	  //======================================================================//
-
+	    //printf("\t First Seed [%i-%i]\n", s_first->read_start, s_first->read_end);
+	    //printf("\t Last Seed [%i-%i]\n", s_last->read_start, s_last->read_end);
+	    //======================================================================//
+	  }
         } //else { printf("\n"); }
 	linked_list_iterator_next(&itr);
 	//linked_list_item_free(list_item_cal, short_cal_free);

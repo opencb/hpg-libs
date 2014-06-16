@@ -229,22 +229,23 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
     LOG_DEBUG_F("region_filter over %zu records\n", input_records->size);
 
     vcf_record_t *record;
-    region_t *region = (region_t*) malloc (sizeof(region_t));
+    region_t region;
     for (int i = 0; i < input_records->size; i++) {
         record = input_records->items[i];
         
 //         LOG_DEBUG_F("record = %s, %ld\n", record->chromosome, record->position);
         
-        region->chromosome = strndup(record->chromosome, record->chromosome_len);
-        region->start_position = record->position;
-        region->end_position = record->position;
+        region.chromosome = strndup(record->chromosome, record->chromosome_len);
+        region.start_position = record->position;
+        region.end_position = record->position;
         
         int found = 0;
+        
         if (args->type) {
-            region->type = args->type;
-            found = find_region_by_type(region, regions);
+            region.type = args->type;
+            found = find_region_by_type(&region, regions);
         } else {
-            found = find_region(region, regions);
+            found = find_region(&region, regions);
         }
         
         if (found) {
@@ -257,10 +258,8 @@ array_list_t *region_filter(array_list_t *input_records, array_list_t *failed, v
             array_list_insert(record, failed);
         }
         
-        free(region->chromosome);
+        free(region.chromosome);
     }
-
-    free(region);
 
     return passed;
 }

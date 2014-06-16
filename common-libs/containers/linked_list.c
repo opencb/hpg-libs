@@ -410,12 +410,23 @@ void* linked_list_remove_at(size_t index, linked_list_t *linked_list_p) {
         }
 
         if (list_item) {
-            list_item->prev->next = list_item->next;
-            list_item->next->prev = list_item->prev;
-            linked_list_p->size--;
+	  if (list_item->prev) {
+	    list_item->prev->next = list_item->next;
+	  } else {
+	    // list_item is the first
+	    linked_list_p->first = list_item->next;
+	  }
+	  if (list_item->next) {
+	    list_item->next->prev = list_item->prev;
+	  } else {
+	    // list_item is the last
+	    linked_list_p->last = list_item->prev;
+	  }
 
-            item = list_item->item;
-            linked_list_item_free(list_item, NULL);
+	  linked_list_p->size--;
+
+	  item = list_item->item;
+	  linked_list_item_free(list_item, NULL);
         }
 
         if(linked_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
@@ -686,6 +697,7 @@ void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p) {
         void *item = list_item->item;
 
         if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
+	  //printf("first\n");
             /*************** ITERATOR IN THE FIRST POSITION *************/
             iterator_p->linked_list_p->first = iterator_p->curr_pos->next;
             if (iterator_p->linked_list_p->first) {
@@ -697,11 +709,13 @@ void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p) {
             }
             iterator_p->curr_pos = iterator_p->linked_list_p->first;
         } else if (iterator_p->curr_pos == iterator_p->linked_list_p->last) {
+	  //printf("last\n");
             /*************** ITERATOR IN THE LAST POSITION *************/
             iterator_p->linked_list_p->last = iterator_p->curr_pos->prev;
             iterator_p->linked_list_p->last->next = NULL;
             iterator_p->curr_pos = NULL;
         } else { 
+	  //printf("middle\n");
             /*************** ITERATOR IS IN THE MIDDLE *************/
             iterator_p->curr_pos->prev->next = iterator_p->curr_pos->next;
             iterator_p->curr_pos->next->prev = iterator_p->curr_pos->prev;

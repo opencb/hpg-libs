@@ -610,8 +610,6 @@ void workflow_run_with(int num_threads, void *input, workflow_t *wf) {
 	  CPU_ZERO( &cpu_set);
 	  CPU_SET( cpuArray[i % num_cpus], &cpu_set);
 	  sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set), &cpu_set);
-
-//	  printf("***** creating thread %i...\n", i);
 	  
 	  if (ret = pthread_create(&threads[i], &attr, thread_function, (void *) wf_context)) {
 	       printf("ERROR; return code from pthread_create() is %d\n", ret);
