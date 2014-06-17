@@ -24,7 +24,7 @@ env = Environment(tools = build_tools,
 		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % commons_path, '%s' % bioinfo_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = ['-fopenmp'],
-		  LIBS = ['xml2', 'm', 'z', 'curl'])
+		  LIBS = ['xml2', 'm', 'z', 'curl', 'omptrace'])
 
 if compiler == 'icc':
 	env['tools'] += ['intelc']
