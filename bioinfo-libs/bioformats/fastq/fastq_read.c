@@ -3,7 +3,6 @@
 
 #include "fastq_read.h"
 
-
 fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
   fastq_read_t *fq_read = (fastq_read_t*) calloc(1, sizeof(fastq_read_t));
   
@@ -15,33 +14,7 @@ fastq_read_t *fastq_read_new(char *id, char *sequence, char *quality) {
 
   get_to_first_blank(id, id_length, fq_read->id);
 
-  fq_read->sequence = strdup(sequence);  
-  fq_read->revcomp = (char *)malloc((seq_length + 1)*sizeof(char));
-
-  int j = 0;
-  for (int i = seq_length - 1; i >= 0; i--) {
-    if (fq_read->sequence[i] == 'A' || 
-	fq_read->sequence[i] == 'a') {
-      fq_read->revcomp[j] = 'T';
-    } else if (fq_read->sequence[i] == 'C' || 
-	       fq_read->sequence[i] == 'c') {
-      fq_read->revcomp[j] = 'G';
-    } else if (fq_read->sequence[i] == 'G' ||
-	       fq_read->sequence[i] == 'g') {
-      fq_read->revcomp[j] = 'C';
-    }
-    else if (fq_read->sequence[i] == 'T' || 
-	     fq_read->sequence[i] == 't') {
-      fq_read->revcomp[j] = 'A';
-    } else {
-      fq_read->revcomp[j] = 'N';
-    }
-    j++;
-  }
-  fq_read->revcomp[j] = '\0';
-
-  //fq_read->sequence = strndup(sequence, seq_length + 1);
-  //printf("%s\n", fq_read->sequence);
+  fq_read->sequence = strdup(sequence);
   fq_read->quality = strdup(quality);
   fq_read->length = seq_length;
 

@@ -345,4 +345,8 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
  */
 int strcasecmp(const char *s1, const char *s2);
 
+/**
+ */
+char *str_reverse(char *str);
+
 #endif	/*    STRING_UTILS_H	*/
