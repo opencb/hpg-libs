@@ -21,7 +21,7 @@ build_tools = ['default']
 
 #Build environment
 env = Environment(tools = build_tools,
-		  CFLAGS = ' -std=c99 -D_XOPEN_SOURCE=600',
+		  CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700',
 		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % commons_path, '%s' % bioinfo_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = ['-fopenmp'],
@@ -37,8 +37,10 @@ if os.environ.has_key('LIBRARY_PATH'):
 
 if compiler == 'icc':
 	env['tools'] += ['intelc']
-	env['CFLAGS'] += ' -msse4.2'
+	env['CFLAGS'] += ' -msse4.2 -openmp '
 	env['LIBS'] += ['irc']
+else:
+  env['CFLAGS'] += ' -fopenmp '
 
 env['objects'] = []
 env.Decider('MD5-timestamp')
