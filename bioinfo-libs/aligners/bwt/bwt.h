@@ -573,7 +573,6 @@ size_t bwt_map_inexact_read_2(fastq_read_t *read,
 				    size_t read_start, size_t read_end, 
 				    size_t genome_start, size_t genome_end, 
 				    int seed_id);
-
 */
 
 //-----------------------------------------------------------------------------
