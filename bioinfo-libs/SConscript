@@ -1,6 +1,6 @@
 import os
 
-Import('env', 'debug', 'compiler')
+Import('env', 'compiler', 'debug')
 
 # Initialize environment
 bioenv = env.Clone()
@@ -15,8 +15,8 @@ else:
 bioenv['objects'] = []
 
 # Targets
-SConscript(['bioformats/SConscript',], exports = ['bioenv'])
-SConscript(['aligners/SConscript',], exports = ['bioenv'])
+SConscript(['bioformats/SConscript',], exports = ['bioenv', 'compiler', 'debug'])
+SConscript(['aligners/SConscript',], exports = ['bioenv', 'compiler', 'debug'])
 
 bioenv.Library('bioinfo', bioenv['objects'])
 

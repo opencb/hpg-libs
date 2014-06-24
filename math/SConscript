@@ -3,12 +3,14 @@ Import('debug', 'compiler')
 
 if compiler == 'icc':
    env = Environment(tools = [ 'default', 'intelc' ],
-                     CFLAGS = '-std=c99 -openmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE',
+                     CFLAGS = '-Wall -std=c99 -openmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
+		                 LINKFLAGS = ['openmp'],
                      LIBS = ['gsl', 'irc' ], 
                      CPPPATH = [ '.', 'data' ])
 else:
    env = Environment(tools = [ 'default' ],
-                     CFLAGS = '-std=c99 -fopenmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE ',
+                     CFLAGS = '-Wall -std=c99 -fopenmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
+		                 LINKFLAGS = ['fopenmp'],
                      LIBS = ['gsl'], 
                      CPPPATH = [ '.', 'data' ])
 

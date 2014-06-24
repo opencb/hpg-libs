@@ -1,6 +1,6 @@
 import os
 
-Import('bioenv')
+Import('bioenv', 'compiler', 'debug')
 
 aligners_env = bioenv.Clone()
 aligners_env['objects'] = []
@@ -9,7 +9,7 @@ aligners_env['objects'] = []
 aligners = ['bwt', 'sw']
 
 for dir in aligners:
-    SConscript(os.path.join(dir, 'SConscript'), exports = ['bioenv', 'aligners_env'])
+    SConscript(os.path.join(dir, 'SConscript'), exports = ['bioenv', 'aligners_env', 'compiler', 'debug'])
 
 aligners_env.Library('aligners', aligners_env['objects'])
 

@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include "typedef.h"
+#include "../bwt_commons.h"
 
 #define VERSION 2009071800
 
