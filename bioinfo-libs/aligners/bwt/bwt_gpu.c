@@ -169,12 +169,12 @@ size_t bwt_map_exact_seed_batch_gpu(fastq_batch_t *batch,
 	      }
 	      //printf("----> key value: %d\n", key);
 	      
-	      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
 	      //printf("----> idx value: %d\n", idx);
-	      //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+	      //chromosome = index->karyotype->chromosome + (idx-1) * IDMAX;
 	      
-	      if(key + len <= index->karyotype.offset[idx]) {
-		start = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	      if(key + len <= index->karyotype->offset[idx]) {
+		start = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 		
 		//printf("\tStrand:%i\tchromosome:%d\tStart:%u\tLength:%u\n",
 		//       (r > num_reads), idx, start, len);
@@ -304,13 +304,13 @@ size_t bwt_map_exact_batch_gpu(fastq_batch_t *batch,
 	  }
 	  //printf("----> key value: %d\n", key);
 	  
-	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	  idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
 	  //printf("----> idx value: %d\n", idx);
-	  //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+	  //chromosome = index->karyotype->chromosome + (idx-1) * IDMAX;
 	  
-	  if(key + len <= index->karyotype.offset[idx]) {
+	  if(key + len <= index->karyotype->offset[idx]) {
 	    found = 1;
-	    start = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    start = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	    
 	    //	    printf("\tStrand:%i\tchromosome:%d\tStart:%u\tLength:%u\n",
 	    //		   (r > num_reads), idx, start, len);
@@ -636,17 +636,17 @@ size_t bwt_map_exact_seed(char *seq,
 	  }
 	  //printf("----> key value: %d\n", key);
 
-	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	  idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
 	  //printf("----> idx value: %d\n", idx);
-	  //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+	  //chromosome = index->karyotype->chromosome + (idx-1) * IDMAX;
  
-	  if(key + len <= index->karyotype.offset[idx]) {
-	    //start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	  if(key + len <= index->karyotype->offset[idx]) {
+	    //start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	    //printf("Strand:%c\tchromosome:%s\tStart:%u\tend:%u\n",plusminus[type],
-	    //	    index->karyotype.chromosome + (idx-1) * IDMAX,
+	    //	    index->karyotype->chromosome + (idx-1) * IDMAX,
 	    //	    start_mapping, start_mapping + len);
 	    //
-	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	    // save all into one alignment structure and insert to the list
 	    region = region_new(idx, !type, start_mapping, start_mapping + len);
 
@@ -759,16 +759,16 @@ size_t bwt_map_inexact_seed(char *seq,
 					    &index->h_Oi) - len - 1
 	      : getScompValue(j, &index->S, &index->h_C, &index->h_O);
 	  }
-	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-	  if(key + len <= index->karyotype.offset[idx]) {
+	  idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+	  if(key + len <= index->karyotype->offset[idx]) {
 	    //printf("\tvalue idx=%d\n", idx);
 	    //printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i ",
 	   //   "nothing", plusminus[type],
-	  //    index->karyotype.chromosome + (idx-1) * IDMAX,
-	   //   index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
+	  //    index->karyotype->chromosome + (idx-1) * IDMAX,
+	   //   index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]),
 	   //   seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0]);
 	   //	  
-	    start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	    start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	  // save all into one alignment structure and insert to the list
 	    region = region_new(idx, !type, start_mapping, start_mapping + end);
 	    
@@ -908,8 +908,8 @@ size_t bwt_map_inexact_seq(char *seq,
 					    &index->h_Oi) - len - 1
 	      : getScompValue(j, &index->S, &index->h_C, &index->h_O);
 	  }
-	  idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-	  if(key + len <= index->karyotype.offset[idx]) {
+	  idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+	  if(key + len <= index->karyotype->offset[idx]) {
 */	    
 	    /*alignment_p->flags = CODED_SEQ_FLAG;
 	      alignment_p->header_p = &read_batch_p->header[read_batch_p->header_indices[i]];
@@ -978,8 +978,8 @@ size_t bwt_map_inexact_seq(char *seq,
 	    //printf("Value idx = %d\n", idx);
 	    //  printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i cigar: %s\n",
 	    //  "nothing", plusminus[type],
-	    //  index->karyotype.chromosome + (idx-1) * IDMAX,
-	    //  index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
+	    //  index->karyotype->chromosome + (idx-1) * IDMAX,
+	    //  index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]),
 	    //  seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0], cigar);
 	      
 	    if(!error_debug){
@@ -993,8 +993,8 @@ size_t bwt_map_inexact_seq(char *seq,
 	      // save all into one alignment structure and insert to the list
 	      alignment = alignment_new();
 	      alignment_init_single_end(NULL, seq_dup, NULL, !type, 
-					idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-					index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+					idx - 1, //index->karyotype->chromosome + (idx-1) * IDMAX,
+					index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]), 
 					cigar_dup, num_cigar_ops, 255, 1, (num_mappings > 0), alignment);
 	      
 	      array_list_insert((void*) alignment, mapping_list);

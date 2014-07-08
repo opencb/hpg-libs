@@ -1,5 +1,28 @@
 #include "io.h"
 
+exome *exome_new() {
+  exome *ex = (exome *)malloc(sizeof(exome));
+  
+  ex->max_chromosomes = INDEX_EXOME;
+  ex->size = 0;
+
+  ex->chromosome = (char *)malloc(sizeof(char)*INDEX_EXOME*IDMAX);
+  ex->start      = (uintmax_t *)malloc(sizeof(uintmax_t)*INDEX_EXOME);
+  ex->end        = (uintmax_t *)malloc(sizeof(uintmax_t)*INDEX_EXOME);
+  ex->offset     = (uintmax_t *)malloc(sizeof(uintmax_t)*INDEX_EXOME);
+
+  return ex;
+
+}
+
+void exome_free(exome *ex) {
+  free(ex->chromosome);
+  free(ex->start);
+  free(ex->end);
+  free(ex->offset);
+  free(ex);
+}
+
 void load_exome_file(exome *ex, const char *directory) {
 
   FILE *fp;
@@ -108,11 +131,22 @@ void encode_reference(ref_vector *X, exome *ex, const char *ref_path, bwt_config
 	  ex->end[ex->size] = partial_length - 1;
 	  partial_length=0;
 
-	  if (ex->size==0)
+	  if (ex->size == 0)
 	    ex->offset[0] = 0;
 	  else
 	    ex->offset[ex->size] = ex->offset[ex->size-1] + (ex->end[ex->size-1] - ex->start[ex->size-1] + 1);
 	  ex->size++;
+	  if (ex->size >= ex->max_chromosomes) {
+	    ex->max_chromosomes *= 2;
+	    ex->chromosome = (char *)realloc(ex->chromosome, 
+					     sizeof(char)*ex->max_chromosomes*IDMAX);
+	    ex->start      = (uintmax_t *)realloc(ex->start, 
+						  sizeof(uintmax_t)*ex->max_chromosomes);
+	    ex->end        = (uintmax_t *)realloc(ex->end, 
+						  sizeof(uintmax_t)*ex->max_chromosomes);
+	    ex->offset     = (uintmax_t *)realloc(ex->offset, 
+						  sizeof(uintmax_t)*ex->max_chromosomes); 
+	  }
 
 	  sscanf(reference + total_length, ">%s ", ex->chromosome + ex->size * IDMAX);
 	  ex->start[ex->size] = 0;

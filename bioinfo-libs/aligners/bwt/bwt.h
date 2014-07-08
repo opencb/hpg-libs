@@ -278,8 +278,7 @@ void bwt_optarg_free(bwt_optarg_t *optarg);
 //-----------------------------------------------------------------------------
 
 typedef struct {
-
-  exome karyotype;
+  exome *karyotype;
   bwt_config_t bwt_config;
   bwt_index *backward;
   bwt_index *forward;

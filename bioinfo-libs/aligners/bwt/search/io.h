@@ -7,27 +7,29 @@
 #include "../bwt_commons.h"
 
 typedef struct {
-
   uint8_t *vector;
   uint64_t n;
   uint64_t dollar; //Position ending with the $ symbol (the first in the reference)
-
 } ref_vector;
 
 void read_ref_vector(ref_vector *vector, const char *directory, const char *name);
 void save_ref_vector(ref_vector *vector, const char *directory, const char *name);
 
 //Data structure for chromosome or exome separation positions in the reference
-#define INDEX_EXOME 24000
-#define IDMAX 100
+#define INDEX_EXOME 240000
+#define IDMAX 500
 
 typedef struct {
-  char chromosome[INDEX_EXOME*IDMAX];
-  uintmax_t start[INDEX_EXOME];
-  uintmax_t end[INDEX_EXOME];
-  uintmax_t offset[INDEX_EXOME];
+  int max_chromosomes;
+  char *chromosome;
+  uintmax_t *start;
+  uintmax_t *end;
+  uintmax_t *offset;
   uintmax_t size;
 } exome;
+
+exome *exome_new();
+void exome_free(exome *ex);
 
 void load_exome_file(exome *ex, const char *directory);
 void save_exome_file(exome *ex, bool reverse, const char *directory);
