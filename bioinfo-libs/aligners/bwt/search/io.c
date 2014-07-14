@@ -57,6 +57,19 @@ void load_exome_file(exome *ex, const char *directory) {
 
       sscanf(line + j + 2, "%ju %ju %*s", &ex->start[ex->size], &ex->end[ex->size]);
       ex->size++;
+
+      if (ex->size >= ex->max_chromosomes) {
+	ex->max_chromosomes *= 2;
+	ex->chromosome = (char *)realloc(ex->chromosome, 
+					 sizeof(char)*ex->max_chromosomes*IDMAX);
+	ex->start      = (uintmax_t *)realloc(ex->start, 
+					      sizeof(uintmax_t)*ex->max_chromosomes);
+	ex->end        = (uintmax_t *)realloc(ex->end, 
+					      sizeof(uintmax_t)*ex->max_chromosomes);
+	ex->offset     = (uintmax_t *)realloc(ex->offset, 
+					      sizeof(uintmax_t)*ex->max_chromosomes); 
+      }
+
       ex->offset[ex->size] = ex->offset[ex->size-1] + (ex->end[ex->size-1] - ex->start[ex->size-1]+1);
 
     }
