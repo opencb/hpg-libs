@@ -34,16 +34,17 @@
 * Structure for storing alignments
 */
 typedef struct alignment {
-    short int optional_fields_length; 	/**< Length of optional fields. */
-    short int chromosome;		/**< Chromosome. */
+    int optional_fields_length; 	/**< Length of optional fields. */
+    unsigned int chromosome;		        /**< Chromosome. */
     int position;			/**< Mapping position. */
     int mate_position;			/**< Mapping position of the mate. */
-    short int mate_chromosome;		/**< Chromosome of the mate. */
-    short int template_length;		/**< Template length. */
+    int mate_chromosome;		/**< Chromosome of the mate. */
+    int template_length;		/**< Template length. */
     int map_quality;			/**< Map quality. */
     int mapq;
     int num_cigar_operations;		/**< Number of CIGAR operations. */
     int map_len;
+    
     //flags
     uint8_t is_paired_end;		/**< 0: single end, 1: paired end. */ 
     uint8_t is_paired_end_mapped;	/**< 0: pair not mapped, 1: pair mapped. */
@@ -106,7 +107,7 @@ alignment_t* alignment_new();
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, short int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, alignment_t* alignment_p);
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, unsigned int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, alignment_t* alignment_p);
 
 /**
 *  @brief Inits an alignment with a single end mapping
@@ -135,7 +136,7 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
 *  
 *  Creates and returns a new qc hash list item
 */
-void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, short int chromosome1, int position1, int position2, short int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int secondary_alignment1, short int secondary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
+void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, unsigned int chromosome1, int position1, int position2, unsigned int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int secondary_alignment1, short int secondary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p);
 
 void alignment_update_paired_end(alignment_t* alignment1_p, alignment_t* alignment2_p);
 

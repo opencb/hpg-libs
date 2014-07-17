@@ -672,12 +672,14 @@ void seq_reverse_complementary(char *seq, unsigned int len){
 bwt_index_t *bwt_index_new(const char *dirname, bool inverse_sa) {
   bwt_index_t *index  = (bwt_index_t*) malloc(sizeof(bwt_index_t));
 
-	char *nucleotides = (char *) malloc(128 * sizeof(char));
+  char *nucleotides = (char *) malloc(128 * sizeof(char));
   read_config(nucleotides, &(index->bwt_config.duplicate_strand), dirname);
   bwt_init_replace_table(&(index->bwt_config), nucleotides);
 
+  index->karyotype    = exome_new();
   index->backward     = (bwt_index*) malloc(sizeof(bwt_index));
   index->forward      = (bwt_index*) malloc(sizeof(bwt_index));
+
   if (!index->bwt_config.duplicate_strand) {
     index->backward_rev = (bwt_index*) malloc(sizeof(bwt_index));
     index->forward_rev  = (bwt_index*) malloc(sizeof(bwt_index));
@@ -694,9 +696,10 @@ bwt_index_t *bwt_index_new(const char *dirname, bool inverse_sa) {
     load_bwt_index(index->forward_rev, index->forward, dirname, 0, inverse_sa, index->bwt_config);
   }
 
-  load_exome_file(&index->karyotype, dirname);
+  load_exome_file(index->karyotype, dirname);
 
   return index;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -721,7 +724,8 @@ void bwt_index_free(bwt_index_t *index) {
   free(index->forward);
   free(index->backward_rev);
   free(index->forward_rev);
-
+  exome_free(index->karyotype);
+  
   free(index);
 }
 
@@ -734,7 +738,8 @@ void bwt_generate_index_files(char *ref_file, char *output_dir,
   vector C, C1;
   comp_matrix O, Oi;
   comp_vector S, R, Si, Ri;
-  exome ex;
+
+  exome *ex = exome_new();
   bwt_config_t bwt_config;
   
   save_config(bases, duplicate_strand, output_dir);
@@ -742,9 +747,9 @@ void bwt_generate_index_files(char *ref_file, char *output_dir,
   bwt_init_replace_table(&bwt_config, bases);
 
   // Calculating BWT
-  encode_reference(&X, &ex, ref_file, &bwt_config);
+  encode_reference(&X, ex, ref_file, &bwt_config);
   save_ref_vector(&X, output_dir, "X");
-  save_exome_file(&ex, duplicate_strand, output_dir);
+  save_exome_file(ex, duplicate_strand, output_dir);
   print_vector(X.vector, X.n);
 
   calculate_and_save_B(&X, output_dir, "B");
@@ -800,7 +805,7 @@ void bwt_generate_index_files(char *ref_file, char *output_dir,
 
   free(C.vector);
   free(C1.vector);
-
+  exome_free(ex);
 }
 
 //-----------------------------------------------------------------------------
@@ -936,11 +941,11 @@ size_t bwt_map_exact_seq(char *seq,
       
       key = get_SA(j, index->backward);
       
-      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-      //chromosome = index->karyotype.chromosome + (idx-1) * IDMAX;
+      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+      //chromosome = index->karyotype->chromosome + (idx-1) * IDMAX;
       
-      if(key + len <= index->karyotype.offset[idx]) {
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+      if(key + len <= index->karyotype->offset[idx]) {
+	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	
 	cigar_p = (char *)malloc(sizeof(char)*len);
 	sprintf(cigar_p, "%d=\0", len);
@@ -1257,10 +1262,10 @@ size_t bwt_map_exact_seed(uint8_t *seq, size_t seq_len,
     for (size_t j = k_aux; j <= l_aux; j++) {
       
       key = get_SA(j, index->backward);
-      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);     
+      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);     
       
-      if (key + len <= index->karyotype.offset[idx]) {
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+      if (key + len <= index->karyotype->offset[idx]) {
+	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]) + 1;
 	// save all into one alignment structure and insert to the list
 	//printf("\t\t Region%i[%i:%lu-%lu]\n", !type, idx, start_mapping, start_mapping + len);
 	region = region_bwt_new(idx, !type, start_mapping, start_mapping + len, aux_seq_start, aux_seq_end, seq_len, id);
@@ -1355,11 +1360,11 @@ size_t bwt_map_exact_seed_by_region(char *seq, size_t seq_len,
       
     for (size_t j = k_aux; j <= l_aux; j++) {            
       key = get_SA(j, index->backward);
-      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);     
+      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);     
       if (idx != chromosome_target) { continue; }
 
-      if (key + len <= index->karyotype.offset[idx]) {
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+      if (key + len <= index->karyotype->offset[idx]) {
+	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]) + 1;
 	if (start_mapping < start_target || start_mapping > end_target) { continue; }
 	// save all into one alignment structure and insert to the list
 	printf(" \t::: %lu:%lu :::\n", idx, start_mapping);
@@ -1548,16 +1553,16 @@ size_t bwt_map_inexact_seed(char *code_seq, size_t seq_len,
 	  ? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 	  : get_SA(j, index->backward);
 
-	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-	if(key + len_calc <= index->karyotype.offset[idx]) {
+	idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+	if(key + len_calc <= index->karyotype->offset[idx]) {
 	    //printf("\tvalue idx=%d\n", idx);
 	  /*printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i ",
 		 "nothing", plusminus[type],
-		 index->karyotype.chromosome + (idx-1) * IDMAX,
-		 index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
+		 index->karyotype->chromosome + (idx-1) * IDMAX,
+		 index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]),
 		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0]);
 	  */
-	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+	  start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]) + 1;
 	  // save all into one alignment structure and insert to the list
 	  region = region_bwt_new(idx, !type, start_mapping, start_mapping + len - 1, aux_seq_start, aux_seq_end, seq_len, seed_id);
 	  
@@ -1730,18 +1735,18 @@ size_t bwt_map_inexact_seed_by_region(char *code_seq, size_t seq_len,
 	  ? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 	  : get_SA(j, index->backward);
 
-	idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+	idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
 	if (idx != chromosome_id) { continue; }
 
-	if(key + len_calc <= index->karyotype.offset[idx]) {
+	if(key + len_calc <= index->karyotype->offset[idx]) {
 	    //printf("\tvalue idx=%d\n", idx);
 	  /*printf("\t%s\t%c\t%s %u %s error: %s, pos: %i, base: %i ",
 		 "nothing", plusminus[type],
-		 index->karyotype.chromosome + (idx-1) * IDMAX,
-		 index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]),
+		 index->karyotype->chromosome + (idx-1) * IDMAX,
+		 index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]),
 		 seq, bwt_error_type(r->err_kind[0]), r->position[0], r->base[0]);
 	  */
-	  start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+	  start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 
 	  //printf("(%i)Report Region in position [%i:%lu|%i-%i|%lu]\n", !type, idx, start_mapping, 
 	  //	 aux_seq_start, aux_seq_end, start_mapping + end);
@@ -1847,9 +1852,9 @@ void *__bwt_generate_anchor_list(size_t k_start, size_t l_start, int len_calc, b
 	   ? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 	   : get_SA(j, index->backward);
 
-	 idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-	 if(key + len_calc <= index->karyotype.offset[idx]) {
-	   start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);	
+	 idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+	 if(key + len_calc <= index->karyotype->offset[idx]) {
+	   start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);	
 	   bwt_anchor = bwt_anchor_new(!type, idx - 1, start_mapping + 1, start_mapping + len_calc, type_anchor);
 	   //printf("anchor: %i:%lu-%lu\n", idx, bwt_anchor->start, bwt_anchor->end);
 	   array_list_insert(bwt_anchor, anchor_list);
@@ -2146,16 +2151,17 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 		   ? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 		   : get_SA(j, index->backward);
 
-		 idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-		 if(key + len_calc <= index->karyotype.offset[idx]) {
-		   //start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
-		   start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]); //¿+/-1?
+		 idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+		 if(key + len_calc <= index->karyotype->offset[idx]) {
+		   //start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]) + 1;
+		   start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]); //¿+/-1?
 		   // save all into one alignment structure and insert to the list
+
 		   //printf("*****Alignments %i:%lu\n", idx, start_mapping);
 		   alignment = alignment_new();
 		   alignment_init_single_end(strdup(read->id), strdup(seq_dup), strdup(quality_clipping), !type, 
-					     idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-					     start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+					     idx - 1, //index->karyotype->chromosome + (idx-1) * IDMAX,
+					     start_mapping, //index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]), 
 					     strdup(cigar), num_cigar_ops, error == 0 ? 0 : 1, 1, (num_mappings > 0), 0, NULL, alignment);
 
 		   array_list_insert((void*) alignment, tmp_mapping_list);
@@ -2275,7 +2281,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 
      free(r_list.list);
      free(code_seq);
-     //free(seq_strand);
+
      free(k0);
      free(l0);
      free(k1);
@@ -2619,15 +2625,15 @@ size_t bwt_map_inexact_read_2(fastq_read_t *read,
 		   ? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 		   : get_SA(j, index->backward);
 
-		 idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-		 if(key + len_calc <= index->karyotype.offset[idx]) {
-		   start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]) + 1;
+		 idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+		 if(key + len_calc <= index->karyotype->offset[idx]) {
+		   start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]) + 1;
 		   // save all into one alignment structure and insert to the list
 		   //printf("*****Alignments %i:%lu\n", idx, start_mapping);
 		   alignment = alignment_new();
 		   alignment_init_single_end(NULL, strdup(seq_dup), strdup(quality_clipping), !type, 
-					     idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-					     start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+					     idx - 1, //index->karyotype->chromosome + (idx-1) * IDMAX,
+					     start_mapping, //index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]), 
 					     strdup(cigar), num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
 
 		   array_list_insert((void*) alignment, tmp_mapping_list);

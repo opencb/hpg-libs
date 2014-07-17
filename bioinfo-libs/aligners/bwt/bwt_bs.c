@@ -280,13 +280,13 @@ size_t bwt_map_exact_seed_bs(char *seq, size_t seq_len,
       
   for (size_t j = k_aux; j <= l_aux; j++) {
       key = get_SA(j, index->backward);      
-      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
+      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
       
-      if (key + len <= index->karyotype.offset[idx]) {
-	//start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]); 
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+      if (key + len <= index->karyotype->offset[idx]) {
+	//start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]); 
+	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	printf("\t\tstrand:%c\tchromosome:%s\tstart:%u\tend:%u\n",plusminus[type],
-	       index->karyotype.chromosome + (idx-1) * IDMAX,
+	       index->karyotype->chromosome + (idx-1) * IDMAX,
 	       start_mapping, start_mapping + len);
 
 	// save all into one alignment structure and insert to the list
@@ -592,15 +592,15 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
       key = (direction)
 	? size_SA(index->forward) - get_SA(j, index->forward) - len_calc - 1
 	: get_SA(j, index->backward);
-      idx = binsearch(index->karyotype.offset, index->karyotype.size, key);
-      if(key + len_calc <= index->karyotype.offset[idx]) {
-	start_mapping = index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]);
+      idx = binsearch(index->karyotype->offset, index->karyotype->size, key);
+      if(key + len_calc <= index->karyotype->offset[idx]) {
+	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
 	// save all into one alignment structure and insert to the list
 	alignment = alignment_new();
 
 	alignment_init_single_end(NULL, strdup(seq_dup), strdup(quality_clipping), type, 
-				  idx - 1, //index->karyotype.chromosome + (idx-1) * IDMAX,
-				  start_mapping, //index->karyotype.start[idx-1] + (key - index->karyotype.offset[idx-1]), 
+				  idx - 1, //index->karyotype->chromosome + (idx-1) * IDMAX,
+				  start_mapping, //index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]), 
 				  strdup(cigar), num_cigar_ops, 254, 1, (num_mappings > 0), 0, NULL, alignment);
 	array_list_insert((void*) alignment, tmp_mapping_list);
       }
