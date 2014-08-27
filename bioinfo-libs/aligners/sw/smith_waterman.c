@@ -22,11 +22,11 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
   char *header_line = (char*) calloc(1, 4096);
   char *token_line = (char*) calloc(1, 4096);
 
-  fgets(header_line, 4096, file);
+  char *res = fgets(header_line, 4096, file);
   str_trim(header_line);
 
 
-  char *res = NULL;
+  res = NULL;
 
   // init matrix to -1000.0f
   for (int i = 0; i<128; i++) {

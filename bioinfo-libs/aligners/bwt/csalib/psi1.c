@@ -570,7 +570,7 @@ static i64 psi1_pred(CSA *csa, i64 pr, i64 l, i64 r)
       }
       break;
     default:
-      printf("psi id %d is not supported.\n",ps->id & 0x3f);
+      printf("psi id %lu is not supported.\n", ps->id & 0x3f);
       exit(1);
   }
   return ans;
@@ -728,7 +728,7 @@ static i64 psi1_succ(CSA *csa, i64 pl, i64 l, i64 r)
       }
       break;
     default:
-      printf("psi id %d is not supported.\n",ps->id & 0x3f);
+      printf("psi id %lu is not supported.\n", ps->id & 0x3f);
       exit(1);
       break;
   }    

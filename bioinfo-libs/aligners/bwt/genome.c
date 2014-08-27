@@ -313,7 +313,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   char key[4];
   unsigned char max_chunk = 3;
   unsigned char actual_nt = 0;
-  
+  char *res;
   unsigned char value;
   unsigned char *value_ptr;
   size_t nt = 0;
@@ -321,7 +321,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   LOG_DEBUG("Process DNA File\n");
 
   while (!feof(fd)) {
-    fgets(dna_chunk, chunk_size, fd);
+    res = fgets(dna_chunk, chunk_size, fd);
     if (dna_chunk[0] != '>') {
       dna_len = strlen(dna_chunk);
       //printf("Process (%i): %s", dna_len, dna_chunk);
@@ -390,7 +390,7 @@ unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
 
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
 
-  fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
+  int res = fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
   
   fclose(binary_fd);
 

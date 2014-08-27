@@ -47,7 +47,6 @@ int cst_isleaf(cst_node node)
 int cst_eq(cst_node n1, cst_node n2)
 {
   if (n1.csa != n2.csa) {
-    printf("cst_eq: n1.csa = %p n2.csa = %p\n");
     return 0;
   }
   if (n1.depth != n2.depth) return 0;

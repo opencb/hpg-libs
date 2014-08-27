@@ -118,7 +118,7 @@ void bw_to_psi(FILE *out, CSA *csa, char *fbw, char *flst, int *k)
 	if (in == NULL) {
 		perror("bw_to_psi:");  exit(1);
 	}
-	fscanf(in,"%ld",&last);
+	int res = fscanf(in,"%ld",&last);
 	fclose(in);
 
 	for (c=0; c<SIGMA; c++) {

@@ -1240,7 +1240,7 @@ void comparray_construct(comparray *da, i64 n, bitvec_t *buf, ushort L, int opt)
           if (k1-k2 > 0) { // ÅŒã‚ð1ƒOƒ‹[ƒv‚É
             if ((k1-k2 > MAXGRP) || (w2 > NCK*MAXGRP)
                 || (enumtbl_w[k1-k2][w2] == NULL)) { // ‚Å‚«‚È‚¢
-              printf("??? k1=%d k2=%d w2=%d\n",k1,k2,w2);
+              //printf("??? k1=%d k2=%d w2=%d\n",k1,k2,w2);
               exit(1);
             }
             //if (pass==1) bss += enumtbl_kwp[k1-k2][w2];
@@ -1385,7 +1385,7 @@ void comparray_construct(comparray *da, i64 n, bitvec_t *buf, ushort L, int opt)
 
         for (i=0; i<D+1; i++) {
           bs += da->h->clen[i] * freq[i];
-       if (da->h->clen[i]>32) printf("%d: len = %ld code = %lx\n",i,da->h->clen[i],da->h->code[i]);
+       if (da->h->clen[i]>32) printf("%lu: len = %i code = %lx\n",i,da->h->clen[i],da->h->code[i]);
         }
       }
       bs = (bs+D-1)/D;
