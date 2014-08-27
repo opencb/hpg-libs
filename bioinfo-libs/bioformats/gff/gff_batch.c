@@ -17,7 +17,7 @@ void gff_batch_free(gff_batch_t* batch) {
     assert(batch);
     
     if (batch->text) { free(batch->text); }
-    array_list_free(batch->records, gff_record_free);
+    array_list_free(batch->records, (void *)gff_record_free);
     free(batch);
 }
 

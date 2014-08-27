@@ -16,7 +16,7 @@ Suite *create_test_suite(void);
 
 void create_linked_list() {
     list = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
-    for (int i = 5; i >= 0; i--) {
+    for (size_t i = 5; i >= 0; i--) {
         linked_list_insert((void *)i, list);
     }
 }
@@ -42,13 +42,13 @@ END_TEST
 
 START_TEST(test_insert_and_remove) {
     // [0->1->2->3->4->5->]
-    fail_if((int) linked_list_get(3, list) != 3, "Get: Position #3 must contain number 3");
-    fail_if((int) linked_list_get_first(list) != 0, "Get: Position #0 (first) must contain number 0");
-    fail_if((int) linked_list_get_last(list) != 5, "Get: Position #5 (last) must contain number 5");
+    fail_if((size_t) linked_list_get(3, list) != 3, "Get: Position #3 must contain number 3");
+    fail_if((size_t) linked_list_get_first(list) != 0, "Get: Position #0 (first) must contain number 0");
+    fail_if((size_t) linked_list_get_last(list) != 5, "Get: Position #5 (last) must contain number 5");
     
-    fail_if((int) linked_list_remove_first(list) != 0, "Remove: Position #0 (first) must contain number 0");
-    fail_if((int) linked_list_remove_last(list) != 5, "Remove: Position #5 (last) must contain number 5");
-    fail_if((int) linked_list_remove_at(2, list) != 3, "Remove: Position #2 must contain number 3");
+    fail_if((size_t) linked_list_remove_first(list) != 0, "Remove: Position #0 (first) must contain number 0");
+    fail_if((size_t) linked_list_remove_last(list) != 5, "Remove: Position #5 (last) must contain number 5");
+    fail_if((size_t) linked_list_remove_at(2, list) != 3, "Remove: Position #2 must contain number 3");
     
     // [1->2->4->]
     fail_if(linked_list_size(list) != 3, "The list must contain 3 elements");
@@ -57,7 +57,7 @@ START_TEST(test_insert_and_remove) {
     // [1->2->3->4->]
     fail_if(linked_list_size(list) != 4, "The list must contain 4 elements");
     for (int i = 0; i < linked_list_size(list); i++) {
-        fail_if((int) linked_list_get(i, list) != i + 1, "Each position must contain an element of the same value + 1");
+        fail_if((size_t) linked_list_get(i, list) != i + 1, "Each position must contain an element of the same value + 1");
     }
     
     linked_list_insert_first((void *)0, list);
@@ -65,7 +65,7 @@ START_TEST(test_insert_and_remove) {
     // [0->1->2->3->4->5->]
     fail_if(linked_list_size(list) != 6, "The list must contain 6 elements");
     for (int i = 0; i < linked_list_size(list); i++) {
-        fail_if((int) linked_list_get(i, list) != i, "Each position must contain an element of the same value");
+        fail_if((size_t) linked_list_get(i, list) != i, "Each position must contain an element of the same value");
     }
 }
 END_TEST
@@ -74,11 +74,11 @@ END_TEST
 START_TEST(test_iterators) {
     // [0->1->2->3->4->5->]
     linked_list_iterator_t* iterator = linked_list_iterator_new(list);
-    fail_if(linked_list_iterator_curr(iterator) != 0, "A new iterator must be at position #0");
+    fail_if((size_t)linked_list_iterator_curr(iterator) != 0, "A new iterator must be at position #0");
     
-    fail_if(linked_list_iterator_next(iterator) != 1, "Iterator must be at position #1");
+    fail_if((size_t)linked_list_iterator_next(iterator) != 1, "Iterator must be at position #1");
 
-    fail_if(linked_list_iterator_prev(iterator) != 0, "Iterator must be at position #0");
+    fail_if((size_t)linked_list_iterator_prev(iterator) != 0, "Iterator must be at position #0");
 
     fail_if(linked_list_iterator_prev(iterator) != NULL, "Position #0 must have no previous position");
 
@@ -86,9 +86,9 @@ START_TEST(test_iterators) {
     linked_list_iterator_insert((void*) 8, iterator);
     // [0->1->2->3->4->5->8->]
     fail_if(linked_list_size(list) != 7, "The list must contain 7 elements");
-    fail_if((int) linked_list_get_last(list) != 8, "List tail must be 8");
+    fail_if((size_t) linked_list_get_last(list) != 8, "List tail must be 8");
     for (int i = 0; i < linked_list_size(list) - 1; i++) {
-        fail_if((int) linked_list_get(i, list) != i, "Each position must contain an element of the same value");
+        fail_if((size_t) linked_list_get(i, list) != i, "Each position must contain an element of the same value");
     }
 
     linked_list_iterator_first(iterator);
@@ -97,35 +97,35 @@ START_TEST(test_iterators) {
     linked_list_iterator_insert((void *)8, iterator);
     // [0->1->8->2->3->4->5->8->]
     fail_if(linked_list_size(list) != 8, "The list must contain 8 elements");
-    fail_if((int) linked_list_get(2, list) != 8, "Position #2 must contain value 8");
+    fail_if((size_t) linked_list_get(2, list) != 8, "Position #2 must contain value 8");
 
     linked_list_iterator_last(iterator);
     linked_list_iterator_next(iterator);
     linked_list_iterator_insert((void *)8, iterator);
     // [0->1->8->2->3->4->5->8->8->]
     fail_if(linked_list_size(list) != 9, "The list must contain 9 elements");
-    fail_if((int) linked_list_get(7, list) != 8, "Position #7 must contain value 8");
-    fail_if((int) linked_list_get(8, list) != 8, "Position #8 must contain value 8");
+    fail_if((size_t) linked_list_get(7, list) != 8, "Position #7 must contain value 8");
+    fail_if((size_t) linked_list_get(8, list) != 8, "Position #8 must contain value 8");
 
     void* item = linked_list_iterator_remove(iterator);
     // [0->1->8->2->3->4->5->8->]
     fail_if(linked_list_size(list) != 8, "The list must contain 8 elements");
-    fail_if((int) item != 8, "The removed item must be 8");
-    fail_if((int) linked_list_get_last(list) != 8, "Position #7 must contain value 8");
+    fail_if((size_t) item != 8, "The removed item must be 8");
+    fail_if((size_t) linked_list_get_last(list) != 8, "Position #7 must contain value 8");
 
     linked_list_iterator_first(iterator);
     item = linked_list_iterator_remove(iterator);
     // [1->8->2->3->4->5->8->]
     fail_if(linked_list_size(list) != 7, "The list must contain 7 elements");
-    fail_if((int) item != 0, "The removed item must be 0");
-    fail_if((int) linked_list_get_first(list) != 1, "Position #0 must contain value 1");
+    fail_if((size_t) item != 0, "The removed item must be 0");
+    fail_if((size_t) linked_list_get_first(list) != 1, "Position #0 must contain value 1");
     
     linked_list_iterator_next(iterator);
     linked_list_iterator_next(iterator);
     item = linked_list_iterator_remove(iterator);
     // [1->8->2->3->4->5->8->]
     fail_if(linked_list_size(list) != 6, "The list must contain 6 elements");
-    fail_if((int) item != 2, "The removed item must be 2");
+    fail_if((size_t) item != 2, "The removed item must be 2");
 }
 END_TEST
 

@@ -21,6 +21,11 @@ void *__bwt_generate_anchor_list(size_t k_start, size_t l_start, int len_calc,
 // exact functions
 //-----------------------------------------------------------------------------
 
+void append_seed_region_linked_list(linked_list_t* sr_list,
+				    size_t read_start, size_t read_end, 
+				    size_t genome_start, size_t genome_end, 
+				    int seed_id, int pos_err, int type_err, int type_seeds);
+
 size_t bwt_map_exact_seq(char *seq, 
 			 bwt_optarg_t *bwt_optarg, 
 			 bwt_index_t *index, 
@@ -1019,7 +1024,7 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 	    append_seed_region_linked_list(list_aux,
 					   s->read_start, s->read_end, 
 					   s->genome_start, s->genome_end, 
-					   s->id);	    
+					   s->id, 0, 0, 0);	    
 	    seed_region_free(s);	    
 	  }
 	  cal = cal_new(j, i, short_cal->start, 
@@ -1093,12 +1098,12 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 
   for (unsigned int i = 0; i < nstrands; i++) {
     for (unsigned int j = 0; j < nchromosomes; j++) {
-      linked_list_free(cals_list[i][j], short_cal_free);
+      linked_list_free(cals_list[i][j], (void *)short_cal_free);
     }
     free(cals_list[i]);
   }
   
-  array_list_free(mapping_list, NULL);
+  array_list_free(mapping_list, (void *)NULL);
   free(cals_list);
 
 

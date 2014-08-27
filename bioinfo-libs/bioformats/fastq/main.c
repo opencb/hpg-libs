@@ -23,12 +23,12 @@ int main (int argc, char *argv[]) {
 				fastq_read_print(array_list_get(i, reads));
 			}
 			//			printf("Size: %i, Capacity: %i\n", reads->size, reads->capacity);
-			array_list_clear(reads, fastq_read_free);
+			array_list_clear(reads, (void *)fastq_read_free);
 		}
 		//		printf("Total num reads: %i\n", reads->size);
 		//		fastq_read_print(array_list_get(0, reads));
 		//		fastq_read_print(array_list_get(reads->size-1, reads));
-		array_list_free(reads, fastq_read_free);
+		array_list_free(reads, (void *)fastq_read_free);
 		fastq_fclose(file);
 	}
 
@@ -44,12 +44,12 @@ int main (int argc, char *argv[]) {
 				fastq_read_pe_print(array_list_get(i, reads));
 			}
 			//			printf("Size: %i, Capacity: %i\n", reads->size, reads->capacity);
-			array_list_clear(reads, fastq_read_pe_free);
+			array_list_clear(reads, (void *)fastq_read_pe_free);
 		}
 		//		printf("Total num reads: %i\n", reads->size);
 		//		fastq_read_print(array_list_get(0, reads));
 		//		fastq_read_print(array_list_get(reads->size-1, reads));
-		array_list_free(reads, fastq_read_pe_free);
+		array_list_free(reads, (void *)fastq_read_pe_free);
 		fastq_fclose(file1);
 		fastq_fclose(file2);
 	}
@@ -68,11 +68,11 @@ int main (int argc, char *argv[]) {
 				fastq_read_print(array_list_get(i, reads));
 			}
 			//				fastq_read_print(array_list_get(reads->size-1, reads));
-			array_list_clear(reads, fastq_read_free);
+			array_list_clear(reads, (void *)fastq_read_free);
 		}
 		//			printf("Total num reads: %i\n", count);
 		//		fastq_read_print(array_list_get(0, reads));
-		array_list_free(reads, fastq_read_free);
+		array_list_free(reads, (void *)fastq_read_free);
 		fastq_fclose(file);
 	}
 
@@ -91,11 +91,11 @@ int main (int argc, char *argv[]) {
 				fastq_read_pe_print(array_list_get(i, reads));
 			}
 			//				fastq_read_print(array_list_get(reads->size-1, reads));
-			array_list_clear(reads, fastq_read_pe_free);
+			array_list_clear(reads, (void *)fastq_read_pe_free);
 		}
 		//			printf("Total num reads: %i\n", count);
 		//		fastq_read_print(array_list_get(0, reads));
-		array_list_free(reads, fastq_read_pe_free);
+		array_list_free(reads, (void *)fastq_read_pe_free);
 		fastq_fclose(file1);
 		fastq_fclose(file2);
 	}
@@ -114,11 +114,11 @@ int main (int argc, char *argv[]) {
 				fastq_read_print(array_list_get(i, reads));
 			}
 			//			fastq_read_print((fastq_read_t*)array_list_get(reads->size-1, reads));
-			array_list_clear(reads, fastq_read_free);
+			array_list_clear(reads, (void *)fastq_read_free);
 		}
 		//		printf("Total num reads: %i\n", count);
 		//		fastq_read_print(array_list_get(0, reads));
-		array_list_free(reads, fastq_read_free);
+		array_list_free(reads, (void *)fastq_read_free);
 		fastq_gzclose(file);
 	}
 
@@ -136,11 +136,11 @@ int main (int argc, char *argv[]) {
 				fastq_read_print(array_list_get(i, reads));
 			}
 			//				fastq_read_print(array_list_get(reads->size-1, reads));
-			array_list_clear(reads, fastq_read_free);
+			array_list_clear(reads, (void *)fastq_read_free);
 		}
 		//			printf("Total num reads: %i\n", count);
 		//		fastq_read_print(array_list_get(0, reads));
-		array_list_free(reads, fastq_read_free);
+		array_list_free(reads, (void *)fastq_read_free);
 		fastq_gzclose(file);
 	}
 
@@ -166,9 +166,9 @@ int main (int argc, char *argv[]) {
 			}
 			//fastq_read_print(array_list_get(0, failed_reads));
 			//printf("Total Reads: %lu, Passed Reads: %lu, Reads failed: %lu\n", reads->size, passed_reads->size, failed_reads->size);
-			array_list_clear(reads, fastq_read_free);
-			array_list_clear(passed_reads, NULL);
-			array_list_clear(failed_reads, NULL);
+			array_list_clear(reads, (void *)fastq_read_free);
+			array_list_clear(passed_reads, (void *)NULL);
+			array_list_clear(failed_reads, (void *)NULL);
 			//			fastq_read_print(array_list_get(0, passed_reads));
 			//			fastq_read_print(array_list_get(0, failed_reads));
 			//			printf("Total Reads: %lu, Passed Reads: %lu, Reads filter: %lu\n", reads->size, passed_reads->size, failed_reads->size);
@@ -178,9 +178,9 @@ int main (int argc, char *argv[]) {
 		//		printf("Total Reads: %lu, Passed Reads: %lu, Reads filter: %lu\n", reads->size, passed_reads->size, failed_reads->size);
 
 		fastq_filter_options_free(fastq_filter_options);
-		array_list_free(reads, fastq_read_free);
-		array_list_free(passed_reads, fastq_read_free);
-		array_list_free(failed_reads, fastq_read_free);
+		array_list_free(reads, (void *)fastq_read_free);
+		array_list_free(passed_reads, (void *)fastq_read_free);
+		array_list_free(failed_reads, (void *)fastq_read_free);
 		fastq_fclose(file);
 	}
 

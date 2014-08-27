@@ -2170,7 +2170,7 @@ size_t __bwt_map_inexact_read(fastq_read_t *read,
 	  }//end for 
 	  
 	  if (filter_exceeded) {
-	    array_list_clear(tmp_mapping_list, alignment_free);
+	    array_list_clear(tmp_mapping_list, (void *)alignment_free);
 	    array_list_set_flag(2, mapping_list);
 	    break;
 	  }
@@ -2642,7 +2642,7 @@ size_t bwt_map_inexact_read_2(fastq_read_t *read,
 	  }//end for 
 	  
 	  if (filter_exceeded) {
-	    array_list_clear(tmp_mapping_list, alignment_free);
+	    array_list_clear(tmp_mapping_list, (void *)alignment_free);
 	    array_list_set_flag(2, mapping_list);
 	    break;
 	  }

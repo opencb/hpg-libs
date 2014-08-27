@@ -79,6 +79,8 @@ int array_list_insert_all(void** item_p, size_t num_items, array_list_t *array_l
 
 int array_list_insert_all_at(size_t index, void** item_p, size_t num_items, array_list_t* array_list_p);
 
+int array_list_replace_at(size_t index, void *item_p, array_list_t *array_list_p);
+
 
 
 void* array_list_remove(void *item, array_list_t *array_list_p);

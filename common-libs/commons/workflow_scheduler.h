@@ -89,7 +89,8 @@ struct workflow {
 workflow_t *workflow_new();
 void workflow_free(workflow_t *wf);
 
-void workflow_set_stages(int num_stages, workflow_stage_function_t *functions, 
+void workflow_set_stages(int num_stages, 
+			 workflow_stage_function_t *functions, 
 			 char **labels, workflow_t *wf);
 void workflow_set_producer(workflow_producer_function_t *function, 
 			     char *label, workflow_t *wf);

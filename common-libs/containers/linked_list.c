@@ -9,7 +9,7 @@
 #include "linked_list.h"
 
 void print_item(void *item) {
-  printf("%d->", (int)item);
+  printf("%lu->", (size_t)item);
 }
 
 linked_list_t* linked_list_new(int SYNC_MODE) {

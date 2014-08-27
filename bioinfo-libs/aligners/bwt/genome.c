@@ -341,7 +341,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 	  if (actual_nt ==  max_chunk){
 	    key[actual_nt] = '\0';
 	    //printf("Store: %s\n", key);
-	    value = (unsigned char)cp_hashtable_get(t, key);
+	    value = cp_hashtable_get(t, key);
 	    //value = *value_ptr;
 
 	    code_values[code_pos++] = value;

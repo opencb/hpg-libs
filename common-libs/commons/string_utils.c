@@ -426,3 +426,19 @@ unsigned int get_to_first_blank(char *str_p, unsigned int length, char *str_out_
   res_pos++;
   return res_pos;
 }
+
+
+char *str_reverse(char *str) {
+  if (!str) { return NULL; }
+  
+  size_t len = strlen(str);
+  char *str_tmp = (char *)malloc(sizeof(char)*(len + 1));
+  str_tmp[len] = '\0';
+
+  for (int i = 0, j = len - 1; i < len; i++, j--) {
+    str_tmp[j] = str[i];
+  }
+  
+  return str_tmp;
+
+}

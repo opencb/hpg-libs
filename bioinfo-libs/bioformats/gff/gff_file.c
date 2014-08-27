@@ -32,11 +32,11 @@ gff_file_t *gff_open(char *filename) {
 
 void gff_close(gff_file_t *gff_file, int free_records) {
     // Free header entries
-    linked_list_free(gff_file->header_entries, NULL);   // TODO doesn't work! :(
+    linked_list_free(gff_file->header_entries, (void *)NULL);   // TODO doesn't work! :(
     
     // Free records list if asked to
     if (free_records) {
-        linked_list_free(gff_file->records, gff_record_free);
+        linked_list_free(gff_file->records, (void *)gff_record_free);
     }
     
     munmap((void*) gff_file->data, gff_file->data_len);

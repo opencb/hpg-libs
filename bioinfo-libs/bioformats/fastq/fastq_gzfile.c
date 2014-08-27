@@ -42,17 +42,17 @@ void fastq_gzclose(fastq_gzfile_t *fq_gzfile) {
 
 size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_gzfile_t *fq_gzfile) {
 	size_t count = 0;
-	char header1[MAX_READ_ID_LENGTH];
-	char sequence[MAX_READ_SEQUENCE_LENGTH];
-	char header2[MAX_READ_ID_LENGTH];
-	char qualities[MAX_READ_SEQUENCE_LENGTH];
+	char header1[MAX_READ_ID_LENGTH_GZ];
+	char sequence[MAX_READ_SEQUENCE_LENGTH_GZ];
+	char header2[MAX_READ_ID_LENGTH_GZ];
+	char qualities[MAX_READ_SEQUENCE_LENGTH_GZ];
 	int header_length, sequence_length, quality_length;
 	fastq_read_t *read;
 
 	size_t num_lines_to_read = 4 * num_reads;	/* Each read consists of 4 lines */
 
 	int max_data_len = CHUNK;
-	int max_read_len = MAX_READ_SEQUENCE_LENGTH;	/* Each read is supposed to be shorter than MAX_READ_SEQUENCE_LENGTH */
+	int max_read_len = MAX_READ_SEQUENCE_LENGTH_GZ;	/* Each read is supposed to be shorter than MAX_READ_SEQUENCE_LENGTH */
 	int eof_found = 0;
 	int c = 0;
 	int i = 0;
@@ -195,17 +195,17 @@ size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_gzfile_t *fq
 
 size_t fastq_gzread_bytes_se(array_list_t *reads, size_t bytes_to_read, fastq_gzfile_t *fq_gzfile) {
   size_t count = 0;
-  char header1[MAX_READ_ID_LENGTH];
-  char sequence[MAX_READ_SEQUENCE_LENGTH];
-  char header2[MAX_READ_ID_LENGTH];
-  char qualities[MAX_READ_SEQUENCE_LENGTH];
+  char header1[MAX_READ_ID_LENGTH_GZ];
+  char sequence[MAX_READ_SEQUENCE_LENGTH_GZ];
+  char header2[MAX_READ_ID_LENGTH_GZ];
+  char qualities[MAX_READ_SEQUENCE_LENGTH_GZ];
   int header_length, sequence_length, quality_length;
   fastq_read_t *read;
 
   //	size_t num_lines_to_read = bytes;	/* Each read consists of 4 lines */
 
   int max_data_len = CHUNK;
-  int max_read_len = MAX_READ_SEQUENCE_LENGTH;	/* Each read is supposed to be shorter than MAX_READ_SEQUENCE_LENGTH */
+  int max_read_len = MAX_READ_SEQUENCE_LENGTH_GZ;	/* Each read is supposed to be shorter than MAX_READ_SEQUENCE_LENGTH */
   int eof_found = 0;
   int c = 0;
   int i = 0;

@@ -39,7 +39,9 @@ array_list_t* array_list_new(size_t initial_capacity, float realloc_factor, int 
 	array_list_p->flag = 0;
 	array_list_p->items = (void**) malloc(initial_capacity * sizeof(void*));
 
-	pthread_mutex_init(&(array_list_p->lock), NULL);
+	if (array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	  pthread_mutex_init(&(array_list_p->lock), NULL);
+	}
 
 	return array_list_p;
 }
@@ -555,4 +557,25 @@ array_list_t* array_list_complement(array_list_t *al1, array_list_t *al2, int (*
 
 int compare(const void *a, const void *b) {
     return strcmp((char*)a, (char*)b);
+}
+
+
+int array_list_replace_at(size_t index, void *item_p, array_list_t *array_list_p) {
+  if(array_list_p != NULL) {
+    if(index < array_list_p->size) {
+      if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	pthread_mutex_lock(&array_list_p->lock);
+      }
+      
+      array_list_p->items[index] = item_p;
+
+      if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+	pthread_mutex_unlock(&array_list_p->lock);
+      }
+      return 1;
+    }
+  }
+
+  return 0;
+
 }

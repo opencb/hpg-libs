@@ -17,7 +17,7 @@ void bed_batch_free(bed_batch_t* batch) {
     assert(batch);
     
     if (batch->text) { free(batch->text); }
-    array_list_free(batch->records, bed_record_free);
+    array_list_free(batch->records, (void *)bed_record_free);
     free(batch);
 }
 
