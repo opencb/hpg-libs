@@ -110,6 +110,16 @@ void my_cp_list_append_linked_list(linked_list_t* list_p, region_t *region, size
 // Paratemers for the candidate alignment localizations (CALs)
 //------------------------------------------------------------------------------
 
+bwt_err_t *bwt_err_new(int pos, char name) {
+  bwt_err_t *bwt_err = (bwt_err_t *)malloc(sizeof(bwt_err_t));
+  bwt_err->pos = pos;
+  bwt_err->name = name;
+
+  return bwt_err;
+  
+}
+
+
 void bwt_err_free(bwt_err_t *p) {
   if (p) { free(p); }
 }
