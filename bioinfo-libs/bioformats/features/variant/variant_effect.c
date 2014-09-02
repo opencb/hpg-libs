@@ -21,10 +21,10 @@
 #include "variant_effect.h"
 
 
-int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, char *excludes) {
+int invoke_effect_ws(char *url, vcf_record_t **records, int num_records, char *excludes) {
     int variants_len = 512, current_len = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
-    const char *output_format = "txt";
+    char *output_format = "txt";
     int new_len_range;
 
     CURLcode ret_code = CURLE_OK;
@@ -118,10 +118,10 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
     return ret_code;
 }
 
-int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_records) {
+int invoke_snp_phenotype_ws(char *url, vcf_record_t **records, int num_records) {
     CURLcode ret_code = CURLE_OK;
 
-    const char *output_format = "txt";
+    char *output_format = "txt";
     int variants_len = 512, current_index = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     
@@ -167,10 +167,10 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
     return ret_code;
 }
 
-int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int num_records) {
+int invoke_mutation_phenotype_ws(char *url, vcf_record_t **records, int num_records) {
     CURLcode ret_code = CURLE_OK;
 
-    const char *output_format = "txt";
+    char *output_format = "txt";
     int variants_len = 512, current_index = 0;
     char *variants = (char*) calloc (variants_len, sizeof(char));
     

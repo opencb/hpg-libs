@@ -103,16 +103,16 @@ vcf_file_t *vcf_file_new(char *filename, size_t max_simultaneous_batches) {
 void vcf_close(vcf_file_t *vcf_file) {
     free(vcf_file->format);
     array_list_free(vcf_file->samples_names, free);
-    array_list_free(vcf_file->header_entries, vcf_header_entry_free);
-    list_free_deep(vcf_file->text_batches, free);
-    list_free_deep(vcf_file->record_batches, vcf_batch_free);
+    array_list_free(vcf_file->header_entries, (void *)vcf_header_entry_free);
+    list_free_deep(vcf_file->text_batches, (void *)free);
+    list_free_deep(vcf_file->record_batches, (void *)vcf_batch_free);
     
     khash_t(struct_variants) *structural_variants = vcf_file->structural_variants;
     for (int k = kh_begin(structural_variants); k < kh_end(structural_variants); k++) {
         if (kh_exist(structural_variants, k)) {
             vcf_structural_variation_t *sv = kh_value(structural_variants, k);
             vcf_structural_variant_free(sv); // Free data structure
-            free(kh_key(structural_variants, k)); // Free key in hashtable
+            free((void *)kh_key(structural_variants, k)); // Free key in hashtable
             kh_del(struct_variants, structural_variants, k); // Remove value from hashtable
         }
     }

@@ -161,7 +161,7 @@ void family_free(family_t *family) {
 
         individual_t *ind = kh_value(family->members, k);
         individual_free(ind);
-        free(kh_key(family->members, k));
+        free((void *)kh_key(family->members, k));
         kh_del(family_members, family->members, k);
     }
     
