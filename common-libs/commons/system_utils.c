@@ -12,15 +12,16 @@ unsigned long int get_free_memory() {
 
     long int free_memory;
     char str_memory[15];
+    size_t res;
+    res = system("free | grep Mem | awk '{ print $4 }' > /tmp/free_memory");
 
-    system("free | grep Mem | awk '{ print $4 }' > /tmp/free_memory");
     fd_memory = fopen("/tmp/free_memory", "r");
 
     if (fd_memory == NULL) {
         LOG_FATAL("Free memory cannot be obtained.\n");
     }
 
-    fgets(str_memory, 15, fd_memory);
+    char *res_f = fgets(str_memory, 15, fd_memory);
 
     sscanf(str_memory, "%lu", &free_memory);
 

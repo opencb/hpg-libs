@@ -4,7 +4,7 @@
 	 This software may be used freely for any purpose.
 	 No warranty is given regarding the quality of this software.
  */
-
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
