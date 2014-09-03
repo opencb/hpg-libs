@@ -4,7 +4,7 @@
 	 This software may be used freely for any purpose.
 	 No warranty is given regarding the quality of this software.
  */
-
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,7 +118,7 @@ void bw_to_psi(FILE *out, CSA *csa, char *fbw, char *flst, int *k)
 	if (in == NULL) {
 		perror("bw_to_psi:");  exit(1);
 	}
-	fscanf(in,"%ld",&last);
+	int res = fscanf(in,"%ld",&last);
 	fclose(in);
 
 	for (c=0; c<SIGMA; c++) {

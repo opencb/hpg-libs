@@ -101,7 +101,7 @@ void fastq_batch_reader_single(fastq_batch_reader_input_t* input) {
   
   list_decr_writers(list);
   fastq_fclose(file);
-  printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
+  printf("fastq_batch_reader SINGLE mode: END, %i total reads (%lu batches), for file %s\n", 
 	 total_reads, num_batches, filename);
 }
 
@@ -157,7 +157,7 @@ void fastq_batch_reader_pair(fastq_batch_reader_input_t* input) {
   
   list_decr_writers(list);
   fastq_fclose(file1);
-  printf("fastq_batch_reader SINGLE mode: END, %i total reads (%i batches), for file %s\n", 
+  printf("fastq_batch_reader SINGLE mode: END, %i total reads (%lu batches), for file %s\n", 
 	 total_reads, num_batches, filename1);
 
 }
@@ -215,7 +215,7 @@ void fastq_batch_reader_aligner_pair(fastq_batch_reader_input_t* input) {
   list_decr_writers(list);
   fastq_fclose(file1);
   fastq_fclose(file2);
-  printf("fastq_batch_reader PAIR mode: END, %i total reads (%i batches), for files %s, %s\n", 
+  printf("fastq_batch_reader PAIR mode: END, %i total reads (%lu batches), for files %s, %s\n", 
 	 total_reads, num_batches, filename1, filename2);
 
 }

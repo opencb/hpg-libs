@@ -340,7 +340,8 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   sqlite3_stmt *stmt;
   char *errorMessage;
 
-  char *key, chr[1024];
+  char chr[1024];
+  char *key;
   int chunk_id, chunk_start, features_count, counter = 0;
 
   // prepared statement
@@ -355,7 +356,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
     if (kh_exist(hash, k)) {
       counter++;
-
+           
       key = kh_key(hash, k);
       features_count = kh_value(hash, k);
       //      LOG_DEBUG_F("key %s -> value = %i\n", key, features_count);

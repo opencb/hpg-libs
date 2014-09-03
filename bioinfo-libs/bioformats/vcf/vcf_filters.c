@@ -862,7 +862,7 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
     
     list_decr_writers(input_stats);
     
-    list_free_deep(input_stats, variant_stats_free);
+    list_free_deep(input_stats, (void *)variant_stats_free);
     file_stats_free(file_stats);
     free(input_stats_array);
     
@@ -872,9 +872,13 @@ array_list_t *run_filter_chain(array_list_t *input_records, array_list_t *failed
 void free_filter_chain(filter_chain* chain) {
     assert(chain);
     filter_t *filter;
-    while ((filter = cp_heap_pop(chain) != NULL)) {
-        filter->free_func(filter);
+
+    filter = cp_heap_pop(chain);
+    while (filter != NULL) {
+      filter->free_func(filter);
+      filter = cp_heap_pop(chain);
     }
+
     cp_heap_destroy(chain);
 }
 
@@ -1052,8 +1056,9 @@ static char* gene_ws_output_to_regions(char *buffer) {
     
     for(int i = 0; i < json_array_size(root); i++) {
         json_t *data, *subdata, *chromosome, *start, *end;
-        char *chromosome_str, *start_str, *end_str;
+        char *start_str, *end_str;
         long start_value, end_value;
+	const char *chromosome_str;
 
         data = json_array_get(root, i);
         for(int j = 0; j < json_array_size(data); j++) {

@@ -11,7 +11,7 @@ commonsenv.Decider('MD5-timestamp')
 if debug == 1:
     commonsenv['CFLAGS'] += ' -O0 -g'
 else:
-    commonsenv['CFLAGS'] += ' -O3 -g'
+    commonsenv['CFLAGS'] += ' -O3 '
 
 # Compile containers/cprops objects but ONLY those used for our libraries
 cpropsenv = commonsenv.Clone()
@@ -21,7 +21,7 @@ cpropsenv.Decider('MD5-timestamp')
 if debug == 1:
     cpropsenv['CFLAGS'] += ' -O0 -g'
 else:
-    cpropsenv['CFLAGS'] += ' -O3 -g'
+    cpropsenv['CFLAGS'] += ' -O3 '
 
 # Compile commons/sqlite objects
 sqliteenv = commonsenv.Clone()
@@ -31,7 +31,7 @@ sqliteenv.Decider('MD5-timestamp')
 if debug == 1:
     sqliteenv['CFLAGS'] += ' -O0 -g'
 else:
-    sqliteenv['CFLAGS'] += ' -O2 -g'
+    sqliteenv['CFLAGS'] += ' -O2 '
 
 # Compile commons/argtable objects
 argtableenv = commonsenv.Clone()
@@ -41,7 +41,7 @@ argtableenv.Decider('MD5-timestamp')
 if debug == 1:
     argtableenv['CFLAGS'] += ' -O0 -g'
 else:
-    argtableenv['CFLAGS'] += ' -O2 -g'
+    argtableenv['CFLAGS'] += ' -O2 '
 
 # Compile commons/config objects
 configenv = commonsenv.Clone()
@@ -56,7 +56,7 @@ configenv.Decider('MD5-timestamp')
 if debug == 1:
     configenv['CFLAGS'] += ' -O0 -g'
 else:
-    configenv['CFLAGS'] += ' -O2 -g'
+    configenv['CFLAGS'] += ' -O2 '
 
 
 # Compile commons/config objects
@@ -68,7 +68,7 @@ janssonenv.Decider('MD5-timestamp')
 if debug == 1:
     janssonenv['CFLAGS'] += ' -O0 -g'
 else:
-    janssonenv['CFLAGS'] += ' -O2 -g'
+    janssonenv['CFLAGS'] += ' -O2 '
 
 # Targets
 commons_obj = commonsenv.Object(Glob('commons/*.c'))

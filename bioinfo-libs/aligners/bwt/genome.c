@@ -1,5 +1,5 @@
 #include "genome.h"
-
+ 
 #define NUCLEOTIDES_NUM 5
 
 //---------------------------------------------------------------------------------
@@ -160,8 +160,9 @@ void genome_free(genome_t* p) {
   if (p->chr_size) free(p->chr_size);
   if (p->chr_offset) free(p->chr_offset);
   if (p->X) free(p->X);
-
+  
   free(p);
+  
 }
 
 //------------------------------------------------------------------------------------
@@ -190,7 +191,7 @@ char* genome_get_chr_name(unsigned int chr, unsigned int* len, genome_t* genome_
 
 //------------------------------------------------------------------------------------
 
-cp_hashtable *load_hasthable_codes() {
+cp_hashtable *load_hashtable_codes() {
   cp_hashtable *t = cp_hashtable_create(400,
 					cp_hash_istring,
 					(cp_compare_fn)strcmp); 
@@ -199,7 +200,9 @@ cp_hashtable *load_hasthable_codes() {
   
   unsigned char *id_array = (unsigned char *)malloc(sizeof(unsigned char)*COMBINATORIAL); 
   */
-  size_t id = 0;
+
+  unsigned char id = 0;
+  unsigned char *value;
   char combination[4];
   
   combination[3] = '\0';
@@ -210,7 +213,10 @@ cp_hashtable *load_hasthable_codes() {
       combination[1] = NUCLEOTIDES[nt_2];
       for(unsigned int nt_3 = 0; nt_3 < NUCLEOTIDES_NUM; nt_3++){
 	combination[2] = NUCLEOTIDES[nt_3];
-	cp_hashtable_put(t, strdup(combination), (void *)id);
+	value = (unsigned char *)malloc(sizeof(unsigned char));
+	*value = id;
+	cp_hashtable_put(t, strdup(combination), (void *)value);
+	//cp_hashtable_put(t, strdup(combination), (void *)id);
 	id++;
       }
     }
@@ -223,7 +229,9 @@ cp_hashtable *load_hasthable_codes() {
     combination[0] = NUCLEOTIDES[nt_1];
     for(unsigned int nt_2 = 0; nt_2 < NUCLEOTIDES_NUM; nt_2++){
       combination[1] = NUCLEOTIDES[nt_2];
-      cp_hashtable_put(t, strdup(combination), (void *)id);
+      value = (unsigned char *)malloc(sizeof(unsigned char));
+      *value = id;
+      cp_hashtable_put(t, strdup(combination), (void *)value);
       id++;	
     }
   }
@@ -233,9 +241,13 @@ cp_hashtable *load_hasthable_codes() {
   combination[1] = '\0';
   for(unsigned int nt = 0; nt < NUCLEOTIDES_NUM; nt++){
     combination[0] = NUCLEOTIDES[nt];
-    cp_hashtable_put(t, strdup(combination), (void *)id);
+    value = (unsigned char *)malloc(sizeof(unsigned char));
+    *value = id;
+    cp_hashtable_put(t, strdup(combination), (void *)value);
     id++;	
   }
+
+  printf("id=%i\n", id);
 
   return t;
 
@@ -313,7 +325,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   char key[4];
   unsigned char max_chunk = 3;
   unsigned char actual_nt = 0;
-  
+  char *res;
   unsigned char value;
   unsigned char *value_ptr;
   size_t nt = 0;
@@ -321,7 +333,7 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   LOG_DEBUG("Process DNA File\n");
 
   while (!feof(fd)) {
-    fgets(dna_chunk, chunk_size, fd);
+    res = fgets(dna_chunk, chunk_size, fd);
     if (dna_chunk[0] != '>') {
       dna_len = strlen(dna_chunk);
       //printf("Process (%i): %s", dna_len, dna_chunk);
@@ -341,8 +353,14 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
 	  if (actual_nt ==  max_chunk){
 	    key[actual_nt] = '\0';
 	    //printf("Store: %s\n", key);
-	    value = (unsigned char)cp_hashtable_get(t, key);
-	    //value = *value_ptr;
+	    //value = cp_hashtable_get(t, key);
+	    //printf("1.%p\n", value_ptr);
+
+	    value_ptr = cp_hashtable_get(t, key);
+	    //printf("Value : %i\n", cp_hashtable_get(t, key));
+	    if (value_ptr == NULL) { exit(-1); }
+	    //printf("2.%p\n", value_ptr);
+	    value = *value_ptr;
 
 	    code_values[code_pos++] = value;
 	    //printf("Stored code %d == %s : %d\n", value, key, code_pos - 1);
@@ -360,10 +378,12 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
     }//End if strcmp
   }
     
-  if(actual_nt > 0){
+  if(actual_nt > 0) {
     key[actual_nt] = '\0';
     //printf("Store: %s\n", key);
-    value = (unsigned char)cp_hashtable_get(t, key);
+    value_ptr = cp_hashtable_get(t, key);
+    value = *value_ptr;
+    //value = (unsigned char)cp_hashtable_get(t, key);
     //value = *value_ptr;
     code_values[code_pos++] = value;	
   }
@@ -390,7 +410,7 @@ unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
 
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
 
-  fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
+  int res = fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
   
   fclose(binary_fd);
 
@@ -492,7 +512,7 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
 //------------------------------------------------------------------------------------                                                                                  
 void generate_codes(char *dna_binary_filename, char *dna_filename){
   LOG_DEBUG("Loading hashtable Codes ...\n");
-  cp_hashtable *t = load_hasthable_codes();
+  cp_hashtable *t = load_hashtable_codes();
   LOG_DEBUG("Loading done!\n");
 
   LOG_DEBUG("Genrate Binary Genome File...\n");

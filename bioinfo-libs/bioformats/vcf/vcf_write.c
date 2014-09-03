@@ -112,7 +112,7 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
     assert(file);
     assert(fd);
     
-    if (write_vcf_delimiter_from_samples(file->samples_names->items, file->samples_names->size, fd) > 0) {
+    if (write_vcf_delimiter_from_samples((char **)file->samples_names->items, file->samples_names->size, fd) > 0) {
         return 1;
     }
 //     if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {

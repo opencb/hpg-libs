@@ -213,7 +213,7 @@ static void report_vcf_variant_stats_sqlite3(sqlite3 *db, int num_variants, vari
     
     insert_variant_stats_db_fields_list(fields, db);
     
-    array_list_free(fields, variant_stats_db_fields_free);
+    array_list_free(fields, (void *)variant_stats_db_fields_free);
 }
 
 
@@ -271,7 +271,7 @@ static void report_vcf_sample_stats_sqlite3(sqlite3 *db, size_t num_samples, sam
     
     insert_sample_stats_db_fields_list(fields, db);
     
-    array_list_free(fields, sample_stats_db_fields_free);
+    array_list_free(fields, (void *)sample_stats_db_fields_free);
 }
 
 void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats) {

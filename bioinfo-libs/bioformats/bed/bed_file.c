@@ -31,11 +31,11 @@ bed_file_t *bed_open(char *filename) {
 
 void bed_close(bed_file_t *bed_file, int free_records) {
     // Free header entries
-    linked_list_free(bed_file->header_entries, NULL);   // TODO doesn't work! :(
+    linked_list_free(bed_file->header_entries, (void *)NULL);   // TODO doesn't work! :(
     
     // Free records list if asked to
     if (free_records) {
-        linked_list_free(bed_file->records, bed_record_free);
+        linked_list_free(bed_file->records, (void *)bed_record_free);
     }
     
     munmap((void*) bed_file->data, bed_file->data_len);

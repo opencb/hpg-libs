@@ -87,7 +87,7 @@ diskbuf *open_diskbuf(FILE *f, int width)
   b->m = PAGESIZE / width;
   b->ptr = 0;
   fseek(b->fp,b->ptr*PAGESIZE,SEEK_SET);
-  fread(b->buf,1,PAGESIZE,b->fp);
+  int res = fread(b->buf,1,PAGESIZE,b->fp);
   b->dirty = 0;
   b->minidx = PAGESIZE;  b->maxidx = -1;
   return b;
@@ -109,7 +109,7 @@ long getint_diskbuf(diskbuf *b, long idx)
     }
     b->ptr = q;
     fseek(b->fp,b->ptr*PAGESIZE,SEEK_SET);
-    fread(b->buf,1,PAGESIZE,b->fp);
+    int res = fread(b->buf,1,PAGESIZE,b->fp);
     b->dirty = 0;
     b->minidx = PAGESIZE;  b->maxidx = -1;
   }
@@ -136,7 +136,7 @@ void getstr_diskbuf(unsigned char *buf, diskbuf *b, long idx)
     }
     b->ptr = q;
     fseek(b->fp,b->ptr*PAGESIZE,SEEK_SET);
-    fread(b->buf,1,PAGESIZE,b->fp);
+    int res = fread(b->buf,1,PAGESIZE,b->fp);
     b->dirty = 0;
     b->minidx = PAGESIZE;  b->maxidx = -1;
   }
@@ -161,7 +161,7 @@ int setint_diskbuf(diskbuf *b, long idx, long x)
     }
     b->ptr = q;
     fseek(b->fp,b->ptr*PAGESIZE,SEEK_SET);
-    fread(b->buf,1,PAGESIZE,b->fp);
+    int res = fread(b->buf,1,PAGESIZE,b->fp);
     b->dirty = 0;
     b->minidx = PAGESIZE;  b->maxidx = -1;
   }
@@ -190,7 +190,7 @@ int setstr_diskbuf(unsigned char *buf, diskbuf *b, long idx)
     }
     b->ptr = q;
     fseek(b->fp,b->ptr*PAGESIZE,SEEK_SET);
-    fread(b->buf,1,PAGESIZE,b->fp);
+    int res = fread(b->buf,1,PAGESIZE,b->fp);
     b->dirty = 0;
   }
   for (i=0; i<w; i++) {

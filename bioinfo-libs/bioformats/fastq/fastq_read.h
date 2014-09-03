@@ -21,12 +21,19 @@
 * Structure for storing a fastq read
 */
 typedef struct fastq_read {
-    char *id;			/**< Id of the read. */
-    char *sequence;		/**< Sequence of nts. */
-    char *revcomp;              /**< RevComp of Sequence */
-    char *quality;		/**< Qualities. */
-
-    int length;
+  char *id;			/**< Id of the read. */
+  char *sequence;		/**< Sequence of nts. */
+  char *revcomp;              /**< RevComp of Sequence */
+  char *quality;		/**< Qualities. */
+  char *rev_quality;           /** Quality Rev */
+  char *adapter;              /**< Adapter sequence */
+  char *adapter_revcomp;      /**< RevComp of the adapter sequence */
+  char *adapter_quality;	/**< Quality for the adapter sequence. */
+  
+  int length;
+  int adapter_length;
+  int adapter_strand;
+  
 } fastq_read_t;
 
 typedef struct fastq_read_pe {
@@ -59,6 +66,7 @@ void fastq_read_free(fastq_read_t *fq_read);
 void fastq_read_pe_free(fastq_read_pe_t *fq_read);
 
 
+void fastq_read_display(fastq_read_t *read);
 void fastq_read_print(fastq_read_t *read);
 
 void fastq_read_pe_print(fastq_read_pe_t *read);

@@ -290,7 +290,7 @@ i64 lf_bit_makeindex(CSA *csa, char *fname)
   if (in == NULL) {
     perror("lf_bit_makeindex:");  exit(1);
   }
-  fscanf(in,"%ld",&last);
+  int res = fscanf(in,"%ld",&last);
   printf("last = %ld\n",last);
   lf->last = last;
   fclose(in);

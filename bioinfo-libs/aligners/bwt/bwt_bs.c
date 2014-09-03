@@ -21,6 +21,11 @@ void *__bwt_generate_anchor_list(size_t k_start, size_t l_start, int len_calc,
 // exact functions
 //-----------------------------------------------------------------------------
 
+void append_seed_region_linked_list(linked_list_t* sr_list,
+				    size_t read_start, size_t read_end, 
+				    size_t genome_start, size_t genome_end, 
+				    int seed_id, int pos_err, int type_err, int type_seeds);
+
 size_t bwt_map_exact_seq(char *seq, 
 			 bwt_optarg_t *bwt_optarg, 
 			 bwt_index_t *index, 
@@ -285,7 +290,7 @@ size_t bwt_map_exact_seed_bs(char *seq, size_t seq_len,
       if (key + len <= index->karyotype->offset[idx]) {
 	//start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]); 
 	start_mapping = index->karyotype->start[idx-1] + (key - index->karyotype->offset[idx-1]);
-	printf("\t\tstrand:%c\tchromosome:%s\tstart:%u\tend:%u\n",plusminus[type],
+	printf("\t\tstrand:%c\tchromosome:%s\tstart:%lu\tend:%lu\n",plusminus[type],
 	       index->karyotype->chromosome + (idx-1) * IDMAX,
 	       start_mapping, start_mapping + len);
 
@@ -453,8 +458,8 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
 
     // generating cigar
     sprintf(quality_clipping, "%i", NONE_HARD_CLIPPING);
-    if (error == 0) {
-      sprintf(cigar, "%lu=\0", len);
+    if (error == 0) { 
+      sprintf(cigar, "%lu=%c", len, '\0');
       num_cigar_ops = 1;
       memcpy(seq_dup, seq_strand, len);
       seq_dup[len] = '\0';
@@ -463,7 +468,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
       if (pos == 0) {
 	//Positive strand
 	//if(type) { 
-	sprintf(cigar, "1S%luM\0", len-1); 
+	sprintf(cigar, "1S%luM%c", len-1, '\0'); 
 	start_mapping++;
 	//}
 	//else { 
@@ -473,7 +478,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
       } else if (pos == len - 1) {
 	//Positive strand
 	//if(type) { 
-	sprintf(cigar, "%luM1S\0", len - 1); 
+	sprintf(cigar, "%luM1S%c", len - 1, '\0'); 
 	//}
 	//else{ 
 	//sprintf(cigar, "1S%luM\0", len-1); 
@@ -481,7 +486,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
 	//}
 	num_cigar_ops = 2;
       } else {
-	sprintf(cigar, "%luM\0", len);
+	sprintf(cigar, "%luM%c", len, '\0');
 	num_cigar_ops = 1;
       }
       memcpy(seq_dup, seq_strand, len);
@@ -492,14 +497,14 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
       //printf("INSERTION\n");
       if (pos == 0) {
 	//if(type) {
-	sprintf(cigar, "1M1D%luM\0", len - 1); 
+	sprintf(cigar, "1M1D%luM%c", len - 1, '\0'); 
 	//}
 	//else{ 
 	//sprintf(cigar, "%luM1D1M\0", len - 1); 
 	//}	      
       } else if (pos == len - 1) {
 	//if(type) { 
-	sprintf(cigar, "%luM1D1M\0", len - 1); 
+	sprintf(cigar, "%luM1D1M%c", len - 1, '\0'); 
 	//}
 	//else{ 
 	//sprintf(cigar, "1M1D%luM\0", len - 1); 
@@ -508,9 +513,9 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
 		   
 	//if(type) {
 	if(r->dir)
-	  sprintf(cigar, "%iM1D%luM\0", pos, len - pos);
+	  sprintf(cigar, "%iM1D%luM%c", pos, len - pos, '\0');
 	else
-	  sprintf(cigar, "%iM1D%luM\0", pos + 1, len - pos - 1);
+	  sprintf(cigar, "%iM1D%luM%c", pos + 1, len - pos - 1, '\0');
 	/*} else { 
 	  if(r->dir)
 	  sprintf(cigar, "%luM1D%dM\0", len - pos, pos);
@@ -525,7 +530,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
       //printf("DELETION\n");
       if (pos == 0) {
 	//if(type) { 
-	sprintf(cigar, "1I%luM\0", len -1); 
+	sprintf(cigar, "1I%luM%c", len -1, '\0'); 
 	//}
 	//else{ 
 	//sprintf(cigar, "%luM1I\0", len -1); 
@@ -535,7 +540,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
 	num_cigar_ops = 2;		
       } else if (pos == len - 1) {
 	//if(type) { 
-	sprintf(cigar, "%luM1I\0", len -1); 
+	sprintf(cigar, "%luM1I%c", len -1, '\0'); 
 	//		   start_mapping++;
 	//}
 	// else{ 
@@ -544,7 +549,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
 	num_cigar_ops = 2;
       } else {
 	//if(type) { 
-	sprintf(cigar, "%dM1I%luM\0", pos, len - pos - 1); 
+	sprintf(cigar, "%dM1I%luM%c", pos, len - pos - 1, '\0'); 
 	//}
 	//else{ 
 	//sprintf(cigar, "%luM1I%dM\0", len - pos - 1, pos); 
@@ -653,7 +658,7 @@ size_t __bwt_map_inexact_read_bs(fastq_read_t *read,
      
   if (array_list_get_flag(mapping_list) == 1 &&
       n_mappings) {
-    printf("\tNUM ITEMS TO FREE %i\n", array_list_size(mapping_list));
+    printf("\tNUM ITEMS TO FREE %lu\n", array_list_size(mapping_list));
     array_list_clear(mapping_list, (void *)bwt_anchor_free);
     printf("\tFREE END\n");
   }
@@ -933,13 +938,13 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
       
       num_mappings = bwt_map_exact_seed_bs(code_seq, len, start, end - 1,
 					   bwt_optarg, index,  mapping_list, seed_id++, 0);
-      printf("----------- seed %lu (%lu - %lu) -> %lu mappings\n", seed_id, start, end, num_mappings);
+      printf("----------- seed %i (%lu - %lu) -> %lu mappings\n", seed_id, start, end, num_mappings);
       //transform_regions(mapping_list);
       insert_seeds_and_merge(mapping_list, cals_list,  len);
       
       num_mappings = bwt_map_exact_seed_bs(code_seq2, len2, start, end - 1,
 					   bwt_optarg, index2, mapping_list, seed_id++, 1);
-      printf("----------- seed %lu (%lu - %lu) -> %lu mappings\n", seed_id, start, end, num_mappings);
+      printf("----------- seed %i (%lu - %lu) -> %lu mappings\n", seed_id, start, end, num_mappings);
       insert_seeds_and_merge(mapping_list, cals_list,  len);
       
       start += offset_inc;
@@ -1019,7 +1024,7 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 	    append_seed_region_linked_list(list_aux,
 					   s->read_start, s->read_end, 
 					   s->genome_start, s->genome_end, 
-					   s->id);	    
+					   s->id, 0, 0, 0);	    
 	    seed_region_free(s);	    
 	  }
 	  cal = cal_new(j, i, short_cal->start, 
@@ -1093,12 +1098,12 @@ size_t bwt_generate_cals_bs(char *seq, char *seq2, size_t seed_size, bwt_optarg_
 
   for (unsigned int i = 0; i < nstrands; i++) {
     for (unsigned int j = 0; j < nchromosomes; j++) {
-      linked_list_free(cals_list[i][j], short_cal_free);
+      linked_list_free(cals_list[i][j], (void *)short_cal_free);
     }
     free(cals_list[i]);
   }
   
-  array_list_free(mapping_list, NULL);
+  array_list_free(mapping_list, (void *)NULL);
   free(cals_list);
 
 

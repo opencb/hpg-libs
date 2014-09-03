@@ -330,7 +330,7 @@ void vcf_batch_free(vcf_batch_t* batch) {
 //         printf("text to free = '%.*s'\n", 50, batch->text);
         free(batch->text);
     }
-    array_list_free(batch->records, vcf_record_free);
+    array_list_free(batch->records, (void *)vcf_record_free);
     free(batch);
 }
 

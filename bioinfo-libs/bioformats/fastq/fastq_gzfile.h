@@ -10,9 +10,9 @@
 #include "containers/array_list.h"
 #include "fastq_read.h"
 
-#define MAX_FASTQ_FILENAME_LENGTH		64		// Maximum filenname length
-#define MAX_READ_ID_LENGTH				256		// Maximum read ID length
-#define MAX_READ_SEQUENCE_LENGTH		2048	// Maximum read sequence length
+#define MAX_FASTQ_FILENAME_LENGTH_GZ		64		// Maximum filenname length 
+#define MAX_READ_ID_LENGTH_GZ				256		// Maximum read ID length
+#define MAX_READ_SEQUENCE_LENGTH_GZ		2048	// Maximum read sequence length
 
 #define CHUNK 0x80000
 

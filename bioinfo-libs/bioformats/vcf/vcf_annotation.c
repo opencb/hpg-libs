@@ -1,5 +1,5 @@
 #include "vcf_annotation.h"
-
+ 
 void precalculate_aux_values_for_annotation(int calculate_stats, int calculate_dp, int calculate_mq, vcf_record_t *record,
                                             variant_stats_t **variant_stats, file_stats_t *file_stats, list_t *stats_list, 
                                             int *dp, int *mq0, double *mq) {
@@ -87,7 +87,7 @@ char *get_annotation_allele_freq(variant_stats_t *variant_stats, int *output_len
 
 char *get_annotation_allele_number(variant_stats_t *variant_stats, int *output_len) {
     char *result = calloc(8, sizeof(char));
-    sprintf(result, "AN=%ld", variant_stats->num_alleles);
+    sprintf(result, "AN=%d", variant_stats->num_alleles);
     *output_len = strlen(result);
     return result;
 }

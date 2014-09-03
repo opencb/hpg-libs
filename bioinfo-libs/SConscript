@@ -10,7 +10,7 @@ bioenv.Decider('MD5-timestamp')
 if debug == 1:
     bioenv['CFLAGS'] += ' -O0 -g'
 else:
-    bioenv['CFLAGS'] += ' -O3 -g'
+    bioenv['CFLAGS'] += ' -O3 '
 
 bioenv['objects'] = []
 

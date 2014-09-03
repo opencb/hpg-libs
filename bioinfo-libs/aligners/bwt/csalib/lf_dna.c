@@ -323,7 +323,7 @@ i64 lf_dna_makeindex(CSA *csa, char *fname, bool coded)
   if (in == NULL) {
     perror("lf_dna_makeindex:");  exit(1);
   }
-  fscanf(in,"%ld",&last);
+  int res = fscanf(in,"%ld",&last);
   printf("last = %ld\n",last);
   lf->last = last;
   fclose(in);

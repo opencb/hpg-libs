@@ -49,7 +49,7 @@ void write_gff_record(gff_record_t* gff_record, FILE *fd) {
     if (gff_record->score < 0) {
         fprintf(fd, ".\t");
     } else {
-        fprintf(fd, "%d\t", gff_record->score);
+        fprintf(fd, "%f\t", gff_record->score);
     }
     fprintf(fd, "%c\t", gff_record->strand);
     if (gff_record->frame < 0) {

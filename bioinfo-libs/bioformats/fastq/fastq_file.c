@@ -40,11 +40,11 @@ size_t fastq_fread_se(array_list_t *reads, size_t num_reads, fastq_file_t *fq_fi
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
 	fastq_read_t *read;
-
+	char *res;
 	while (count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+		res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
@@ -72,11 +72,11 @@ size_t fastq_fread_bytes_se(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
 	fastq_read_t *read;
-
+	char *res;
 	while (accumulated_size < bytes && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+		res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
 		quality_length = strlen(qualities);
@@ -108,11 +108,11 @@ size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_fi
 	int header_length1, sequence_length1, quality_length1;
 	int header_length2, sequence_length2, quality_length2;
 	fastq_read_pe_t *read_pe;
-
+	char *res;
 	while (count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file1->fd) != NULL) {
-		fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
-		fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
+		res = fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
 
 		header_length1 = strlen(header1);
 		sequence_length1 = strlen(sequence1);
@@ -124,10 +124,10 @@ size_t fastq_fread_pe(array_list_t *reads, size_t num_reads, fastq_file_t *fq_fi
 		chomp_at(qualities1, quality_length1 - 1);
 
 		// second file
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
 
 		header_length2 = strlen(header2);
 		sequence_length2 = strlen(sequence2);
@@ -159,11 +159,11 @@ size_t fastq_fread_bytes_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 	int header_length1, sequence_length1, quality_length1;
 	int header_length2, sequence_length2, quality_length2;
 	fastq_read_pe_t *read_pe;
-
+	char *res;
 	while (accumulated_size < bytes && fgets(header1, MAX_READ_ID_LENGTH, fq_file1->fd) != NULL) {
-		fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
-		fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
+		res = fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
 
 		header_length1 = strlen(header1);
 		sequence_length1 = strlen(sequence1);
@@ -175,10 +175,10 @@ size_t fastq_fread_bytes_pe(array_list_t *reads, size_t bytes, fastq_file_t *fq_
 		chomp_at(qualities1, quality_length1 - 1);
 
 		// second file
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
 
 		header_length2 = strlen(header2);
 		sequence_length2 = strlen(sequence2);
@@ -210,11 +210,11 @@ size_t fastq_fread_bytes_aligner_pe(array_list_t *reads, size_t bytes, fastq_fil
 	int header_length1, sequence_length1, quality_length1;
 	int header_length2, sequence_length2, quality_length2;
 	fastq_read_t *read1, *read2;
-
+	char *res;
 	while (accumulated_size < bytes && fgets(header1, MAX_READ_ID_LENGTH, fq_file1->fd) != NULL) {
-		fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
-		fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(sequence1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file1->fd);
+		res = fgets(qualities1, MAX_READ_SEQUENCE_LENGTH, fq_file1->fd);
 
 		header_length1 = strlen(header1);
 		sequence_length1 = strlen(sequence1);
@@ -226,10 +226,10 @@ size_t fastq_fread_bytes_aligner_pe(array_list_t *reads, size_t bytes, fastq_fil
 		chomp_at(qualities1, quality_length1 - 1);
 
 		// second file
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
-		fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
-		fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(sequence2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
+		res = fgets(read_separator, MAX_READ_ID_LENGTH, fq_file2->fd);
+		res = fgets(qualities2, MAX_READ_SEQUENCE_LENGTH, fq_file2->fd);
 
 		header_length2 = strlen(header2);
 		sequence_length2 = strlen(sequence2);
@@ -268,11 +268,11 @@ int fastq_fread_num_reads(fastq_read_t *buffer_fq_reads, int num_reads, fastq_fi
 	char header2[MAX_READ_ID_LENGTH];
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
-
+	char *res;
 	while (count < num_reads && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+		res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
@@ -304,11 +304,11 @@ int fastq_fread_max_size(fastq_read_t *buffer_fq_reads, unsigned long max_size, 
 	char header2[MAX_READ_ID_LENGTH];
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
-
+	char *res;
 	while (accumulated_size <= max_size && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+		res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
@@ -343,15 +343,15 @@ int fastq_fread_batch_max_size(fastq_batch_t *buffer_fq_read_batch, unsigned lon
 	char header2[MAX_READ_ID_LENGTH];
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
-
+	char *res;
 	int count = 0;
 	buffer_fq_read_batch->header_indices[count] = 0;
 	buffer_fq_read_batch->data_indices[count] = 0;
 
 	while (accumulated_size <= (max_size - MAX_READ_SEQUENCE_LENGTH) && fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd) != NULL) {
-		fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-		fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-		fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+		res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+		res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 
 		header_length = strlen(header1);
 		sequence_length = strlen(sequence);
@@ -427,7 +427,7 @@ int fastq_fread_paired_batch_max_size2(fastq_batch_t *fq_batch, unsigned long ma
 	char header2[MAX_READ_ID_LENGTH];
 	char qualities[MAX_READ_SEQUENCE_LENGTH];
 	int header_length, sequence_length, quality_length;
-
+	char *res;
 	int fcounter, count = 0;
 	fq_batch->header_indices[count] = 0;
 	fq_batch->data_indices[count] = 0;
@@ -440,13 +440,13 @@ int fastq_fread_paired_batch_max_size2(fastq_batch_t *fq_batch, unsigned long ma
 		for ( fcounter = 0; fcounter < 2; fcounter++) {
 			if (fcounter == 1) {
 				fq_file = fq_file2;
-				fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd);
+				res = fgets(header1, MAX_READ_ID_LENGTH, fq_file->fd);
 			}
 
 			// read from file
-			fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
-			fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
-			fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+			res = fgets(sequence, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
+			res = fgets(header2, MAX_READ_ID_LENGTH, fq_file->fd);
+			res = fgets(qualities, MAX_READ_SEQUENCE_LENGTH, fq_file->fd);
 
 			header_length = strlen(header1);
 			sequence_length = strlen(sequence);
@@ -516,11 +516,12 @@ int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions
 	char sequence[max_length];
 	char plus[max_length];
 	char quality[max_length];
+	char *res;
 
 	while (index_positions != NULL && fgets(header, max_length, fq_file->fd) != NULL) {
-		fgets(sequence, max_length, fq_file->fd);
-		fgets(plus, max_length, fq_file->fd);
-		fgets(quality, max_length, fq_file->fd);
+		res = fgets(sequence, max_length, fq_file->fd);
+		res = fgets(plus, max_length, fq_file->fd);
+		res = fgets(quality, max_length, fq_file->fd);
 
 		if (count == index_positions[index]) {
 			strcpy(buffer_reads[index].id, trim(header));

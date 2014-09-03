@@ -84,14 +84,7 @@ typedef struct bwt_err {
   char name;
 } bwt_err_t;
 
-inline bwt_err_t *bwt_err_new(int pos, char name) {
-  bwt_err_t *bwt_err = (bwt_err_t *)malloc(sizeof(bwt_err_t));
-  bwt_err->pos = pos;
-  bwt_err->name = name;
-
-  return bwt_err;
-  
-}
+bwt_err_t *bwt_err_new(int pos, char name);
 
 void bwt_err_free(bwt_err_t *p);
 

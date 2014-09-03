@@ -351,10 +351,10 @@ void read_config(char *nucleotides, bool *duplicate_strand, const char *director
   fp  = fopen(path,  "r");
   check_file_open(fp, path);
 
-  fgets(nucleotides, 128, fp);
+  char *res = fgets(nucleotides, 128, fp);
   nucleotides[strlen(nucleotides) - 1] = '\0';
 
-  fgets(ds_str, 1, fp);
+  res = fgets(ds_str, 1, fp);
   *duplicate_strand = atoi(ds_str);
 
   fclose(fp);

@@ -56,7 +56,7 @@ int *max_line_size, *snp_max_line_size, *mutation_max_line_size;
  * Given a list of genome positions, invokes the web service that returns a list of effect or consequences 
  * of the mutations in them.
  */
-int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, char *excludes);
+int invoke_effect_ws(char *url, vcf_record_t **records, int num_records, char *excludes);
 
 /**
  * @brief Invokes the SNP phenotype web service for a list of variants.
@@ -72,7 +72,7 @@ int invoke_effect_ws(const char *url, vcf_record_t **records, int num_records, c
  * Given a list of genome positions, invokes the web service that returns a list of phenotypes of the 
  * SNPs among them.
  */
-int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_records);
+int invoke_snp_phenotype_ws(char *url, vcf_record_t **records, int num_records);
 
 /**
  * @brief Invokes the mutation phenotype web service for a list of variants.
@@ -88,7 +88,7 @@ int invoke_snp_phenotype_ws(const char *url, vcf_record_t **records, int num_rec
  * Given a list of genome positions, invokes the web service that returns a list of phenotypes of the 
  * non-SNP mutations among them.
  */
-int invoke_mutation_phenotype_ws(const char *url, vcf_record_t **records, int num_records);
+int invoke_mutation_phenotype_ws(char *url, vcf_record_t **records, int num_records);
 
 static size_t save_effect_response(char *contents, size_t size, size_t nmemb, void *userdata);
 
