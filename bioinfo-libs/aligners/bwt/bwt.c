@@ -222,7 +222,7 @@ cal_t *cal_simple_new(const size_t chromosome_id,
   cal->end = end;
   cal->strand = strand;
   cal->sr_list = linked_list_new(COLLECTION_MODE_ASYNCHRONIZED);
-
+  cal->sr_duplicate_list = NULL;
   cal->info = NULL;
 
   return cal;

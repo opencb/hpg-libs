@@ -81,6 +81,10 @@ void fastq_read_free(fastq_read_t *fq_read) {
 	if (fq_read->adapter_revcomp != NULL) free(fq_read->adapter_revcomp);
 	if (fq_read->adapter_quality != NULL) free(fq_read->adapter_quality);
 
+	if (fq_read->adapter != NULL) free(fq_read->adapter);
+	if (fq_read->adapter_revcomp != NULL) free(fq_read->adapter_revcomp);
+	if (fq_read->adapter_quality != NULL) free(fq_read->adapter_quality);
+
 	free(fq_read);
 }
 

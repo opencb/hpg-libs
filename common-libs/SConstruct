@@ -13,6 +13,7 @@ system_libpath = '/usr/lib'
 
 build_tools = ['default']
 
+
 #Set environment
 env = Environment(
         tools = build_tools,
@@ -32,6 +33,7 @@ else:
 	env['LINKFLAGS'] += ['-fopenmp']
 
 env['objects'] = []
+
 env.Decider('MD5-timestamp')
 
 #if debug == 1:

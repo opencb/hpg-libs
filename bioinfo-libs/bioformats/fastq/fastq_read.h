@@ -26,6 +26,7 @@ typedef struct fastq_read {
   char *revcomp;              /**< RevComp of Sequence */
   char *quality;		/**< Qualities. */
   char *rev_quality;           /** Quality Rev */
+
   char *adapter;              /**< Adapter sequence */
   char *adapter_revcomp;      /**< RevComp of the adapter sequence */
   char *adapter_quality;	/**< Quality for the adapter sequence. */
