@@ -97,7 +97,7 @@ array_list_t* array_list_sublist(size_t start, size_t end, array_list_t *array_l
 
 void* array_list_set(size_t index, void* new_item, array_list_t *array_list_p);
 
-
+int array_list_qsort(array_list_t *array_list_p, int (*compare_fn)(const void*,const void*));
 
 void array_list_print(array_list_t *array_list_p);
 

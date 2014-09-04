@@ -358,6 +358,23 @@ void* array_list_set(size_t index, void *item_p, array_list_t *array_list_p) {
 	return NULL;
 }
 
+int array_list_qsort(array_list_t *array_list_p, int (*compare_fn)(const void*,const void*))
+{
+	if(array_list_p != NULL && compare_fn != NULL)
+	{
+		if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_lock(&array_list_p->lock);
+		}
+
+		//Quicksort
+		qsort(array_list_p->items, array_list_p->size, sizeof(void *), compare_fn);
+
+		if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
+			pthread_mutex_unlock(&array_list_p->lock);
+		}
+	}
+	return 0;
+}
 
 
 void array_list_print(array_list_t *array_list_p) {
