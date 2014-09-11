@@ -38,6 +38,7 @@ void alignment_init_single_end(char* query_name, char* sequence, char* quality, 
     alignment_p->optional_fields_length = optional_fields_length;
     
     alignment_p->map_len = 0;
+    alignment_p->alig_data = NULL;
 }
 
 void alignment_init_paired_end(char* query_name, char* sequence1, char* sequence2, char* quality1, char* quality2, short int strand1, short int strand2, unsigned int chromosome1, int position1, int position2, unsigned int chromosome2, char* cigar1, char* cigar2, short int num_cigar_operations1, short int num_cigar_operations2, short int map_quality1, short int map_quality2, short int secondary_alignment1, short int secondary_alignment2,  alignment_t* alignment1_p, alignment_t* alignment2_p) {

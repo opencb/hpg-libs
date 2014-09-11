@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include "commons/commons.h"
-
 #include "samtools/bam.h"
 
 //#include "bam_commons.h"
@@ -62,6 +61,7 @@ typedef struct alignment {
     char* quality;			/**< Quality of nts. */
     char* cigar;			/**< CIGAR string. */
     uint8_t* optional_fields;		/**< Optional fields. */
+    void *alig_data;
 } alignment_t;
 
 /**
