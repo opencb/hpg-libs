@@ -247,7 +247,7 @@ cp_hashtable *load_hashtable_codes() {
     id++;	
   }
 
-  printf("id=%i\n", id);
+  //printf("id=%i\n", id);
 
   return t;
 
