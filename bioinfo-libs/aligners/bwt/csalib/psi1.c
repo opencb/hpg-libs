@@ -97,7 +97,8 @@ i64 j,w;
   return 2*w-1;
 }
 
-static int encodedelta(unsigned short *B,i64 p,i64 x) /* x >= 1 */
+/*
+static int encodedelta(unsigned short *B,i64 p,i64 x) // x >= 1 
 {
 i64 j,l,w;
   if (x==0) {
@@ -108,6 +109,7 @@ i64 j,l,w;
   for (j=w-2;j>=0;j--) setbit(B,1+p+l+(w-2)-j,((x >> j)&1));
   return (w-1)+l;
 }
+*/
 
 static int initranktables(void)
 {
@@ -169,6 +171,7 @@ i64 x;
   return 2*w+1;
 }
 
+/*
 static int decodedelta(unsigned short *B,i64 p,i64 *ans)
 {
 i64 l,w,w2;
@@ -196,6 +199,7 @@ i64 x;
   *ans = x;
   return l+w-1;
 }
+*/
 
 static void mkdecodetable(void)
 {
@@ -371,7 +375,7 @@ static i64 psi12_psi(CSA *csa, i64 i)
 {
   i64 j,k;
   i64 x;
-  i64 k2,p,n;
+  i64 n;
   i64 L;
   i64 b,d,sp;
   unsigned short *B;
@@ -430,7 +434,7 @@ static i64 psi12_psi(CSA *csa, i64 i)
 
 static i64 psi1_pred(CSA *csa, i64 pr, i64 l, i64 r)
 {
-  i64 m,ll,rr,j;
+  i64 m;
   i64 x;
   i64 sp,L,d,n;
   i64 lb, rb, b;
@@ -578,7 +582,7 @@ static i64 psi1_pred(CSA *csa, i64 pr, i64 l, i64 r)
 
 static i64 psi1_succ(CSA *csa, i64 pl, i64 l, i64 r)
 {
-  i64 m,ll,rr,j;
+  i64 m;
   i64 x;
   i64 sp,L,d,n;
   uchar *R;
@@ -1166,7 +1170,7 @@ int mm;
 
 i64 psi1_read(CSA *csa, char *fname)
 {
-  FILE *f1;
+
   i64 psize1,psize2;
   i64 n;
   int k,l,id,id2;

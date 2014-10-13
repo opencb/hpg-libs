@@ -147,7 +147,7 @@ void linked_list_print(linked_list_t *linked_list_p, void (*data_callback) (void
 
 // void **linked_list_to_array(linked_list_t *linked_list_p);
 
-static int compare_items(const void *item1, const void *item2);
+//int compare_items(const void *item1, const void *item2);
 
 
 int linked_list_swap(const int pos1, const int pos2, linked_list_t *linked_list_p);

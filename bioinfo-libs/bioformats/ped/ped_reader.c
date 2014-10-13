@@ -29,9 +29,7 @@ int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file)
     char *p = file->data;
     char *pe = p + file->data_len;
     char *eof = pe;
-    char *ts, *te;
-    int stack[4];
-    int top, act;
+    char *ts;
     int custom_field_count = 0;
 
     current_batch = ped_batch_new(batch_size);

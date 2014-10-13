@@ -119,7 +119,7 @@ static void make_huffman_tree(CSA *csa, lf_wt *lf)
 
 static void make_wavelet_sub(lf_wt *lf, i64 n, int depth, int node)
 {
-  i64 i,nl,nr;
+  i64 i,nl,nr = 0;
   int c,d,m,w;
   FILE *in,*fl,*fr;
   Huffman *h;
@@ -430,7 +430,7 @@ static i64 lf_wt_rankc(CSA *csa, i64 i, int c)
   int node;
   u64 x;
   int d,m;
-  i64 r;
+
 
   lf = (lf_wt *)csa->psi_struc;
   if (i >= lf->last) i--;
@@ -460,7 +460,7 @@ static void lf_wt_text(uchar *p,CSA *csa, pos_t s, pos_t t)
 {
   i64 i;
   i64 j,c;
-  i64 rank;
+  i64 rank = 0;
 
 #if DEBUG
   if (s < 1 || t > csa->n || s > t) {
@@ -495,9 +495,9 @@ static void lf_wt_text(uchar *p,CSA *csa, pos_t s, pos_t t)
 void lf_wt_child_l_sub(CSA *csa, i64 l, i64 r, int node, int *num, uchar *head, rank_t *ll, rank_t *rr)
 {
   lf_wt *lf;
-  int c, m;
+  int m;
   i64 rank, rank1, rank2;
-  i64 i;
+
 
   lf = (lf_wt *)csa->psi_struc;
   m = lf->huffman->n;
@@ -663,6 +663,7 @@ i64 lf_wt_makeindex(CSA *csa, char *fname)
     perror("lf_wt_makeindex:");  exit(1);
   }
   int res = fscanf(in,"%ld",&last);
+  if (!res) {}
   printf("last = %ld\n",last);
   lf->last = last;
   fclose(in);
@@ -717,9 +718,8 @@ i64 lf_wt_makeindex(CSA *csa, char *fname)
 void lf_wt_read(CSA *csa, char *fname)
 {
   
-  FILE *f1;
   int k;
-  i64 psize1,bsize;
+  i64 bsize;
   i64 n,i,id;
   lf_wt *lf;
   int nn;
@@ -834,7 +834,7 @@ void lf_wt_read(CSA *csa, char *fname)
 //    printf("read node %d\n",i);
 
     switch (lf->id) {
-      int j;
+
     case ID_BWT_WT:
     case ID_BWT_WT_HUF:
     case ID_BWT_WT_RR:

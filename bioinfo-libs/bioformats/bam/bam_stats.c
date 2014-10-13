@@ -169,7 +169,7 @@ bam_stats_t *bam1_stats(bam1_t *bam1, bam_stats_options_t *opts) {
   }
 
   // mapping length
-  char *bam_seq = bam1_seq(bam1);
+  char *bam_seq = (char *)bam1_seq(bam1);
   int seq_len = bam1->core.l_qseq;
   bam_stats->seq_length = seq_len;
 

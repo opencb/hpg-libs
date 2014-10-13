@@ -55,7 +55,7 @@ int vcf_read_and_parse(size_t batch_lines, vcf_file_t *file) {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
         int eof_found = 0;
-        char *aux;
+
 
         // Read text of a batch and call ragel parser in a loop
         while (!eof_found) {
@@ -130,7 +130,7 @@ int vcf_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
         LOG_DEBUG("Using file-IO functions for file loading\n");
         size_t max_len = 256;
         int eof_found = 0;
-        char *aux;
+
 
         // Read text of a batch and call ragel parser in a loop
         while (!eof_found) {
@@ -204,7 +204,7 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     size_t max_len = 256;
     int eof_found = 0;
     int c = 0, i = 0, lines = 0;
-    char *aux;
+
     char *data = (char*) calloc (max_len, sizeof(char));
 
     // ZLIB variables
@@ -330,7 +330,7 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     size_t max_len = 256;
     int eof_found = 0;
     int c = 0, i = 0, lines = 0;
-    char *aux;
+
     char *data = (char*) calloc (max_len, sizeof(char));
 
     // ZLIB variables
@@ -452,7 +452,7 @@ int vcf_light_read(size_t batch_lines, vcf_file_t *file) {
 
     size_t max_len = 256;
     int eof_found = 0;
-    char *aux;
+
 
     // Read text of a batch and call ragel parser in a loop
     while (!eof_found) {
@@ -489,7 +489,7 @@ int vcf_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
 
     size_t max_len = 256;
     int eof_found = 0;
-    int last_idx = 0;
+
     int i = 0;
 
     // Read text of a batch and call ragel parser in a loop
@@ -534,7 +534,7 @@ int vcf_gzip_light_read(size_t batch_lines, vcf_file_t *file) {
     size_t max_len = 256;
     int eof_found = 0;
     int c = 0, i = 0, lines = 0;
-    char *aux;
+
     char *data = (char*) calloc (max_len, sizeof(char));
 
     // ZLIB variables
@@ -634,7 +634,7 @@ int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
     size_t max_len = 256;
     int eof_found = 0;
     int c = 0, i = 0, lines = 0;
-    char *aux;
+
     char *data = (char*) calloc (max_len, sizeof(char));
 
     // ZLIB variables

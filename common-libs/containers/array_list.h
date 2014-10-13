@@ -103,9 +103,7 @@ void array_list_print(array_list_t *array_list_p);
 
 // void **array_list_to_array(array_list_t *array_list_p);
 
-static array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size);
-
-static int compare_items(const void *item1, const void *item2);
+//static int compare_items(const void *item1, const void *item2);
 
 //int list_set_writers(int writers, list_t* list_p);
 //int list_get_writers(list_t* list_p);

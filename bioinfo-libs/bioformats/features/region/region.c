@@ -1,5 +1,66 @@
 #include "region.h"
 
+static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *s) {
+    size_t new_len = s->length + size*nmemb;
+    s->data = realloc(s->data, new_len+1);
+    if (s->data == NULL) {
+        LOG_FATAL("Can't allocate enough memory for getting chromosomes\n");
+    }
+    memcpy(s->data+s->length, contents, size*nmemb);
+    s->data[new_len] = '\0';
+    s->length = new_len;
+
+    return size*nmemb;
+}
+
+
+
+static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version) {
+    if (host_url == NULL || version == NULL || species == NULL) {
+        return NULL;
+    }
+    
+    // URL Constants
+    const char *ws_root_url = "rest/";
+    const char *ws_name_url = "chromosomes";
+    
+    // Length of URL parts
+    const int host_url_len = strlen(host_url);
+    const int ws_root_len = strlen(ws_root_url);
+    const int version_len = strlen(version);
+    const int species_len = strlen(species);
+    const int ws_name_len = strlen(ws_name_url);
+    const int result_len = host_url_len + ws_root_len + version_len + species_len + ws_name_len + 4;
+    
+    char *result_url = (char*) calloc (result_len, sizeof(char));
+    
+    // Host URL
+    strncat(result_url, host_url, host_url_len);
+    if (result_url[host_url_len - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Root of the web service
+    strncat(result_url, ws_root_url, ws_root_len);
+    
+    // Version
+    strncat(result_url, version, version_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Species
+    strncat(result_url, species, species_len);
+    if (result_url[strlen(result_url) - 1] != '/') {
+        strncat(result_url, "/", 1);
+    }
+    
+    // Name of the web service
+    strncat(result_url, ws_name_url, ws_name_len);
+    
+    return result_url;
+}
+
 
 region_t *region_new(char *chromosome, size_t start_position, size_t end_position, char *strand, char *type) {
     assert(chromosome);
@@ -84,65 +145,6 @@ char **get_chromosome_order(const char *host_url, const char *species, const cha
     }
     
     return ordering;
-}
-
-static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version) {
-    if (host_url == NULL || version == NULL || species == NULL) {
-        return NULL;
-    }
-    
-    // URL Constants
-    const char *ws_root_url = "rest/";
-    const char *ws_name_url = "chromosomes";
-    
-    // Length of URL parts
-    const int host_url_len = strlen(host_url);
-    const int ws_root_len = strlen(ws_root_url);
-    const int version_len = strlen(version);
-    const int species_len = strlen(species);
-    const int ws_name_len = strlen(ws_name_url);
-    const int result_len = host_url_len + ws_root_len + version_len + species_len + ws_name_len + 4;
-    
-    char *result_url = (char*) calloc (result_len, sizeof(char));
-    
-    // Host URL
-    strncat(result_url, host_url, host_url_len);
-    if (result_url[host_url_len - 1] != '/') {
-        strncat(result_url, "/", 1);
-    }
-    
-    // Root of the web service
-    strncat(result_url, ws_root_url, ws_root_len);
-    
-    // Version
-    strncat(result_url, version, version_len);
-    if (result_url[strlen(result_url) - 1] != '/') {
-        strncat(result_url, "/", 1);
-    }
-    
-    // Species
-    strncat(result_url, species, species_len);
-    if (result_url[strlen(result_url) - 1] != '/') {
-        strncat(result_url, "/", 1);
-    }
-    
-    // Name of the web service
-    strncat(result_url, ws_name_url, ws_name_len);
-    
-    return result_url;
-}
-
-static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *s) {
-    size_t new_len = s->length + size*nmemb;
-    s->data = realloc(s->data, new_len+1);
-    if (s->data == NULL) {
-        LOG_FATAL("Can't allocate enough memory for getting chromosomes\n");
-    }
-    memcpy(s->data+s->length, contents, size*nmemb);
-    s->data[new_len] = '\0';
-    s->length = new_len;
-
-    return size*nmemb;
 }
 
 

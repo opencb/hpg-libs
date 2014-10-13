@@ -54,9 +54,9 @@ void simd_traceback(int depth, int num_seqs,
   double errbounds = (double) 0.01;
 
   int qq_len, rr_len;
-  int max_len = 0, len = 0;
+  int len = 0;
   char c;
-  float score, diagonal, e, f;
+  float score;
 
   /*
   //max_len = max_q_len * max_r_len;

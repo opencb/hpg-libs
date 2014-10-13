@@ -12,6 +12,10 @@ void print_item(void *item) {
   printf("%lu->", (size_t)item);
 }
 
+static int compare_items(const void *item1, const void *item2) {
+    return item1 != item2;
+}
+
 linked_list_t* linked_list_new(int SYNC_MODE) {
     linked_list_t *linked_list_p = (linked_list_t*) malloc(sizeof(linked_list_t));
     linked_list_p->size = 0;
@@ -532,11 +536,6 @@ void linked_list_print(linked_list_t *linked_list_p, void (*data_callback) (void
 
 // void **linked_list_to_array(linked_list_t *linked_list_p) {
 
-static int compare_items(const void *item1, const void *item2) {
-    return item1 != item2;
-}
-
-
 int linked_list_swap(const int pos1, const int pos2, linked_list_t *linked_list_p) {
     return 0;
 }
@@ -734,7 +733,6 @@ void* linked_list_iterator_remove(linked_list_iterator_t *iterator_p) {
 linked_list_item_t* linked_list_iterator_remove_2(linked_list_iterator_t *iterator_p) {
     if (iterator_p->curr_pos) {
         linked_list_item_t *list_item = iterator_p->curr_pos;
-        void *item = list_item->item;
 
         if (iterator_p->curr_pos == iterator_p->linked_list_p->first) {
             /*************** ITERATOR IN THE FIRST POSITION *************/

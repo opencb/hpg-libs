@@ -49,9 +49,9 @@ void region_free(region_t *region);
  */
 char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes);
 
-static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version);
+//static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version);
 
-static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *userdata);
+//static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *userdata);
 
 /**
  * Compare two regions, considering their chromosome and start position.
