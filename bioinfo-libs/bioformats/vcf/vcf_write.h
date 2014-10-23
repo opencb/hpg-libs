@@ -53,6 +53,18 @@ int write_vcf_file(vcf_file_t *file, FILE *fd);
 int write_vcf_header(vcf_file_t *file, FILE *fd);
 
 /**
+ * @brief Writes a VCF header to the given file descriptor, removing sample names
+ * @details Writes a VCF header to the given file descriptor. A header contains a declaration of the 
+ * file format, several entries (INFO, FORMAT, etc.) and the line that separates it from the file 
+ * body. Sample names are moved from this d line.
+ * 
+ * @param file The file whose header will be serialized
+ * @param fd The descriptor of the file to serialize to
+ * @return 0 if the data is successfully written, 1 otherwise
+ **/
+int write_vcf_header_nosamples(vcf_file_t *file, FILE *fd);
+
+/**
  * @brief Writes the information about file format to the given file descriptor
  * @details Writes the information about the format of a VCF file.
  * 
