@@ -39,6 +39,25 @@ int write_vcf_header(vcf_file_t* file, FILE* fd) {
     return 0;
 }
 
+int write_vcf_header_nosamples(vcf_file_t* file, FILE* fd) {
+    assert(file);
+    assert(fd);
+    
+    // Write header entries (including fileformat)
+    for (int i = 0; i < file->header_entries->size; i++) {
+        if (write_vcf_header_entry((vcf_header_entry_t*) array_list_get(i, file->header_entries), fd) > 0) {
+            return 1;
+        }
+    }
+    
+    // Write delimiter without sample names
+    if (write_vcf_delimiter_from_samples(NULL, 0, fd) > 0) {
+        return 1;
+    }
+    
+    return 0;
+}
+
 
 int write_vcf_fileformat(vcf_file_t *file, FILE *fd) {
     assert(file);
@@ -59,7 +78,6 @@ int write_vcf_header_entry(vcf_header_entry_t *entry, FILE *fd) {
         return 1;
     }
 
-    
     // Entries with the form ##value
     if (entry->name == NULL) {
         char *value = array_list_get(0, entry->values); // Just first (and only) value
@@ -133,7 +151,7 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
 }
 
 int write_vcf_delimiter_from_samples(char **sample_names, int num_samples, FILE *fd) {
-    assert(sample_names);
+    assert(sample_names || num_samples == 0);
     assert(fd);
     
     if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
