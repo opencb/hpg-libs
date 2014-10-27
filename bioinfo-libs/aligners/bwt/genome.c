@@ -247,6 +247,7 @@ cp_hashtable *load_hashtable_codes() {
     id++;	
   }
 
+
   return t;
 }
 
