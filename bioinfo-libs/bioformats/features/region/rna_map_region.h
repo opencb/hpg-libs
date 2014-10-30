@@ -1,6 +1,10 @@
 #ifndef RNA_MAP_REGION_H
 #define RNA_MAP_REGION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,5 +30,9 @@ typedef struct rna_map_region {
 void rna_map_region_free(void * region);
 
 void rna_print_region(rna_map_region_t* reg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  RNA_MAP_REGION_H	*/

@@ -1,6 +1,10 @@
 #ifndef GFF_READ_H
 #define GFF_READ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -45,5 +49,9 @@ void set_gff_record_strand(char strand, gff_record_t* gff_record);
 void set_gff_record_frame(char frame, gff_record_t* gff_record);
 
 void set_gff_record_attribute(char* attribute, size_t length, gff_record_t* gff_record);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

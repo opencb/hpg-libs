@@ -1,6 +1,10 @@
 #ifndef WORKFLOW_SCHEDULER_H
 #define WORKFLOW_SCHEDULER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <sys/syscall.h>
 #include <sched.h>
 #include <stdio.h>
@@ -120,5 +124,9 @@ void workflow_display_timing(workflow_t *wf);
 
 //----------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

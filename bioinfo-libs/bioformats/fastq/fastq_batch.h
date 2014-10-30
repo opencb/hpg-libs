@@ -1,6 +1,10 @@
 #ifndef FASTQ_BATCH_H
 #define FASTQ_BATCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,5 +121,9 @@ void fprintf_ltrim_read(FILE* fd, fastq_batch_t* batch_p, int index, int ltrim_l
 *  Prints a read to disk with left and right sides preprocessed
 */
 void fprintf_trim_read(FILE* fd, fastq_batch_t* batch_p, int index, int rtrim_length, int ltrim_length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* FASTQ_BATCH_H */ 

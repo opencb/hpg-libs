@@ -1,6 +1,10 @@
 #ifndef VCF_READER_H
 #define VCF_READER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -208,5 +212,9 @@ int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_r
 /** @cond PRIVATE */
 size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
 /** @endcond */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

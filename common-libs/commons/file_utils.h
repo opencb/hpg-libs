@@ -1,6 +1,10 @@
 #ifndef FILE_UTILS_H
 #define FILE_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -179,5 +183,9 @@ int parse_conf_file2(char **argvs, char *filename);
 *  Given a path with a filename at the end, gets only the filename
 */
 char* get_filename_from_path(char* path, char* filename_p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FILE_UTILS_H   */

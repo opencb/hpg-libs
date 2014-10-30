@@ -1,6 +1,10 @@
 #ifndef FASTQ_BATCH_READER_H
 #define FASTQ_BATCH_READER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -202,5 +206,9 @@ void fastq_batch_reader_set_alive(fastq_batch_reader_t* reader_p, int alive);
 *  Function with pthread implementation of the fastq batch reader
 *
 void* fastq_batch_reader_thread_function(void* param_p);*/
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FASTQ_BATCH_READER_H  */

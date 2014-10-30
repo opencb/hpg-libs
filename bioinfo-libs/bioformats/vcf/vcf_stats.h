@@ -1,6 +1,10 @@
 #ifndef VCF_STATS_H
 #define VCF_STATS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -268,6 +272,10 @@ int get_sample_stats(vcf_record_t **variants, int num_variants, individual_t **i
 void update_file_stats(int variants_count, int samples_count, int snps_count, int transitions_count, int transversions_count, 
                        int indels_count, int biallelics_count, int multiallelics_count, int pass_count, float accum_quality, 
                        file_stats_t *stats);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

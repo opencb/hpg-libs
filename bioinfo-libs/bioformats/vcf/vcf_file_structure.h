@@ -1,6 +1,10 @@
 #ifndef VCF_FILE_STRUCTURE_H
 #define VCF_FILE_STRUCTURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -531,5 +535,9 @@ void add_vcf_record_sample(char* sample, int length, vcf_record_t* record);
 individual_t **sort_individuals(vcf_file_t *vcf, ped_file_t *ped);
 
 khash_t(ids)* associate_samples_and_positions(vcf_file_t* file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

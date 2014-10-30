@@ -1,6 +1,10 @@
 #ifndef DNA_MAP_REGION_H
 #define DNA_MAP_REGION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,5 +34,9 @@ int dna_map_region_equal_hard(dna_map_region_t *region1,dna_map_region_t* region
 void dna_print_region(dna_map_region_t* region);
 
 void dna_fprint_region(FILE *f,dna_map_region_t* region);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  DNA_MAP_REGION_H	*/

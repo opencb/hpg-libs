@@ -1,6 +1,10 @@
 #ifndef VCF_FILE_H
 #define VCF_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,6 +192,10 @@ void notify_end_parsing(vcf_file_t *file);
  * @param filename The path of the file to write the information to
  */
 int vcf_write(vcf_file_t *file, char *filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

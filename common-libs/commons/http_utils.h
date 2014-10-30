@@ -1,6 +1,10 @@
 #ifndef HTTP_UTILS_H
 #define HTTP_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -58,5 +62,9 @@ int http_post_multipart_formdata(char *url, char **params, char **params_values,
  * @return Message related to the provided error code
  */
 const char *get_last_http_error(int err_code);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef PED_RAGEL_H
 #define PED_RAGEL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,5 +22,9 @@
 enum PED_Field { FAMILY_ID, INDIVIDUAL_ID, FATHER_ID, MOTHER_ID, SEX, PHENOTYPE, OTHER };
 
 int ped_ragel_read(list_t *batches_list, size_t batch_size, ped_file_t *file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

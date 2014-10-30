@@ -1,6 +1,10 @@
 #ifndef PED_FILE_STRUCTURE_H
 #define PED_FILE_STRUCTURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <sys/types.h>
 
 #include <bioformats/family/family.h>
@@ -55,5 +59,9 @@ typedef struct ped_file {
     int num_field;             /**<  Number of the column from the variable field */
 
 } ped_file_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

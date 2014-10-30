@@ -1,6 +1,10 @@
 #ifndef BED_READ_H
 #define BED_READ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -51,5 +55,9 @@ void set_bed_record_blockcount(int block_count, bed_record_t* bed_record);
 void set_bed_record_blocksizes(char* block_sizes, size_t length, bed_record_t* bed_record);
 
 void set_bed_record_blockstarts(char* block_starts, size_t length, bed_record_t* bed_record);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

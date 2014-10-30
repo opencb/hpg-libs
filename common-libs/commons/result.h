@@ -1,6 +1,10 @@
 #ifndef RESULT_H
 #define RESULT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,5 +97,9 @@ int result_add_output_item(result_item_t* item_p, result_file_t *result_file);
 void result_file_print(result_file_t *result_file);
 
 void result_json_write_items(result_file_t *result_file, enum ITEM_TYPE item_type, FILE *file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

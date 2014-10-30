@@ -1,6 +1,10 @@
 #ifndef PED_WRITE_H
 #define PED_WRITE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -28,5 +32,9 @@ void write_ped_batch(ped_batch_t *ped_batch, FILE *fd);
 
 void write_ped_record(ped_record_t* ped_record, FILE *fd);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif 

@@ -1,6 +1,10 @@
 #ifndef PED_ERROR_H
 #define PED_ERROR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <commons/log.h>
 
 enum PED_syntax_error {
@@ -28,5 +32,9 @@ enum PED_semantic_error {
 char *get_ped_syntax_error_msg(enum PED_syntax_error error);
 
 char *get_ped_semantic_error_msg(enum PED_semantic_error error);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

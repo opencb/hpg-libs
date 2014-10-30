@@ -1,6 +1,10 @@
 #ifndef FASTQ_STATS_H
 #define FASTQ_STATS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,5 +68,9 @@ void fastq_read_stats_print(fastq_read_stats_t *fq_read_stats);
 
 //int fastq_stats(fastq_read_t *fq_read, fastq_read_stats_t *read_stats);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FASTQ_STATS_H  */

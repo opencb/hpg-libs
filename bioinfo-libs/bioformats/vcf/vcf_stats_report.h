@@ -1,6 +1,10 @@
 #ifndef VCF_STATS_REPORT_H
 #define VCF_STATS_REPORT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -42,6 +46,10 @@ char *get_sample_stats_output_filename(char *prefix);
 void report_vcf_sample_stats(FILE *stats_fd, void *db, size_t num_samples, sample_stats_t **stats);
 
 void report_vcf_sample_stats_header(FILE *stats_fd);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

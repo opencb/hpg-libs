@@ -8,6 +8,10 @@
 #ifndef FASTQ_FILTER_H
 #define FASTQ_FILTER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "containers/array_list.h"
 
 #include "fastq_filter.h"
@@ -39,5 +43,9 @@ void fastq_filter_options_free(fastq_filter_options_t *options);
 
 array_list_t *fastq_filter(array_list_t *reads, array_list_t *passed, array_list_t *failed, fastq_filter_options_t *filter_options);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FASTQ_FILTER_H_ */

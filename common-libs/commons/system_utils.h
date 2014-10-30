@@ -1,6 +1,9 @@
-
 #ifndef SYSTEM_UTILS_H
 #define SYSTEM_UTILS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -87,5 +90,9 @@ int get_optimal_gpu_num_threads();
 *  taking into account GPU memory space
 */
 int get_optimal_batch_size(int process, int max_list_length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  SYSTEM_UTILS_H   */

@@ -1,6 +1,10 @@
 #ifndef VCF_DB_H
 #define VCF_DB_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,5 +83,11 @@ int insert_statement_variant_stats_db_fields(void *custom_fields, sqlite3_stmt *
 int prepare_statement_sample_stats_db_fields(sqlite3 *db, sqlite3_stmt **stmt);
 
 int insert_sample_stats_db_fields_list(array_list_t *list, sqlite3 *db);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // end of VCF_DB_H

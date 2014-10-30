@@ -1,6 +1,10 @@
 #ifndef BED_BATCH_H
 #define BED_BATCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,5 +41,9 @@ int bed_batch_is_empty(bed_batch_t *bed_batch);
 int bed_batch_is_full(bed_batch_t *bed_batch);
 
 void bed_batch_print(FILE *fd, bed_batch_t *bed_batch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

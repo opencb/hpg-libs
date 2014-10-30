@@ -2,6 +2,10 @@
 #ifndef ARRAY_LIST_H
 #define ARRAY_LIST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 //#include <pthread.h>
 #include <math.h>
@@ -163,5 +167,9 @@ array_list_t* array_list_complement(array_list_t *al1, array_list_t *al2,  int (
 *  Compare function for strings
 */
 int compare(const void *a, const void *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ARRAY_LIST_H */

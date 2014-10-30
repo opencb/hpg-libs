@@ -1,6 +1,10 @@
 #ifndef VCF_WRITE_H
 #define VCF_WRITE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -141,5 +145,9 @@ int write_vcf_batch(vcf_batch_t *batch, FILE *fd);
  **/
 int write_vcf_record(vcf_record_t* record, FILE *fd);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif 

@@ -1,6 +1,10 @@
 #ifndef REGION_TABLE_UTILS_H
 #define REGION_TABLE_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,5 +29,9 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
 
 int region_table_parse_from_gff_file(char *filename, region_table_t *regions_table);
 int region_table_parse_from_string(char *input_regions, region_table_t *regions_table);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

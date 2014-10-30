@@ -1,6 +1,10 @@
 #ifndef FASTQ_READ_H
 #define FASTQ_READ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,5 +83,9 @@ void fastq_nt_quality_average(fastq_read_t fq_read_t);
 void fastq_nt_count(fastq_read_t fq_read_t);
 void fastq_length(fastq_read_t fq_read_t);
 void fastq_remove_barcode(fastq_read_t fq_read_t, char *barcode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FASTQ_READ_H  */

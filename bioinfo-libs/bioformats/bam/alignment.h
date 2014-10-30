@@ -1,6 +1,10 @@
 #ifndef ALIGNMENTS_H
 #define ALIGNMENTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 
 #include "commons/commons.h"
@@ -297,6 +301,10 @@ char select_op(unsigned char status);
 char* generate_cigar_str(char *str_seq_p, char *str_ref_p, unsigned int start_seq, 
 			 unsigned int seq_orig_len, unsigned int length, 
 			 int *distance, int *number_op_tot);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ALIGNMENTS_H */
 

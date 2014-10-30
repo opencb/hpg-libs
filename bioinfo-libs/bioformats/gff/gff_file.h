@@ -1,6 +1,10 @@
 #ifndef GFF_FILE_H
 #define GFF_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -85,5 +89,9 @@ int gff_write(gff_file_t *gff_file, char *filename);
 int add_gff_header_entry(gff_header_entry_t *header_entry, gff_file_t *gff_file);
 
 int add_gff_record(gff_record_t* record, gff_file_t *gff_file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

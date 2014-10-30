@@ -21,6 +21,10 @@
 #ifndef CELLBASE_CONNECTOR_H
 #define	CELLBASE_CONNECTOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,5 +43,9 @@
  */
 char *compose_cellbase_ws_request(const char *db_host_url, const char *db_version, const char *db_species, 
                                   const char *category, const char *resource);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

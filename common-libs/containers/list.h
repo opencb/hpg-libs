@@ -1,6 +1,10 @@
 #ifndef LIST_H
 #define LIST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -67,5 +71,9 @@ int list_decr_writers(list_t* list_p);
 void list_print(list_t * list_p);
 
 void **list_to_array(list_t *list_p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIST_H */

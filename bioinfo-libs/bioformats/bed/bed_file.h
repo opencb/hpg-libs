@@ -1,6 +1,10 @@
 #ifndef BED_FILE_H
 #define BED_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -85,5 +89,9 @@ int bed_write(bed_file_t *bed_file, char *filename);
 int add_bed_header_entry(bed_header_entry_t *header_entry, bed_file_t *bed_file);
 
 int add_bed_record(bed_record_t* record, bed_file_t *bed_file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

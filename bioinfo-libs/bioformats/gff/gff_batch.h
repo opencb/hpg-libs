@@ -1,6 +1,10 @@
 #ifndef GFF_BATCH_H
 #define GFF_BATCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,5 +41,9 @@ int gff_batch_is_empty(gff_batch_t *gff_batch);
 int gff_batch_is_full(gff_batch_t *gff_batch);
 
 void gff_batch_print(FILE *fd, gff_batch_t *gff_batch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

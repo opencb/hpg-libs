@@ -1,6 +1,10 @@
 #ifndef FASTQ_FILE_H
 #define FASTQ_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <zlib.h>
@@ -214,5 +218,9 @@ void fastq_fclose(fastq_file_t *fq_file);
 
 /** @cond PRIVATE */
 //size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FASTQ_FILE_H  */

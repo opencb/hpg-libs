@@ -1,6 +1,10 @@
 #ifndef PED_BATCH_H
 #define PED_BATCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,5 +42,9 @@ int ped_batch_is_empty(ped_batch_t *ped_batch);
 int ped_batch_is_full(ped_batch_t *ped_batch);
 
 void ped_batch_print(FILE *fd, ped_batch_t *ped_batch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

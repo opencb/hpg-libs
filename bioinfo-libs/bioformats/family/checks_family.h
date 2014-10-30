@@ -21,6 +21,10 @@
 #ifndef CHECKS_FAMILY_H
 #define CHECKS_FAMILY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include <bioformats/features/region/region.h>
@@ -29,5 +33,9 @@
 
 int check_mendel(char *chromosome, int father_allele1, int father_allele2, int mother_allele1, int mother_allele2, 
                  int child_allele1, int child_allele2, enum Sex child_sex);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

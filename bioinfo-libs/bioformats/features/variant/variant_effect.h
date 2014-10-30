@@ -21,6 +21,10 @@
 #ifndef VARIANT_EFFECT_H
 #define VARIANT_EFFECT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 #include <curl/curl.h>
@@ -101,5 +105,9 @@ static size_t save_mutation_phenotype_response(char *contents, size_t size, size
 void initialize_ws_buffers(int num_threads);
 
 void free_ws_buffers(int num_threads);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

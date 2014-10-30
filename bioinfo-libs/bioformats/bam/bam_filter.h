@@ -8,6 +8,10 @@
  *      Author: jtarraga
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,6 +60,10 @@ void bam_filter(array_list_t *bam1s, array_list_t *passed_bam1s,
 		array_list_t *failed_bam1s, bam_filter_options_t *opts);
 
 //------------------------------------------------------------------------
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // end of BAM_FILTER_H
 

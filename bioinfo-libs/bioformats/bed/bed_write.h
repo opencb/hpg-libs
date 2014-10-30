@@ -1,6 +1,10 @@
 #ifndef BED_WRITE_H
 #define BED_WRITE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -28,5 +32,9 @@ void write_bed_batch(bed_batch_t *bed_batch, FILE *fd);
 
 void write_bed_record(bed_record_t* bed_record, FILE *fd);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif 

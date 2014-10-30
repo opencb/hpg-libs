@@ -1,6 +1,10 @@
 #ifndef FASTQ_GZFILE_H
 #define FASTQ_GZFILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -81,5 +85,9 @@ size_t fastq_gzread_bytes_pe(array_list_t *reads, size_t bytes, fastq_gzfile_t *
 
 /** @cond PRIVATE */
 static size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*  FASTQ_GZFILE_H  */

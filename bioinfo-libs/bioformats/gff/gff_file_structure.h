@@ -1,6 +1,10 @@
 #ifndef GFF_FILE_STRUCTURE_H
 #define GFF_FILE_STRUCTURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <sys/types.h>
 
 #include <commons/file_utils.h>
@@ -52,5 +56,9 @@ typedef struct gff_file {
     linked_list_t *header_entries;
     linked_list_t *records;
 } gff_file_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

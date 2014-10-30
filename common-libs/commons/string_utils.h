@@ -1,6 +1,10 @@
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
@@ -348,5 +352,9 @@ int strcasecmp(const char *s1, const char *s2);
 /**
  */
 char *str_reverse(char *str);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/*    STRING_UTILS_H	*/

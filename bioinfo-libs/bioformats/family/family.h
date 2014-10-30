@@ -1,6 +1,10 @@
 #ifndef FAMILY_H
 #define FAMILY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -158,5 +162,9 @@ void family_free(family_t *family);
  * @param family the family that could contain the individual
  */
 individual_t *family_contains_individual(individual_t *individual, family_t *family);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

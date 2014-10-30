@@ -1,6 +1,10 @@
 #ifndef PED_READ_H
 #define PED_READ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -32,5 +36,9 @@ void set_ped_record_sex(enum Sex sex, ped_record_t* ped_record);
 void set_ped_record_phenotype(char* phenotype, ped_record_t* ped_record, ped_file_t* ped_file);
 
 void set_ped_record_custom_field(char* field, ped_record_t* ped_record, ped_file_t *ped_file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

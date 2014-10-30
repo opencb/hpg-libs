@@ -1,6 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -104,5 +108,9 @@ void set_field_value_in_sample(char **sample, int position, char* value);
  **/
 enum alleles_code get_alleles(char *sample, int genotype_position, int *allele1, int *allele2);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

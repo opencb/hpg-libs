@@ -1,6 +1,10 @@
 #ifndef LOG_H
 #define LOG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -166,5 +170,9 @@ void stop_log();
 void print_log_message(int level, char *log_level_word, char *filename, int num_line, const char *func, char *msg);
 
 void print_log_message_with_format(int level, char *log_level_word, char *filename, int num_line, const char *func, char *msg_format, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

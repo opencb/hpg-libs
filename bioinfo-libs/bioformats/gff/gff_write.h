@@ -1,6 +1,10 @@
 #ifndef GFF_WRITE_H
 #define GFF_WRITE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -28,5 +32,9 @@ void write_gff_batch(gff_batch_t *gff_batch, FILE *fd);
 
 void write_gff_record(gff_record_t* gff_record, FILE *fd);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif 

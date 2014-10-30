@@ -8,6 +8,10 @@
  *      Author: jtarraga
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -79,6 +83,10 @@ int bam1s_stats(array_list_t *bam1s, bam_stats_options_t *opts,
 		array_list_t *bam1s_stats);
 
 //------------------------------------------------------------------------
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // end of BAM_STATS_H
 

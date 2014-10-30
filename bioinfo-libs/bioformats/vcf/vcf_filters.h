@@ -1,6 +1,10 @@
 #ifndef VCF_FILTERS_H 
 #define VCF_FILTERS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <math.h>
 #include <limits.h>
@@ -621,6 +625,10 @@ void free_filters(filter_t **filters, int num_filters);
  * @return The list of headers
  **/
 vcf_header_entry_t **get_filters_as_vcf_headers(filter_t **filters, int num_filters);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

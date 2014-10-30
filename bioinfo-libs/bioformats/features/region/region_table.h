@@ -1,6 +1,10 @@
 #ifndef REGION_TABLE_H
 #define REGION_TABLE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -176,5 +180,9 @@ array_list_t *get_chromosome(const char *key, region_table_t *table);
  */
 int count_regions_in_chromosome(const char *key, region_table_t *table);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

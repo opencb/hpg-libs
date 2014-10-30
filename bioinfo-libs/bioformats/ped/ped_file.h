@@ -1,6 +1,10 @@
 #ifndef PED_FILE_H
 #define PED_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 
 #include <fcntl.h>
@@ -27,7 +31,6 @@
 #include "ped_reader.h"
 #include "ped_util.h"
 #include "ped_write.h"
-
 
 
 /* **************************************
@@ -124,5 +127,9 @@ int set_phenotype_group(char** ids, int n , ped_file_t *ped_file);
 khash_t(str)* get_phenotypes(ped_file_t *ped_file);
 
 int get_num_variables(ped_file_t* ped_file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

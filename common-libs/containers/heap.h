@@ -32,6 +32,10 @@
 #ifndef HEAP_H
 #define HEAP_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <limits.h>
 
@@ -398,5 +402,9 @@ static inline void heap_delete(heap_prio_t higher_prio, struct heap* heap,
 	}
 	node->degree = NOT_IN_HEAP;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HEAP_H */

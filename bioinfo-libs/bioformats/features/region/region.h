@@ -1,6 +1,10 @@
 #ifndef REGION_H
 #define REGION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,5 +131,9 @@ int region_contains_other(region_t *container, region_t *content);
  *      Whether the chromosome is valid given a list of species chromosomes
  */
 int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

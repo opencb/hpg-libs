@@ -10,6 +10,10 @@
 
 //------------------------------------------------------------------------
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -70,5 +74,9 @@ int insert_statement_bam_query_fields(void *custom_fields,
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // end of BAM_DB_H

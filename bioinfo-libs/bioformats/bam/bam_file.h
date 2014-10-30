@@ -1,6 +1,10 @@
 #ifndef BAM_FILE_H
 #define BAM_FILE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -354,5 +358,9 @@ void free_bam1(bam1_t** alignment_p, int num_alignments);
 *  Writes to disk a given bam1_t alignment
 */
 void print_bam1(bam1_t* alignment_p, FILE* fd);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* BAM_FILE_H */

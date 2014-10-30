@@ -9,6 +9,10 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -167,6 +171,10 @@ int linked_list_get_flag(linked_list_t *linked_list_p);
  *  Compare function for strings
  */
 int compare(const void *a, const void *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* LINKED_LIST_H_ */

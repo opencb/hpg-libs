@@ -10,6 +10,10 @@
 
 //------------------------------------------------------------------------
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -78,5 +82,9 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db);
 //------------------------------ AUXILIARY -------------------------------
 
 int exec_sql(char *sql, sqlite3* db);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // end of DB_UTILS_H
