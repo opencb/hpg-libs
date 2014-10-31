@@ -223,8 +223,8 @@ int region_contains_other(region_t *container, region_t *content) {
     return 0;
 }
 
-int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes) {
-    for (int i = 0; i < num_chromosomes; i++) {
+int is_valid_chromosome(char *chromosome, char **chromosome_ordering, unsigned long num_chromosomes) {
+    for (unsigned long i = 0; i < num_chromosomes; i++) {
         assert(chromosome_ordering[i]);
         if (strcasecmp(chromosome_ordering[i], chromosome) == 0) {
             return 1;

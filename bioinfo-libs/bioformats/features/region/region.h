@@ -126,6 +126,6 @@ int region_contains_other(region_t *container, region_t *content);
  * @return 
  *      Whether the chromosome is valid given a list of species chromosomes
  */
-int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes);
+int is_valid_chromosome(char *chromosome, char **chromosome_ordering, unsigned long num_chromosomes);
 
 #endif
