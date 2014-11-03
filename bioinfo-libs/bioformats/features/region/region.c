@@ -171,6 +171,11 @@ int compare_chromosomes(char *chromosome_1, char *chromosome_2, char **chromosom
     //     printf("chr1 = %s\t", chromosome_1);
     //     printf("chr 2 = %s\t", chromosome_2);
     //     printf("num chr = %d\n", num_chromosomes);
+    
+    if (!strcmp(chromosome_1, chromosome_2)) {
+        return 0;
+    }
+    
     for (int i = 0; i < num_chromosomes; i++) {
         assert(chromosome_ordering[i]);
         if (strcasecmp(chromosome_ordering[i], chromosome_1) == 0) {

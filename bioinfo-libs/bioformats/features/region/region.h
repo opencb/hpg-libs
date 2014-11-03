@@ -13,6 +13,7 @@
 #include <commons/http_utils.h>
 #include <commons/log.h>
 #include <commons/string_utils.h>
+#include <containers/kbtree.h>
 
 typedef struct region {
     size_t start_position;
@@ -26,6 +27,7 @@ typedef struct {
     char *data;
     size_t length;
 } chromosome_ws_response;
+
 
 region_t *region_new(char *chromosome, size_t start_position, size_t end_position, char *strand, char *type);
 
@@ -127,5 +129,6 @@ int region_contains_other(region_t *container, region_t *content);
  *      Whether the chromosome is valid given a list of species chromosomes
  */
 int is_valid_chromosome(char *chromosome, char **chromosome_ordering, unsigned long num_chromosomes);
+
 
 #endif

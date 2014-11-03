@@ -86,8 +86,13 @@ char *get_annotation_allele_freq(variant_stats_t *variant_stats, int *output_len
 }
 
 char *get_annotation_allele_number(variant_stats_t *variant_stats, int *output_len) {
-    char *result = calloc(8, sizeof(char));
-    sprintf(result, "AN=%d", variant_stats->num_alleles);
+    char *result = calloc(16, sizeof(char));
+    int an = 0;
+    for (int i = 0; i < variant_stats->num_alleles; i++) {
+        an += variant_stats->alleles_count[i];
+    }
+    sprintf(result, "AN=%d", an);
+//    sprintf(result, "AN=%d", variant_stats->num_alleles);
     *output_len = strlen(result);
     return result;
 }
