@@ -147,8 +147,11 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         float controls_dominant;
         float cases_recessive;
         float controls_recessive;
-    }   *pheno_count, *aux_pheno_count;
-    pheno_count = malloc(sizeof(struct phenotype_stats_var_count)*num_variables);
+    }   *pheno_count = NULL, *aux_pheno_count;
+    
+    if (num_variables > 0) {
+        pheno_count = malloc(sizeof(struct phenotype_stats_var_count)*num_variables);
+    }
     
     // Variant stats management
     vcf_record_t *record;
@@ -549,6 +552,8 @@ int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t *
         list_item_t *variant_result = list_item_new(i, 0, stats);
         list_insert_item(variant_result, output_list);
     }
+    
+    free(pheno_count);
     
     // Update file_stats_t structure
 #pragma omp critical 
