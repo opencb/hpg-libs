@@ -8,7 +8,7 @@
 
 static inline void BWExactSearchBackward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
 
-        intmax_t k, l, k2, l2;
+        intmax_t k = 0, l = 0, k2, l2;
 	int16_t i;
 	
 	k2 = r->k;
@@ -37,7 +37,7 @@ static inline void BWExactSearchBackward(uint8_t *W, bwt_index *index, result *r
 
 static inline void BWExactSearchForward(uint8_t *W, bwt_index *index, result *r, result *r_anchor) {
 
-        intmax_t k, l, k2, l2;
+        intmax_t k = 0, l = 0, k2, l2;
 	int16_t i;
 
 	k2 = r->k;

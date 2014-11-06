@@ -12,7 +12,7 @@
 inline int exec_sql(char *sql, sqlite3* db) {
   int rc;
   char *error_msg;
-  if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
+  if ((rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg))) {
     LOG_ERROR_F("Stats database failed (%s): %s\n", sql, error_msg);
   }
   return rc;
@@ -84,6 +84,9 @@ int close_stats_db(sqlite3* db, khash_t(stats_chunks) *hash) {
     sqlite3_close_v2(db);
     // Destroy the chunks hashtable
     kh_destroy(stats_chunks, hash);
+
+    return 0;
+
 }
 
 
@@ -134,7 +137,7 @@ int insert_statement_global_stats(const char *name, const char *title,
   sqlite3_bind_text(stmt, 2, title, strlen(title), SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 3, value, strlen(value), SQLITE_TRANSIENT);
 
-  if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+  if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
     LOG_ERROR_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
@@ -211,7 +214,7 @@ int insert_regions_query_fields_list(array_list_t *list, sqlite3 *db) {
 
     prepare_statement_regions_query_fields(db, &stmt);
 
-    if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message))) {
         LOG_ERROR_F("Regions database failed: %s (%d)\n", rc, error_message);
     }
 
@@ -225,18 +228,21 @@ int insert_regions_query_fields_list(array_list_t *list, sqlite3 *db) {
         sqlite3_bind_text(stmt, 4, fields->strand, strlen(fields->strand), SQLITE_STATIC);
         sqlite3_bind_text(stmt, 5, fields->type, strlen(fields->type), SQLITE_STATIC);
 
-        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+        if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
             LOG_ERROR_F("Regions database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
         }
 
         sqlite3_reset(stmt);
     }
 
-    if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message))) {
         LOG_ERROR_F("Regions database failed: %s (%d)\n", rc, error_message);
     }
 
     sqlite3_finalize(stmt);
+
+    return 0;
+
 }
 
 
@@ -259,7 +265,7 @@ int insert_chunk(const char *chr, int chunk_id, int start, int end,
   sqlite3_bind_int(stmt, 4, end);
   sqlite3_bind_int(stmt, 5, features_count);
 
-  if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+  if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
     LOG_ERROR_F("Database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   } else {
     rc = SQLITE_OK;
@@ -295,6 +301,9 @@ int inc_chunk(const char *chr, int chunk_id, int chunk_start, int chunk_end, sql
   }
 
   sqlite3_finalize(stmt);
+
+  return 0;
+
 }
 
 //------------------------------------------------------------------------
@@ -331,6 +340,7 @@ int update_chunks_hash(const char *chr, int chr_length, int chunksize,
 
     //    LOG_DEBUG_F("key = %s, value = %i\n", key, kh_value(hash, k));
   }
+  return 0;
 }
 
 //------------------------------------------------------------------------
@@ -348,7 +358,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   char sql[] = "INSERT INTO chunk VALUES (?1, ?2, ?3, ?4, ?5)";
   sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
 
-  if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
+  if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage))) {
     LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
   }
 
@@ -357,7 +367,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
     if (kh_exist(hash, k)) {
       counter++;
            
-      key = kh_key(hash, k);
+      key = (char *)kh_key(hash, k);
       features_count = kh_value(hash, k);
       //      LOG_DEBUG_F("key %s -> value = %i\n", key, features_count);
       sscanf(key, "%i::%s", &chunk_id, chr);
@@ -371,7 +381,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
       sqlite3_bind_int(stmt, 4, chunk_start + chunksize - 1);
       sqlite3_bind_int(stmt, 5, features_count);
 
-      if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+      if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
 	LOG_ERROR_F("Database failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
       }
 
@@ -384,12 +394,12 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
 
       if (counter % 100000 == 0) {
 	// commit the current transaction
-	if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
+	if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage))) {
 	  LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
 	}
 
 	// start a new transaction
-	if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
+	if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage))) {
 	  LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
 	}
 	counter = 0;
@@ -398,7 +408,7 @@ int insert_chunk_hash(int chunksize, khash_t(stats_chunks) *hash, sqlite3 *db) {
   }
 
   if (counter) {
-    if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
+    if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage))) {
       LOG_ERROR_F("Database failed: %s (%d)\n", errorMessage, rc);
     }
   }

@@ -18,12 +18,13 @@ static int sizes_len = 20;
 #define MAX_FILL_FACTOR 100
 #define DOWNSIZE_RATIO   2
 
+/*
 static unsigned long mt_abs(long x) 
 {
 	if (x < 0) return -x;
 	return x;
 }
-
+*/
 /*
  * performs a binary search on the sizes array to choose the first entry larger
  * than the requested size. the sizes array is initialized with prime numbers.

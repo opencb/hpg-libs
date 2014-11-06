@@ -110,7 +110,7 @@ static diskbuf *psi[SIGMA];
 void bw_to_psi(FILE *out, CSA *csa, char *fbw, char *flst, int *k)
 {
 	FILE *in;
-	i64 last,i,j;
+	i64 last = 0,i,j;
 	i64 C2[SIGMA];
 	i64 c;
 
@@ -118,7 +118,7 @@ void bw_to_psi(FILE *out, CSA *csa, char *fbw, char *flst, int *k)
 	if (in == NULL) {
 		perror("bw_to_psi:");  exit(1);
 	}
-	int res = fscanf(in,"%ld",&last);
+
 	fclose(in);
 
 	for (c=0; c<SIGMA; c++) {
@@ -602,7 +602,7 @@ void csa_new_from_bwt_wrapper(int argc, char *argv[]) {
 	char *p;
 	int k;
 	int psi_id, idx_id;
-	char *fname,*fidx;
+	char *fname,*fidx = 0;
 	CSA csa;
 
 	for (i=0; i<SIGMA+2; i++) csa.C[i] = 0;
@@ -928,7 +928,7 @@ i64 csa_substring_lf(uchar *p,CSA *csa,rank_t r,i64 len)
 
 i64 csa_substring_lf_naive(uchar *p,CSA *csa,rank_t r,i64 len)
 {
-	i64 i,r2;
+	i64 i;
 	int c;
 	i = 0;
 	while (i < len) {
@@ -1226,7 +1226,7 @@ int csa_BW_rank(CSA *csa,i64 i, rank_t *r)
 rank_t csa_LF_by_psi(CSA *csa, rank_t i)
 {
 	int c;
-	rank_t l,r,x;
+	rank_t l,r,x = 0;
 	for (c = 0; c < csa->m; c++) {
 		l = csa->K[c+1];  r = csa->K[c+2]-1;
 		x = csa->psi_pred(csa,i,l,r);
@@ -1265,7 +1265,7 @@ rank_t csa_LF(CSA *csa, rank_t i)  /* 0 <= i <= n */
 rank_t csa_BW_LF_by_psi(CSA *csa, rank_t i, int *cc)
 {
 	int c;
-	rank_t l,r,x;
+	rank_t l,r,x = 0;
 	for (c = 0; c < csa->m; c++) {
 		l = csa->K[c+1];  r = csa->K[c+2]-1;
 		x = csa->psi_pred(csa,i,l,r);
@@ -1509,7 +1509,7 @@ int csa_child_r_sub(CSA *csa, i64 len, rank_t l, rank_t r, int num, uchar *subst
 	rank_t lll, rrr;
 	i64 j, ret;
 	int c1,c2;
-	i64 l2,r2;
+	i64 l2 = 0, r2 = 0;
 
 	//  printf("child_r_sub [%ld,%ld]\n",l,r);
 

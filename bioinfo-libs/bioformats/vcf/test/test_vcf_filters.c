@@ -359,7 +359,7 @@ START_TEST (num_alelles_all_excluded) {
 END_TEST
 
 
-
+/*
 START_TEST (snp_include) {
 	((snp_filter_args*) snp_f->args)->include_snps = 1;
         
@@ -394,8 +394,8 @@ START_TEST (snp_include) {
     free(input_stats_array);
 }
 END_TEST
-
-
+*/
+/*
 START_TEST (snp_exclude) {
 	((snp_filter_args*) snp_f->args)->include_snps = 0;
         
@@ -430,8 +430,8 @@ START_TEST (snp_exclude) {
     free(input_stats_array);
 }
 END_TEST
-
-
+*/
+/*
 START_TEST (region_chrom_1) {
 	// create filter for just one chromosome
 	char input[] = "1";
@@ -501,204 +501,9 @@ START_TEST (region_chrom_1_2) {
 	region_f->free_func(region_f);
 }
 END_TEST
-
-/*
-START_TEST (region_chrom_start) {
-	char input[] = "1:10000000,2:20000000";
-	region_f = region_filter_new(input, 0, url, species, version);
-	passed = region_f->filter_func(datasuite, failed, region_f->name, region_f->args);
-	
-	// rejected = 18
-	fail_unless(failed->size == 18, "18 records must be discarded");
-	// size(accepted + rejected) = size(whole input)
-	fail_unless(passed->size + failed->size == datasuite->size,
-		    "The sum of the number of accepted and rejected records must be the same as the input records");
-	
-	// all accepted records must be in chrom 1 after position 10M, or in chrom 2 after position 20M
-	int chrom1_ok, chrom2_ok;
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-		chrom1_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 10000000;
-		chrom2_ok = strncmp("2", record->chromosome, record->chromosome_len) == 0 && record->position >= 20000000;
-		fail_unless(chrom1_ok || chrom2_ok, 
-			"The record must be in chr1 pos >= 10M, or in chr2 pos >= 20M");
-	}
-	
-	// all rejected records must be neither in chrom 1 after position 10M, or in chrom 2 after position 20M
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-		chrom1_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 10000000;
-		chrom2_ok = strncmp("2", record->chromosome, record->chromosome_len) == 0 && record->position >= 20000000;
-		fail_if(chrom1_ok || chrom2_ok, 
-			"The record must be neither in chr1 pos >= 10M or chr2 pos >= 20M");
-	}
-	
-	region_f->free_func(region_f);
-}
-END_TEST
-
-
-START_TEST (region_chrom_start_end) {
-	char input[] = "1:1000000-6000000,2:24000000-38000000";
-	region_f = region_filter_new(input, 0, url, species, version);
-	passed = region_f->filter_func(datasuite, failed, region_f->name, region_f->args);
-	
-	// accepted = 14
-	fail_unless(passed->size == 22, "22 records must be accepted");
-	// size(accepted + rejected) = size(whole input)
-	fail_unless(passed->size + failed->size == datasuite->size,
-		    "The sum of the number of accepted and rejected records must be the same as the input records");
-	
-	// all accepted records must be in chrom 1 after position (1M, 6M), or in chrom 2 after position (24M, 38M)
-	int chrom1_ok, chrom2_ok;
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-		chrom1_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 6000000;
-		chrom2_ok = strncmp("2", record->chromosome, record->chromosome_len) == 0 && record->position >= 24000000 && record->position <= 38000000;
-		fail_unless(chrom1_ok || chrom2_ok, 
-			"The record must be in chr1 pos in (1M, 6M), or in chr2 pos in (24M, 38M)");
-	}
-	
-	// all rejected records must be neither in chrom 1 in position (1M, 6M), or in chrom 2 in position (24M, 38M)
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-		chrom1_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 6000000;
-		chrom2_ok = strncmp("2", record->chromosome, record->chromosome_len) == 0 && record->position >= 24000000 && record->position <= 38000000;
-		fail_if(chrom1_ok || chrom2_ok, 
-			"The record must be neither in chr1 pos in (1M, 6M), or in chr2 pos in (24M, 38M)");
-	}
-	
-	region_f->free_func(region_f);
-}
-END_TEST
-
-*//*
-START_TEST (quality_limit_bound) {
-    ((quality_filter_args*) quality_f->args)->min_quality = 100;
-    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->name, quality_f->args);
-    
-    fail_unless(passed->size == 31, "Q100: The number of qualities found is not correct");
-    // size(accepted + rejected) = size(whole input)
-    fail_unless(passed->size + failed->size == quality_datasuite->size,
-            "Q100: The sum of the number of accepted and rejected records must be the same as the input records");
-    
-    // no accepted ID < min_qual
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-        fail_if(record->quality < 100, "Q100: An accepted record can't have less quality than specified");
-    }
-    
-    // no rejected ID >= min_qual
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-        fail_unless(record->quality < 100, "Q100: A rejected record can't have greater or equal quality than specified");
-    }
-}
-END_TEST
-
-START_TEST (quality_limit_over_bound) {
-    ((quality_filter_args*) quality_f->args)->min_quality = 101;
-    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->name, quality_f->args);
-    
-    fail_unless(passed->size == 2, "Q101: The number of qualities found is not correct");
-    // size(accepted + rejected) = size(whole input)
-    fail_unless(passed->size + failed->size == quality_datasuite->size,
-            "Q101: The sum of the number of accepted and rejected records must be the same as the input records");
-    
-    // no accepted ID < min_qual
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-        fail_if(record->quality < 101, "Q101: An accepted record can't have less quality than specified");
-    }
-    
-    // no rejected ID >= min_qual
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-        fail_unless(record->quality < 101, "Q101: A rejected record can't have greater or equal quality than specified");
-    }
-}
-END_TEST
-
-START_TEST (quality_all_excluded) {
-    ((quality_filter_args*) quality_f->args)->min_quality = 200;
-    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->name, quality_f->args);
-    
-    fail_unless(passed->size == 0, "Q200: The number of qualities found is not correct");
-    // size(accepted + rejected) = size(whole input)
-    fail_unless(passed->size + failed->size == quality_datasuite->size,
-            "Q200: The sum of the number of accepted and rejected records must be the same as the input records");
-    
-    // no rejected ID >= min_qual
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-        fail_unless(record->quality < 200, "Q200: A rejected record can't have greater or equal quality than specified");
-    }
-}
-END_TEST
-
-START_TEST (quality_all_included) {
-    ((quality_filter_args*) quality_f->args)->min_quality = 60;
-    passed = quality_f->filter_func(quality_datasuite, failed, quality_f->name, quality_f->args);
-    
-    fail_unless(passed->size == 32, "Q60: The number of qualities found is not correct");
-    // size(accepted + rejected) = size(whole input)
-    fail_unless(passed->size + failed->size == quality_datasuite->size,
-            "Q60: The sum of the number of accepted and rejected records must be the same as the input records");
-    
-    // no accepted ID < min_qual
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-        fail_if(record->quality < 60, "Q60: An accepted record can't have less quality than specified");
-    }
-}
-END_TEST
-
-
-/*
-
-START_TEST (snpinclude_regionchromstartend_chain) {
-    int num_filters;
-    filter_t **filters = sort_filter_chain(chain, &num_filters);
-
-    fail_unless(filters[0]->type == SNP, "The first filter to apply must be a SNP filter");
-    fail_unless(filters[1]->type == REGION, "The second filter to apply must be a region filter");
-
-    passed = run_filter_chain(datasuite, failed, filters, num_filters);
-
-    // accepted = 5
-    fail_unless(passed->size == 5, "5 records must be accepted");
-    // size(accepted + rejected) = size(whole input)
-    fail_unless(passed->size + failed->size == datasuite->size,
-                "The sum of the number of accepted and rejected records must be the same as the input records");
-
-    // all accepted records must be a SNP in chr1 pos in (1M, 5M)
-    int snp_ok, region_ok;
-    for (int i = 0; i < passed->size; i++) {
-        vcf_record_t *record = passed->items[i];
-            snp_ok = strncmp(".", record->id, record->id_len) != 0;
-            region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
-            fail_unless(region_ok && snp_ok, 
-                    "The record must be a SNP in chr1 pos in (1M, 5M)");
-	}
-	
-	// all rejected records must not be a SNP in chr1 pos in (1M, 5M)
-    for (int i = 0; i < failed->size; i++) {
-        vcf_record_t *record = failed->items[i];
-            snp_ok = strncmp(".", record->id, record->id_len) != 0;
-            region_ok = strncmp("1", record->chromosome, record->chromosome_len) == 0 && record->position >= 1000000 && record->position <= 5000000;
-            fail_if(region_ok && snp_ok, 
-                    "The record must not be a SNP in chr1 pos in (1M, 5M)");
-	}
-}
-END_TEST
 */
 
-
-/* ******************************
- * 	Main entry point	*
- * ******************************/
-
-int main (int argc, char *argv) {
+int main (int argc, char **argv) {
 	vcf_file_t *file = vcf_open("CEU.exon.2010_03.genotypes__head400.vcf", 10);
     vcf_file_t *quality_file = vcf_open("qualities.vcf", 10);
     vcf_file_t *num_alleles_file = vcf_open("num_alleles_test.vcf", 10);

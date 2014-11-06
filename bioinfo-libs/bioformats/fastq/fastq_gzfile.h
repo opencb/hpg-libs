@@ -80,6 +80,6 @@ size_t fastq_gzread_bytes_pe(array_list_t *reads, size_t bytes, fastq_gzfile_t *
 
 
 /** @cond PRIVATE */
-static size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
+//static size_t consume_input(int c, char **data, size_t max_len, int position_in_data);
 
 #endif	/*  FASTQ_GZFILE_H  */

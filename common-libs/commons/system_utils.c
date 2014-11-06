@@ -22,6 +22,9 @@ unsigned long int get_free_memory() {
     }
 
     char *res_f = fgets(str_memory, 15, fd_memory);
+    if (!res_f) {
+      return 0;
+    }
 
     sscanf(str_memory, "%lu", &free_memory);
 
@@ -85,7 +88,6 @@ size_t get_optimal_cpu_num_threads() {
   const unsigned int MAX_LINE = 1024;
   size_t optimal_cpu_num_threads = 0;
 
-  char log_message[50];
   char line[MAX_LINE];
   
   fd_cpu_num_cores = fopen("/proc/cpuinfo", "r");

@@ -56,7 +56,7 @@ void bam_fclose(bam_file_t* bam_file) {
     
     if (bam_file->bam_fd != NULL) {
         bam_close(bam_file->bam_fd);
-        bam_file->bam_fd == NULL;
+        bam_file->bam_fd = NULL;
     }
     
     free(bam_file);
@@ -193,6 +193,7 @@ int bam_fwrite_bam1s(array_list_t* bam1s, bam_file_t* bam_file) {
   for (int i = 0; i < num_items; i++) {
     bam_write1(bam_file->bam_fd, array_list_get(i, bam1s));
   }
+  return 0;
 }
 
 int bam_fwrite_sorted_array(bam1_t** alignment_p, int* indices, int length, bam_file_t* bam_file_p) {

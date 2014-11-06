@@ -137,9 +137,9 @@ static void csa_approxsearch_sub(uchar *key,int keylen,int k, int *score, i64 l,
 
 approx_list *csa_approxsearch(unsigned char *key,int keylen,int k,CSA *csa)
 {
-  i64 s1,s2;
-  int c,s,t;
-  i64 i,j,h,l,r,n;
+
+  
+  i64 i,l,r;
   int *score;
   uchar *buf;
   int buflen;
@@ -171,9 +171,9 @@ approx_list *csa_approxsearch(unsigned char *key,int keylen,int k,CSA *csa)
 
 approx_list *csa_approxsearch2(unsigned char *key,int keylen,int k,CSA *csa)
 {
-  i64 s1,s2;
-  int c,s,t;
-  i64 i,j,h,l,r,n;
+
+
+  i64 i,j,l,r;
   int *score;
   uchar *buf;
   int buflen;

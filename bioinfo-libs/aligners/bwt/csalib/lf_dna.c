@@ -324,6 +324,7 @@ i64 lf_dna_makeindex(CSA *csa, char *fname, bool coded)
     perror("lf_dna_makeindex:");  exit(1);
   }
   int res = fscanf(in,"%ld",&last);
+  if (!res) {  }
   printf("last = %ld\n",last);
   lf->last = last;
   fclose(in);
@@ -418,7 +419,6 @@ void lf_dna_read(CSA *csa, char *fname)
 {
   char *fbw, *fbwi, *fname2;
   int k,l,id;
-  FILE *f1;
   i64 psize1,psize2;
   i64 n;
   lf_dna *lf;

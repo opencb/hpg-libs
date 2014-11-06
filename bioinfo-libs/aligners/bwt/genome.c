@@ -35,7 +35,7 @@ genome_t* genome_new(char* sequence_filename,
     // read index file
     sprintf(path, "%s/index", directory);
     unsigned int chromosome, num_chromosomes = 0;
-    char* p;
+
     char line[MAXLINE];
     char value[1024];
 
@@ -44,7 +44,7 @@ genome_t* genome_new(char* sequence_filename,
       LOG_FATAL_F("FILE: '%s' not found", path);
     }
 
-    int ch, number_of_lines = 0;
+    int ch;
     do {
       ch = fgetc(fd);
       if (ch == '\n')
@@ -170,7 +170,7 @@ void genome_free(genome_t* p) {
 void genome_read_sequence(char* sequence, unsigned int strand, char* chromosome, 
 			  unsigned long int* start_p, unsigned long int* end_p, 
 			  genome_t* genome_p) {
-  unsigned int i, chr;
+  unsigned int i, chr = 0;
 
   for(i=0 ; i< genome_p->num_chromosomes ; i++) {
     if (strcmp(chromosome, (char *) genome_p->chr_name[i]) == 0) {
@@ -247,10 +247,8 @@ cp_hashtable *load_hashtable_codes() {
     id++;	
   }
 
-  //printf("id=%i\n", id);
 
   return t;
-
 }
 
 
@@ -328,8 +326,8 @@ void code_binary_file_generator(size_t chunk_size, char *dna_filename, char *dna
   char *res;
   unsigned char value;
   unsigned char *value_ptr;
-  size_t nt = 0;
-  unsigned char key_chunk = 3;
+
+
   LOG_DEBUG("Process DNA File\n");
 
   while (!feof(fd)) {
@@ -411,7 +409,10 @@ unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size){
   unsigned char *dna_encoding = (unsigned char *)malloc(sizeof(unsigned char)*(*size));
 
   int res = fread(dna_encoding, sizeof(unsigned char), *size, binary_fd);
-  
+  if (!res) {
+    LOG_FATAL_F("Error, '%s' file is empty!\n", dna_binary_filename);
+  }
+
   fclose(binary_fd);
 
   return dna_encoding;
@@ -430,28 +431,28 @@ void get_genome_sequence(char *sequence, unsigned int chromosome, unsigned int s
 
   unsigned int seq_pos = 0;
   
-  char nt_code[4];
-  unsigned char id;
+
+
   
   if (start >= end)
     return;
 
   for(unsigned int i = nucleotide_start; i < 3; i++){
-    sequence[seq_pos++] = array_codes[dna_encoding[group_start]][i];
+    sequence[seq_pos++] = array_codes[(unsigned char)dna_encoding[group_start]][i];
   }
 
   group_start++;
   
   while (group_start < group_end) {
-    sequence[seq_pos++] = array_codes[dna_encoding[group_start]][0];
-    sequence[seq_pos++] = array_codes[dna_encoding[group_start]][1];
-    sequence[seq_pos++] = array_codes[dna_encoding[group_start]][2];
+    sequence[seq_pos++] = array_codes[(unsigned char)dna_encoding[group_start]][0];
+    sequence[seq_pos++] = array_codes[(unsigned char)dna_encoding[group_start]][1];
+    sequence[seq_pos++] = array_codes[(unsigned char)dna_encoding[group_start]][2];
     group_start++;
   }
 
   if (group_start <= group_end) {
     for(unsigned int i = 0; i <= nucleotide_end; i++){
-      sequence[seq_pos++] = array_codes[dna_encoding[group_start]][i];
+      sequence[seq_pos++] = array_codes[(unsigned char)dna_encoding[group_start]][i];
     }
   }
 
@@ -481,8 +482,8 @@ void genome_read_sequence_by_chr_index(char* sequence, unsigned int strand,
 
   unsigned int seq_pos = 0;
   
-  char nt_code[4];
-  unsigned char id;
+
+
   //printf("Genome start %lu and genome end %lu = %lu\n", s, e, e - s);
   for(unsigned int i = nucleotide_start; i < 3; i++){
     sequence[seq_pos++] = genome_p->code_table[genome_p->X[group_start]][i];

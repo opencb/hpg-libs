@@ -10,7 +10,7 @@
 
 static vcf_record_t *record;
 static list_t *output_list;
-static list_item_t *record_item;
+
 
 static file_stats_t *file_stats;
 
@@ -51,7 +51,7 @@ START_TEST (biallelic) {
     set_vcf_record_alternate("T", 1, record);
     set_vcf_record_format("GC:GT", 5, record);
     
-    size_t sample_idx = 0;
+
     char *sample = strdup("1:0/0"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("2:1/0"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("1:0/1"); add_vcf_record_sample(sample, strlen(sample), record);
@@ -85,7 +85,7 @@ START_TEST (multiallelic) {
     set_vcf_record_alternate("T,GT", 4, record);
     set_vcf_record_format("GT:GC", 5, record);
     
-    size_t sample_idx = 0;
+
     char *sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("1/0:2"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/1:1"); add_vcf_record_sample(sample, strlen(sample), record);
@@ -131,7 +131,7 @@ START_TEST (homozygous) {
     set_vcf_record_alternate(".", 1, record);
     set_vcf_record_format("GT:GQ:DP:HQ", 11, record);
     
-    size_t sample_idx = 0;
+
     char *sample = strdup("0/0:1"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/0:2"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("0/.:1"); add_vcf_record_sample(sample, strlen(sample), record);
@@ -162,7 +162,7 @@ START_TEST (from_CEU_exon) {
     set_vcf_record_alternate("G", 1, record);
     set_vcf_record_format("GT:DP", 5, record);
     
-    size_t sample_idx = 0;
+
     char *sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("./.:0"); add_vcf_record_sample(sample, strlen(sample), record);
     sample = strdup("1/1:31"); add_vcf_record_sample(sample, strlen(sample), record);
@@ -408,7 +408,7 @@ END_TEST
  *      Main entry point        *
  * ******************************/
 void f();
-int main (int argc, char *argv) {
+int main (int argc, char **argv) {
 	//f();
     //return 0;
     Suite *fs = create_test_suite();
@@ -487,7 +487,7 @@ printf("Hoo\n");    ped_read(ped_file);
     get_sample_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids, sample_stats, file_stats);
     get_variants_stats((vcf_record_t**) datasuite->items, datasuite->size, individuals, sample_ids,get_num_variables(ped_file), o_list, file_stats);
     
-    sample_stats_t *cur_stats = sample_stats[0];  // 3376
+
     //fail_if(cur_stats->missing_genotypes != 2, "3376: 2 missing GTs expected");
     //fail_if(cur_stats->mendelian_errors != 4, "3376: 4 mendelian errors expected");
     //fail_if(cur_stats->homozygotes_number != 14, "3376: 14 homocygotes count expected");

@@ -14,6 +14,7 @@ cst_node cst_root(CSA *csa)
 
   node.csa = csa;
   node.depth = 0;
+  node.depth2 = 0;
   node.l = 0;
   node.r = csa->n;
   
@@ -91,10 +92,12 @@ cst_node cst_child(cst_node node, int c)
 
   if (len == node.depth+1) {
     child.depth = node.depth+1;
+    child.depth2 = node.depth+1;
     child.l = ll;
     child.r = rr;
   } else {
     child.depth = -1;
+    child.depth2 = -1;
     child.l = 1;
     child.r = 0;
   }
@@ -104,7 +107,7 @@ cst_node cst_child(cst_node node, int c)
 cst_node cst_firstchild(cst_node node)
 {
   int c;
-  i64 l, r;
+  i64 l;
   i64 i, depth;
   CSA *csa;
   cst_node newnode;
@@ -121,6 +124,7 @@ cst_node cst_firstchild(cst_node node)
   if (c == -1) {
     newnode.csa = csa;
     newnode.depth = depth+1;
+    newnode.depth2 = depth+1;
     newnode.l = newnode.r = node.l;
     return newnode;
   } else {
@@ -131,7 +135,7 @@ cst_node cst_firstchild(cst_node node)
 cst_node cst_nextchild(cst_node node, cst_node child)
 {
   int c;
-  i64 l, r;
+  i64 l;
   i64 i, depth;
   CSA *csa;
   cst_node newnode;
@@ -140,8 +144,10 @@ cst_node cst_nextchild(cst_node node, cst_node child)
   l = child.r+1;
   depth = node.depth;
 
+  newnode.csa = 0;
   if (l > node.r) {
     newnode.depth = -1;
+    newnode.depth2 = -1;
     newnode.l = 1;
     newnode.r = 0;
     return newnode;
@@ -155,6 +161,7 @@ cst_node cst_nextchild(cst_node node, cst_node child)
   if (c == -1) {
     newnode.csa = csa;
     newnode.depth = depth+1;
+    newnode.depth2 = depth+1;
     newnode.l = newnode.r = node.l;
     return newnode;
   } else {
@@ -167,17 +174,19 @@ cst_node cst_weiner_link(cst_node node, int c)
   CSA *csa;
   cst_node newnode;
   i64 ll, rr;
-  i64 len;
+
   
   csa = newnode.csa = node.csa;
 
   ll = node.l;  rr = node.r;
   if (csa->searchsub(c, node.csa, &ll, &rr) != 0) {
     newnode.depth = -1;
+    newnode.depth2 = -1;
     newnode.l = 1;
     newnode.r = 0;
   } else {
     newnode.depth = node.depth+1;
+    newnode.depth2 = node.depth+1;
     newnode.l = ll;
     newnode.r = rr;
   }
@@ -223,11 +232,12 @@ cst_node cst_parent(cst_node node)
   uchar *label;
   cst_node parent;
   i64 l, r;
-  i64 len;
+
 
   csa = node.csa;
   parent.csa = csa;
   parent.depth = node.depth-1;
+  parent.depth2 = node.depth-1;
 
   label = cst_pathlabel(node);
   l = node.l;  r = node.r;

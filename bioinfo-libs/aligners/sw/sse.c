@@ -29,7 +29,7 @@ void sse_matrix(int num_seqs,
   __m128 cmp_de, cmp_fz, cmp_de_fz;
   __m128i c;
 
-  int offset, index, idx, j_depth;
+  int offset, idx, j_depth;
   int q_len_depth = depth * max_q_len;
   /*
       for (int i = 0; i < 4; i++) {
@@ -50,10 +50,10 @@ void sse_matrix(int num_seqs,
     //    printf("from left: %0.2f\n", ((float *)&e_simd)[0]);
     
     // diagonal value: match or mismatch
-    subst_simd = _mm_set_ps((q_len[3] > j) ? profile[q[3][j]][r[3][0]] : -1000.0f,
-                            (q_len[2] > j) ? profile[q[2][j]][r[2][0]] : -1000.0f,
-                            (q_len[1] > j) ? profile[q[1][j]][r[1][0]] : -1000.0f,
-                            (q_len[0] > j) ? profile[q[0][j]][r[0][0]] : -1000.0f);
+    subst_simd = _mm_set_ps((q_len[3] > j) ? profile[(unsigned char)q[3][j]][(unsigned char)r[3][0]] : -1000.0f,
+                            (q_len[2] > j) ? profile[(unsigned char)q[2][j]][(unsigned char)r[2][0]] : -1000.0f,
+                            (q_len[1] > j) ? profile[(unsigned char)q[1][j]][(unsigned char)r[1][0]] : -1000.0f,
+                            (q_len[0] > j) ? profile[(unsigned char)q[0][j]][(unsigned char)r[0][0]] : -1000.0f);
     //printf("Init end\n");
     /*
     subst_simd = _mm_set_ps(profile[q[3][j]][r[3][0]], 
@@ -112,7 +112,7 @@ void sse_matrix(int num_seqs,
   //  printf("\n");
 
   //  exit(-1);
-  int target = 0;
+
   for (int i = 1; i < max_r_len; i++) {
     
     h_simd = zero_simd;
@@ -133,10 +133,10 @@ void sse_matrix(int num_seqs,
 
       // diagonal value: match or mismatch
       diagonal_simd = _mm_add_ps(temp_simd,
-				 _mm_set_ps((q_len[3] > j && r_len[3] > i) ? profile[q[3][j]][r[3][i]] : -1000.0f, 
-					    (q_len[2] > j && r_len[2] > i) ? profile[q[2][j]][r[2][i]] : -1000.0f, 
-					    (q_len[1] > j && r_len[1] > i) ? profile[q[1][j]][r[1][i]] : -1000.0f, 
-					    (q_len[0] > j && r_len[0] > i) ? profile[q[0][j]][r[0][i]] : -1000.0f)
+				 _mm_set_ps((q_len[3] > j && r_len[3] > i) ? profile[(unsigned char)q[3][j]][(unsigned char)r[3][i]] : -1000.0f, 
+					    (q_len[2] > j && r_len[2] > i) ? profile[(unsigned char)q[2][j]][(unsigned char)r[2][i]] : -1000.0f, 
+					    (q_len[1] > j && r_len[1] > i) ? profile[(unsigned char)q[1][j]][(unsigned char)r[1][i]] : -1000.0f, 
+					    (q_len[0] > j && r_len[0] > i) ? profile[(unsigned char)q[0][j]][(unsigned char)r[0][i]] : -1000.0f)
 				 );
 
       cmp_de = _mm_min_ps(_mm_cmpge_ps(diagonal_simd, e_simd), one_simd);

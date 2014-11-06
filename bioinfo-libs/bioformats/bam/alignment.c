@@ -9,7 +9,7 @@ alignment_t* alignment_new() {
     return alignment_p;
 }
 
-void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, unsigned  int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, char *optional_fields, alignment_t* alignment_p) {
+void alignment_init_single_end(char* query_name, char* sequence, char* quality, short int strand, unsigned  int chromosome, int position, char* cigar, short int num_cigar_operations, int map_quality, short int is_seq_mapped, short int secondary_alignment, int optional_fields_length, uint8_t *optional_fields, alignment_t* alignment_p) {
     alignment_p->query_name = query_name;
     alignment_p->sequence = sequence;
     alignment_p->quality = quality;
@@ -449,7 +449,7 @@ void bam_print(bam1_t* bam_p, int base_quality) {
 
 bam_header_t* bam_header_new(int specie, int assembly, char* file_path) {
     bamFile bam_header_file;
-    bam_header_t* bam_header_p;
+    bam_header_t* bam_header_p = NULL;
 
     if ((specie == HUMAN) && (assembly == NCBI37)) {
         bam_header_file = bam_open(file_path, "r");
@@ -479,7 +479,7 @@ void set_secondary_alignment(short int set, alignment_t *alignment) {
 char* convert_to_sequence_string(uint8_t* sequence_p, int sequence_length) {
   // commented by JT
   //    char* sequence_string = (char*) calloc(1, sequence_length + 1); //each byte codes two nts ( 1 nt = 4 bits)
-  char* sequence_string = sequence_p;
+  char* sequence_string = (char *)sequence_p;
 
     for (int i = 0; i < sequence_length; i++) {
         switch (bam1_seqi(sequence_p, i)) {
@@ -575,7 +575,7 @@ void convert_to_cigar_uint32_t(uint8_t* data, char* cigar, int num_cigar_operati
 
     int cigar_string_length = strlen(cigar);
     uint32_t cigar_uint32_position;
-    int cigar_position, cigar_operation, cigar_acc_num_operations = 0;
+    int cigar_position, cigar_operation = 0, cigar_acc_num_operations = 0;
 
     for (int i = 0; i < cigar_string_length; i++) {
         cigar_position = (int) cigar[i];
@@ -679,7 +679,7 @@ void convert_to_quality_uint8_t(uint8_t* data, char* quality_p, int quality_leng
 //=====================================//
 
 char select_op(unsigned char status){
-  char operation; 
+  char operation = 0; 
   switch(status){        
   case CIGAR_MATCH_MISMATCH: 
     operation = 'M';   

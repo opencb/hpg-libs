@@ -110,6 +110,7 @@ void variant_stats_free(variant_stats_t* stats) {
 int get_variants_stats_old(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,
                         list_t *output_list, file_stats_t *file_stats) {
     get_variants_stats(variants, num_variants, individuals, sample_ids, 0, output_list, file_stats);
+    return 0;
 }
 
 int get_variants_stats(vcf_record_t **variants, int num_variants, individual_t **individuals, khash_t(ids) *sample_ids,

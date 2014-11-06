@@ -71,7 +71,9 @@ int invoke_effect_ws(char *url, vcf_record_t **records, int num_records, char *e
             sprintf(variants + current_len, "%lu:", record->position);
             strncat(variants, record->reference, record->reference_len);
             strncat(variants, ":", 1);
-            switch(record->sv->type) {
+
+	    int value = record->sv->type;
+            switch(value) {
                 case SV_INS:
                     strncat(variants, "INS", 3);
                     break;
@@ -219,7 +221,9 @@ int invoke_mutation_phenotype_ws(char *url, vcf_record_t **records, int num_reco
             sprintf(variants + current_index, "%lu:", record->position);
             strncat(variants, record->reference, record->reference_len);
             strncat(variants, ":", 1);
-            switch(record->sv->type) {
+
+	    int value = record->sv->type;
+            switch(value) {
                 case SV_INS:
                     strncat(variants, "INS", 3);
                     break;

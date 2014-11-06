@@ -133,7 +133,7 @@ array_list_t* missing_values_filter(array_list_t* input_records, array_list_t *f
     float record_missing;
     float allele_count;
 
-    list_item_t *stats_item = NULL;
+
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
@@ -170,7 +170,6 @@ array_list_t* num_alleles_filter(array_list_t* input_records, array_list_t *fail
 
     int num_alleles = ((num_alleles_filter_args*)args)->num_alleles;
 
-    list_item_t *stats_item = NULL;
     variant_stats_t *variant_stats;
     // The stats returned by get_variants_stats are related to a record in the same
     // position of the input_records list, so when a variant_stats_t fulfills the condition,
@@ -720,7 +719,7 @@ void indel_filter_free(filter_t *filter) {
 
 filter_t *variant_type_filter_new(enum variant_type type) {
     filter_t *filter =  (filter_t*) malloc (sizeof(filter_t));
-    char *type_name;
+    char *type_name = NULL;
     switch(type) {
         case VARIANT_SNV:
             type_name = "SNV";
@@ -1056,7 +1055,6 @@ static char* gene_ws_output_to_regions(char *buffer) {
     
     for(int i = 0; i < json_array_size(root); i++) {
         json_t *data, *subdata, *chromosome, *start, *end;
-        char *start_str, *end_str;
         long start_value, end_value;
 	const char *chromosome_str;
 

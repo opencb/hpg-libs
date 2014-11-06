@@ -96,6 +96,7 @@ static int setbit(bitvec_t *B, i64 i,bitvec_t x)
   return x;
 }
 
+/*
 static int setbits(bitvec_t *B, i64 i, bitvec_t x, int w)
 {
   i64 j;
@@ -105,7 +106,7 @@ static int setbits(bitvec_t *B, i64 i, bitvec_t x, int w)
   }
   return 0;
 }
-
+*/
 
 static int lf_bit_BW_sub(lf_bit *lf,i64 i)
 {
@@ -136,7 +137,7 @@ static i64 lf_bit_rank1_sub(lf_bit *lf, i64 i)
   i64 i2;
 //  i64 i3;
   int lmb;
-  bitvec_t x,m,*p;
+  bitvec_t x,*p;
 
   if (i >= lf->last) i--;
   if (i < 0) return 0;
@@ -291,6 +292,7 @@ i64 lf_bit_makeindex(CSA *csa, char *fname)
     perror("lf_bit_makeindex:");  exit(1);
   }
   int res = fscanf(in,"%ld",&last);
+  if (!res) {  }
   printf("last = %ld\n",last);
   lf->last = last;
   fclose(in);

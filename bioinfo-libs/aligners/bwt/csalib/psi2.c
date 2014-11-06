@@ -79,11 +79,10 @@ static i64 psi2_psi(CSA *csa, i64 i)
 i64 psi2_makeindex(CSA *csa, char *fname)
 {
 i64 psize;
-i64 b, b2;
 i64 i,j,x;
-i64 y,d,w;
+ i64 y,d;
 int k;
-FILE *f1,*f2;
+FILE *f2;
 char *fpsi;
 //psi1_iterator *pi;
 i64 n,m;

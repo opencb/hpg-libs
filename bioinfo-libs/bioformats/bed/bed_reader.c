@@ -28,9 +28,7 @@ int bed_ragel_read(list_t *batches_list, size_t batch_size, bed_file_t *file) {
     char *p = file->data;
     char *pe = p + file->data_len;
     char *eof = pe;
-    char *ts, *te;
-    int stack[4];
-    int top, act;
+    char *ts;
 
     current_header_entry = bed_header_entry_new();
     current_batch = bed_batch_new(batch_size);
