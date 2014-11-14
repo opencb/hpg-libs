@@ -311,11 +311,11 @@
                     record_ref >ref_begin %ref_end $err(ref_error) "\t" 
                     record_alt >alt_begin %alt_end $err(alt_error) "\t" 
                     record_qual >qual_begin %qual_end $err(qual_error) "\t" 
-                    record_filter >filter_begin %filter_end $err(filter_error) "\t" 
-                    record_info >info_begin %info_end $err(info_error) "\t" 
-                    record_format >format_begin %format_end $err(format_error) 
-                    ("\t" record_sample >sample_begin %sample_end $err(sample_error))+) 
-                    >record_begin %record_end ;
+                    record_filter >filter_begin %filter_end $err(filter_error) "\t"
+                    record_info >info_begin %info_end $err(info_error) 
+                    ("\t" record_format >format_begin %format_end $err(format_error) 
+                    ("\t" record_sample >sample_begin %sample_end $err(sample_error))+)* 
+                   ) >record_begin %record_end ;
     records     =  record ("\n" >linebreak record)* ;
 
     # Machine start
