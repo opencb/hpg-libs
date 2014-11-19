@@ -12,19 +12,20 @@ system_include = '/usr/include'
 system_libpath = '/usr/lib'
 
 build_tools = ['default']
+if compiler == 'icc':
+    build_tools += ['intelc']
 
 
 #Set environment
 env = Environment(
-        tools = build_tools,
+        TOOLS = build_tools,
         CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
         CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include],
         LIBPATH = [system_libpath],
-		    LINKFLAGS = [],
-      	LIBS = ['xml2', 'm', 'z'])
+        LINKFLAGS = [],
+        LIBS = ['xml2', 'm', 'z'])
 
 if compiler == 'icc':
-	env['tools'] += ['intelc']
 	env['CFLAGS'] += ' -msse4.2 -openmp '
 	env['LIBS'] += ['irc']
 	env['LINKFLAGS'] +=  ['-openmp']
