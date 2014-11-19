@@ -17,9 +17,11 @@ commons_path = '#/common-libs'
 bioinfo_path = '#/bioinfo-libs'
 
 build_tools = ['default']
+if compiler == 'icc':
+    build_tools += ['intelc']
 
 #Build environment
-env = Environment(tools = build_tools,
+env = Environment(TOOLS = build_tools,
 		  CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
 		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % commons_path, '%s' % bioinfo_path], 
 		  LIBPATH = [system_libpath],
@@ -35,7 +37,6 @@ if os.environ.has_key('LIBRARY_PATH'):
         env.Append(LIBPATH=[dir])
 
 if compiler == 'icc':
-	env['tools'] += ['intelc']
 	env['CFLAGS'] += ' -msse4.2 -openmp '
 	env['LIBS'] += ['irc']
 	env['LINKFLAGS'] += ['-openmp']
