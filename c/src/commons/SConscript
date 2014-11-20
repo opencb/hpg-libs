@@ -1,0 +1,70 @@
+import os
+
+Import('env', 'debug', 'compiler')
+
+#New environment for commons
+commonsenv = env.Clone()
+
+# Initialize environment
+commonsenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    commonsenv['CFLAGS'] += ' -O0 -g'
+else:
+    commonsenv['CFLAGS'] += ' -O3 '
+
+# Compile sqlite/ objects
+sqliteenv = commonsenv.Clone()
+sqliteenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
+sqliteenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    sqliteenv['CFLAGS'] += ' -O0 -g'
+else:
+    sqliteenv['CFLAGS'] += ' -O2 '
+
+# Compile argtable/ objects
+argtableenv = commonsenv.Clone()
+argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
+argtableenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    argtableenv['CFLAGS'] += ' -O0 -g'
+else:
+    argtableenv['CFLAGS'] += ' -O2 '
+
+
+# Compile config/ objects
+configenv = commonsenv.Clone()
+configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
+configenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    configenv['CFLAGS'] += ' -O0 -g'
+else:
+    configenv['CFLAGS'] += ' -O2 '
+
+
+# Compile jansson/ objects
+janssonenv = commonsenv.Clone()
+janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
+janssonenv['CPPPATH'] += ['jansson/']
+janssonenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    janssonenv['CFLAGS'] += ' -O0 -g'
+else:
+    janssonenv['CFLAGS'] += ' -O2 '
+
+# Targets
+commons_obj = commonsenv.Object(Glob('commons/*.c'))
+sqlite_obj = sqliteenv.Object(Glob('commons/sqlite/*.c'))
+argtable_obj = argtableenv.Object(Glob('commons/argtable/*.c'))
+config_obj = configenv.Object(Glob('commons/config/*.c'))
+jansson_obj = janssonenv.Object(Glob('commons/jansson/*.c'))
+
+# Objects
+commonsenv['objects'] += commons_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
+commonsenv.Library('common', commonsenv['objects'])
+
+env['objects'] += commonsenv['objects']

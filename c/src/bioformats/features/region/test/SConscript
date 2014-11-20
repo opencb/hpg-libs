@@ -2,8 +2,8 @@ import os
 
 Import('penv')
 
-bioinfo_path = os.getcwd() + '/../../../../'
-commons_path = os.getcwd() + '/../../../../../common-libs/'
+bioformats_path = os.getcwd() + '/../../../../bioformats/'
+commons_path = os.getcwd() + '/../../../../commons/'
 
 env = penv.Clone()
 env.Append(
@@ -16,20 +16,20 @@ env.Append(
 region = env.Program('region.test', 
                      source = ['test_region.c', 
                                "%s/libcommon.a" % commons_path,
-                               "%s/libbioinfo.a" % bioinfo_path
+                               "%s/libbioformats.a" % bioformats_path
                                ]
                     )
 
 region_table = env.Program('region_table.test', 
                            source = ['test_region_table.c', 
                                      "%s/libcommon.a" % commons_path,
-                                     "%s/libbioinfo.a" % bioinfo_path
+                                     "%s/libbioformats.a" % bioformats_path
                                     ]
                           )
 
 parsing = env.Program('parse_regions_vcf.test', 
                       source = ['test_parse_regions.c', 
                                 "%s/libcommon.a" % commons_path,
-                                "%s/libbioinfo.a" % bioinfo_path
+                                "%s/libbioformats.a" % bioformats_path
                                ]
                      )

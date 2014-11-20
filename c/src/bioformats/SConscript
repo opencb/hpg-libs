@@ -1,8 +1,9 @@
 import os
 
-Import('bioenv', 'debug')
+Import('env', 'compiler', 'debug')
 
-formats_env = bioenv.Clone()
+# Initialize environment
+formats_env = env.Clone()
 formats_env['objects'] = []
 
 
@@ -10,6 +11,9 @@ formats_env['objects'] = []
 formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf', 'db']
 
 for dir in formats:
-    SConscript(os.path.join(dir, 'SConscript'), exports = ['bioenv', 'formats_env', 'debug'])
+    SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env', 'debug'])
 
-bioenv['objects'] += formats_env['objects']
+formats_env.Library('bioformats', formats_env['objects'])
+
+
+env['objects'] += formats_env['objects']
