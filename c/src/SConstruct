@@ -58,7 +58,7 @@ SConscript('aligners/SConscript', exports = ['env', 'debug', 'compiler'])
 SConscript('bioformats/SConscript', exports = ['env', 'debug', 'compiler'])
 SConscript('commons/SConscript', exports = ['env', 'debug', 'compiler'])
 SConscript('containers/SConscript', exports = ['env', 'debug', 'compiler'])
-SConscript('math/SConscript', exports = ['debug', 'compiler'])
+SConscript('math/SConscript', exports = ['env', 'debug', 'compiler'])
 
 
-# bioenv.Library('bioinfo', bioenv['objects'])
+env.Library('hpg', env['objects'])

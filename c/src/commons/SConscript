@@ -6,6 +6,7 @@ Import('env', 'debug', 'compiler')
 commonsenv = env.Clone()
 
 # Initialize environment
+commonsenv['objects'] = []
 commonsenv.Decider('MD5-timestamp')
 
 if debug == 1:
@@ -57,14 +58,24 @@ else:
     janssonenv['CFLAGS'] += ' -O2 '
 
 # Targets
-commons_obj = commonsenv.Object(Glob('commons/*.c'))
-sqlite_obj = sqliteenv.Object(Glob('commons/sqlite/*.c'))
-argtable_obj = argtableenv.Object(Glob('commons/argtable/*.c'))
-config_obj = configenv.Object(Glob('commons/config/*.c'))
-jansson_obj = janssonenv.Object(Glob('commons/jansson/*.c'))
+commons_obj = commonsenv.Object(Glob('./*.c'))
+sqlite_obj = sqliteenv.Object(Glob('sqlite/*.c'))
+argtable_obj = argtableenv.Object(Glob('argtable/*.c'))
+config_obj = configenv.Object(Glob('config/*.c'))
+jansson_obj = janssonenv.Object(Glob('jansson/*.c'))
 
 # Objects
 commonsenv['objects'] += commons_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
+
+print "**************** common objects "
+
+print commons_obj 
+print sqlite_obj
+print argtable_obj
+print config_obj
+print jansson_obj
+print "//////////////////"
+print commonsenv['objects']
 commonsenv.Library('common', commonsenv['objects'])
 
 env['objects'] += commonsenv['objects']

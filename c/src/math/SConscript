@@ -1,14 +1,14 @@
 import os
-Import('debug', 'compiler')
+Import('env', 'debug', 'compiler')
 
 if compiler == 'icc':
-   env = Environment(tools = [ 'default', 'intelc' ],
+   math_env = Environment(tools = [ 'default', 'intelc' ],
                      CFLAGS = '-Wall -std=c99 -openmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
 		                 LINKFLAGS = ['openmp'],
                      LIBS = ['gsl', 'irc' ], 
                      CPPPATH = [ '.', 'data' ])
 else:
-   env = Environment(tools = [ 'default' ],
+   math_env = Environment(tools = [ 'default' ],
                      CFLAGS = '-Wall -std=c99 -fopenmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
 		                 LINKFLAGS = ['fopenmp'],
                      LIBS = ['gsl'], 
@@ -16,23 +16,24 @@ else:
 
 if os.environ.has_key('CPATH'):
     for dir in os.getenv('CPATH').split(':'):
-        env.Append(CPPPATH=[dir])
+        math_env.Append(CPPPATH=[dir])
 
-env.Decider('MD5-timestamp')
+math_env.Decider('MD5-timestamp')
 
 if debug == 1:
-    env['CFLAGS'] += ' -O0 -g'
+    math_env['CFLAGS'] += ' -O0 -g'
 else:
-    env['CFLAGS'] += ' -O3 -g'
+    math_env['CFLAGS'] += ' -O3 -g'
 
 
 # Targets
-algebra_obj = env.Object(Glob('algebra/*.c'))
-data_obj = env.Object(Glob('data/*.c'))
-stats_obj = env.Object(Glob('stats/*.c'))
-utils_obj = env.Object('math_utils.c')
+algebra_obj = math_env.Object(Glob('algebra/*.c'))
+data_obj = math_env.Object(Glob('data/*.c'))
+stats_obj = math_env.Object(Glob('stats/*.c'))
+utils_obj = math_env.Object('math_utils.c')
 
-env.Library('hpgmath', algebra_obj + data_obj + stats_obj + utils_obj)
+math_env['objects'] = algebra_obj + data_obj + stats_obj + utils_obj
 
-#TODO
-#env['objects'] += mathenv['objects']
+math_env.Library('hpgmath', math_env['objects'])
+
+env['objects'] += math_env['objects']

@@ -15,5 +15,11 @@ for dir in formats:
 
 formats_env.Library('bioformats', formats_env['objects'])
 
+from pprint import pprint
+print "EEEEeeeeeEEeeee bioformats objects"
+
+print formats_env['objects']
+#for key in formats_env:
+  #  print key, 'corresponds to', formats_env[key]
 
 env['objects'] += formats_env['objects']

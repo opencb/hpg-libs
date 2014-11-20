@@ -26,8 +26,8 @@ else:
 
 
 # Targets
-containers_obj = containersenv.Object(Glob('containers/*.c'))
-cprops_obj = cpropsenv.Object(['containers/cprops/avl.c', 'containers/cprops/collection.c', 'containers/cprops/hashlist.c', 'containers/cprops/hashtable.c', 'containers/cprops/heap.c', 'containers/cprops/linked_list.c', 'containers/cprops/log.c', 'containers/cprops/mempool.c', 'containers/cprops/rb.c', 'containers/cprops/util.c', 'containers/cprops/vector.c', 'containers/cprops/trie.c', 'containers/cprops/mtab.c'])
+containers_obj = containersenv.Object(Glob('./*.c'))
+cprops_obj = cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
 
 # Objects
 containersenv['objects'] += containers_obj + cprops_obj
