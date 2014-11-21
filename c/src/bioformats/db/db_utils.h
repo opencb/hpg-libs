@@ -19,7 +19,7 @@ extern "C" {
 
 #include <bioformats/features/region/region.h>
 #include <commons/log.h>
-#include <commons/sqlite/sqlite3.h>
+#include <sqlite/sqlite3.h>
 #include <containers/array_list.h>
 #include <containers/khash.h>
 

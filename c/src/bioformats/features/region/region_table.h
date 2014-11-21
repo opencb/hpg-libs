@@ -13,7 +13,7 @@ extern "C" {
 #include <bioformats/db/db_utils.h>
 #include <commons/log.h>
 #include <commons/string_utils.h>
-#include <commons/sqlite/sqlite3.h>
+#include <sqlite/sqlite3.h>
 #include <containers/array_list.h>
 
 #include "region.h"

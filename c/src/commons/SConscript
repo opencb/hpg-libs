@@ -14,15 +14,6 @@ if debug == 1:
 else:
     commonsenv['CFLAGS'] += ' -O3 '
 
-# Compile sqlite/ objects
-sqliteenv = commonsenv.Clone()
-sqliteenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
-sqliteenv.Decider('MD5-timestamp')
-
-if debug == 1:
-    sqliteenv['CFLAGS'] += ' -O0 -g'
-else:
-    sqliteenv['CFLAGS'] += ' -O2 '
 
 # Compile argtable/ objects
 argtableenv = commonsenv.Clone()
@@ -46,26 +37,13 @@ else:
     configenv['CFLAGS'] += ' -O2 '
 
 
-# Compile jansson/ objects
-janssonenv = commonsenv.Clone()
-janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
-janssonenv['CPPPATH'] += ['#/../third_party/jansson/']
-janssonenv.Decider('MD5-timestamp')
-
-if debug == 1:
-    janssonenv['CFLAGS'] += ' -O0 -g'
-else:
-    janssonenv['CFLAGS'] += ' -O2 '
-
 # Targets
 commons_obj = commonsenv.Object(Glob('./*.c'))
-sqlite_obj = sqliteenv.Object(Glob('sqlite/*.c'))
 argtable_obj = argtableenv.Object(Glob('argtable/*.c'))
 config_obj = configenv.Object(Glob('config/*.c'))
-jansson_obj = janssonenv.Object(Glob('#/../third_party/jansson/*.c'))
 
 # Objects
-commonsenv['objects'] += commons_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
+commonsenv['objects'] += commons_obj + argtable_obj + config_obj
 
 commonsenv.Library('common', commonsenv['objects'])
 

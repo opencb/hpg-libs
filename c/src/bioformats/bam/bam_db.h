@@ -18,7 +18,7 @@ extern "C" {
 #include <stdlib.h>
 
 #include "commons/log.h"
-#include "commons/sqlite/sqlite3.h"
+#include "sqlite/sqlite3.h"
 #include "containers/array_list.h"
 
 //------------------------------------------------------------------------

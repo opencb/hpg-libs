@@ -15,8 +15,33 @@ samtoolsenv['CFLAGS'] = ' -Wall -O2  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURC
 if debug == 1:
     samtoolsenv['CFLAGS'] = ' -g ' + samtoolsenv['CFLAGS'] 
 
+# Compile sqlite/ objects
+sqliteenv = formats_env.Clone()
+sqliteenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
+sqliteenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    sqliteenv['CFLAGS'] += ' -O0 -g'
+else:
+    sqliteenv['CFLAGS'] += ' -O2 '
+
+
+# Compile jansson/ objects
+janssonenv = formats_env.Clone()
+janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
+janssonenv['CPPPATH'] += ['#/../third_party/jansson/']
+janssonenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    janssonenv['CFLAGS'] += ' -O0 -g'
+else:
+    janssonenv['CFLAGS'] += ' -O2 '
+
+
 samtoolsenv['CPPPATH'].append('#/../third_party/samtools')
 formats_env['objects'] += samtoolsenv.Object(Glob('#/../third_party/samtools/*.c'))
+formats_env['objects'] += sqliteenv.Object(Glob('#/../third_party/sqlite/*.c'))
+formats_env['objects'] += janssonenv.Object(Glob('#/../third_party/jansson/*.c'))
 
 
 # Targets
