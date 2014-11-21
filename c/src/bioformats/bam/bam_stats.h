@@ -17,7 +17,7 @@ extern "C" {
 
 #include "containers/array_list.h"
 #include "bioformats/features/region/region_table.h"
-#include "bioformats/bam/samtools/bam.h"
+#include "samtools/bam.h"
 
 //------------------------------------------------------------------------
 

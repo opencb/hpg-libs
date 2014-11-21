@@ -7,6 +7,7 @@ Import('env', 'debug', 'compiler')
 containersenv = env.Clone()
 
 # Initialize environment
+containersenv['objects'] = []
 containersenv.Decider('MD5-timestamp')
 
 if debug == 1:
@@ -15,7 +16,7 @@ else:
     containersenv['CFLAGS'] += ' -O3 '
 
 # Compile cprops/ objects but ONLY those used for our libraries
-cpropsenv = env.Clone()
+cpropsenv = containersenv.Clone()
 cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H'
 cpropsenv.Decider('MD5-timestamp')
 

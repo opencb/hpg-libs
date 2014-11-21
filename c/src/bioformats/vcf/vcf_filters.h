@@ -15,7 +15,7 @@ extern "C" {
 
 #include <bioformats/db/cellbase_connector.h>
 #include <bioformats/features/region/region_table_utils.h>
-#include <commons/jansson/jansson.h>
+#include <jansson/jansson.h>
 #include <commons/log.h>
 #include <containers/array_list.h>
 #include <containers/list.h>

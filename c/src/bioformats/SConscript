@@ -7,6 +7,18 @@ formats_env = env.Clone()
 formats_env['objects'] = []
 
 
+# Compile samtools and add its objects to the library
+samtoolsenv = env.Clone()
+
+#TODO: Propagate flags for samtools compilation
+samtoolsenv['CFLAGS'] = ' -Wall -O2  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_USE_KNETFILE -D_CURSES_LIB=1 '
+if debug == 1:
+    samtoolsenv['CFLAGS'] = ' -g ' + samtoolsenv['CFLAGS'] 
+
+samtoolsenv['CPPPATH'].append('#/../third_party/samtools')
+formats_env['objects'] += samtoolsenv.Object(Glob('#/../third_party/samtools/*.c'))
+
+
 # Targets
 formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf', 'db']
 
@@ -14,12 +26,5 @@ for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env', 'debug'])
 
 formats_env.Library('bioformats', formats_env['objects'])
-
-from pprint import pprint
-print "EEEEeeeeeEEeeee bioformats objects"
-
-print formats_env['objects']
-#for key in formats_env:
-  #  print key, 'corresponds to', formats_env[key]
 
 env['objects'] += formats_env['objects']

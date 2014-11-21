@@ -49,7 +49,7 @@ else:
 # Compile jansson/ objects
 janssonenv = commonsenv.Clone()
 janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
-janssonenv['CPPPATH'] += ['jansson/']
+janssonenv['CPPPATH'] += ['#/../third_party/jansson/']
 janssonenv.Decider('MD5-timestamp')
 
 if debug == 1:
@@ -62,20 +62,11 @@ commons_obj = commonsenv.Object(Glob('./*.c'))
 sqlite_obj = sqliteenv.Object(Glob('sqlite/*.c'))
 argtable_obj = argtableenv.Object(Glob('argtable/*.c'))
 config_obj = configenv.Object(Glob('config/*.c'))
-jansson_obj = janssonenv.Object(Glob('jansson/*.c'))
+jansson_obj = janssonenv.Object(Glob('#/../third_party/jansson/*.c'))
 
 # Objects
 commonsenv['objects'] += commons_obj + sqlite_obj + argtable_obj + config_obj + jansson_obj
 
-print "**************** common objects "
-
-print commons_obj 
-print sqlite_obj
-print argtable_obj
-print config_obj
-print jansson_obj
-print "//////////////////"
-print commonsenv['objects']
 commonsenv.Library('common', commonsenv['objects'])
 
 env['objects'] += commonsenv['objects']
