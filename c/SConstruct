@@ -74,11 +74,20 @@ if debug == 1:
 else:
     argtableenv['CFLAGS'] += ' -O2 '
 
-env['objects'] += argtableenv.Object(Glob('#/../third_party/argtable/*.c'))
+third_party_libs += argtableenv.Object(Glob('#/../third_party/argtable/*.c'))
+
+# Compile config/ objects
+configenv = env.Clone()
+configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
+configenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    configenv['CFLAGS'] += ' -O0 -g'
+else:
+    configenv['CFLAGS'] += ' -O2 '
 
 
-# Depending on hts*.
-#third_party_libs += Glob('#/../third_party/htslib/*.o')
+third_party_libs += configenv.Object(Glob('#/../third_party/config/*.c'))
 
 
 # our src

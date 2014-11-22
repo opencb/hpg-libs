@@ -15,23 +15,11 @@ else:
     commonsenv['CFLAGS'] += ' -O3 '
 
 
-# Compile config/ objects
-configenv = commonsenv.Clone()
-configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
-configenv.Decider('MD5-timestamp')
-
-if debug == 1:
-    configenv['CFLAGS'] += ' -O0 -g'
-else:
-    configenv['CFLAGS'] += ' -O2 '
-
-
 # Targets
 commons_obj = commonsenv.Object(Glob('./*.c'))
-config_obj = configenv.Object(Glob('config/*.c'))
 
 # Objects
-commonsenv['objects'] += commons_obj  + config_obj
+commonsenv['objects'] += commons_obj
 
 commonsenv.Library('common', commonsenv['objects'])
 

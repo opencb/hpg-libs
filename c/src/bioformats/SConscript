@@ -41,6 +41,7 @@ else:
 print "objetos en htslib"
 print Glob('#/../third_party/htslib/*.o')
 
+# we don't compile samtools and hts ourselves, delegate in their makefiles.
 formats_env['objects'] += Glob('#/../third_party/samtools/*.o')
 formats_env['objects'] += Glob('#/../third_party/htslib/*.o')
 formats_env['objects'] += sqliteenv.Object(Glob('#/../third_party/sqlite/*.c'))
