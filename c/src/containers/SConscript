@@ -10,6 +10,10 @@ containersenv = env.Clone()
 containersenv['objects'] = []
 containersenv.Decider('MD5-timestamp')
 
+print "containersenv cflags"
+print containersenv['CFLAGS']
+print "containersenv LIBS"
+print containersenv['LIBS']
 if debug == 1:
     containersenv['CFLAGS'] += ' -O0 -g'
 else:

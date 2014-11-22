@@ -208,8 +208,8 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     alignment_p->quality = (char*) calloc(bam_p->core.l_qseq + 1, sizeof(char));   //same length as sequence
     // commented by JT
     //    alignment_p->cigar = (char*) calloc(max(MIN_ALLOCATED_SIZE_FOR_CIGAR_STRING, alignment_p->num_cigar_operations << 2), sizeof(char));
-    alignment_p->optional_fields = (uint8_t*) calloc(bam_p->l_aux, sizeof(uint8_t));
-    alignment_p->optional_fields_length = bam_p->l_aux;
+    alignment_p->optional_fields = (uint8_t*) calloc(bam_get_l_aux(bam_p), sizeof(uint8_t));
+    alignment_p->optional_fields_length = bam_get_l_aux(bam_p);
 
     //copy the data between structures
     strcpy(alignment_p->query_name, bam1_qname(bam_p));
@@ -224,7 +224,7 @@ alignment_t* alignment_new_by_bam(bam1_t* bam_p, int base_quality) {
     //    strcpy(alignment_p->cigar, convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations));
     alignment_p->cigar = convert_to_cigar_string(bam1_cigar(bam_p), alignment_p->num_cigar_operations);
 
-    memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_p->l_aux);
+    memcpy(alignment_p->optional_fields, bam1_aux(bam_p), bam_get_l_aux(bam_p));
 
     //flags
     uint32_t flag = (uint32_t) bam_p->core.flag;
@@ -309,7 +309,7 @@ bam1_t* convert_to_bam(alignment_t* alignment_p, int base_quality) {
     bam_p->data = data;
 
     //filling bam1_t (not core data)
-    bam_p->l_aux = alignment_p->optional_fields_length;
+//    bam_p->l_aux = alignment_p->optional_fields_length;
     bam_p->data_len = data_length;
     bam_p->m_data = data_length;
 
@@ -409,13 +409,13 @@ void bam_print(bam1_t* bam_p, int base_quality) {
 
     char* optional_fields = (char*) bam1_aux(bam_p);
 
-    for (int i = 0; i < bam_p->l_aux; i++) {
+    for (int i = 0; i < bam_get_l_aux(bam_p); i++) {
         printf("%c", optional_fields[i]);
     }
     printf("\n");
 
     //lengths
-    printf("bam_p->l_aux: %i\n", bam_p->l_aux);
+    printf("bam_p->l_aux: %i\n", bam_get_l_aux(bam_p));
     printf("bam_p->data_len: %i\n", bam_p->data_len);
     printf("bam_p->m_data: %i\n", bam_p->m_data);
 

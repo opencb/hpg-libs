@@ -56,16 +56,37 @@ else:
 env['objects'] = []
 env.Decider('MD5-timestamp')
 
-# Third party
 
+# Third party
+third_party_libs = []
 env['CPPPATH'].append('#/../third_party/')
 
 print "aaaaaaaaaaaaaaaaantes c/"
 print env['objects']
 
+# Compile argtable/ objects
+argtableenv = env.Clone()
+argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
+argtableenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    argtableenv['CFLAGS'] += ' -O0 -g'
+else:
+    argtableenv['CFLAGS'] += ' -O2 '
+
+env['objects'] += argtableenv.Object(Glob('#/../third_party/argtable/*.c'))
+
+
+# Depending on hts*.
+#third_party_libs += Glob('#/../third_party/htslib/*.o')
+
+
 # our src
 
+print "aaaaaaaaaaaaaaaaantes  aligners c/"
+print env['objects']
 SConscript('src/aligners/SConscript', exports = ['env', 'debug', 'compiler'])
+
 print "aaaaaaaaaaaaaaaaantes  bioformats c/"
 print env['objects']
 SConscript('src/bioformats/SConscript', exports = ['env', 'debug', 'compiler'])
@@ -82,4 +103,4 @@ SConscript('src/math/SConscript', exports = ['env', 'debug', 'compiler'])
 
 print "deeeeeeeeeeeeeeeespues c/"
 print env['objects']
-env.Library('build/hpg', env['objects'])
+env.Library('build/hpg', env['objects'] + third_party_libs)

@@ -8,12 +8,12 @@ formats_env['objects'] = []
 
 
 # Compile samtools and add its objects to the library
-samtoolsenv = env.Clone()
+#samtoolsenv = env.Clone()
 
 #TODO: Propagate flags for samtools compilation
-samtoolsenv['CFLAGS'] = ' -Wall -O2  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_USE_KNETFILE -D_CURSES_LIB=1 '
-if debug == 1:
-    samtoolsenv['CFLAGS'] = ' -g ' + samtoolsenv['CFLAGS'] 
+#samtoolsenv['CFLAGS'] = ' -Wall -O2  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_USE_KNETFILE -D_CURSES_LIB=1 '
+#if debug == 1:
+#    samtoolsenv['CFLAGS'] = ' -g ' + samtoolsenv['CFLAGS'] 
 
 # Compile sqlite/ objects
 sqliteenv = formats_env.Clone()
@@ -38,8 +38,11 @@ else:
     janssonenv['CFLAGS'] += ' -O2 '
 
 
-samtoolsenv['CPPPATH'].append('#/../third_party/samtools')
-formats_env['objects'] += samtoolsenv.Object(Glob('#/../third_party/samtools/*.c'))
+print "objetos en htslib"
+print Glob('#/../third_party/htslib/*.o')
+
+formats_env['objects'] += Glob('#/../third_party/samtools/*.o')
+formats_env['objects'] += Glob('#/../third_party/htslib/*.o')
 formats_env['objects'] += sqliteenv.Object(Glob('#/../third_party/sqlite/*.c'))
 formats_env['objects'] += janssonenv.Object(Glob('#/../third_party/jansson/*.c'))
 

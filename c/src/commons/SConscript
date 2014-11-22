@@ -15,17 +15,6 @@ else:
     commonsenv['CFLAGS'] += ' -O3 '
 
 
-# Compile argtable/ objects
-argtableenv = commonsenv.Clone()
-argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
-argtableenv.Decider('MD5-timestamp')
-
-if debug == 1:
-    argtableenv['CFLAGS'] += ' -O0 -g'
-else:
-    argtableenv['CFLAGS'] += ' -O2 '
-
-
 # Compile config/ objects
 configenv = commonsenv.Clone()
 configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
@@ -39,11 +28,10 @@ else:
 
 # Targets
 commons_obj = commonsenv.Object(Glob('./*.c'))
-argtable_obj = argtableenv.Object(Glob('argtable/*.c'))
 config_obj = configenv.Object(Glob('config/*.c'))
 
 # Objects
-commonsenv['objects'] += commons_obj + argtable_obj + config_obj
+commonsenv['objects'] += commons_obj  + config_obj
 
 commonsenv.Library('common', commonsenv['objects'])
 
