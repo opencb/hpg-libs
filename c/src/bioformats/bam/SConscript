@@ -1,25 +1,6 @@
 Import('formats_env', 'debug')
 
-#penv = formats_env.Clone()
-#penv['CPPPATH'].append('#lib/bioinfo-libs/bioformats/bam/samtools')
+penv = formats_env.Clone()
 
 # TODO: Remove fastq_batch_reader_omp so Glob can be used
-formats_env['objects'] += formats_env.Object(Glob('*.c'))
-#formats_env['objects'] += penv.Object(Split('alignment.c bam_file.c'))
-
-#print "c/src/bioformats/bam/"
-#print formats_env['objects']
-#print formats_env['CPPPATH']
-
-## TODO update to third_party
-## Compile samtools and add its objects to the library
-#samtoolsenv = formats_env.Clone()
-#
-##TODO: Propagate flags for samtools compilation
-#samtoolsenv['CFLAGS'] = ' -Wall -O2  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_USE_KNETFILE -D_CURSES_LIB=1 '
-#if debug == 1:
-#    samtoolsenv['CFLAGS'] = ' -g ' + samtoolsenv['CFLAGS'] 
-#
-#samtoolsenv['CPPPATH'].append('./samtools')
-#formats_env['objects'] += samtoolsenv.Object(Glob('samtools/*.c'))
-#
+formats_env['objects'] += penv.Object(Glob('*.c'))

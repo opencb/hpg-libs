@@ -61,9 +61,6 @@ env.Decider('MD5-timestamp')
 third_party_libs = []
 env['CPPPATH'].append('#/../third_party/')
 
-print "aaaaaaaaaaaaaaaaantes c/"
-print env['objects']
-
 # Compile argtable/ objects
 argtableenv = env.Clone()
 argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
@@ -92,24 +89,11 @@ third_party_libs += configenv.Object(Glob('#/../third_party/config/*.c'))
 
 # our src
 
-print "aaaaaaaaaaaaaaaaantes  aligners c/"
-print env['objects']
 SConscript('src/aligners/SConscript', exports = ['env', 'debug', 'compiler'])
-
-print "aaaaaaaaaaaaaaaaantes  bioformats c/"
-print env['objects']
 SConscript('src/bioformats/SConscript', exports = ['env', 'debug', 'compiler'])
-print "aaaaaaaaaaaaaaaaantes  commons c/"
-print env['objects']
 SConscript('src/commons/SConscript', exports = ['env', 'debug', 'compiler'])
-print "aaaaaaaaaaaaaaaaantes  containers c/"
-print env['objects']
 SConscript('src/containers/SConscript', exports = ['env', 'debug', 'compiler'])
-print "aaaaaaaaaaaaaaaaantes math c/"
-print env['objects']
 SConscript('src/math/SConscript', exports = ['env', 'debug', 'compiler'])
 
 
-print "deeeeeeeeeeeeeeeespues c/"
-print env['objects']
 env.Library('build/hpg', env['objects'] + third_party_libs)
