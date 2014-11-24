@@ -1,0 +1,26 @@
+import os
+
+Import('env', 'debug', 'compiler')
+
+#New environment for commons
+commonsenv = env.Clone()
+
+# Initialize environment
+commonsenv['objects'] = []
+commonsenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    commonsenv['CFLAGS'] += ' -O0 -g'
+else:
+    commonsenv['CFLAGS'] += ' -O3 '
+
+
+# Targets
+commons_obj = commonsenv.Object(Glob('./*.c'))
+
+# Objects
+commonsenv['objects'] += commons_obj
+
+commonsenv.Library('common', commonsenv['objects'])
+
+env['objects'] += commonsenv['objects']

@@ -1,0 +1,6 @@
+[submodule "third_party/samtools"]
+	path = third_party/samtools
+	url = https://github.com/samtools/samtools.git
+[submodule "third_party/htslib"]
+	path = third_party/htslib
+	url = https://github.com/samtools/htslib.git
