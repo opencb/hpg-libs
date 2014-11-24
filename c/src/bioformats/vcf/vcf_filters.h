@@ -19,7 +19,7 @@ extern "C" {
 #include <commons/log.h>
 #include <containers/array_list.h>
 #include <containers/list.h>
-#include <containers/cprops/heap.h>
+#include <cprops/heap.h>
 
 #include "vcf_file_structure.h"
 #include "vcf_stats.h"

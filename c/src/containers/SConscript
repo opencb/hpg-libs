@@ -15,23 +15,12 @@ if debug == 1:
 else:
     containersenv['CFLAGS'] += ' -O3 '
 
-# Compile cprops/ objects but ONLY those used for our libraries
-cpropsenv = containersenv.Clone()
-cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H'
-cpropsenv.Decider('MD5-timestamp')
-
-if debug == 1:
-    cpropsenv['CFLAGS'] += ' -O0 -g'
-else:
-    cpropsenv['CFLAGS'] += ' -O3 '
-
 
 # Targets
 containers_obj = containersenv.Object(Glob('./*.c'))
-cprops_obj = cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
 
 # Objects
-containersenv['objects'] += containers_obj + cprops_obj
+containersenv['objects'] += containers_obj
 containersenv.Library('containers', containersenv['objects'])
 
 # Run tests

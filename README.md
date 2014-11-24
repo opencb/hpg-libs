@@ -16,7 +16,9 @@ BUILDING
 Scons is used as building system, to build the library download 'next' branch (for the most recent library), build third party libs (checking out the submodules and compiling), and do scons in the desired directory:
 
  $ ./build_third_party.sh
+
  $ cd c/
+
  $ scons
 
 

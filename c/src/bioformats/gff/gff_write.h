@@ -9,7 +9,7 @@ extern "C" {
 #include <string.h>
 
 #include <containers/linked_list.h>
-#include <containers/cprops/linked_list.h>
+#include <cprops/linked_list.h>
 
 #include "gff_file_structure.h"
 #include "gff_batch.h"

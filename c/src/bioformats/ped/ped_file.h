@@ -20,8 +20,8 @@ extern "C" {
 
 #include <commons/file_utils.h>
 #include <commons/log.h>
-#include <containers/cprops/hashtable.h>
-#include <containers/cprops/linked_list.h>
+#include <cprops/hashtable.h>
+#include <cprops/linked_list.h>
 
 #include <bioformats/family/family.h>
 

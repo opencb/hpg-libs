@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include "commons/log.h"
-#include "containers/cprops/hashtable.h"
+#include "cprops/hashtable.h"
 
 //===============================================
 

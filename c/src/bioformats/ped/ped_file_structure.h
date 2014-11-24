@@ -9,7 +9,7 @@ extern "C" {
 
 #include <bioformats/family/family.h>
 #include <commons/file_utils.h>
-#include <containers/cprops/hashtable.h>
+#include <cprops/hashtable.h>
 #include <containers/khash.h>
 
 

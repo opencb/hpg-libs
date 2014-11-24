@@ -17,7 +17,7 @@ extern "C" {
 #include <commons/file_utils.h>
 #include <commons/log.h>
 #include <containers/linked_list.h>
-#include <containers/cprops/linked_list.h>
+#include <cprops/linked_list.h>
 
 #include "bed_file_structure.h"
 #include "bed_reader.h"
