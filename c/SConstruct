@@ -65,10 +65,6 @@ SConscript('../third_party/SConscript', exports = ['third_party_env', 'debug', '
 
 env['CPPPATH'] += third_party_env['CPPPATH']
 
-print "MAINPATH"
-print env['CPPPATH']
-print 'third objects'
-print third_party_env['objects']
 
 # our src
 

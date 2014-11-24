@@ -9,12 +9,12 @@ third_party_env['CPPPATH'] = ['#/../third_party/']
 third_party_env.Decider('MD5-timestamp')
 
 if compiler == 'icc':
-	third_party_env['CFLAGS'] += ' -msse4.2 -openmp '
-	third_party_env['LIBS'] += ['irc']
-	third_party_env['LINKFLAGS'] += ['-openmp']
+	third_party_env['CFLAGS'] = ' -msse4.2 -openmp '
+	third_party_env['LIBS'] = ['irc']
+	third_party_env['LINKFLAGS'] = ['-openmp']
 else:
-	third_party_env['CFLAGS'] += ' -fopenmp '
-	third_party_env['LINKFLAGS'] += ['-fopenmp']
+	third_party_env['CFLAGS'] = ' -fopenmp '
+	third_party_env['LINKFLAGS'] = ['-fopenmp']
 
 if debug == 1:
     third_party_env['CFLAGS'] = ' -O0 -g'
