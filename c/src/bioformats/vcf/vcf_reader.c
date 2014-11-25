@@ -439,6 +439,83 @@ int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file) {
     return cs ;
 }
 
+int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
+    assert(file);
+    assert(batch_lines > 0);
+
+    vcf_reader_status *status = vcf_reader_status_new(batch_lines, 0);
+    BGZF* bgzf_file = bgzf_open(file->filename, "r");
+    if (bgzf_file == NULL) {
+        LOG_ERROR("bgzipped file could not be decompressed\n");
+        return 1;
+    }
+
+    LOG_DEBUG("Using file-IO functions for file loading\n");
+
+    size_t max_len = 256;
+    char *data = (char*) calloc (max_len, sizeof(char));
+    
+    int cs = 0;
+    char *p, *pe;
+    
+    kstring_t result = {0, 0, 0};
+    int eof_found = 0, length;
+    size_t lines = 0, i = 0;
+
+    while (!eof_found) {    // while remaining blocks
+        while (((length = bgzf_getline(bgzf_file, '\n', &result)) > 0) && lines < batch_lines) {    // foreach line in block
+            printf("%s\n", result.s);
+            for (size_t consumed = 0; consumed < length; consumed++) {          // foreach character in each line: consume
+                max_len = consume_input(result.s[consumed], &data, max_len, i);
+                i++;
+                (file->data_len)++;
+                
+            }
+            max_len = consume_input('\n', &data, max_len, i);
+            i++;
+            (file->data_len)++;
+            lines++;
+        }
+        if (length == 0) {  // if bgzf_getline returns the read length, but returns 0 if eof was found
+            eof_found = 1;
+        }
+        // Process batch
+        if (lines == batch_lines) {
+            data[file->data_len] = '\0';
+            p = data;
+            pe = p + file->data_len;
+            cs |= run_vcf_parser(p, pe, batch_lines, file, status);
+            file->data_len = 0;
+
+            // Setup for next batch
+            status->current_batch = vcf_batch_new(batch_lines);
+            i = 0;
+            lines = 0;
+            data = (char*) calloc(max_len, sizeof (char));
+        }
+    }
+    // Consume last batch
+    if (lines > 0 && lines < batch_lines) {
+        data[file->data_len] = '\0';
+        p = data;
+        pe = p + file->data_len;
+        cs |= run_vcf_parser(p, pe, batch_lines, file, status);
+        file->data_len = 0;
+    } else {
+        // Empty batch, the data buffer must be free'd
+        free(data);
+    }
+    
+    LOG_INFO_F("Records read = %zu\n", status->num_records);
+    LOG_INFO_F("Samples per record = %zu\n", get_num_vcf_samples(file));
+
+    // Free status->current_xxx pointers if not needed in another module
+    vcf_reader_status_free(status);
+
+    return cs ;
+
+}
+
 
 /* **********************************************
  *                  Only reading                *

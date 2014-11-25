@@ -55,6 +55,12 @@ else:
 	env['CFLAGS'] += ' -fopenmp '
 	env['LINKFLAGS'] += ['-fopenmp']
 
+
+if debug == 1:
+    env['CFLAGS'] += ' -O0 -g'
+else:
+    env['CFLAGS'] += ' -O3 '
+
 env['objects'] = []
 env.Decider('MD5-timestamp')
 

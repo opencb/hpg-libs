@@ -119,6 +119,14 @@ KHASH_MAP_INIT_STR(ids, int);
 KHASH_MAP_INIT_STR(struct_variants, vcf_structural_variation_t*);
 
 /**
+ * Bit mask to differentiate compression.
+ */
+extern const int VCF_FILE_VCF;
+extern const int VCF_FILE_GZIP;
+extern const int VCF_FILE_BGZIP;
+extern const int VCF_FILE_BCF;
+
+/**
  * @brief Structure that specifies a VCF file.
  * @details Structure that specifies a VCF file. The physical file is defined by its file descriptor, 
  * its filename and the mode it has been open.
@@ -135,6 +143,7 @@ typedef struct vcf_file {
 
     char* format;       /**< Format and version (set in the first line of the VCF file) */
     int format_len;     /**< Length of the format field */
+    int compression;    /**< Compression type (VCF_FILE_(VCF/GZIP/BGZIP/BCF)) */
     
     array_list_t *header_entries;   /**< Entries in the header of the file (metadata) */
     array_list_t *samples_names;    /**< Names of the sequenced samples */
