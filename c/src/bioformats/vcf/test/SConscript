@@ -3,6 +3,7 @@ import os
 Import('penv')
 
 libhpg_path = os.getcwd() + '/../../../../build/'
+libhts_path = os.getcwd() + '/../../../../../third_party/htslib'
 
 
 env = penv.Clone()
@@ -15,12 +16,15 @@ env.Append(
 
 filters = env.Program('filters_vcf.test', 
              source = ['test_vcf_filters.c', 
-                               "%s/libhpg.a" % libhpg_path
+                               "%s/libhpg.a" % libhpg_path,
+                               "%s/libhts.a" % libhts_path
                       ]
            )
 
 stats = env.Program('stats_vcf.test', 
              source = ['test_stats.c', 
-                               "%s/libhpg.a" % libhpg_path
+                               "%s/libhpg.a" % libhpg_path,
+                               "%s/libhts.a" % libhts_path
                       ]
            )
+

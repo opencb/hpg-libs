@@ -56,10 +56,10 @@ cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H '
 third_party_libs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
 
 
-# we don't compile samtools and hts ourselves, delegate in their makefiles.
-third_party_libs += Glob('#/../third_party/samtools/*.o')
-third_party_libs += Glob('#/../third_party/htslib/*.o')
+# we don't compile samtools and hts ourselves, delegate in their makefiles
+# that generate samtools/libbam.a and htslib/libhts.a
 third_party_env['CPPPATH'] += ['#/../third_party/htslib/']
+third_party_env['CPPPATH'] += ['#/../third_party/cram/']
 
 
 # return all objects
