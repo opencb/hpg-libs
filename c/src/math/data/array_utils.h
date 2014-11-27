@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "math_utils.h"
+#include "math/math_utils.h"
 
 int array_scalar_multiply(double *data, size_t n, double value);
 
