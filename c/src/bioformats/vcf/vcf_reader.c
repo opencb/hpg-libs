@@ -464,7 +464,6 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
 
     while (!eof_found) {    // while remaining blocks
         while (((length = bgzf_getline(bgzf_file, '\n', &result)) > 0) && lines < batch_lines) {    // foreach line in block
-            printf("%s\n", result.s);
             for (size_t consumed = 0; consumed < length; consumed++) {          // foreach character in each line: consume
                 max_len = consume_input(result.s[consumed], &data, max_len, i);
                 i++;

@@ -121,10 +121,13 @@ KHASH_MAP_INIT_STR(struct_variants, vcf_structural_variation_t*);
 /**
  * Bit mask to differentiate compression.
  */
-extern const int VCF_FILE_VCF;
-extern const int VCF_FILE_GZIP;
-extern const int VCF_FILE_BGZIP;
-extern const int VCF_FILE_BCF;
+typedef enum {
+    VCF_FILE_VCF    = 0x01,
+    VCF_FILE_GVCF   = 0x02,
+    VCF_FILE_GZIP   = 0x04,
+    VCF_FILE_BGZIP  = 0x08,
+    VCF_FILE_BCF    = 0x10,
+} compression_t;
 
 /**
  * @brief Structure that specifies a VCF file.

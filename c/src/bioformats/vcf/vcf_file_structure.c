@@ -1,9 +1,5 @@
 #include "vcf_file_structure.h"
 
-const int VCF_FILE_VCF =    0b00000001;
-const int VCF_FILE_GZIP =   0b00000010;
-const int VCF_FILE_BGZIP =  0b00000100;
-const int VCF_FILE_BCF =    0b00001000;
 
 /* ********************************************************
  *      (De)Allocation of header entries and records      *
