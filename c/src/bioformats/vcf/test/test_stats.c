@@ -284,7 +284,7 @@ END_TEST
 
 
 START_TEST(mendelian_errors) {
-    vcf_file_t *vcf_file = vcf_open("sample_stats.vcf", 10);
+    vcf_file_t *vcf_file = vcf_open("sample_stats.vcf", 10, VCF_FILE_VCF);
     read_test_datasuite(vcf_file);
     array_list_t *datasuite = ((vcf_batch_t*) vcf_file->record_batches->first_p->data_p)->records;
     
@@ -456,7 +456,7 @@ void f()
 {
 	setup_stats();
     //vcf_file_t *vcf_file = vcf_open("sample_stats.vcf", 10);
-    vcf_file_t *vcf_file = vcf_open("/home/josemi/Downloads/500K_variants_147_samples.vcf", 10000);printf("Hoo\n");
+    vcf_file_t *vcf_file = vcf_open("/home/josemi/Downloads/500K_variants_147_samples.vcf", 10000, VCF_FILE_VCF);printf("Hoo\n");
     read_test_datasuite(vcf_file);printf("Hoo\n");
     array_list_t *datasuite = ((vcf_batch_t*) vcf_file->record_batches->first_p->data_p)->records;
     

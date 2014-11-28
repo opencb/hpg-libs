@@ -699,10 +699,10 @@ END_TEST
  * ******************************/
 
 int main (int argc, char *argv) {
-	vcf_file_t *file = vcf_open("CEU.exon.2010_03.genotypes__head400.vcf", 10);
-    vcf_file_t *quality_file = vcf_open("qualities.vcf", 10);
-    vcf_file_t *num_alleles_file = vcf_open("num_alleles_test.vcf", 10);
-    vcf_file_t *missing_values_file = vcf_open("missing_values.vcf", 10);
+	vcf_file_t *file = vcf_open("CEU.exon.2010_03.genotypes__head400.vcf", 10, VCF_FILE_VCF);
+    vcf_file_t *quality_file = vcf_open("qualities.vcf", 10, VCF_FILE_VCF);
+    vcf_file_t *num_alleles_file = vcf_open("num_alleles_test.vcf", 10, VCF_FILE_VCF);
+    vcf_file_t *missing_values_file = vcf_open("missing_values.vcf", 10, VCF_FILE_VCF);
     
     read_test_datasuite(file);
     datasuite = ((vcf_batch_t*) file->record_batches->first_p->data_p)->records;
