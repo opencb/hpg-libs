@@ -5,7 +5,7 @@ Import('third_party_env', 'compiler', 'debug')
 # initialize environment
 third_party_libs = []
 third_party_env['objects'] = []
-third_party_env['CPPPATH'] = ['#/../third_party/']
+third_party_env['CPPPATH'] = ['#/third_party/']
 third_party_env.Decider('MD5-timestamp')
 
 if compiler == 'icc':
@@ -38,7 +38,7 @@ third_party_libs += configenv.Object(Glob('config/*.c'))
 # Compile jansson/ objects
 janssonenv = third_party_env.Clone()
 janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
-janssonenv['CPPPATH'] += ['#/../third_party/jansson/']
+janssonenv['CPPPATH'] += ['#/third_party/jansson/']
 
 third_party_libs += janssonenv.Object(Glob('jansson/*.c'))
 
@@ -56,10 +56,13 @@ cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H '
 third_party_libs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
 
 
-# we don't compile samtools and hts ourselves, delegate in their makefiles.
-third_party_libs += Glob('#/../third_party/samtools/*.o')
-third_party_libs += Glob('#/../third_party/htslib/*.o')
-third_party_env['CPPPATH'] += ['#/../third_party/htslib/']
+# we don't compile samtools and hts ourselves, delegate in their makefiles
+# that generate samtools/libbam.a and htslib/libhts.a
+third_party_env['CPPPATH'] += ['#/third_party/htslib/']
+third_party_env['CPPPATH'] += ['#/third_party/cram/']
+
+from subprocess import call
+call("make")
 
 
 # return all objects
