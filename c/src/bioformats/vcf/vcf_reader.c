@@ -459,23 +459,21 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     char *p, *pe;
     
     kstring_t result = {0, 0, 0};
-    int eof_found = 0, length;
+    int eof_found = 0, length1;
+    int c = 0;
     size_t lines = 0, i = 0;
-
     while (!eof_found) {    // while remaining blocks
-        while (((length = bgzf_getline(bgzf_file, '\n', &result)) > 0) && lines < batch_lines) {    // foreach line in block
-            for (size_t consumed = 0; consumed < length; consumed++) {          // foreach character in each line: consume
-                max_len = consume_input(result.s[consumed], &data, max_len, i);
-                i++;
-                (file->data_len)++;
-                
-            }
-            max_len = consume_input('\n', &data, max_len, i);
-            i++;
+        while ((c = bgzf_getc(bgzf_file)) >= 0) {
+            max_len = consume_input(c, &data, max_len, file->data_len);
             (file->data_len)++;
-            lines++;
+            if (c == '\n') {
+                lines++;
+                if (lines == batch_lines) {
+                    break;
+                }
+            }
         }
-        if (length == 0) {  // if bgzf_getline returns the read length, but returns 0 if eof was found
+        if (c <= 0) {  // bgzf_getc returns -1 if eof or error was found
             eof_found = 1;
         }
         // Process batch
