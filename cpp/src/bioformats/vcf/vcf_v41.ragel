@@ -1,0 +1,500 @@
+#include <cstdio>
+
+#include "vcf_validator.hpp"
+
+%%{
+    machine vcf;
+
+    #############################################
+    #             Actions definition            #
+    #############################################
+
+    action token_begin {
+        ParsePolicy::handle_token_begin(*this);
+    }
+
+    action token_end {
+        ParsePolicy::handle_token_char(*this, *p);
+    }
+
+    action line_break {
+        ++n_lines;
+        n_columns = 1;
+    }
+
+    action tab_break {
+        ++n_columns;
+    }
+
+    action fileformat_section_error {
+        ErrorPolicy::handle_fileformat_section_error(*this);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action meta_section_error {
+        ErrorPolicy::handle_meta_section_error(*this);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action header_section_error {
+        ErrorPolicy::handle_header_section_error(*this);
+        fhold; fgoto body_section_skip;
+    }
+
+    action body_section_error {
+        ErrorPolicy::handle_body_section_error(*this);
+        fhold; fgoto body_section_skip;
+    }
+
+    action fileformat_end {
+//        set_vcf_file_format(ts, p-ts, file);
+    }
+
+    action fileformat_name_error {
+        ErrorPolicy::handle_fileformat_section_error(*this,
+            "Fileformat must be a sequence of alphanumeric and/or punctuation characters");
+        fhold; fgoto meta_section_skip;
+    } 
+
+    action meta_entry_begin {
+//        printf("Reading meta entry\n");
+//        status->current_meta_entry = vcf_meta_entry_new();
+    }
+
+    action meta_entry_end {
+//        add_vcf_meta_entry(status->current_meta_entry, file);
+    }
+
+    action meta_id_end {
+//        set_vcf_meta_entry_name(ts, p-ts, status->current_meta_entry);
+    }
+
+    action meta_field_value_end {
+/*        if (*ts == '<') {
+            add_vcf_meta_entry_value(ts+1, p-ts-1, status->current_meta_entry);
+        } else if (*(p-1) == '>') {
+            add_vcf_meta_entry_value(ts, p-ts-1, status->current_meta_entry);
+        } else {
+            add_vcf_meta_entry_value(ts, p-ts, status->current_meta_entry);
+        }*/
+    }
+
+    action header_begin {
+        ts = p;
+//        printf("Reading header\n");
+    }
+
+    action sample_name_end {
+//        add_vcf_sample_name(ts, p-ts, file);
+    }
+
+    action record_begin {
+//        status->current_record = vcf_record_new();
+//        printf("Reading record\n");
+    }
+
+    action record_end {
+/*        // If batch is full, add to the list of batches and create a new, empty one
+        if (batch_size > 0 && status->current_batch->records->size == batch_size)
+        {
+            add_vcf_batch(status->current_batch, file);
+            LOG_DEBUG_F("Batch %d added - %zu records\t", batches, status->current_batch->records->size);
+            status->current_batch = vcf_batch_new(batch_size);
+
+            if (p+1) {
+                status->current_batch->text = p+1;
+                LOG_DEBUG_F("batch text = '%.*s'\n", 50, status->current_batch->text);
+            }
+            batches++;
+        }
+
+        // If not a blank line, add status->current record to status->current batch
+        add_record_to_vcf_batch(status->current_record, status->current_batch);
+        // If the record is a structural variant, add it to the set in the VCF file
+        add_structural_variant(status->current_record, file);
+        status->num_records++;
+        status->num_samples = 0;
+*/
+    }
+
+    action chrom_end {
+//        set_vcf_record_chromosome(ts, p-ts, status->current_record);
+    }
+
+    action chrom_error {
+    }
+
+    action pos_end {
+//        char *field = strndup(ts, p-ts);
+ //       set_vcf_record_position(atol(field), status->current_record);
+ //       free(field);
+    }
+
+    action pos_error {
+        ErrorPolicy::handle_body_section_error(*this, "Position must be a positive number");
+        fhold; fgoto body_section_skip;
+    }
+
+    action id_end {
+//        set_vcf_record_id(ts, p-ts, status->current_record);
+    }
+
+    action id_error {
+        printf("Line %zu: Error in 'id' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action ref_end {
+ //       set_vcf_record_reference(ts, p-ts, status->current_record);
+    }
+
+    action ref_error {
+        printf("Line %zu: Error in 'reference' field\n", n_lines);
+//        vcf_record_free(status->current_record);
+    }
+
+    action alt_end {
+ /*       if (!strncmp("0", ts, 1)) {
+            set_vcf_record_alternate(".", 1, status->current_record);
+        } else {
+            set_vcf_record_alternate(ts, p-ts, status->current_record);
+        }*/
+    }
+
+    action alt_snv_end {
+ //       set_vcf_record_type(VARIANT_SNV, status->current_record);
+    }
+
+    action alt_indel_end {
+ //       set_vcf_record_type(VARIANT_INDEL, status->current_record);
+    }
+
+    action alt_sv_end {
+ //       set_vcf_record_type(VARIANT_SV, status->current_record);
+    }
+
+    action alt_error {
+        printf("Line %zu: Error in 'alternate' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action qual_end {
+/*        float quality = -1.0f;
+        if (strncmp(".", ts, 1) != 0) {
+            char *field = strndup(ts, p-ts);
+            quality = atof(field);
+            free(field);
+        }
+        set_vcf_record_quality(quality, status->current_record);*/
+    }
+
+    action qual_error {
+        printf("Line %zu: Error in 'quality' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action filter_end {
+ //       set_vcf_record_filter(ts, p-ts, status->current_record);
+    }
+
+    action filter_error {
+        printf("Line %zu: Error in 'filter' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action info_end {
+//        set_vcf_record_info(ts, p-ts, status->current_record);
+    }
+
+    action info_error {
+        printf("Line %zu: Error in 'info' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action format_end {
+ //       set_vcf_record_format(ts, p-ts, status->current_record);
+    }
+
+    action format_error {
+        printf("Line %zu: Error in 'format' field\n", n_lines);
+ //       vcf_record_free(status->current_record);
+    }
+
+    action sample_end {
+//        add_vcf_record_sample(ts, p-ts, status->current_record);
+    }
+
+    action sample_error {
+        ErrorPolicy::handle_body_section_error(*this, "Incorrect sample format");
+        fhold; fgoto body_section_skip;
+    }
+
+    #################################################
+    #               Machine definition              #
+    #################################################
+
+    action meta_alt_read {
+        printf("Meta ALT in line %zu\n", n_lines);
+    }
+
+    action meta_filter_read {
+        printf("Meta FILTER in line %zu\n", n_lines);
+    }
+
+    action meta_format_read {
+        printf("Meta FORMAT in line %zu\n", n_lines);
+    }
+
+    action meta_info_read {
+        printf("Meta INFO in line %zu\n", n_lines);
+    }
+
+    action meta_generic_read {
+        printf("Meta in line %zu\n", n_lines);
+    }
+    
+    
+    action meta_alt_err {
+        printf("Meta ALT error in line %zu\n", n_lines);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action meta_filter_err {
+        printf("Meta FILTER error in line %zu\n", n_lines);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action meta_format_err {
+        printf("Meta FORMAT error in line %zu\n", n_lines);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action meta_info_err {
+        printf("Meta INFO error in line %zu\n", n_lines);
+        fhold; fgoto meta_section_skip;
+    }
+
+    action meta_generic_err {
+        printf("Meta error in line %zu\n", n_lines);
+        fhold; fgoto meta_section_skip;
+    }
+
+
+    NL = "\n" >line_break;
+    CS = "\t" >tab_break;
+
+    # Integer and floating-point numbers
+    any_number      = (digit)+ ("." (digit)+)? ;
+    int_number      = (digit)+ ;
+    # Bases are case-insensitive
+    bases           = ("A" | "C" | "G" | "T" | "N" | "a" | "c" | "t" | "g" | "n" )+ ;
+    # Identifiers may contain dots or underscores, but not only those
+    identifier      = (alnum | "." | "_")+ - ((".")+ | ("_")+) ;
+
+    # File format must be a sequence of alphanumeric and/or punctuation characters like "VCFv4.1"
+    fileformat_name = (alnum | punct)+ $err(fileformat_name_error);
+    fileformat      = "##fileformat=" fileformat_name >token_begin %fileformat_end;
+
+    # Meta-data
+    meta_key        = (alnum | "_" )+ - ("ALT" | "FILTER" | "FORMAT" | "INFO" | "assembly" | "contig" | "SAMPLE" | "PEDIGREE" | "pedigreeDB");
+    meta_field_value= (print - "=")+ ;
+    meta_field      = ( meta_key "=" meta_field_value ) >token_begin %meta_field_value_end ;
+    
+    meta_alt        = "ID=" ( ("DEL" | "INS" | "DUP" | "INV" | "CNV") ( ":" meta_field_value)? )
+                        ",Description=\"" meta_field_value "\"" ;
+    meta_assembly   = (print - ("\n" | "\t"))+ ;  # URL
+    meta_contig     = "ID=" identifier
+                        ",URL=" meta_field_value ;
+    meta_filter     = "ID=" identifier
+                        ",Description=\"" meta_field_value "\"" ;
+    meta_format     = "ID=" identifier 
+                        ",Number=" ( (digit)+ | "A" | "R" | "G" | "." ) 
+                        ",Type=" ( "Integer" | "Float" | "Character" | "String" )
+                        ",Description=\"" meta_field_value "\"" ;
+    meta_info       = "ID=" identifier 
+                        ",Number=" ( (digit)+ | "A" | "R" | "G" | "." ) 
+                        ",Type=" ( "Integer" | "Float" | "Flag" | "Character" | "String" )
+                        ",Description=\"" meta_field_value "\""
+                        (",Source=\"" meta_field_value "\"")?
+                        (",Version=\"" meta_field_value "\"")? ;
+    meta_pedigree   = (identifier "=" identifier)+ ;
+    meta_pedigreeDB = (print - ("\n" | "\t"))+ ;  # URL
+    meta_sample     = "ID=" identifier
+                        ",Genomes=" identifier ("," identifier)*
+                        ",Mixture=" identifier ("," identifier)*
+                        ",Descriptions=\"" meta_field_value "\"" (",\"" meta_field_value "\"")* ;
+    
+    meta_entry      = ( 
+                       ("##" 
+                         meta_key >token_begin %meta_id_end "=<" meta_field ("," meta_field)* ">") %(meta_generic_read) $err(meta_generic_err) |
+                       ("##ALT=<" meta_alt ">" ) %(meta_alt_read) $err(meta_alt_err) | 
+                       ("##FILTER=<" meta_filter ">" ) %(meta_filter_read) $err(meta_filter_err) | 
+                       ("##FORMAT=<" meta_format ">" ) %(meta_format_read) $err(meta_format_err) |
+                       ("##INFO=<" meta_info ">" ) %(meta_info_read) $err(meta_info_err) | 
+                       ("##assembly=" meta_assembly ) |
+                       ("##contig=<" meta_contig ">" ) |
+                       ("##SAMPLE=<" meta_sample ">" ) |
+                       ("##PEDIGREE=<" meta_pedigree ">" ) |
+                       ("##pedigreeDB=<" meta_assembly ">" ) |
+                       ("##" meta_field >token_begin %meta_field_value_end) |
+                       ("##" meta_field_value >token_begin %meta_field_value_end)
+                      )
+                      >meta_entry_begin %meta_entry_end;
+
+    # Header between meta and records
+    sample_name     = (print - ("\n" | "\t"))+ ;
+    header          = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" 
+                      ("\tFORMAT" ("\t" sample_name >token_begin %sample_name_end)+ )?;
+
+    # Records
+    record_chrom    = (alnum | punct - ":")+ | ("<" (alnum | punct - (":" | ">"))+ ">");
+    record_pos      = int_number ;
+    ## ID must be a string with no white-spaces or semi-colons
+    record_id       = (print - (space | ";"))+ | "." ;
+    record_ref      = bases ;
+
+    record_alt_snv  = ((bases | ".") ("," (bases | "."))* )+ | "0";
+    record_alt_indel= "<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" | "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">" | "*";
+    record_alt_sv   = "]" record_chrom ":" record_pos "]" (bases)+ |
+                      "[" record_chrom ":" record_pos "[" (bases)+ |
+                      (bases)+ "]" record_chrom ":" record_pos "]" |
+                      (bases)+ "[" record_chrom ":" record_pos "[" ;
+    record_alt_other= ("<" identifier ">") - ("<DEL>" | "<INS>" | "<DUP>" | "<INV>" | "<CNV>" | "<DUP:TANDEM>" | "<DEL:ME:" (alnum)+ ">" | "<INS:ME:" (alnum)+ ">");
+    record_alt      = record_alt_snv %alt_snv_end |
+                      record_alt_indel %alt_indel_end |
+                      record_alt_sv %alt_sv_end |
+                      record_alt_other ;
+                      
+    record_qual     = any_number | "." ;
+
+    filter_value    = (alnum | punct - ";")+ ;
+    record_filter   = "." | (filter_value (";" filter_value)*) ;
+
+    info_key        = ( (alnum | "_")+ | "." ) - ("AA" | "AC" | "AF" | "AN" | "BQ" | "CIGAR" | "DB" | "DP" | "END" | "H2" | "H3" | "MQ" | "MQ0" | "NS" | "SB" | "SOMATIC" | "VALIDATED" | "1000G") ;
+    info_value      = (print - space)+ ;
+    info_value_list = info_value ("," info_value)* ;
+    info_entry      = (
+                        "AA=" (bases | ".") |
+                        "AC=" int_number ("," int_number)* |
+                        "AF=" any_number ("," any_number)* |
+                        "AN=" int_number |
+                        "BQ=" any_number |
+                        "CIGAR=" (alnum)+ |
+                        "DB" ("=" ("1" | "0"))? |
+                        "DP=" int_number |
+                        "END=" int_number |
+                        "H2" ("=" ("1" | "0"))? | 
+                        "H3" ("=" ("1" | "0"))? |
+                        "MQ=" any_number |
+                        "MQ0=" int_number |
+                        "NS="  int_number |
+                        "SB=" any_number |
+                        "SOMATIC" ("=" ("1" | "0"))? |
+                        "VALIDATED" ("=" ("1" | "0"))? |
+                        "1000G" ("=" ("1" | "0"))? |
+                        info_key | 
+                        info_key "=" info_value_list
+                      );
+    record_info     = info_entry (";" info_entry)* ;
+
+    record_format   = identifier (":" identifier)* ;
+    
+    sample_allele   = (digit | ".") ;
+    sample_gt       = sample_allele (("/" | "|") sample_allele)* ;
+    record_sample   = sample_gt (":" (alnum | punct)+)* ;  # Genotype is mandatory and must be the first field
+    
+    record          = (record_chrom >token_begin %chrom_end $err(chrom_error) 
+                        CS record_pos >token_begin %pos_end $err(pos_error) 
+                        CS record_id >token_begin %id_end $err(id_error) 
+                        CS record_ref >token_begin %ref_end $err(ref_error) 
+                        CS record_alt >token_begin %alt_end $err(alt_error) 
+                        CS record_qual >token_begin %qual_end $err(qual_error) 
+                        CS record_filter >token_begin %filter_end $err(filter_error) 
+                        CS record_info >token_begin %info_end $err(info_error) 
+                        (CS record_format >token_begin %format_end $err(format_error)
+                        (CS record_sample >token_begin %sample_end $err(sample_error))+ )?
+                      ) >record_begin %record_end;
+
+    fileformat_section = (fileformat NL) $err(fileformat_section_error);
+    meta_section    = (meta_entry NL)* $err(meta_section_error);
+    header_section  = (header NL) $err(header_section_error);
+    body_section    = (record NL)* $err(body_section_error);
+
+
+    # Machine start (fileformat, then optional meta, header, then optional records)
+    main            := fileformat_section
+                        meta_section
+                        header_section
+                        body_section ;
+
+    # Error recovery machines that skip until the next line and restart the
+    # the most appropriate section state.
+    meta_section_skip := [^\n]* NL @{ fgoto meta_section; };
+    body_section_skip := [^\n]* NL @{ fgoto body_section; };
+}%%
+
+namespace
+{
+  %%{
+  write data;
+  }%%
+}
+
+namespace opencb
+{
+  namespace vcf
+  {
+    template <typename Configuration>
+    Parser<Configuration>::Parser()
+    {
+      %%{
+      write init;
+      }%%
+    }
+
+    template <typename Configuration>
+    void Parser<Configuration>::parse(std::vector<char> const & text)
+    {
+      char const * p = &text[0];
+      char const * pe = &text[0] + text.size();
+      char const * eof = nullptr;
+
+      parse_buffer(p, pe, eof);
+    }
+
+    template <typename Configuration>
+    void Parser<Configuration>::parse(std::string const & text)
+    {
+      char const * p = text.data();
+      char const * pe = text.data() + text.size();
+      char const * eof = nullptr;
+
+      parse_buffer(p, pe, eof);
+    }
+
+    template <typename Configuration>
+    void Parser<Configuration>::end()
+    {
+      char const * empty = "";
+      parse_buffer(empty, empty, empty);
+    }
+
+    template <typename Configuration>
+    bool Parser<Configuration>::is_valid() const
+    {
+      return cs >= %%{ write first_final; }%%;
+    }
+
+    template <typename Configuration>
+    void Parser<Configuration>::parse_buffer(char const * p, char const * pe, char const * eof)
+    {
+      char const * ts = nullptr;
+      char const * te = nullptr;
+
+      %%{
+      write exec;
+      }%%
+    }
+
+  }
+}

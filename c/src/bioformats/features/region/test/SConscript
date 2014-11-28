@@ -1,0 +1,33 @@
+import os
+
+Import('penv')
+
+
+libhpg_path = os.getcwd() + '/../../../../../build/'
+
+
+env = penv.Clone()
+env.Append(
+    LIBPATH = ['/usr/lib', '/usr/local/lib', '#libs', libhpg_path ],
+    LIBS = ['check', 'curl', 'dl', 'm', 'rt', 'z'],
+    LINKFLAGS = ['-fopenmp']
+)
+
+
+region = env.Program('region.test', 
+                     source = ['test_region.c', 
+                               "%s/libhpg.a" % libhpg_path
+                               ]
+                    )
+
+region_table = env.Program('region_table.test', 
+                           source = ['test_region_table.c', 
+                                     "%s/libhpg.a" % libhpg_path
+                                    ]
+                          )
+
+parsing = env.Program('parse_regions_vcf.test', 
+                      source = ['test_parse_regions.c', 
+                                "%s/libhpg.a" % libhpg_path
+                               ]
+                     )

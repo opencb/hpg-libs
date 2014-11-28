@@ -1,0 +1,29 @@
+import os
+
+Import('env', 'debug', 'compiler')
+
+
+#New environment for containers
+containersenv = env.Clone()
+
+# Initialize environment
+containersenv['objects'] = []
+containersenv.Decider('MD5-timestamp')
+
+if debug == 1:
+    containersenv['CFLAGS'] += ' -O0 -g'
+else:
+    containersenv['CFLAGS'] += ' -O3 '
+
+
+# Targets
+containers_obj = containersenv.Object(Glob('./*.c'))
+
+# Objects
+containersenv['objects'] += containers_obj
+containersenv.Library('containers', containersenv['objects'])
+
+# Run tests
+containers_test = SConscript("test/SConscript", exports = ['containersenv'] )
+
+env['objects'] += containersenv['objects']

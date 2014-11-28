@@ -1,19 +1,47 @@
-# File formats
-*.a
-*.o
-*.so
-*.test
-*.gch
-*~
-
 # Build folders
 bin/*
-build/*
+c/build/*
+cpp/build/*
 
 # IDE and build systems
 *anjuta*
 *sonar*
 *kdev*
+nbproject
 .sconsign.dblite
 .sconf_temp
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.test
+
+# Temporary files
+*~
+*.swp
 
