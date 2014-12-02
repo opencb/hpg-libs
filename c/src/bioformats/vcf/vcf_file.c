@@ -11,7 +11,7 @@
 //-----------------------------------------------------
 
 
-vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches) {
+vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches, int compression) {
     if (!exists(filename)) {
         return NULL;
     }
@@ -31,6 +31,8 @@ vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches) {
         vcf_file->data = NULL;
         vcf_file->data_len = 0;
     }
+    
+    vcf_file->compression = compression;
 
     // Initialize header
     vcf_file->header_entries = array_list_new(10, 1.5, COLLECTION_MODE_SYNCHRONIZED);
@@ -153,7 +155,11 @@ int vcf_parse_batches(size_t batch_lines, vcf_file_t *vcf_file) {
     if (ends_with(vcf_file->filename, ".vcf")) {
         return vcf_read_and_parse(batch_lines, vcf_file);
     } else if (ends_with(vcf_file->filename, ".gz")) {
-        return vcf_gzip_read_and_parse(batch_lines, vcf_file);
+        if (vcf_file->compression & VCF_FILE_BGZIP) {
+            return vcf_bgzip_read_and_parse(batch_lines, vcf_file);
+        } else {
+            return vcf_gzip_read_and_parse(batch_lines, vcf_file);
+        }
     }
     LOG_FATAL_F("The format of file %s can't be processed\n", vcf_file->filename);
     return 0;

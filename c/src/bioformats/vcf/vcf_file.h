@@ -58,8 +58,9 @@ extern int mmap_vcf;
  * 
  * @param filename The name of the file to open
  * @param max_simultaneous_batches Maximum number of batches that can be loaded in memory (<= 0 if unlimited)
+ * @param compression type of the file, see enum compression in vcf_file_structure.h
  */
-vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches);
+vcf_file_t *vcf_open(char *filename, size_t max_simultaneous_batches, int compression);
 
 /**
  * @brief Creates a vcf_file_t structure from scratch.
