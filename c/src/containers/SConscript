@@ -21,9 +21,9 @@ containers_obj = containersenv.Object(Glob('./*.c'))
 
 # Objects
 containersenv['objects'] += containers_obj
-containersenv.Library('containers', containersenv['objects'])
 
 # Run tests
 containers_test = SConscript("test/SConscript", exports = ['containersenv'] )
 
 env['objects'] += containersenv['objects']
+

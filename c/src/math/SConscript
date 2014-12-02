@@ -34,6 +34,4 @@ utils_obj = math_env.Object('math_utils.c')
 
 math_env['objects'] = algebra_obj + data_obj + stats_obj + utils_obj
 
-math_env.Library('hpgmath', math_env['objects'])
-
 env['objects'] += math_env['objects']

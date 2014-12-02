@@ -58,9 +58,6 @@ third_party_libs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cp
 
 # we don't compile samtools and hts ourselves, delegate in their makefiles
 # that generate samtools/libbam.a and htslib/libhts.a
-third_party_env['CPPPATH'] += ['#/third_party/htslib/']
-third_party_env['CPPPATH'] += ['#/third_party/cram/']
-
 from subprocess import call
 call("make")
 

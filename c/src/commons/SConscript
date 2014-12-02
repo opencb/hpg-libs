@@ -21,6 +21,4 @@ commons_obj = commonsenv.Object(Glob('./*.c'))
 # Objects
 commonsenv['objects'] += commons_obj
 
-commonsenv.Library('common', commonsenv['objects'])
-
 env['objects'] += commonsenv['objects']

@@ -20,7 +20,7 @@ if compiler == 'icc':
 #Build environment
 hpg_env = Environment(TOOLS = build_tools,
 		  CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
-		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % third_party_path], 
+		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % third_party_path, '%s/htslib' % third_party_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = [],
 		  LIBS = ['xml2', 'm', 'z', 'curl'])
