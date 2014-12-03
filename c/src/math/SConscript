@@ -20,11 +20,6 @@ if os.environ.has_key('CPATH'):
 
 math_env.Decider('MD5-timestamp')
 
-if debug == 1:
-    math_env['CFLAGS'] += ' -O0 -g'
-else:
-    math_env['CFLAGS'] += ' -O3 -g'
-
 
 # Targets
 algebra_obj = math_env.Object(Glob('algebra/*.c'))

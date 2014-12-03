@@ -13,14 +13,14 @@ system_libpath = '/usr/lib'
 third_party_path = os.getcwd() + '/third_party'
 
 build_tools = ['default']
-if compiler == 'icc':
+if compiler == 'intel':
     build_tools += ['intelc']
 
 
-#Build environment
-hpg_env = Environment(TOOLS = build_tools,
+#Build C environment
+hpg_c_env = Environment(TOOLS = build_tools,
 		  CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
-		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % third_party_path, '%s/htslib' % third_party_path], 
+		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % third_party_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = [],
 		  LIBS = ['xml2', 'm', 'z', 'curl'])
@@ -28,32 +28,72 @@ hpg_env = Environment(TOOLS = build_tools,
 
 if os.environ.has_key('CPATH'):
     for dir in os.getenv('CPATH').split(':'):
-        hpg_env.Append(CPPPATH=[dir])
+        hpg_c_env.Append(CPPPATH=[dir])
 
 if os.environ.has_key('LIBRARY_PATH'):
     for dir in os.getenv('LIBRARY_PATH').split(':'):
-        hpg_env.Append(LIBPATH=[dir])
+        hpg_c_env.Append(LIBPATH=[dir])
 
-if compiler == 'icc':
-	hpg_env['CFLAGS'] += ' -msse4.2 -openmp '
-	hpg_env['LIBS'] += ['irc']
-	hpg_env['LINKFLAGS'] += ['-openmp']
+if compiler == 'intel':
+	hpg_c_env['CFLAGS'] += ' -msse4.2 -openmp '
+	hpg_c_env['LIBS'] += ['irc']
+	hpg_c_env['LINKFLAGS'] += ['-openmp']
 else:
-	hpg_env['CFLAGS'] += ' -fopenmp '
-	hpg_env['LINKFLAGS'] += ['-fopenmp']
+	hpg_c_env['CFLAGS'] += ' -fopenmp '
+	hpg_c_env['LINKFLAGS'] += ['-fopenmp']
 
-hpg_env['objects'] = []
-hpg_env.Decider('MD5-timestamp')
+if debug == 1:
+    hpg_c_env['CFLAGS'] += ' -O0 -g'
+else:
+    hpg_c_env['CFLAGS'] += ' -O2 '
+
+hpg_c_env['objects'] = []
+hpg_c_env.Decider('MD5-timestamp')
+
+
+
+
+#Build C++ environment
+hpg_cpp_env = Environment(TOOLS = build_tools,
+		  CFLAGS = ' -Wall -std=c++11 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
+		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % third_party_path], 
+		  LIBPATH = [system_libpath],
+		  LINKFLAGS = [],
+		  LIBS = ['xml2', 'm', 'z', 'curl'])
+
+
+if os.environ.has_key('CPATH'):
+    for dir in os.getenv('CPATH').split(':'):
+        hpg_cpp_env.Append(CPPPATH=[dir])
+
+if os.environ.has_key('LIBRARY_PATH'):
+    for dir in os.getenv('LIBRARY_PATH').split(':'):
+        hpg_cpp_env.Append(LIBPATH=[dir])
+
+if compiler == 'intel':
+	hpg_cpp_env['CFLAGS'] += ' -msse4.2 -openmp '
+	hpg_cpp_env['LIBS'] += ['irc']
+	hpg_cpp_env['LINKFLAGS'] += ['-openmp']
+else:
+	hpg_cpp_env['CFLAGS'] += ' -fopenmp '
+	hpg_cpp_env['LINKFLAGS'] += ['-fopenmp']
+
+if debug == 1:
+    hpg_cpp_env['CFLAGS'] += ' -O0 -g'
+else:
+    hpg_cpp_env['CFLAGS'] += ' -O2 '
+
+hpg_cpp_env['objects'] = []
+hpg_cpp_env.Decider('MD5-timestamp')
+
+
 
 
 # Third party
-third_party_env = Environment(TOOLS = hpg_env['TOOLS'])
-SConscript('third_party/SConscript', exports = ['third_party_env', 'debug', 'compiler'])
-
-hpg_env['CPPPATH'] += third_party_env['CPPPATH']
+SConscript('third_party/SConscript', exports = ['hpg_c_env', 'hpg_cpp_env', 'debug', 'compiler'])
 
 
 # our src
 
-SConscript('c/SConscript', exports = ['hpg_env', 'third_party_env', 'debug', 'compiler'])
-SConscript('cpp/SConscript', exports = ['hpg_env', 'third_party_env', 'debug', 'compiler'])
+SConscript('c/SConscript', exports = ['hpg_c_env', 'debug', 'compiler'])
+SConscript('cpp/SConscript', exports = ['hpg_cpp_env', 'debug', 'compiler'])

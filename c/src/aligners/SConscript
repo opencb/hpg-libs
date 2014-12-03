@@ -6,11 +6,6 @@ Import('env', 'compiler', 'debug')
 aligners_env = env.Clone()
 aligners_env['objects'] = []
 
-if debug == 1:
-    aligners_env['CFLAGS'] += ' -O0 -g'
-else:
-    aligners_env['CFLAGS'] += ' -O3 '
-
 
 # Targets
 aligners = ['bwt', 'sw']

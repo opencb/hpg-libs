@@ -1,67 +1,55 @@
 
 import os 
 
-Import('third_party_env', 'compiler', 'debug')
+Import('hpg_c_env', 'hpg_cpp_env', 'compiler', 'debug')
 
-# initialize environment
-third_party_libs = []
-third_party_env['objects'] = []
-third_party_env['CPPPATH'] = [os.getcwd()]
-third_party_env.Decider('MD5-timestamp')
-
-if compiler == 'icc':
-	third_party_env['CFLAGS'] = ' -msse4.2 -openmp '
-	third_party_env['LIBS'] = ['irc']
-	third_party_env['LINKFLAGS'] = ['-openmp']
-else:
-	third_party_env['CFLAGS'] = ' -fopenmp '
-	third_party_env['LINKFLAGS'] = ['-fopenmp']
-
-if debug == 1:
-    third_party_env['CFLAGS'] = ' -O0 -g'
-else:
-    third_party_env['CFLAGS'] = ' -O2 '
-
+third_party_c_objs = []
+third_party_cpp_objs = []
+hpg_c_env['CPPPATH'] += [os.getcwd()]
+hpg_cpp_env['CPPPATH'] += [os.getcwd()]
 
 # Compile argtable/ objects
-argtableenv = third_party_env.Clone()
+argtableenv = hpg_c_env.Clone()
 argtableenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
 
-third_party_libs += argtableenv.Object(Glob('argtable/*.c'))
+third_party_c_objs += argtableenv.Object(Glob('argtable/*.c'))
 
 # Compile config/ objects
-configenv = third_party_env.Clone()
+configenv = hpg_c_env.Clone()
 configenv['CFLAGS'] += ' -DHAVE_CONFIG_H -D_REENTRANT -Wall -Wshadow -Wextra -Wdeclaration-after-statement -Wno-unused-parameter'
 
-third_party_libs += configenv.Object(Glob('config/*.c'))
+third_party_c_objs += configenv.Object(Glob('config/*.c'))
 
 
 # Compile jansson/ objects
-janssonenv = third_party_env.Clone()
+janssonenv = hpg_c_env.Clone()
 janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
 janssonenv['CPPPATH'] += [os.getcwd() + '/jansson']
+hpg_c_env['CPPPATH'] += [os.getcwd() + '/jansson/']
 
-third_party_libs += janssonenv.Object(Glob('jansson/*.c'))
+third_party_c_objs += janssonenv.Object(Glob('jansson/*.c'))
 
 # Compile sqlite/ objects
-sqliteenv = third_party_env.Clone()
+sqliteenv = hpg_c_env.Clone()
 sqliteenv['CFLAGS'] += ' -DHAVE_CONFIG_H -fPIC -DPIC'
 
-third_party_libs += sqliteenv.Object(Glob('sqlite/*.c'))
+third_party_c_objs += sqliteenv.Object(Glob('sqlite/*.c'))
+third_party_cpp_objs += sqliteenv.Object(Glob('sqlite/*.c'))
 
 
 # Compile cprops/ objects but ONLY those used for our libraries
-cpropsenv = third_party_env.Clone()
+cpropsenv = hpg_c_env.Clone()
 cpropsenv['CFLAGS'] += ' -D_REENTRANT -D_GNU_SOURCE -DHAVE_CONFIG_H '
 
-third_party_libs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
+third_party_c_objs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', 'cprops/hashlist.c', 'cprops/hashtable.c', 'cprops/heap.c', 'cprops/linked_list.c', 'cprops/log.c', 'cprops/mempool.c', 'cprops/rb.c', 'cprops/util.c', 'cprops/vector.c', 'cprops/trie.c', 'cprops/mtab.c'])
 
 
 # we don't compile samtools and hts ourselves, delegate in their makefiles
 # that generate samtools/libbam.a and htslib/libhts.a
 from subprocess import call
 call("make")
-
+hpg_c_env['CPPPATH'] += [os.getcwd() + '/htslib/']
 
 # return all objects
-third_party_env['objects'] += third_party_libs
+hpg_c_env['objects'] += third_party_c_objs
+hpg_cpp_env['objects'] += third_party_cpp_objs

@@ -1,8 +1,8 @@
 import os
 
-Import('hpg_env', 'third_party_env', 'compiler', 'debug')
+Import('hpg_c_env', 'compiler', 'debug')
 
-env = hpg_env.Clone()
+env = hpg_c_env.Clone()
 
 #commons_path =     os.getcwd() + '/common-libs'
 #bioinfo_path =     os.getcwd() + '/bioinfo-libs'
@@ -26,4 +26,4 @@ SConscript('src/containers/SConscript', exports = ['env', 'debug', 'compiler'])
 SConscript('src/math/SConscript', exports = ['env', 'debug', 'compiler'])
 
 
-env.Library('build/hpg', third_party_env['objects'] + env['objects'])
+env.Library('build/hpg', env['objects'])
