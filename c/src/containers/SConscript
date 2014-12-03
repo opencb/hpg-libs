@@ -10,11 +10,6 @@ containersenv = env.Clone()
 containersenv['objects'] = []
 containersenv.Decider('MD5-timestamp')
 
-if debug == 1:
-    containersenv['CFLAGS'] += ' -O0 -g'
-else:
-    containersenv['CFLAGS'] += ' -O3 '
-
 
 # Targets
 containers_obj = containersenv.Object(Glob('./*.c'))
