@@ -420,7 +420,7 @@ void workflow_schedule(workflow_t *wf) {
 
 	  //	  Extrae_event(6000019, item->stage_id + 1); 
 	  struct timeval start_time, end_time;
-	  double total_time;
+	  double total_time = 0.0;
 	  start_timer(start_time);
 	  int next_stage = stage_function(item->data);
 
@@ -473,6 +473,7 @@ int workflow_unlock_producer(workflow_t *wf) {
   pthread_mutex_lock(&wf->producer_mutex);
   wf->running_producer = 0;
   pthread_mutex_unlock(&wf->producer_mutex);
+  return 0;
 }
 
 int workflow_lock_consumer(workflow_t *wf) {
@@ -492,6 +493,7 @@ int workflow_unlock_consumer(workflow_t *wf) {
   pthread_mutex_lock(&wf->consumer_mutex);
   wf->running_consumer = 0;
   pthread_mutex_unlock(&wf->consumer_mutex);
+  return 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -529,7 +531,7 @@ void *thread_function(void *wf_context) {
   void *data = NULL;
 
   int num_threads = wf->num_threads;
-  workflow_stage_function_t stage_function = NULL;
+
   workflow_producer_function_t producer_function = (workflow_producer_function_t)wf->producer_function;
   workflow_consumer_function_t consumer_function = (workflow_consumer_function_t)wf->consumer_function;
 
@@ -557,7 +559,7 @@ void *thread_function(void *wf_context) {
     } else if (consumer_function                         &&
 	       workflow_get_num_completed_items_(wf) > 0 && 
 	       workflow_lock_consumer(wf)) {	 
-      if (data = workflow_remove_item(wf)) {
+      if ((data = workflow_remove_item(wf))) {
 	total_time = 0;
 	start_timer(start_time);
 	consumer_function(data);
@@ -572,7 +574,7 @@ void *thread_function(void *wf_context) {
   }
 
   
-
+  return NULL;
   //printf("Thread function end\n");
 }
 
@@ -611,7 +613,7 @@ void workflow_run_with(int num_threads, void *input, workflow_t *wf) {
 	  CPU_SET( cpuArray[i % num_cpus], &cpu_set);
 	  sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set), &cpu_set);
 	  
-	  if (ret = pthread_create(&threads[i], &attr, thread_function, (void *) wf_context)) {
+	  if ((ret = pthread_create(&threads[i], &attr, thread_function, (void *) wf_context))) {
 	       printf("ERROR; return code from pthread_create() is %d\n", ret);
 	       exit(-1);
 	  }
@@ -621,7 +623,7 @@ void workflow_run_with(int num_threads, void *input, workflow_t *wf) {
      void *status;
      pthread_attr_destroy(&attr);
      for (int i = 0; i < num_threads; i++) {
-	  if (ret = pthread_join(threads[i], &status)) {
+       if ((ret = pthread_join(threads[i], &status))) {
 	       printf("ERROR; return code from pthread_join() is %d\n", ret);
 	       exit(-1);
 	  }

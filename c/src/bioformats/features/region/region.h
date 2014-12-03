@@ -53,9 +53,9 @@ void region_free(region_t *region);
  */
 char **get_chromosome_order(const char *host_url, const char *species, const char *version, int *num_chromosomes);
 
-static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version);
+//static char *compose_chromosomes_ws_request(const char *host_url, const char *species, const char *version);
 
-static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *userdata);
+//static size_t write_chromosomes_ws_results(char *contents, size_t size, size_t nmemb, chromosome_ws_response *userdata);
 
 /**
  * Compare two regions, considering their chromosome and start position.
@@ -130,7 +130,7 @@ int region_contains_other(region_t *container, region_t *content);
  * @return 
  *      Whether the chromosome is valid given a list of species chromosomes
  */
-int is_valid_chromosome(char *chromosome, char **chromosome_ordering, int num_chromosomes);
+int is_valid_chromosome(char *chromosome, char **chromosome_ordering, unsigned long num_chromosomes);
 
 #ifdef __cplusplus
 }

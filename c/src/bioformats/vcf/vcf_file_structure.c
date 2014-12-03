@@ -390,7 +390,8 @@ void set_vcf_header_entry_name(char *name, int length, vcf_header_entry_t *entry
 void add_vcf_header_entry_value(char *value, int length, vcf_header_entry_t *entry) {
     assert(value);
     assert(entry);
-    int result = array_list_insert(strndup(value, length), entry->values);
+    array_list_insert(strndup(value, length), entry->values);
+    
 }
 
 
@@ -484,7 +485,7 @@ void add_vcf_record_sample(char* sample, int length, vcf_record_t* record) {
     assert(sample);
     assert(record);
 //     int result = array_list_insert(sample, record->samples);
-    int result = array_list_insert(strndup(sample, length), record->samples);
+    array_list_insert(strndup(sample, length), record->samples);
 //     if (result) {
 //         LOG_DEBUG_F("sample %s inserted\n", sample);
 //     } else {

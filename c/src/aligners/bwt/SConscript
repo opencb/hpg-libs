@@ -13,8 +13,5 @@ for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['aligners_env', 'compiler', 'debug'])
 
 
-# TODO: Remove fastq_batch_reader_omp so Glob can be used
-#aligners_env['objects'] += penv.Object(Split('bwt.c bwt_bs.c BW_io.c BW_search.c BW_preprocess.c genome.c'))
-
 aligners_env['CFLAGS'] += " -DFM_COMP_64 "
-aligners_env['objects'] += aligners_env.Object(Split('genome.c bwt.c bwt_bs.c'))
+aligners_env['objects'] += aligners_env.Object(Split('genome.c bwt.c'))

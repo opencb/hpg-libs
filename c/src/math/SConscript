@@ -20,11 +20,6 @@ if os.environ.has_key('CPATH'):
 
 math_env.Decider('MD5-timestamp')
 
-if debug == 1:
-    math_env['CFLAGS'] += ' -O0 -g'
-else:
-    math_env['CFLAGS'] += ' -O3 -g'
-
 
 # Targets
 algebra_obj = math_env.Object(Glob('algebra/*.c'))
@@ -33,7 +28,5 @@ stats_obj = math_env.Object(Glob('stats/*.c'))
 utils_obj = math_env.Object('math_utils.c')
 
 math_env['objects'] = algebra_obj + data_obj + stats_obj + utils_obj
-
-math_env.Library('hpgmath', math_env['objects'])
 
 env['objects'] += math_env['objects']

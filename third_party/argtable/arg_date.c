@@ -19,7 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 USA.
 **********************************************************************/
 /* glibc2 needs this for strptime */
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 
+#endif
 
 /* SunOS also requires this for strptime */
 #define _XOPEN_VERSION 4 

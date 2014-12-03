@@ -64,6 +64,7 @@ unsigned long count_lines(const char *filename) {
     while (fgets(buffer, 1024 * 4, file) != NULL) {
         count++;
     }
+    free(buffer);
     fclose(file);
     return count;
 }

@@ -128,7 +128,7 @@ int insert_string(htbl *t, int m, uchar *p)
   int h;
   uchar *r,*r2;
   uchar *buf;
-  int q, pp, q2;
+  int q, pp = 0, q2;
   int w = sizeof(int); // length of name
 
   buf = t->buf;
@@ -264,7 +264,7 @@ int getname(htbl *t, int m, uchar *p)
 
 int LMS_compare(const void *p1, const void *p2)
 {
-  int c1,c2;
+  int c1 = 0,c2 = 0;
   int l1,l2;
   uchar *q1, *q2;
 
@@ -365,7 +365,7 @@ void direct_bwt(uchar *T, long n, const char *directory, const char *name, bool 
   long s1; // alphabet size
   long m1; // total length of substrings
   int c;
-  ulong last;
+  ulong last = 0;
   uchar *lastptr;
 
 	uchar **S;

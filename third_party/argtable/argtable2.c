@@ -92,6 +92,7 @@ struct longoptions
     struct option *options;
     };
 
+/*
 #ifndef NDEBUG
 static
 void dump_longoptions(struct longoptions* longoptions)
@@ -108,6 +109,7 @@ void dump_longoptions(struct longoptions* longoptions)
         }
     }
 #endif
+*/
 
 static
 struct longoptions* alloc_longoptions(struct arg_hdr **table)

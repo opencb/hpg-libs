@@ -6,11 +6,6 @@ Import('env', 'compiler', 'debug')
 formats_env = env.Clone()
 formats_env['objects'] = []
 
-if debug == 1:
-    formats_env['CFLAGS'] += ' -O0 -g'
-else:
-    formats_env['CFLAGS'] += ' -O3 '
-
 
 # Targets
 formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf', 'db']
@@ -18,6 +13,5 @@ formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf', 'db
 for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['env', 'formats_env', 'debug'])
 
-formats_env.Library('bioformats', formats_env['objects'])
-
 env['objects'] += formats_env['objects']
+

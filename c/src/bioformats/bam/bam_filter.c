@@ -46,8 +46,8 @@ void bam_filter(array_list_t *bam1s, array_list_t *passed_bam1s,
   int value;
 
   region_t region;
-  char **chromosomes;
-  int num_chromosomes;
+  char **chromosomes = NULL;
+  int num_chromosomes = 0;
   if (opts->region_table) {
     chromosomes = opts->region_table->ordering;
     num_chromosomes = opts->region_table->max_chromosomes;

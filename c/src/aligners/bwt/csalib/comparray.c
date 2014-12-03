@@ -48,12 +48,12 @@ typedef struct {
 
 typedef enumdectbl *enumdectblp;
 
-static enumdectblp nCkDEC2[NCK+1][NCK+1];
+
 
 #define DD 16
 #define TBLSIZE (1<<DD)
 static int R4[TBLSIZE];
-static int R5n[TBLSIZE],R5b[TBLSIZE],R5x[TBLSIZE];
+
 
 
 static u64 getuint(uchar *s, i64 i, i64 w)
@@ -134,6 +134,7 @@ static int getbit(bitvec_t *B, i64 i)
   return (B[j] >> (D-1-l)) & 1;
 }
 
+/*
 #if 1
 static bitvec_t getbits0(bitvec_t *B, i64 i, i64 d)
 {
@@ -147,6 +148,7 @@ static bitvec_t getbits0(bitvec_t *B, i64 i, i64 d)
   return x;
 }
 #endif
+
 
 static bitvec_t getbits2(bitvec_t *B, i64 i, i64 d) // ’x‚¢
 {
@@ -162,12 +164,12 @@ static bitvec_t getbits2(bitvec_t *B, i64 i, i64 d) // ’x‚¢
   }
   return x & ((1<<d)-1);
 }
-
+*/
 
 static bitvec_t getbits(bitvec_t *B, i64 i, i64 d)
 {
   bitvec_t x,z;
-  bitvec_t x0;
+
 
 
 //  x0 = getbits0(B,i,d);
@@ -217,7 +219,7 @@ bitvec_t getbits1(bitvec_t *B, i64 i, i64 d)
 static int getbitDD(bitvec_t *B, i64 i)
 {
   bitvec_t x,z;
-  bitvec_t x0;
+
   
 //  x0 = getbits(B,i,DD);
 
@@ -287,8 +289,8 @@ i64 w,w2;
 static int decodegamma(bitvec_t *B,i64 p,i64 *ans)
 {
 i64 w,w2;
-i64 x,y;
-i64 q;
+i64 x;
+
   w = getzerorun(B,p);
 #if 0
   x = 1;
@@ -516,7 +518,7 @@ int encode_enum3(bitvec_t *out, i64 i, int n, bitvec_t *in, i64 j)
 {
   int k,d,w,m;
   bitvec_t x;
-  int len;
+
   
   m = 0;
   for (k=0; k<n; k++) m += getbit(in,j+k);
@@ -546,9 +548,9 @@ int encode_enum3(bitvec_t *out, i64 i, int n, bitvec_t *in, i64 j)
 int decode_enum(bitvec_t *in, i64 i, int n, bitvec_t *out, int *r)
 {
   int k,d,m,m2,n2;
-  bitvec_t x,y,x2,y2;
+  bitvec_t x,y,x2;
   int len;
-  int ll,rr,mm;
+
 
   m = getbits(in,i,logD);
   len = logD;
@@ -641,9 +643,9 @@ int decode_enum(bitvec_t *in, i64 i, int n, bitvec_t *out, int *r)
 int decode_enum1(bitvec_t *in, i64 i, int n, bitvec_t *out, int *r)
 {
   int k,d,m,m2,n2;
-  bitvec_t x,y,x2,y2;
+  bitvec_t x,y,x2;
   int len;
-  int ll,rr,mm;
+
 
   m = getbits(in,i,logD+1);
   len = logD;
@@ -700,9 +702,9 @@ int decode_enum1(bitvec_t *in, i64 i, int n, bitvec_t *out, int *r)
 int decode_enum2(comparray *da, i64 i, int n, bitvec_t *out, int *r)
 {
   int k,d,m,m2;
-  bitvec_t x,y,x2,y2;
+  bitvec_t x,y,x2;
   int len;
-  int ll,rr,mm;
+
   
   bitvec_t *in;
   
@@ -794,9 +796,9 @@ int decode_enum2(comparray *da, i64 i, int n, bitvec_t *out, int *r)
 int decode_enum3(bitvec_t *in, i64 i, int n, bitvec_t *out, int m)
 {
   int k,d,m2,n2;
-  bitvec_t x,y,x2,y2;
+  bitvec_t x,y,x2;
   int len;
-  int ll,rr,mm;
+
 
   if (m == D) {
     *out = (bitvec_t)-1;
@@ -892,7 +894,7 @@ int skip_enum1(bitvec_t *in, i64 i, int n, int *r)
 
 int skip_enum2(comparray *da, i64 i, int n, int *r)
 {
-  int d,m,m2;
+  int d,m;
   bitvec_t x;
   int len;
   bitvec_t *in;
@@ -934,9 +936,9 @@ int enumtbl_kwp[MAXGRP+1][NCK*MAXGRP];
 static void make_tables(void)
 {
 i64 i,j,k;
-i64 n,m,w;
-i64 x,y,z;
-i64 p,q;
+i64 n,w;
+i64 x,y;
+i64 p;
 int l, l_min, l_max;
 int f;
 
@@ -1086,8 +1088,8 @@ void comparray_construct(comparray *da, i64 n, bitvec_t *buf, ushort L, int opt)
   double ff[D+1];
   bitvec_t buftmp[1],buftmp2[2];
   int runlen, d;
-  int *num_ones,*num_blk,*w_blk,blk;
-  int w2,w3;
+  int *num_ones = NULL, *num_blk = NULL, *w_blk = NULL, blk = 0;
+  int w2;
 
 
   comparray_maketbl();
@@ -1486,7 +1488,7 @@ void comparray_read(comparray *da, uchar **map)
   i64 i;
   uchar *p,*q;
   ushort L;
-  i64 rr, rrr;
+  i64 rr;
 
 //  comparray_maketbl();
   p = q = *map;
@@ -1605,7 +1607,7 @@ int comparray_getbit(comparray *da, i64 i)
     return c;
   } else if (da->opt & SDARRAY_SUC) {
     i64 blk,b;
-    i64 k,w,k2,w2,j2,nn,l,m;
+    i64 k,w,k2 = 0,w2 = 0,j2,nn,l,m;
     i64 ofs2;
 
     ofs += decodegamma(buf,ofs,&blk);
@@ -1657,7 +1659,7 @@ i64 comparray_rank(comparray *da, i64 i)
   
   i64 j,k;
   i64 ofs;
-  i64 r,r2;
+  i64 r;
   int rr;
   i64 d,runlen;
 
@@ -1704,7 +1706,7 @@ i64 comparray_rank(comparray *da, i64 i)
     }
   } else if (da->opt & SDARRAY_SUC) {
     i64 blk,b;
-    i64 k,w,k2,w2,j2,nn,l,m;
+    i64 k,w,k2 = 0, w2 = 0,j2,nn,l,m;
     i64 ofs2;
 
     ofs += decodegamma(buf,ofs,&blk);
@@ -1761,7 +1763,7 @@ i64 comparray_rank_and_bit(comparray *da, i64 i, int *c)
   
   i64 j,k;
   i64 ofs;
-  i64 r,r2;
+  i64 r;
   int rr;
   i64 d,runlen;
 
@@ -1813,7 +1815,7 @@ i64 comparray_rank_and_bit(comparray *da, i64 i, int *c)
     }
   } else if (da->opt & SDARRAY_SUC) {
     i64 blk,b;
-    i64 k,w,k2,w2,j2,nn,l,m;
+    i64 k,w,k2 = 0, w2 = 0,j2,nn,l,m;
     i64 ofs2;
 
     ofs += decodegamma(buf,ofs,&blk);

@@ -94,7 +94,7 @@ int pre_variant_stats_db(sqlite3 *db) {
                         controls_percent_dominant DOUBLE, \
                         cases_percent_recessive DOUBLE, \
                         controls_percent_recessive DOUBLE)";
-    if (rc = sqlite3_exec(db, sql1, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql1, NULL, NULL, &error_msg))) {
         LOG_FATAL_F("Stats database failed: %s\n", error_msg);
     }
     
@@ -102,7 +102,7 @@ int pre_variant_stats_db(sqlite3 *db) {
                         name TEXT, \
                         missing_genotypes INT64, \
                         mendelian_errors INT64)";
-    if (rc = sqlite3_exec(db, sql2, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql2, NULL, NULL, &error_msg))) {
         LOG_FATAL_F("Stats database failed: %s\n", error_msg);
     }
     
@@ -115,20 +115,20 @@ int post_variant_stats_db(sqlite3 *db) {
 
     // Create chunks index
     char *sql1 = "CREATE INDEX record_query_fields_chromosome_start_end_idx ON chunk (chromosome, start, end)";
-    if (rc = sqlite3_exec(db, sql1, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql1, NULL, NULL, &error_msg))) {
         LOG_ERROR_F("Stats database failed creating VCF index: %s\n", error_msg);
     }
     
     // Create samples index
     char *sql2 = "CREATE INDEX sample_name_idx ON sample_stats (name)";
-    if (rc = sqlite3_exec(db, sql2, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql2, NULL, NULL, &error_msg))) {
         LOG_ERROR_F("Stats database failed creating samples index: %s\n", error_msg);
     }
     
     // Create table with chromosome counts
     char *sql3 = "CREATE TABLE IF NOT EXISTS chromosome_count AS \
                   SELECT count(*) as count, chromosome from variant_stats group by chromosome order by chromosome ASC;";
-    if (rc = sqlite3_exec(db, sql3, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql3, NULL, NULL, &error_msg))) {
         LOG_ERROR_F("Stats database failed creating chromosome count table: %s\n", error_msg);
     }
     
@@ -154,7 +154,7 @@ int insert_variant_stats_db_fields(void *custom_fields, sqlite3 *db) {
             fields->cases_percent_recessive, fields->controls_percent_recessive);
 
     char *error_msg;
-    if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
+    if ((rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg))) {
         LOG_DEBUG_F("Stats database failed: %s\n", error_msg);
     }
 
@@ -169,7 +169,7 @@ int insert_variant_stats_db_fields_list(array_list_t *list, sqlite3 *db) {
 
     prepare_statement_variant_stats_db_fields(db, &stmt);
 
-    if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message))) {
         LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, error_message);
     }
 
@@ -194,18 +194,20 @@ int insert_variant_stats_db_fields_list(array_list_t *list, sqlite3 *db) {
         sqlite3_bind_double(stmt, 15, fields->cases_percent_recessive);
         sqlite3_bind_double(stmt, 16, fields->controls_percent_recessive);
 
-        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+        if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
             LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
         }
 
         sqlite3_reset(stmt);
     }
 
-    if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message))) {
         LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, error_message);
     }
 
     sqlite3_finalize(stmt);
+    
+    return 0;
 }
 
 //------------------------------------------------------------------------
@@ -236,7 +238,7 @@ int insert_statement_variant_stats_db_fields(void *custom_fields, sqlite3_stmt *
     sqlite3_bind_double(stmt, 15, fields->cases_percent_recessive);
     sqlite3_bind_double(stmt, 16, fields->controls_percent_recessive);
 
-    if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+    if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
         LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
     }
 
@@ -260,7 +262,7 @@ int insert_sample_stats_db_fields_list(array_list_t *list, sqlite3 *db) {
 
     prepare_statement_sample_stats_db_fields(db, &stmt);
 
-    if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &error_message))) {
         LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, error_message);
     }
 
@@ -272,16 +274,19 @@ int insert_sample_stats_db_fields_list(array_list_t *list, sqlite3 *db) {
         sqlite3_bind_int64(stmt,   2, fields->missing_genotypes);
         sqlite3_bind_int64(stmt,   3, fields->mendelian_errors);
 
-        if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+        if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
             LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
         }
 
         sqlite3_reset(stmt);
     }
 
-    if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message)) {
+    if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &error_message))) {
         LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, error_message);
     }
 
     sqlite3_finalize(stmt);
+
+    return 0;
+
 }

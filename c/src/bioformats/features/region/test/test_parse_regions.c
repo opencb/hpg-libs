@@ -111,7 +111,7 @@ END_TEST
  *        Main entry point      *
  * ******************************/
 
-int main (int argc, char *argv) {    
+int main (int argc, char **argv) {    
     Suite *fs = create_test_suite();
     SRunner *fs_runner = srunner_create(fs);
     srunner_run_all(fs_runner, CK_NORMAL);

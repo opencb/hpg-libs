@@ -153,7 +153,7 @@ void set_field_value_in_sample(char **sample, int position, char* value) {
     assert(value);
     assert(position >= 0);
 
-    int field_pos = 0;
+
     int num_splits;
 
     char **splits = split(*sample, ":", &num_splits);

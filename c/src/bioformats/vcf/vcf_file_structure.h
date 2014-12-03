@@ -41,6 +41,17 @@ enum structural_variation_direction { SV_DIRECTION_LEFT, SV_DIRECTION_RIGHT };
 enum structural_variation_type { SV_INS, SV_DEL, SV_DUP, SV_INV, SV_CNV, SV_TRANSLOC };
 
 /**
+ * Bit mask to differentiate compression.
+ */
+enum compression {
+    VCF_FILE_VCF    = 0x01,
+    VCF_FILE_GVCF   = 0x02,
+    VCF_FILE_GZIP   = 0x04,
+    VCF_FILE_BGZIP  = 0x08,
+    VCF_FILE_BCF    = 0x10,
+};
+
+/**
  * @brief Entry in the VCF document header.
  * @details Entry in the header of the VCF file. An entry can be of the form:
  * 
@@ -118,6 +129,7 @@ KHASH_MAP_INIT_STR(ids, int);
  */
 KHASH_MAP_INIT_STR(struct_variants, vcf_structural_variation_t*);
 
+
 /**
  * @brief Structure that specifies a VCF file.
  * @details Structure that specifies a VCF file. The physical file is defined by its file descriptor, 
@@ -135,6 +147,7 @@ typedef struct vcf_file {
 
     char* format;       /**< Format and version (set in the first line of the VCF file) */
     int format_len;     /**< Length of the format field */
+    int compression;    /**< Compression type (VCF_FILE_(VCF/GZIP/BGZIP/BCF)) */
     
     array_list_t *header_entries;   /**< Entries in the header of the file (metadata) */
     array_list_t *samples_names;    /**< Names of the sequenced samples */

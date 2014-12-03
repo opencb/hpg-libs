@@ -1,10 +1,27 @@
 
 #include "fastq_gzfile.h"
 
+static size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
+	assert(data);
+	(*data)[position_in_data] = c;
+	// Text too long to be stored in 'data', realloc
+	if (position_in_data == max_len - 1) {
+//		printf("reallocating data:  position_in_data: %i, max_len: %lu, data: %c\n", position_in_data, max_len, c);
+		char *aux = realloc(*data, max_len * 2);
+		if (aux) {
+			*data = aux;
+			return max_len * 2;
+		} else {
+			LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
+		}
+	}
+	return max_len;
+}
+
 
 fastq_gzfile_t *fastq_gzopen(char *filename) {
 	FILE *fd = fopen(filename, (char*)"r");
-	char log_message[50];
+
 
 	if (fd == NULL) {
 		LOG_FATAL_F("Error opening file: %s\n", filename);
@@ -42,11 +59,11 @@ void fastq_gzclose(fastq_gzfile_t *fq_gzfile) {
 
 size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_gzfile_t *fq_gzfile) {
 	size_t count = 0;
-	char header1[MAX_READ_ID_LENGTH_GZ];
-	char sequence[MAX_READ_SEQUENCE_LENGTH_GZ];
-	char header2[MAX_READ_ID_LENGTH_GZ];
-	char qualities[MAX_READ_SEQUENCE_LENGTH_GZ];
-	int header_length, sequence_length, quality_length;
+
+
+
+
+
 	fastq_read_t *read;
 
 	size_t num_lines_to_read = 4 * num_reads;	/* Each read consists of 4 lines */
@@ -195,11 +212,11 @@ size_t fastq_gzread_se(array_list_t *reads, size_t num_reads, fastq_gzfile_t *fq
 
 size_t fastq_gzread_bytes_se(array_list_t *reads, size_t bytes_to_read, fastq_gzfile_t *fq_gzfile) {
   size_t count = 0;
-  char header1[MAX_READ_ID_LENGTH_GZ];
-  char sequence[MAX_READ_SEQUENCE_LENGTH_GZ];
-  char header2[MAX_READ_ID_LENGTH_GZ];
-  char qualities[MAX_READ_SEQUENCE_LENGTH_GZ];
-  int header_length, sequence_length, quality_length;
+
+
+
+
+
   fastq_read_t *read;
 
   //	size_t num_lines_to_read = bytes;	/* Each read consists of 4 lines */
@@ -286,7 +303,7 @@ size_t fastq_gzread_bytes_se(array_list_t *reads, size_t bytes_to_read, fastq_gz
 
   // check if have read the expected number of lines
   size_t parsed_chars;
-  size_t parsed_lines = 0;
+
   size_t data_size;
   aux = data;
   for(parsed_chars = 0; parsed_chars < i; parsed_chars++) {	//parsed_chars < bytes_to_read || parsed_lines % 4 == 0
@@ -569,19 +586,3 @@ size_t fastq_gzread_bytes_pe(array_list_t *reads, size_t bytes_to_read, fastq_gz
 }
 
 
-static size_t consume_input(int c, char **data, size_t max_len, int position_in_data) {
-	assert(data);
-	(*data)[position_in_data] = c;
-	// Text too long to be stored in 'data', realloc
-	if (position_in_data == max_len - 1) {
-//		printf("reallocating data:  position_in_data: %i, max_len: %lu, data: %c\n", position_in_data, max_len, c);
-		char *aux = realloc(*data, max_len * 2);
-		if (aux) {
-			*data = aux;
-			return max_len * 2;
-		} else {
-			LOG_FATAL("Could not allocate enough memory for reading input VCF file\n");
-		}
-	}
-	return max_len;
-}

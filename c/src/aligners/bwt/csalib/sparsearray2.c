@@ -245,7 +245,7 @@ i64 sparsearray_sb_construct_end(sparsearray_sb *sa, int opt)
 
 i64 sparsearray_sb_write(sparsearray_sb *sa, int opt, FILE *f)
 {
-  bitvec_t *buf2;
+
   i64 i,n,m,d,n2;
   i64 size;
   int opt_da1, opt_da0;
@@ -282,7 +282,7 @@ i64 sparsearray_sb_write(sparsearray_sb *sa, int opt, FILE *f)
 i64 sparsearray_sb_read(sparsearray_sb *sa, int opt, uchar **map)
 {
   
-  i64 i,n,m,d,n2;
+  i64 n,m,d,n2;
   uchar *p;
   int opt_da1, opt_da0;
 

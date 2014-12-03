@@ -171,7 +171,7 @@ int insert_regions(region_t **regions, int num_regions, region_table_t *table) {
             sqlite3_bind_null(stmt, 5);
         }
 
-        if (rc = sqlite3_step(stmt) == SQLITE_DONE) {
+        if ((rc = sqlite3_step(stmt) == SQLITE_DONE)) {
             // Update value in chunks hashtable
             update_chunks_hash(region->chromosome, UINT_MAX, REGIONS_CHUNKSIZE, 
                                region->start_position, region->end_position, table->chunks);
@@ -503,11 +503,11 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
     
     if (sqlite3_step(query_stmt) == SQLITE_ROW) {
         do {
-            char *chromosome = strdup(sqlite3_column_text(query_stmt, 0));
+	  char *chromosome = strdup((char *)sqlite3_column_text(query_stmt, 0));
             size_t start = sqlite3_column_int64(query_stmt, 1);
             size_t end = sqlite3_column_int64(query_stmt, 2);
-            const char *strand = sqlite3_column_text(query_stmt, 3);
-            const char *type = sqlite3_column_text(query_stmt, 4);
+            const char *strand = (char *)sqlite3_column_text(query_stmt, 3);
+            const char *type = (char *)sqlite3_column_text(query_stmt, 4);
             
             region_t *region = region_new(strdup(chromosome), start, end,
                                           strand ? strdup(strand) : NULL, 
@@ -520,11 +520,11 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
         sqlite3_bind_text(query_stmt, 1, key, strlen(key), SQLITE_STATIC);
         if (sqlite3_step(query_stmt) == SQLITE_ROW) {
             do {
-                const char *chromosome = sqlite3_column_text(query_stmt, 0);
+                const char *chromosome = (char *)sqlite3_column_text(query_stmt, 0);
                 size_t start = sqlite3_column_int64(query_stmt, 1);
                 size_t end = sqlite3_column_int64(query_stmt, 2);
-                const char *strand = sqlite3_column_text(query_stmt, 3);
-                const char *type = sqlite3_column_text(query_stmt, 4);
+                const char *strand = (char *)sqlite3_column_text(query_stmt, 3);
+                const char *type = (char *)sqlite3_column_text(query_stmt, 4);
                 
                 region_t *region = region_new(strdup(chromosome), start, end,
                                               strand ? strdup(strand) : NULL, 

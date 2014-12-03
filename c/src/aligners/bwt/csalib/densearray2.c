@@ -108,7 +108,7 @@ static void make_selecttbl(void)
 {
   i64 i,x,r;
   bitvec_t buf[1];
-
+  buf[0] = 0;
   for (x = 0; x < 256; x++) {
     setbits(buf,0,8,x);
     for (r=0; r<8; r++) selecttbl[(r<<8)+x] = -1;
@@ -232,7 +232,7 @@ i64 densearray_sb_write(densearray_sb *da, i64 n, int opt, FILE *f)
 
 i64 densearray_sb_read(densearray_sb *da, i64 n, int opt, uchar **map)
 {
-  i64 i,m;
+  i64 m;
   i64 nl;
   
   

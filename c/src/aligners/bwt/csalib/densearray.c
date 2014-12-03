@@ -233,7 +233,7 @@ void densearray_make_selecttbl(void)
 {
   i64 i,x,r;
   bitvec_t buf[1];
-
+  buf[0] = 0;
   for (x = 0; x < 256; x++) {
     setbits(buf,0,8,x);
     for (r=0; r<8; r++) selecttbl[(r<<8)+x] = -1;
@@ -488,9 +488,9 @@ void densearray_read(densearray *da, uchar **map)
 {
   i64 nl;
   uchar *p;
-  i64 size;
+
   
-  i64 rr, rrr;
+  i64 rr = 0, rrr = 0;
 
 //  make_selecttbl();
 

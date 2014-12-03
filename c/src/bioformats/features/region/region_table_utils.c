@@ -3,7 +3,7 @@
 region_table_t *parse_regions(char *input_regions, int as_positions, const char *url, const char *species, const char *version) {
     region_table_t *regions_table = new_region_table_from_ws(url, species, version);
 
-    char *saveptr, *token;
+    char *saveptr = NULL, *token;
     size_t token_len;
 
     int num_regions;
@@ -88,7 +88,7 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
             region_t *regions_batch[REGIONS_CHUNKSIZE];
             int avail_regions = 0;
             
-            while ( item = list_remove_item(read_list) ) {
+            while (( item = list_remove_item(read_list) )) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
@@ -174,7 +174,7 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
             region_t *regions_batch[REGIONS_CHUNKSIZE];
             int avail_regions = 0;
             
-            while ( item = list_remove_item(read_list) ) {
+            while (( item = list_remove_item(read_list) )) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {
@@ -224,7 +224,7 @@ int region_table_parse_from_string(char *input_regions, region_table_t *regions_
     int as_positions = 1;
     char *str_1 = input_regions;
     char *str_2 = (char*) malloc (64 * sizeof(char));
-    char *saveptr1, *saveptr2;
+    char *saveptr1 = NULL, *saveptr2 = NULL;
     char *token, *subtoken;
     size_t token_len, subtoken_len;
 
@@ -315,7 +315,7 @@ int region_table_parse_from_gff_file(char *filename, region_table_t *regions_tab
             region_t *regions_batch[REGIONS_CHUNKSIZE];
             int avail_regions = 0;
             
-            while ( item = list_remove_item(read_list) ) {
+            while (( item = list_remove_item(read_list) )) {
                 batch = item->data_p;
                 // For each record in the batch, generate a new region
                 for (int i = 0; i < batch->records->size; i++) {

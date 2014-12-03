@@ -11,6 +11,7 @@ extern "C" {
 #include <string.h>
 #include <unistd.h>
 #include <zlib.h>
+#include <htslib/bgzf.h>
 
 #include <commons/file_utils.h>
 #include <commons/log.h>
@@ -136,6 +137,9 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
  * @return 0 if the file was successfully read and parsed, 1 otherwise
  **/
 int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
+
+/** TODO test*/
+int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 
 /**

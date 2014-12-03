@@ -63,7 +63,7 @@ int create_bam_query_fields(sqlite3 *db) {
   char sql[1000];
   sprintf(sql, "CREATE TABLE record_query_fields (chromosome TEXT, strand CHAR, start INT, end INT, flag CHAR, mapping_quality CHAR, num_errors INT, num_indels INT, indels_length INT, template_length INT, id TEXT)");
 
-  if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
+  if ((rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg))) {
     LOG_FATAL_F("Stats database failed: %s\n", error_msg);
   }
   return 0;
@@ -78,7 +78,7 @@ int create_bam_index(sqlite3 *db) {
 
   // create chunks index
   sprintf(sql, "CREATE INDEX record_query_fields_chromosome_start_end_idx ON record_query_fields (chromosome, start, end)");
-  if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
+  if ((rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg))) {
     LOG_DEBUG_F("Stats database failed creating BAM index: %s\n", error_msg);
   }
   return rc;
@@ -98,7 +98,7 @@ int insert_bam_query_fields(void *custom_fields, sqlite3 *db) {
 	  fields->chr, fields->strand, fields->start, fields->end, fields->flag, fields->mapping_quality, fields->num_errors, fields->num_indels, fields->indels_length, fields->template_length, fields->id);
 
   char *error_msg;
-  if (rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg)) {
+  if ((rc = sqlite3_exec(db, sql, NULL, NULL, &error_msg))) {
     LOG_DEBUG_F("Stats database failed: %s\n", error_msg);
   }
 
@@ -116,7 +116,7 @@ int insert_bam_query_fields_list(array_list_t *list, sqlite3 *db) {
 
   prepare_statement_bam_query_fields(db, &stmt);
 
-  if (rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage)) {
+  if ((rc = sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &errorMessage))) {
     LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
   }
 
@@ -136,18 +136,21 @@ int insert_bam_query_fields_list(array_list_t *list, sqlite3 *db) {
     sqlite3_bind_int(stmt, 10, fields->template_length);
     sqlite3_bind_text(stmt, 11, fields->id, strlen(fields->id), SQLITE_STATIC);
 
-    if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+    if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
       LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
     }
 
     sqlite3_reset(stmt);
   }
 
-  if (rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage)) {
+  if ((rc = sqlite3_exec(db, "COMMIT TRANSACTION", NULL, NULL, &errorMessage))) {
     LOG_DEBUG_F("Stats databases failed: %s (%d)\n", rc, errorMessage);
   }
 
   sqlite3_finalize(stmt);
+
+  return 0;
+
 }
 
 //------------------------------------------------------------------------
@@ -177,7 +180,7 @@ int insert_statement_bam_query_fields(void *custom_fields,
   sqlite3_bind_int(stmt, 10, fields->template_length);
   sqlite3_bind_text(stmt, 11, fields->id, strlen(fields->id), SQLITE_STATIC);
 
-  if (rc = sqlite3_step(stmt) != SQLITE_DONE) {
+  if ((rc = sqlite3_step(stmt) != SQLITE_DONE)) {
     LOG_DEBUG_F("Stats databases failed: %s (%d)\n", sqlite3_errmsg(db), sqlite3_errcode(db));
   }
 

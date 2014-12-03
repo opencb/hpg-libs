@@ -29,6 +29,10 @@
  * array_list functions
  */
 
+int compare_items(const void *item1, const void *item2) {
+	return item1 != item2;
+}
+
 array_list_t* array_list_new(size_t initial_capacity, float realloc_factor, int SYNC_MODE) {
 	array_list_t *array_list_p = (array_list_t*) malloc(sizeof(array_list_t));
 	array_list_p->capacity = initial_capacity;
@@ -68,6 +72,26 @@ array_list_t* array_list_dup(array_list_t *array_list_p) {
 	return new_list;
 }
 
+static array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
+	// Capacity is increased in factor.
+	size_t new_capacity;// = array_list_t->capacity;
+	if(!inc_size) {
+		new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
+		//new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
+	}else {
+		new_capacity = array_list_p->capacity + inc_size;
+	}
+	// Realloc items with the new capacity. Size remains equals.
+	void **items_aux = (void**) realloc(array_list_p->items, new_capacity * sizeof(void*));
+	if(items_aux != NULL) {
+		array_list_p->items = items_aux;
+		array_list_p->capacity = new_capacity;
+	}else {
+		LOG_ERROR("Error in reallocate");
+	}
+	return array_list_p;
+}
+ 
 //void array_list_init(size_t initial_capacity, float realloc_factor, int SYNC_MODE, array_list_t *array_list_p) {
 //	array_list_p->capacity = initial_capacity;
 //	array_list_p->size = 0;
@@ -390,29 +414,6 @@ void array_list_print(array_list_t *array_list_p) {
 // 	return NULL;
 // }
 
-array_list_t *reallocate(array_list_t * array_list_p, size_t inc_size) {
-	// Capacity is increased in factor.
-	size_t new_capacity;// = array_list_t->capacity;
-	if(!inc_size) {
-		new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
-		//new_capacity = (int)ceil((float)array_list_p->capacity * array_list_p->realloc_factor);
-	}else {
-		new_capacity = array_list_p->capacity + inc_size;
-	}
-	// Realloc items with the new capacity. Size remains equals.
-	void **items_aux = (void**) realloc(array_list_p->items, new_capacity * sizeof(void*));
-	if(items_aux != NULL) {
-		array_list_p->items = items_aux;
-		array_list_p->capacity = new_capacity;
-	}else {
-		LOG_ERROR("Error in reallocate");
-	}
-	return array_list_p;
-}
-
-int compare_items(const void *item1, const void *item2) {
-	return item1 != item2;
-}
 
 int array_list_swap(const int pos1, const int pos2, array_list_t *array_list_p){
 	

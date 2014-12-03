@@ -13,7 +13,6 @@ fastq_file_t *fastq_fopen(char *filename) {
 
 fastq_file_t *fastq_fopen_mode(char *filename, char *mode) {
 	FILE *fd = fopen(filename, mode);
-	char log_message[50];
 
 	if (fd == NULL) {
 		LOG_FATAL_F("Error opening file: %s, mode (%s)\n", filename, mode);
