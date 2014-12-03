@@ -1,11 +1,12 @@
 
+import os 
 
 Import('third_party_env', 'compiler', 'debug')
 
 # initialize environment
 third_party_libs = []
 third_party_env['objects'] = []
-third_party_env['CPPPATH'] = ['#/third_party/']
+third_party_env['CPPPATH'] = [os.getcwd()]
 third_party_env.Decider('MD5-timestamp')
 
 if compiler == 'icc':
@@ -38,7 +39,7 @@ third_party_libs += configenv.Object(Glob('config/*.c'))
 # Compile jansson/ objects
 janssonenv = third_party_env.Clone()
 janssonenv['CFLAGS'] +=  ' -DHAVE_CONFIG_H -Wall -Wextra -Wdeclaration-after-statement -fPIC -DPIC'
-janssonenv['CPPPATH'] += ['#/third_party/jansson/']
+janssonenv['CPPPATH'] += [os.getcwd() + '/jansson']
 
 third_party_libs += janssonenv.Object(Glob('jansson/*.c'))
 

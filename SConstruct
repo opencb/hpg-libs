@@ -10,7 +10,7 @@ compiler = ARGUMENTS.get('compiler', 'gcc')
 #Paths
 system_include = '/usr/include'
 system_libpath = '/usr/lib'
-third_party_path = '#/third_party'
+third_party_path = os.getcwd() + '/third_party'
 
 build_tools = ['default']
 if compiler == 'icc':
