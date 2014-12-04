@@ -138,7 +138,17 @@ int vcf_gzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
  **/
 int vcf_gzip_read_and_parse_bytes(size_t batch_bytes, vcf_file_t *file);
 
-/** TODO test*/
+/**
+ * @brief Read and parse blocks of the given number of lines from a bgzipped VCF file
+ * @details Read and parse blocks of the given number of lines from a bgzipped VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
+ * 
+ * This is a wrapper to htslib.
+ * 
+ * @param batch_lines The number of lines to read and parse
+ * @param file The file the data will be read from
+ * @return 0 if the file was successfully read and parsed, 1 otherwise
+ **/
 int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file);
 
 
@@ -185,6 +195,17 @@ int vcf_gzip_light_read(size_t batch_lines, vcf_file_t *file);
  * @return 0 if the file was successfully read, 1 otherwise
  **/
 int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file);
+
+/**
+ * @brief Read (without parsing) blocks of the given number of lines from a bgzipped VCF file
+ * @details Read blocks of the given number of lines from a bgzipped VCF file. The data read will be stored in 
+ * members of the vcf_file_t structure.
+ * 
+ * @param batch_lines The number of lines to read
+ * @param file The file the data will be read from
+ * @return 0 if the file was successfully read, 1 otherwise
+ **/
+int vcf_bgzip_light_read(size_t batch_lines, vcf_file_t *file);
 
 /**
  * @brief Read (without parsing) blocks of the given number of lines from multiple VCF files
