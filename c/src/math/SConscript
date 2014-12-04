@@ -1,24 +1,10 @@
 import os
 Import('env', 'debug', 'compiler')
 
-if compiler == 'icc':
-   math_env = Environment(tools = [ 'default', 'intelc' ],
-                     CFLAGS = '-Wall -std=c99 -openmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
-		                 LINKFLAGS = ['openmp'],
-                     LIBS = ['gsl', 'irc' ], 
-                     CPPPATH = [ '..', '.', 'data' ])
-else:
-   math_env = Environment(tools = [ 'default' ],
-                     CFLAGS = '-Wall -std=c99 -fopenmp -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_REENTRANT ',
-		                 LINKFLAGS = ['fopenmp'],
-                     LIBS = ['gsl'], 
-                     CPPPATH = [ '..', '.', 'data' ])
+math_env = env.Clone()
 
-if os.environ.has_key('CPATH'):
-    for dir in os.getenv('CPATH').split(':'):
-        math_env.Append(CPPPATH=[dir])
-
-math_env.Decider('MD5-timestamp')
+math_env['LIBS'] += ['gsl']
+math_env['CPPPATH'] += [ '..', '.', 'data' ]
 
 
 # Targets
