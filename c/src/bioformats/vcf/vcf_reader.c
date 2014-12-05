@@ -472,7 +472,7 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
                 }
             }
         }
-        if (c <= 0) {  // bgzf_getc returns -1 if eof or error was found
+        if (c < 0) {  // bgzf_getc returns -1 if eof or error was found
             eof_found = 1;
         }
         // Process batch
@@ -815,40 +815,31 @@ int vcf_bgzip_light_read(size_t batch_lines, vcf_file_t *file) {
     LOG_DEBUG("Using file-IO functions for file loading\n");
 
     size_t max_len = 256;
-    char *data = (char*) calloc (max_len, sizeof(char));
+    char *data;
     
     int exit_status;
     int eof_found = 0;
     int c = 0;
-    size_t lines = 0, i = 0;
-    while (!eof_found) {    // while remaining blocks
-        while ((c = bgzf_getc(bgzf_file)) >= 0) {
-            max_len = consume_input(c, &data, max_len, file->data_len);
-            (file->data_len)++;
-            if (c == '\n') {
-                lines++;
-                if (lines == batch_lines) {
-                    break;
+    size_t lines = 0;
+    
+    while (!eof_found) {
+        char *data = (char*) calloc (max_len, sizeof(char));
+        int c = 0;
+        int lines = 0;
+
+        for (int i = 0; !eof_found && lines < batch_lines; i++) {
+            c = bgzf_getc(bgzf_file);
+
+            if (c >= 0) {   // bgzf_getc returns -1 if eof or error was found
+                max_len = consume_input(c, &data, max_len, i);
+                if (c == '\n') {
+                    lines++;
                 }
+            } else {
+                eof_found = 1;
             }
         }
-        if (c <= 0) {  // bgzf_getc returns -1 if eof or error was found
-            eof_found = 1;
-        }
-        // Process batch
-        if (lines == batch_lines) {
-            list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
-            list_insert_item(item, file->text_batches);
 
-
-            // Setup for next batch
-            i = 0;
-            lines = 0;
-            data = (char*) calloc(max_len, sizeof (char));
-        }
-    }
-    // Consume last batch
-    if (lines > 0 && lines < batch_lines) {
         list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
         list_insert_item(item, file->text_batches);
     }
