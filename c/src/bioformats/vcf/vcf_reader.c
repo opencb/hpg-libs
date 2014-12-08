@@ -458,10 +458,9 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
     int cs = 0;
     char *p, *pe;
     
-    kstring_t result = {0, 0, 0};
-    int eof_found = 0, length1;
+    int eof_found = 0;
     int c = 0;
-    size_t lines = 0, i = 0;
+    size_t lines = 0;
     while (!eof_found) {    // while remaining blocks
         while ((c = bgzf_getc(bgzf_file)) >= 0) {
             max_len = consume_input(c, &data, max_len, file->data_len);
@@ -473,7 +472,7 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
                 }
             }
         }
-        if (c <= 0) {  // bgzf_getc returns -1 if eof or error was found
+        if (c < 0) {  // bgzf_getc returns -1 if eof or error was found
             eof_found = 1;
         }
         // Process batch
@@ -486,7 +485,6 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
 
             // Setup for next batch
             status->current_batch = vcf_batch_new(batch_lines);
-            i = 0;
             lines = 0;
             data = (char*) calloc(max_len, sizeof (char));
         }
@@ -508,6 +506,7 @@ int vcf_bgzip_read_and_parse(size_t batch_lines, vcf_file_t *file) {
 
     // Free status->current_xxx pointers if not needed in another module
     vcf_reader_status_free(status);
+    bgzf_close(bgzf_file);
 
     return cs ;
 
@@ -803,6 +802,53 @@ int vcf_gzip_light_read_bytes(size_t batch_bytes, vcf_file_t *file) {
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
+int vcf_bgzip_light_read(size_t batch_lines, vcf_file_t *file) {
+    assert(file);
+    assert(batch_lines > 0);
+
+    BGZF* bgzf_file = bgzf_open(file->filename, "r");
+    if (bgzf_file == NULL) {
+        LOG_ERROR("bgzipped file could not be decompressed\n");
+        return 1;
+    }
+
+    LOG_DEBUG("Using file-IO functions for file loading\n");
+
+    size_t max_len = 256;
+    char *data;
+    
+    int exit_status;
+    int eof_found = 0;
+    int c = 0;
+    size_t lines = 0;
+    
+    while (!eof_found) {
+        char *data = (char*) calloc (max_len, sizeof(char));
+        int c = 0;
+        int lines = 0;
+
+        for (int i = 0; !eof_found && lines < batch_lines; i++) {
+            c = bgzf_getc(bgzf_file);
+
+            if (c >= 0) {   // bgzf_getc returns -1 if eof or error was found
+                max_len = consume_input(c, &data, max_len, i);
+                if (c == '\n') {
+                    lines++;
+                }
+            } else {
+                eof_found = 1;
+            }
+        }
+
+        list_item_t *item = list_item_new(get_num_vcf_batches(file), 1, data);
+        list_insert_item(item, file->text_batches);
+    }
+    
+    exit_status = bgzf_check_EOF(bgzf_file) != 1;   // bgzf_check_EOF() returns 1 if EOF is present
+    bgzf_close(bgzf_file);
+    
+    return exit_status;
+}
 
 /* **********************************************
  *      Only reading from multiple files        *
