@@ -173,6 +173,16 @@ int fastq_fread_paired_batch_max_size2(fastq_batch_t *fq_batch, unsigned long ma
 int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions, fastq_file_t *fq_file);
 
 /**
+*  @brief Writes reads stored in a array list to file 
+*  @param reads pointer to array list of fastq reads
+*  @param fq_file pointer to the fastq file handler
+*  @return number of written reads
+*  
+*  Writes reads stored in a buffer to file using the given file handler
+*/
+int fastq_fwrite(array_list_t *reads, fastq_file_t *fq_file);
+
+/**
 *  @brief Writes reads stored in a buffer to file 
 *  @param buffer_reads pointer to fastq reads buffer
 *  @param num_writes number of reads to write to file
@@ -181,7 +191,7 @@ int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions
 *  
 *  Writes reads stored in a buffer to file using the given file handler
 */
-int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file);
+int fastq_fwrite_buffer(fastq_read_t *buffer_reads, int num_writes, fastq_file_t *fq_file);
 
 /**
 *  @brief Returns the number of reads of a fastq file

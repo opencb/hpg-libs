@@ -146,7 +146,7 @@ int main (int argc, char *argv[]) {
 
 	if(!strcmp("filter", argv[1])) {
 		fastq_file_t *file = fastq_fopen(argv[2]);
-		fastq_filter_options_t *fastq_filter_options = fastq_filter_options_new(50, 600, 10, 200, 5, 100);
+		fastq_filter_options_t *fastq_filter_options = fastq_filter_options_new(50, 600, 10, 200, 5, 0, 0, 0, 0, 0, 0, 100);
 		array_list_t *reads = array_list_new(200000, 1.8, COLLECTION_MODE_SYNCHRONIZED);
 		array_list_t *passed_reads = array_list_new(200000, 1.8, COLLECTION_MODE_SYNCHRONIZED);
 		array_list_t *failed_reads = array_list_new(200000, 1.8, COLLECTION_MODE_SYNCHRONIZED);

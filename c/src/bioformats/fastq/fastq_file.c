@@ -536,21 +536,43 @@ int fastq_fread_index_positions(fastq_read_t* buffer_reads, int *index_positions
 	return count;
 }
 
-int fastq_fwrite(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file) {
-	int count = 0;
+//--------------------------------------------------------------------
 
-	while (count < num_writes) {
-		fprintf(fq_file->fd, "%s\n", buffer_reads->id);
-		fprintf(fq_file->fd, "%s\n", buffer_reads->sequence);
-		fprintf(fq_file->fd, "+\n");
-		fprintf(fq_file->fd, "%s\n", buffer_reads->quality);
+int fastq_fwrite(array_list_t *reads, fastq_file_t *fq_file) {
+  fastq_read_t *fq_read;
+  size_t num_items = array_list_size(reads);
 
-		buffer_reads++;
-		count++;
-	}
+  for (size_t i = 0; i < num_items; i++) {
+    fq_read = array_list_get(i, reads);
 
-	return count;
+    fprintf(fq_file->fd, "%s\n", fq_read->id);
+    fprintf(fq_file->fd, "%s\n", fq_read->sequence);
+    fprintf(fq_file->fd, "+\n");
+    fprintf(fq_file->fd, "%s\n", fq_read->quality);
+  }
+
+  return num_items;
 }
+
+
+//--------------------------------------------------------------------
+
+int fastq_fwrite_buffer(fastq_read_t* buffer_reads, int num_writes, fastq_file_t *fq_file) {
+  int count = 0;
+  while (count < num_writes) {
+    fprintf(fq_file->fd, "%s\n", buffer_reads->id);
+    fprintf(fq_file->fd, "%s\n", buffer_reads->sequence);
+    fprintf(fq_file->fd, "+\n");
+    fprintf(fq_file->fd, "%s\n", buffer_reads->quality);
+    
+    buffer_reads++;
+    count++;
+  }
+  
+  return count;
+}
+
+//-----------------------------------------------------
 
 unsigned int fastq_fcount(fastq_file_t *fq_file) {
 	return fq_file->num_reads;

@@ -25,24 +25,37 @@ extern "C" {
  *
  */
 typedef struct fastq_filter_options {
-	int min_length;
-	int max_length;
+  int min_read_length;
+  int max_read_length;
 
-	float min_quality;
-	float max_quality;
+  int min_read_quality;
+  int max_read_quality;
+  int max_out_of_quality;
 
-	int max_Ns;
-	int max_N_out_quality;
+  int left_length;
+  int min_left_quality;
+  int max_left_quality;
 
+  int right_length;
+  int min_right_quality;
+  int max_right_quality;
+
+  int max_N;
 } fastq_filter_options_t;
 
 
-fastq_filter_options_t *fastq_filter_options_new(int min_length, int max_lentgh, float min_quality, float max_quality, int max_Ns, int max_N_out_quality);
+fastq_filter_options_t *fastq_filter_options_new(int min_read_length, int max_read_length,
+						 int min_read_quality, int max_read_quality,
+						 int max_out_of_quality, int left_length,
+						 int min_left_quality, int max_left_quality,
+						 int right_length, int min_right_quality,
+						 int max_right_quality, int max_N);
+
 
 void fastq_filter_options_free(fastq_filter_options_t *options);
 
-array_list_t *fastq_filter(array_list_t *reads, array_list_t *passed, array_list_t *failed, fastq_filter_options_t *filter_options);
-
+array_list_t *fastq_filter(array_list_t *reads, array_list_t *passed, 
+			   array_list_t *failed, fastq_filter_options_t *filter_options);
 
 #ifdef __cplusplus
 }
