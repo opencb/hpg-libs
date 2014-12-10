@@ -1,7 +1,13 @@
 
-import os 
+import os
+import sys
 
 Import('hpg_c_env', 'hpg_cpp_env', 'compiler', 'debug')
+
+clean = 0
+for opt in sys.argv:
+  if opt == "-c":
+     clean = 1
 
 third_party_c_objs = []
 third_party_cpp_objs = []
@@ -47,7 +53,10 @@ third_party_c_objs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', '
 # we don't compile samtools and hts ourselves, delegate in their makefiles
 # that generate samtools/libbam.a and htslib/libhts.a
 from subprocess import call
-call("make")
+if clean:
+   os.system("cd htslib/ && make clean && cd ../samtools/ && make clean")
+else:
+   os.system("cd .. && git submodule init && git submodule update && cd third_party/htslib/ && git checkout master && make && cd ../samtools/ && git checkout master && make && cd ../")
 hpg_c_env['CPPPATH'] += [os.getcwd() + '/htslib/']
 
 # return all objects
