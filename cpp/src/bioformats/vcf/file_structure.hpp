@@ -44,11 +44,11 @@ namespace opencb
     
     struct Source 
     {
-        std::string name;       /**< Name of the source to interact with (file, stdin...) */
-        char mode;              /**< Mode for interaction (w/r/a) */
+        std::string name;           /**< Name of the source to interact with (file, stdin...) */
+        char mode;                  /**< Mode for interaction (w/r/a) */
         
-        std::string version;    /**< VCF version */
-        unsigned input_format;  /**< Mask that stores whether the input is plain/gzipped VCF, BCF, etc */
+        unsigned int input_format;  /**< Mask that stores whether the input is plain/gzipped VCF, BCF, etc */
+        std::string version;        /**< VCF version */
 
         std::vector<MetaEntry> meta_entries;    /**< Entries in the file meta-data */
         std::vector<std::string> samples_names; /**< Names of the sequenced samples */

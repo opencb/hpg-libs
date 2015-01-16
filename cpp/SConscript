@@ -1,0 +1,6 @@
+Import('hpg_cpp_env', 'debug', 'compiler')
+
+src = SConscript('src/bioformats/vcf/SConscript', exports = ['hpg_cpp_env', 'debug', 'compiler'])
+test = SConscript('test/bioformats/vcf/SConscript', exports = ['hpg_cpp_env', 'debug', 'compiler'])
+
+Depends(test, src)
