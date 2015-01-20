@@ -3,3 +3,4 @@ Import('hpg_cpp_env', 'debug', 'compiler')
 print hpg_cpp_env['CPPPATH']
 
 hpg_cpp_env.Program("record.test", hpg_cpp_env['objects'] + [ "record_test.cpp" ])
+hpg_cpp_env.Program("meta_entry.test", hpg_cpp_env['objects'] + [ "metaentry_test.cpp" ])
