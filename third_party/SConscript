@@ -11,8 +11,6 @@ for opt in sys.argv:
 
 third_party_c_objs = []
 third_party_cpp_objs = []
-hpg_c_env['CPPPATH'] += [os.getcwd()]
-hpg_cpp_env['CPPPATH'] += [os.getcwd()]
 
 # Compile argtable/ objects
 argtableenv = hpg_c_env.Clone()

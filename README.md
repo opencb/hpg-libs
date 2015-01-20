@@ -13,12 +13,12 @@ C libraries for the High Performance Genomics (HPG) project:
 Each library must be compiled independently using SCons. A static library file (.a) will be generated as a result in c/build/ folder.
 
 BUILDING
-Scons is used as building system, to build the library download 'next' branch (for the most recent library), and execute:
+Scons is used as building system, to build the library download 'develop' branch (for the most recent library), and execute:
 
  $ scons
 
 
-GCC4.4+ is the only requirement.
+GCC4.4+ is the only requirement for both C and C++ components. Boost libraries are a requirement for C++.
 
 
 DOCUMENTATION
@@ -30,6 +30,6 @@ You can find more info about HPG project and bioinfo-libs at:
 CONTACT
 You can contact any of the following developers:
  * Joaquin Tarraga (jtarraga@cipf.es)
- * Cristina Y. Gonzalez (cgonzalez@cipf.es)
+ * Cristina Y. Gonzalez (cyenyxe@ebi.ac.uk)
  * Ignacio Medina (imedina@cipf.es)
  * Hector Martinez (martineh@cipf.es)
