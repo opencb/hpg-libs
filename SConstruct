@@ -54,12 +54,14 @@ hpg_c_env.Decider('MD5-timestamp')
 
 
 #Build C++ environment
-hpg_cpp_env = Environment(TOOLS = build_tools,
-		  CCFLAGS = ' -Wall -std=c++11 ',
+hpg_cpp_env = Environment(
+#TOOLS = build_tools,
+                  CXX = 'clang++',
+		  CCFLAGS = ' -Wall -std=c++11',
 		  CPPPATH = ['.', '#', '#/cpp/src', system_include, '%s/libxml2' % system_include, '%s' % third_party_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = [],
-		  LIBS = ['xml2', 'm', 'z', 'curl'])
+		  LIBS = ['xml2', 'm', 'z', 'curl', 'boost_regex'])
 
 
 if os.environ.has_key('CPATH'):
