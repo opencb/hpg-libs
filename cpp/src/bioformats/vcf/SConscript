@@ -8,7 +8,8 @@ hpg_cpp_env['objects'] = hpg_cpp_env.Object([
                                              "parsing_state.cpp",
                                              "record.cpp",
                                              "report_error_policy.cpp",
-                                             "source.cpp"
+                                             "source.cpp",
+                                             "store_parse_policy.cpp"
                                             ])
 
 # Generate application and libraries using C++ source files
