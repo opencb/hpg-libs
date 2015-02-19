@@ -14,7 +14,33 @@ namespace opencb
             vcf::InputFormat::VCF_FILE_VCF | vcf::InputFormat::VCF_FILE_BGZIP,
             "v4.1",
             {},
-            { "Sample1", "Sample2", "Sample3" }};
+            { "Sample1" }};
+            
+        source.meta_entries.emplace("FORMAT",
+            vcf::MetaEntry{
+                "FORMAT",
+                {
+                    { "ID", "GT" },
+                    { "Number", "1" },
+                    { "Type", "String" },
+                    { "Description", "Genotype" }
+                },
+                std::make_shared<vcf::Source>(source)
+            }
+        );
+            
+        source.meta_entries.emplace("FORMAT",
+            vcf::MetaEntry{
+                "FORMAT",
+                {
+                    { "ID", "DP" },
+                    { "Number", "1" },
+                    { "Type", "Integer" },
+                    { "Description", "Read depth" }
+                },
+                std::make_shared<vcf::Source>(source)
+            }
+        );
 
         SECTION("Correct arguments") 
         {
@@ -26,9 +52,9 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)} ) );
                 
             CHECK_NOTHROW( (vcf::Record{ 
@@ -39,9 +65,9 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
-                                { "GT", "DP" },  
-                                { "" },
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { "GT", "DP" }, 
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
         }
 
@@ -55,9 +81,9 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -72,9 +98,9 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -89,9 +115,9 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -106,9 +132,9 @@ namespace opencb
                                 { "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
                                 
             CHECK_THROWS_AS( (vcf::Record{ 
@@ -119,9 +145,9 @@ namespace opencb
                                 { "CT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -136,9 +162,9 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
         }
 
@@ -152,9 +178,9 @@ namespace opencb
                                 { "A" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
-                                { "GT", "DP" },  
-                                { "" },
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { "GT", "DP" }, 
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -169,9 +195,9 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -186,9 +212,9 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
                                 
             CHECK_THROWS_AS( (vcf::Record{ 
@@ -199,9 +225,9 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
-                                { "GT", "DP" },  
-                                { "" },
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { "GT", "DP" }, 
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
@@ -216,9 +242,9 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
                                 
             CHECK_THROWS_AS( (vcf::Record{ 
@@ -229,9 +255,9 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { "AN=12", "AF=0.5" }, 
+                                { {"AN", "12"}, {"AF", "0.5"} }, 
                                 { "GT", "DP" }, 
-                                { "" },
+                                { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
                             std::invalid_argument);
         }
