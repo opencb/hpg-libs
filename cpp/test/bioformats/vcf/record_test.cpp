@@ -40,6 +40,31 @@ namespace opencb
                 std::make_shared<vcf::Source>(source)
             });
 
+        source.meta_entries.emplace("INFO",
+            vcf::MetaEntry{
+                "INFO",
+                {
+                    { "ID", "AN" },
+                    { "Number", "A" },
+                    { "Type", "Integer" },
+                    { "Description", "Allele number" }
+                },
+                std::make_shared<vcf::Source>(source)
+        });
+           
+        source.meta_entries.emplace("INFO",
+            vcf::MetaEntry{
+                "INFO",
+                {
+                    { "ID", "AF" },
+                    { "Number", "A" },
+                    { "Type", "Float" },
+                    { "Description", "Allele frequency" }
+                },
+                std::make_shared<vcf::Source>(source)
+            });
+
+         
         SECTION("Correct arguments") 
         {
             CHECK_NOTHROW( (vcf::Record { 
@@ -50,7 +75,7 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)} ) );
@@ -63,7 +88,7 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
@@ -79,7 +104,7 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
@@ -96,7 +121,7 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
@@ -113,7 +138,7 @@ namespace opencb
                                 { "AC", "AT" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
@@ -160,7 +185,7 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
@@ -193,7 +218,7 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
@@ -210,7 +235,7 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
@@ -223,7 +248,7 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),
@@ -240,7 +265,7 @@ namespace opencb
                                 { "T", "C" }, 
                                 1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}) );
@@ -253,7 +278,7 @@ namespace opencb
                                 { "A", "C" }, 
                                 -1.0, 
                                 { "PASS" }, 
-                                { {"AN", "12"}, {"AF", "0.5"} }, 
+                                { {"AN", "12,7"}, {"AF", "0.5,0.3"} }, 
                                 { "GT", "DP" }, 
                                 { "0|1" },
                                 std::make_shared<vcf::Source>(source)}),

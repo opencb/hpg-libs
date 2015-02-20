@@ -19,7 +19,8 @@ namespace opencb
   namespace vcf
   {
     
-    bool is_record_subfield_in_header(std::multimap<std::string, MetaEntry>::iterator begin,
+    bool is_record_subfield_in_header(std::string const & field_value,
+                                      std::multimap<std::string, MetaEntry>::iterator begin,
                                       std::multimap<std::string, MetaEntry>::iterator end);
     
   }
