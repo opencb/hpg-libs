@@ -96,7 +96,7 @@ namespace opencb
 
         float quality;
         std::vector<std::string> filters;
-        std::vector<std::string> info;
+        std::map<std::string, std::string> info;
         std::vector<std::string> format;
 
         std::vector<std::string> samples;
@@ -111,7 +111,7 @@ namespace opencb
                std::vector<std::string> const & alternate_alleles, 
                float const quality, 
                std::vector<std::string> const & filters, 
-               std::vector<std::string> const & info, 
+               std::map<std::string, std::string> const & info, 
                std::vector<std::string> const & format, 
                std::vector<std::string> const & samples,
                std::shared_ptr<Source> const & source);
@@ -209,21 +209,21 @@ namespace opencb
         void check_samples_alleles(std::vector<std::string> const & alleles) const;
         
         /**
-         * Checks that every field in a sample matches the Number specification in the FORMAT meta
+         * Checks that every field in a column matches the Number specification in the meta
          * 
          * @throw std::invalid_argument
          */
-        void check_samples_cardinality(std::string const & field,
-                                       std::string const & number, 
-                                       size_t ploidy) const;
+        void check_field_cardinality(std::string const & field,
+                                     std::string const & number, 
+                                     size_t ploidy) const;
         
         /**
-         * Checks that every field in a sample matches the Type specification in the FORMAT meta
+         * Checks that every field in a column matches the Type specification in the meta
          * 
          * @throw std::invalid_argument
          */
-        void check_samples_type(std::string const & field,
-                                std::string const & type) const;
+        void check_field_type(std::string const & field,
+                              std::string const & type) const;
         
     };
 

@@ -37,7 +37,7 @@
     }
 
     
-    ######### Incorrect section actions #########
+    ######### Global section actions #########
 
     action fileformat_section_error {
         ErrorPolicy::handle_fileformat_section_error(*this);
@@ -47,6 +47,14 @@
     action meta_section_error {
         ErrorPolicy::handle_meta_section_error(*this);
         fhold; fgoto meta_section_skip;
+    }
+    
+    action meta_section_end {
+        try {
+          optional_check_meta_section();
+        } catch (ParsingWarning warn) {
+          ErrorPolicy::handle_meta_section_warning(*this, warn.what());
+        }
     }
 
     action header_section_error {
@@ -150,7 +158,6 @@
         ParsePolicy::handle_header_line(*this);
     }
 
-
     ########### Correct body actions ##########
 
     action record_end {
@@ -158,6 +165,14 @@
         if (n_columns > 9) {
           ParsePolicy::handle_column_end(*this, n_columns);
         }
+        
+        // Check warnings (non-blocking errors but potential mistakes anyway)
+        try {
+          optional_check_body_entry();
+        } catch (ParsingWarning ex) {
+          ErrorPolicy::handle_body_section_warning(*this, ex.what());
+        }
+        
         // Handle all columns in the record
         try {
           ParsePolicy::handle_body_line(*this);
@@ -473,9 +488,14 @@
     bases           = ("A" | "C" | "G" | "T" | "N" | "a" | "c" | "t" | "g" | "n" )+ ;
     # Identifiers may contain some symbols, but not only those 
     # TODO Could it accept more symbols? Comma won't be, for sure
-    identifier      = ( (alnum | "." | "_" | "-" )+ - ("." | "_" | "-")+ ) >token_begin @token_middle %token_end;
+    identifier      = ( (alnum | "." | "_" | "-" )+ - (punct)+ ) >token_begin @token_middle %token_end;
     # ALT ID (can be used from meta entries or in the ALT column)
-    alt_id          = (alpha | ":" | "_" )+ - (":" | "_")+ ;
+    alt_id          = (alpha | ":" | "_" )+ - (punct)+ ;
+    
+    ## A chromosome must be a string with no white-spaces or colons, and may be surronded by < > symbols (for contigs)
+    chrom_basic     = alnum ((alnum | punct - (":" | "<" | ">"))+ - (punct)+)* ;
+    chrom_contig    = "<" chrom_basic ">" ;
+    chromosome      = chrom_basic | chrom_contig ;
     
     # URL inspired in http://stackoverflow.com/questions/8784903/failed-to-convert-url-parser-regular-expression-to-ragel
     scheme    = (alpha (any - [:/?#] - "\n")+ ) ;
@@ -507,7 +527,7 @@
 
     meta_assembly   = url $err(meta_url_err) ;
     
-    meta_contig     = "ID=" %meta_id identifier $err(meta_id_err) 
+    meta_contig     = "ID=" %meta_id chrom_basic >token_begin @token_middle %token_end $err(meta_id_err) 
                         ("," identifier "=" meta_field_value)* ;
                         
     meta_filter     = "ID=" %meta_id identifier $err(meta_id_err)
@@ -559,14 +579,10 @@
                       ("\tFORMAT" ("\t" sample_name)+ )? %header_end ;
 
     # Records
-
-    ## A chromosome must be a string with no white-spaces or colons, and may be surronded by < > symbols (for contigs)
-    chrom_basic     = alnum ((alnum | punct - (":" | "<" | ">"))+ - (punct)+)* ;
-    chrom_contig    = "<" chrom_basic ">" ;
-    chromosome      = chrom_basic | chrom_contig ;
     position        = int_number ;
     
-    record_chrom    = chromosome >token_begin $token_middle %token_end;
+    record_chrom    = chrom_basic >token_begin $token_middle %token_end |
+                      "<" chrom_basic >token_begin $token_middle %token_end ">" ;
     
     record_position = position >token_begin @token_middle %token_end ;
 
@@ -742,5 +758,74 @@ namespace opencb
       }%%
     }
 
+    
+    template <typename Configuration>
+    void Parser<Configuration>::optional_check_meta_section() const
+    {
+      if (source->meta_entries.find("reference") == source->meta_entries.end()) {
+        throw ParsingWarning("It is recommended to include a 'reference' entry in the meta section");
+      }
+    }
+    
+    template <typename Configuration>
+    void Parser<Configuration>::optional_check_body_entry() const
+    {
+      // All samples should have the same ploidy
+      int ploidy = -1;
+      auto samples = ParsePolicy::column_tokens("SAMPLES");
+      for (size_t i = 0; i < samples.size(); ++i) {
+        auto & sample = samples[i];
+        std::vector<std::string> subfields;
+        boost::split(subfields, sample, boost::is_any_of(":"));
+        std::vector<std::string> alleles;
+        boost::split(alleles, subfields[0], boost::is_any_of("|,/"));
+
+        if (ploidy > 0) {
+          if (alleles.size() != ploidy) {
+            throw ParsingWarning("Sample #" + std::to_string(i) + " has " + std::to_string(alleles.size()) + 
+                                 " allele(s), but " + std::to_string(ploidy) + " were found in others");
+          }
+        } else {
+          ploidy = alleles.size();
+        }
+      }
+      
+      // The file should be sorted
+      if (ParsingState::records->size() > 0) {
+        auto & previous_record = ParsingState::records->back();
+        std::string current_chromosome = ParsePolicy::column_tokens("CHROM")[0];
+        int current_position = std::stoi(ParsePolicy::column_tokens("POS")[0]);
+        if (previous_record.chromosome == current_chromosome && 
+            previous_record.position > current_position) {
+          throw ParsingWarning("Genomic position " + current_chromosome + ":" + std::to_string(current_position) + 
+                               " is listed after " + previous_record.chromosome + ":" + std::to_string(previous_record.position));
+        }
+      }
+      
+      // The associated 'contig' meta entry should exist
+      std::string current_chromosome = ParsePolicy::column_tokens("CHROM")[0];
+      typedef std::multimap<std::string, MetaEntry>::iterator iter;
+      std::pair<iter, iter> range = ParsingState::source->meta_entries.equal_range("contig");
+      
+      bool found_in_header = false;
+      for (iter current = range.first; current != range.second; ++current) {
+        auto & key_values = boost::get<std::map < std::string, std::string >> ((current->second).value);
+        if (key_values["ID"] == current_chromosome) {
+          found_in_header = true;
+          break;
+        }
+      }
+      
+      if (!found_in_header) {
+        throw ParsingWarning("Chromosome/contig '" + current_chromosome + "' is not described in a 'contig' meta description");
+      }
+    }
+    
+    template <typename Configuration>
+    void Parser<Configuration>::optional_check_body_section() const
+    {
+      
+    }
+    
   }
 }
