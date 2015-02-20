@@ -13,7 +13,5 @@ hpg_cpp_env['objects'] = hpg_cpp_env.Object([
                                             ])
 
 # Generate application and libraries using C++ source files
-hpg_cpp_env.Program("ragel.out", hpg_cpp_env['objects'] + [ "main.cpp" ])
+hpg_cpp_env.Program("vcf_validator.out", hpg_cpp_env['objects'] + [ "main.cpp" ])
 
-#hpg_cpp_env.Library("ragel.a", "main.cpp")
-#hpg_cpp_env.Library("ragel.so", "main.cpp")
