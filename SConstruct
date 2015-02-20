@@ -81,9 +81,9 @@ else:
 	hpg_cpp_env['LINKFLAGS'] += ['-fopenmp']
 
 if debug == 1:
-    hpg_cpp_env['CFLAGS'] += ' -O0 -g'
+    hpg_cpp_env['CCFLAGS'] += ' -O0 -g'
 else:
-    hpg_cpp_env['CFLAGS'] += ' -O2 '
+    hpg_cpp_env['CCFLAGS'] += ' -O3 '
 
 hpg_cpp_env['objects'] = []
 hpg_cpp_env.Decider('MD5-timestamp')
