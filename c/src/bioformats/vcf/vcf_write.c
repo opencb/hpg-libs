@@ -153,9 +153,15 @@ int write_vcf_delimiter(vcf_file_t *file, FILE *fd) {
 int write_vcf_delimiter_from_samples(char **sample_names, int num_samples, FILE *fd) {
     assert(sample_names || num_samples == 0);
     assert(fd);
-    
-    if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
-        return 1;
+
+    if (num_samples > 0) {    
+        if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
+            return 1;
+        }
+    } else {
+        if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO") < 0) {
+            return 1;
+        }
     }
     
     for (int i = 0; i < num_samples; i++) {

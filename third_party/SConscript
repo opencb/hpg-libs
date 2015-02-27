@@ -50,7 +50,6 @@ third_party_c_objs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', '
 
 # we don't compile samtools and hts ourselves, delegate in their makefiles
 # that generate samtools/libbam.a and htslib/libhts.a
-from subprocess import call
 if clean:
    os.system("cd htslib/ && make clean && cd ../samtools/ && make clean")
 else:
