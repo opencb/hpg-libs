@@ -154,22 +154,22 @@ int write_vcf_delimiter_from_samples(char **sample_names, int num_samples, FILE 
     assert(sample_names || num_samples == 0);
     assert(fd);
 
+    if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO") < 0) {
+        return 1;
+    }
+    
     if (num_samples > 0) {    
-        if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT") < 0) {
+        if (fprintf(fd, "\tFORMAT") < 0) {
             return 1;
         }
-    } else {
-        if (fprintf(fd, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO") < 0) {
-            return 1;
+        
+        for (int i = 0; i < num_samples; i++) {
+            if (fprintf(fd, "\t%s", sample_names[i]) < 0) {
+                return 1;
+            }
         }
     }
     
-    for (int i = 0; i < num_samples; i++) {
-        if (fprintf(fd, "\t%s", sample_names[i]) < 0) {
-            return 1;
-        }
-    }
-       
     if (fprintf(fd, "\n") < 0) {
         return 1;
     }
@@ -211,13 +211,19 @@ int write_vcf_record(vcf_record_t* record, FILE *fd) {
             return 1;
         }
     }
-    if (fprintf(fd, "%.*s\t%.*s\t%.*s", record->filter_len, record->filter, record->info_len, record->info, record->format_len, record->format) < 0) {
+    
+    if (fprintf(fd, "%.*s\t%.*s", record->filter_len, record->filter, record->info_len, record->info) < 0) {
         return 1;
     }
 
-    for (int i = 0; i < record->samples->size; i++) {
-        if (fprintf(fd, "\t%s", (char*) array_list_get(i, record->samples)) < 0) {
+    if (record->samples->size > 0) {
+        if (fprintf(fd, "\t%.*s", record->format_len, record->format) < 0) {
             return 1;
+        }
+        for (int i = 0; i < record->samples->size; i++) {
+            if (fprintf(fd, "\t%s", (char*) array_list_get(i, record->samples)) < 0) {
+                return 1;
+            }
         }
     }
 
