@@ -1,7 +1,5 @@
 Import('hpg_cpp_env', 'debug', 'compiler')
 
-env = hpg_cpp_env
-
 hpg_cpp_env['objects'] = hpg_cpp_env.Object([ 
                                              "abort_error_policy.cpp",
                                              "meta_entry.cpp", 

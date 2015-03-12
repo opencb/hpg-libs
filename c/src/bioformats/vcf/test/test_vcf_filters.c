@@ -508,7 +508,7 @@ END_TEST
  * 	Main entry point	*
  * ******************************/
 
-int main (int argc, char *argv) {
+int main (int argc, char *argv[]) {
     vcf_file_t *file = vcf_open("CEU.exon.2010_03.genotypes__head400.vcf", 10, VCF_FILE_VCF);
     vcf_file_t *quality_file = vcf_open("qualities.vcf", 10, VCF_FILE_VCF);
     vcf_file_t *num_alleles_file = vcf_open("num_alleles_test.vcf", 10, VCF_FILE_VCF);
