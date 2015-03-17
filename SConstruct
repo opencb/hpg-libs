@@ -61,7 +61,7 @@ hpg_cpp_env = Environment(TOOLS = build_tools,
                           CPPPATH = ['.', '#', '#/cpp/src', system_include, '%s/libxml2' % system_include, '%s' % third_party_path], 
                           LIBPATH = [system_libpath],
                           LINKFLAGS = [],
-                          LIBS = ['xml2', 'm', 'z', 'curl', 'boost_regex'])
+                          LIBS = ['xml2', 'm', 'z', 'curl', 'boost_regex', 'pthread'])
 
 if os.environ.has_key('CPPPATH'):
     for dir in os.getenv('CPPPATH').split(':'):
@@ -72,17 +72,12 @@ if os.environ.has_key('LIBRARY_PATH'):
         hpg_cpp_env.Append(LIBPATH=[dir])
 
 if compiler == 'intel':
-    hpg_cpp_env['CCFLAGS'] += ' -msse4.2 -openmp '
     hpg_cpp_env['LIBS'] += ['irc']
-    hpg_cpp_env['LINKFLAGS'] += ['-openmp']
-else:
-    hpg_cpp_env['CCFLAGS'] += ' -fopenmp '
-    hpg_cpp_env['LINKFLAGS'] += ['-fopenmp']
 
 if debug == 1:
     hpg_cpp_env['CCFLAGS'] += ' -O0 -g'
 else:
-    hpg_cpp_env['CCFLAGS'] += ' -O3 '
+    hpg_cpp_env['CCFLAGS'] += ' -O3 -g'
 
 hpg_cpp_env['objects'] = []
 hpg_cpp_env.Decider('MD5-timestamp')
