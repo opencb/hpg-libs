@@ -708,6 +708,8 @@ bwt_index_t *bwt_index_new(const char *dirname, bool inverse_sa) {
 
   load_exome_file(index->karyotype, dirname);
 
+  free(nucleotides);
+
   return index;
 
 }

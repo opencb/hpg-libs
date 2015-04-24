@@ -222,7 +222,7 @@ int array_list_insert(void *item_p, array_list_t *array_list_p) {
 
 int array_list_insert_at(size_t index, void *item_p, array_list_t *array_list_p) {
 	if(array_list_p != NULL) {
-		if(index < array_list_p->size) {
+		if(index < array_list_p->size || index == 0) {
 			if(array_list_p->mode == COLLECTION_MODE_SYNCHRONIZED) {
 				pthread_mutex_lock(&array_list_p->lock);
 			}
