@@ -46,6 +46,9 @@ typedef struct fastq_batch_reader_input {
   int gzip;
   list_t *list;
 
+  //infernal for FILE
+  FILE *file1;
+  
   // internal for fastq
   fastq_file_t *fq_file1;
   fastq_file_t *fq_file2;
