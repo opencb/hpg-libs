@@ -7,7 +7,7 @@ formats_env['objects'] = []
 
 
 # Targets
-formats = ['family', 'fastq', 'bam', 'gff', 'bed', 'ped', 'features', 'vcf', 'db']
+formats = ['fastq', 'bam', 'bed']
 
 for dir in formats:
     SConscript(os.path.join(dir, 'SConscript'), exports = ['bioenv', 'formats_env', 'debug'])

@@ -18,12 +18,12 @@ if compiler == 'icc':
 
 #Set environment
 env = Environment(
-        TOOLS = build_tools,
-        CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
-        CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include],
+        TOOLS   = build_tools,
+        CFLAGS  = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
+        CPPPATH = ['.', '#', system_include],
         LIBPATH = [system_libpath],
         LINKFLAGS = [],
-        LIBS = ['xml2', 'm', 'z'])
+        LIBS = [])
 
 if compiler == 'icc':
 	env['CFLAGS'] += ' -msse4.2 -openmp '
