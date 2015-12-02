@@ -48,6 +48,12 @@ unsigned char *load_binary_dna(char *dna_binary_filename, size_t *size);
 
 char **load_array_codes();
 
+void genome_read_sequence_sa(char* sequence, size_t *start_p,
+			     size_t *end_p, genome_t* genome_p);
+
+char** load_array_codes_4_chunk(genome_t *genome);
+
+void generate_codes_4_chunk(char *dna_binary_filename, char *dna_filename);
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
