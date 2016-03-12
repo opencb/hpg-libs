@@ -536,11 +536,17 @@ void *thread_function(void *wf_context) {
   workflow_consumer_function_t consumer_function = (workflow_consumer_function_t)wf->consumer_function;
 
   while (workflow_get_status(wf) == WORKFLOW_STATUS_RUNNING) {
+   #ifdef _MPI
+    if (producer_function                        &&
+	(!workflow_is_producer_finished(wf))     &&
+	workflow_lock_producer(wf)) {
+   #else
     if (producer_function                        &&
 	workflow_get_num_items(wf) < num_threads && 
 	(!workflow_is_producer_finished(wf))     &&
 	workflow_lock_producer(wf)) {
-      
+   #endif
+
       //	 Extrae_event(6000019, 7); 
       total_time = 0;
       start_timer(start_time);

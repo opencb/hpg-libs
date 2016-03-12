@@ -23,10 +23,10 @@ if compiler == 'icc':
 #Build environment
 env = Environment(TOOLS = build_tools,
 		  CFLAGS = ' -Wall -std=c99 -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE -D_REENTRANT ',
-		  CPPPATH = ['.', '#', system_include, '%s/libxml2' % system_include, '%s' % commons_path, '%s' % bioinfo_path], 
+		  CPPPATH = ['.', '#', system_include, '%s' % commons_path, '%s' % bioinfo_path], 
 		  LIBPATH = [system_libpath],
 		  LINKFLAGS = [],
-		  LIBS = ['xml2', 'm', 'z', 'curl'])
+		  LIBS = ['z'])
 
 if os.environ.has_key('CPATH'):
     for dir in os.getenv('CPATH').split(':'):
