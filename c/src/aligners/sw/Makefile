@@ -1,5 +1,5 @@
 #CC = icc
-#CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -xavx -vec-report1
+#CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -mavx2 -vec-report1
 
 #CC = gcc
 ifeq ($(COMPILER), intel)
@@ -10,7 +10,10 @@ endif
 
 #CC = /opt/intel/bin/icc
 
-CFLAGS = -std=c99 -O3 -fopenmp -g
+#CFLAGS = -std=c99 -O3 -fopenmp -g -msse -DTIMING -DSW_$(SIMD)
+#CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
+
+CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
 
 INCLUDES = -I .
 LIBS = -lxml2 -lm
@@ -18,11 +21,11 @@ TEST = test
 
 all: hpg-sw hpg-sw-bench
 
-hpg-sw: smith_waterman.o sse.o macros.o $(TEST)/hpg_sw.h
-	$(CC) $(CFLAGS) smith_waterman.o macros.o sse.o $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
+hpg-sw: smith_waterman.o sse.o avx2.o macros.o $(TEST)/hpg_sw.h
+	$(CC) $(CFLAGS) smith_waterman.o macros.o sse.o avx2.o $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
 
-hpg-sw-bench: smith_waterman.o sse.o emboss.o macros.o $(TEST)/hpg_sw_bench.h
-	$(CC) $(CFLAGS) smith_waterman.o macros.o emboss.o sse.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
+hpg-sw-bench: smith_waterman.o sse.o avx2.o emboss.o macros.o $(TEST)/hpg_sw_bench.h
+	$(CC) $(CFLAGS) smith_waterman.o macros.o emboss.o sse.o avx2.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
 
 macros.o: macros.c macros.h
 	$(CC) $(CFLAGS) -c macros.c $(INCLUDES)
@@ -32,6 +35,9 @@ emboss.o: emboss.c emboss.h
 
 sse.o: sse.c sse.h
 	$(CC) $(CFLAGS) -c sse.c $(INCLUDES)
+
+avx2.o: avx2.c avx2.h
+	$(CC) $(CFLAGS) -c avx2.c $(INCLUDES)
 
 smith_waterman.o: smith_waterman.c smith_waterman.h
 	$(CC) $(CFLAGS) -c smith_waterman.c $(INCLUDES)
