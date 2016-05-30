@@ -252,7 +252,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
 #ifdef SW_AVX2
                 avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
                 sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
@@ -407,8 +407,15 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #ifdef TIMING
                     partial_t = sw_tic();
 #endif // TIMING
+
+#ifdef SW_AVX2
+                    avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#else
                     sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#endif
+
 #ifdef TIMING
                     sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
@@ -436,7 +443,8 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 
             if (depth > 0) {
 
-                float max_score[simd_depth];
+                //float max_score[simd_depth];
+                float *max_score = (float *) _mm_malloc(simd_depth * sizeof(float), 32);
 
                 for (unsigned int i = depth; i < simd_depth; i++) {
                     q[i] = q[0];
@@ -454,8 +462,15 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #ifdef TIMING
                 partial_t = sw_tic();
 #endif // TIMING
+
+#ifdef SW_AVX2
+                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#else
                 sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#endif
+
 #ifdef TIMING
                 sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
@@ -476,6 +491,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 for (unsigned int i = 0; i < depth; i++) {
                     score_p[index +  i] = max_score[i];
                 }
+                _mm_free(max_score);
             }
 
             // free memory
@@ -495,7 +511,11 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                          sw_optarg_t *optarg_p, unsigned int num_threads,
                          sw_multi_output_t *output_p) {
 
+#ifdef SW_AVX2
+    const unsigned int simd_depth = 8;
+#else
     const unsigned int simd_depth = 4;
+#endif
 
 #ifdef TIMING
     double partial_t;
@@ -514,8 +534,6 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
     int ref_len = strlen(ref_p);
 
     if (num_threads == 1) {
-
-
 
         char *q_aux = NULL, *r_aux = NULL;
         int depth, aux_size = 0, H_size = 0, F_size = 0, max_q_len = 0, max_r_len = ref_len;
@@ -552,8 +570,13 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
                 partial_t = sw_tic();
 #endif // TIMING
+#ifdef SW_AVX2
+                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#else
                 sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#endif
 #ifdef TIMING
                 sse_matrix_t[0] += sw_toc(partial_t);
 #endif // TIMING
@@ -581,7 +604,8 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 
         if (depth > 0) {
 
-            float max_score[simd_depth];
+            //float max_score[simd_depth];
+            float *max_score = (float *) _mm_malloc(simd_depth * sizeof(float), 32);
 
             for (unsigned int i = depth; i < simd_depth; i++) {
                 q[i] = q[0];
@@ -599,8 +623,15 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
             partial_t = sw_tic();
 #endif // TIMING
+
+#ifdef SW_AVX2
+            avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                        optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#else
             sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                        optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#endif
+
 #ifdef TIMING
             sse_matrix_t[0] += sw_toc(partial_t);
 #endif // TIMING
@@ -621,6 +652,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
             for (unsigned int i = 0; i < depth; i++) {
                 score_p[index +  i] = max_score[i];
             }
+            _mm_free(max_score);
         }
 
         // free memory
@@ -685,8 +717,13 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
                     partial_t = sw_tic();
 #endif // TIMING
+#ifdef SW_AVX2
+                    avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#else
                     sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#endif
 #ifdef TIMING
                     sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
@@ -714,7 +751,8 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 
             if (depth > 0) {
 
-                float max_score[simd_depth];
+                //float max_score[simd_depth];
+                float *max_score = (float *) _mm_malloc(simd_depth * sizeof(float), 32);
 
                 for (unsigned int i = depth; i < simd_depth; i++) {
                     q[i] = q[0];
@@ -732,8 +770,15 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
                 partial_t = sw_tic();
 #endif // TIMING
+
+#ifdef SW_AVX2
+                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#else
                 sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#endif
+
 #ifdef TIMING
                 sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
@@ -754,6 +799,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                 for (unsigned int i = 0; i < depth; i++) {
                     score_p[index +  i] = max_score[i];
                 }
+                _mm_free(max_score);
             }
 
             // free memory
