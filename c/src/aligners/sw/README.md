@@ -9,8 +9,8 @@ GCC4.4+ are SSE4.2 or AVX2 are the only requirements.
 To build the executable 'hpg-sw', download the **features/avx2** branch of the **opencb/hpg-libs** project:  
 ```
   $ git clone https://github.com/opencb/hpg-libs.git
+  $ cd hpg-libs/c/src/aligners/sw
   $ git checkout features/avx2
-  $ cd c/src/aligners/sw
   $ make clean
 ```
 For the SSE4.2 version, compile with:  
