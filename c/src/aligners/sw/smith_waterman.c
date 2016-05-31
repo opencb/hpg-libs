@@ -80,9 +80,12 @@ void init_subst_score_matrix(char *filename, subst_matrix_t matrix) {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-sw_optarg_t* sw_optarg_new(float gap_open, float gap_extend, char *subst_matrix_name) {
+sw_optarg_t* sw_optarg_new(float match, float mismatch,
+                           float gap_open, float gap_extend, char *subst_matrix_name) {
     sw_optarg_t *optarg_p = calloc(1, sizeof(sw_optarg_t));
 
+    optarg_p->match = match;
+    optarg_p->mismatch = mismatch;
     optarg_p->gap_open = gap_open;
     optarg_p->gap_extend = gap_extend;
 
@@ -215,7 +218,10 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
         float *H = NULL, *F = NULL;
         int *C = NULL;
 
-        float gap_open = optarg_p->gap_open, gap_extend = optarg_p->gap_extend;
+        float match = optarg_p->match;
+        float mismatch = optarg_p->mismatch;
+        float gap_open = optarg_p->gap_open;
+        float gap_extend = optarg_p->gap_extend;
         float *score_p = output_p->score_p;
 
         //printf("num queries = %i\n", num_queries);
@@ -251,11 +257,11 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
-                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+                avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                             match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
-                sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                           optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+                sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #endif
 
                 //printf("start avx2_matrix (index %i)\n", index);
@@ -309,11 +315,11 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
-            avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                        optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+            avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                         match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #else
-            sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                       optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+            sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                        match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #endif
 
 #ifdef TIMING
@@ -380,6 +386,8 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
             float *H = NULL, *F = NULL;
             int *C = NULL;
 
+            float match = optarg_p->match;
+            float mismatch = optarg_p->mismatch;
             float gap_open = optarg_p->gap_open, gap_extend = optarg_p->gap_extend;
             float *score_p = output_p->score_p;
 
@@ -409,11 +417,11 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
-                    avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+                    avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                                 match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
-                    sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                               optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+                    sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                                match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #endif
 
 #ifdef TIMING
@@ -464,11 +472,11 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
-                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+                avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                             match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #else
-                sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
-                           optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+                sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #endif
 
 #ifdef TIMING

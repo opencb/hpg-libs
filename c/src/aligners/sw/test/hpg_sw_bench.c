@@ -25,7 +25,9 @@ int main(int argc, char *argv[]) {
   int num_threads = 4, batch_size = 2048;
   float gap_open = 10.0f;
   float gap_extend = 0.5f;
-     
+  float match = 5.0f;
+  float mismatch = -4.0f;
+
   while (1) {;
     static struct option long_options[] =
       {
@@ -34,6 +36,8 @@ int main(int argc, char *argv[]) {
 	{"output-dir",             required_argument, 0, 'd'},
 	{"output-sse-file",        required_argument, 0, 'o'},
 	{"output-emboss-file",     required_argument, 0, 'v'},
+    {"gap-open-penalty",       required_argument, 0, 'p'},
+    {"gap-extend-penalty",     required_argument, 0, 'e'},
 	{"gap-open-penalty",       required_argument, 0, 'p'},
 	{"gap-extend-penalty",     required_argument, 0, 'e'},
 	{"num-threads",            required_argument, 0, 'n'},
@@ -44,7 +48,7 @@ int main(int argc, char *argv[]) {
     /* getopt_long stores the option index here. */
     int option_index = 0;
     
-    c = getopt_long (argc, argv, "q:r:d:o:v:p:e:n:b:h",
+    c = getopt_long (argc, argv, "q:r:d:o:v:p:e:m:x:n:b:h",
 		     long_options, &option_index);
     
     /* Detect the end of the options. */
@@ -81,7 +85,15 @@ int main(int argc, char *argv[]) {
     case 'v':
       emboss_filename = optarg;
       break;
-      
+
+    case 'm':
+      sscanf(optarg, "%f", &match);
+      break;
+
+    case 'x':
+      sscanf(optarg, "%f", &mismatch);
+      break;
+
     case 'p':
       sscanf(optarg, "%f", &gap_open);
       break;
@@ -141,6 +153,9 @@ int main(int argc, char *argv[]) {
   }
   printf("output-emboss-file = %s\n", emboss_filename);
 
+  printf("match-score = %f\n", match);
+  printf("mismatch-penalty = %f\n", mismatch);
+
   if (gap_open < 0.0 || gap_open > 100.0) {
     display_usage("\nERROR: Penalty for the gap openning is not valid, it must be from 0.0 to 100.0 (option --gap-open-penalty or -p)\n");
   }
@@ -172,10 +187,6 @@ int main(int argc, char *argv[]) {
   printf("out EMBOSS filename (full path) = %s\n", emboss_out_filename);
   printf("\n");
 
-  float match = 5.0f;
-  float mismatch = 4.0f;
-
-
   sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
   sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
 
@@ -185,7 +196,7 @@ int main(int argc, char *argv[]) {
 
   // SSE
   run_sse(q_filename, r_filename,
-	  gap_open, gap_extend, "./dnafull", batch_size, 
+	  match, mismatch, gap_open, gap_extend, "./dnafull", batch_size,
 	  num_threads, sse_out_filename);
   
   printf("SSE + OpenMP\n");
@@ -207,7 +218,7 @@ int main(int argc, char *argv[]) {
 
   // EMBOSS
   run_emboss(q_filename, r_filename,
-	     gap_open, gap_extend, match, mismatch,
+	     gap_open, gap_extend, match, -1.0f * mismatch,
 	     batch_size, num_threads, emboss_out_filename);
 					   
   printf("EMBOSS + OpenMP\n");
@@ -341,14 +352,15 @@ void run_emboss(char *q_filename, char *r_filename,
 
 //-------------------------------------------------------------------------
 
-void run_sse(char *q_filename, char *r_filename, 
-	     float gap_open, float gap_extend, char *matrix_filename,
+void run_sse(char *q_filename, char *r_filename,
+             float match, float mismatch,
+             float gap_open, float gap_extend, char *matrix_filename,
 	     int batch_size, int num_threads,
 	     char *out_filename) {  
 
   const int max_length = 2048;
 
-  sw_optarg_t *optarg_p = sw_optarg_new(gap_open, gap_extend, matrix_filename);
+  sw_optarg_t *optarg_p = sw_optarg_new(match, mismatch, gap_open, gap_extend, matrix_filename);
   sw_multi_output_t *output_p;
 
 

@@ -10,10 +10,13 @@ endif
 
 #CC = /opt/intel/bin/icc
 
-#CFLAGS = -std=c99 -O3 -fopenmp -g -msse -DTIMING -DSW_$(SIMD)
-#CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
-
-CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
+ifeq ($(SIMD), AVX2)
+    CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
+    OBJS = smith_waterman.o sse.o avx2.o macros.o
+else
+    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 -DTIMING -DSW_$(SIMD)
+    OBJS = smith_waterman.o sse.o macros.o
+endif
 
 INCLUDES = -I .
 LIBS = -lxml2 -lm
@@ -21,11 +24,11 @@ TEST = test
 
 all: hpg-sw hpg-sw-bench
 
-hpg-sw: smith_waterman.o sse.o avx2.o macros.o $(TEST)/hpg_sw.h
-	$(CC) $(CFLAGS) smith_waterman.o macros.o sse.o avx2.o $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
+hpg-sw: $(OBJS) $(TEST)/hpg_sw.h
+	$(CC) $(CFLAGS) $(OBJS) $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
 
-hpg-sw-bench: smith_waterman.o sse.o avx2.o emboss.o macros.o $(TEST)/hpg_sw_bench.h
-	$(CC) $(CFLAGS) smith_waterman.o macros.o emboss.o sse.o avx2.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
+hpg-sw-bench: $(OBJS) emboss.o $(TEST)/hpg_sw_bench.h
+	$(CC) $(CFLAGS) $(OBJS) emboss.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
 
 macros.o: macros.c macros.h
 	$(CC) $(CFLAGS) -c macros.c $(INCLUDES)

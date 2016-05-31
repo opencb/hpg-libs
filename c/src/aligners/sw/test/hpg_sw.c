@@ -16,6 +16,8 @@ int main(int argc, char *argv[]) {
     int num_threads = 4, batch_size = 2048;
     float gap_open = 10.0f;
     float gap_extend = 0.5f;
+    float match = 5.0f;
+    float mismatch = -4.0f;
 
     while (1) {;
         static struct option long_options[] =
@@ -26,6 +28,8 @@ int main(int argc, char *argv[]) {
                         {"output-file",              required_argument, 0, 'o'},
                         {"gap-open-penalty",         required_argument, 0, 'p'},
                         {"gap-extend-penalty",       required_argument, 0, 'e'},
+                        {"match-score",              required_argument, 0, 'm'},
+                        {"mismatch-penalty",         required_argument, 0, 'x'},
                         {"substitution-matrix-file", required_argument, 0, 's'},
                         {"num-threads",              required_argument, 0, 'n'},
                         {"reads-per-batch",          required_argument, 0, 'b'},
@@ -35,7 +39,7 @@ int main(int argc, char *argv[]) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "q:r:d:o:p:e:s:n:b:h",
+        c = getopt_long (argc, argv, "q:r:d:o:p:e:m:x:s:n:b:h",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -75,6 +79,14 @@ int main(int argc, char *argv[]) {
 
             case 'e':
                 sscanf(optarg, "%f", &gap_extend);
+                break;
+
+            case 'm':
+                sscanf(optarg, "%f", &match);
+                break;
+
+            case 'x':
+                sscanf(optarg, "%f", &mismatch);
                 break;
 
             case 's':
@@ -127,6 +139,9 @@ int main(int argc, char *argv[]) {
     }
     printf("output-file = %s\n", out_filename);
 
+    printf("match-penalty = %f\n", match);
+    printf("mismatch-penalty = %f\n", mismatch);
+
     if (gap_open < 0.0 || gap_open > 100.0) {
         display_usage("\nERROR: Penalty for the gap openning is not valid, it must be from 0.0 to 100.0 (option --gap-open-penalty or -p)\n");
     }
@@ -136,6 +151,7 @@ int main(int argc, char *argv[]) {
         display_usage("\nERROR: Penalty for the gap extending is not valid, it must be from 0.0 to 10.0 (option --gap-extend-penalty or -e)\n");
     }
     printf("gap-extend-penalty = %f\n", gap_extend);
+
 
     if (subst_matrix_filename == NULL) {
         display_usage("\nERROR: Substitution score matrix file name is missing (option --substitution-matrix-filename or -s)\n");
@@ -165,7 +181,7 @@ int main(int argc, char *argv[]) {
 
     // SSE
     run_sse(q_filename, r_filename,
-            gap_open, gap_extend, subst_matrix_filename, batch_size,
+            match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
             num_threads, sse_out_filename);
 
     free(sse_matrix_t);
@@ -176,14 +192,14 @@ int main(int argc, char *argv[]) {
 
 //-------------------------------------------------------------------------
 void run_sse(char *q_filename, char *r_filename,
-             float gap_open, float gap_extend, char *matrix_filename,
-             int batch_size, int num_threads,
+             float match, float mismatch, float gap_open, float gap_extend,
+             char *matrix_filename, int batch_size, int num_threads,
              char *out_filename) {
 
     const int max_length = 2048;
     double sse_t = 0.0f, partial_t = 0.0f;
 
-    sw_optarg_t *optarg_p = sw_optarg_new(gap_open, gap_extend, matrix_filename);
+    sw_optarg_t *optarg_p = sw_optarg_new(match, mismatch, gap_open, gap_extend, matrix_filename);
     sw_multi_output_t *output_p;
 
     FILE *q_file = fopen(q_filename, "r");
@@ -284,8 +300,9 @@ void display_usage(char *msg) {
     printf("\t--ref-file, -r, input file name containing the references to align\n");
     printf("\t--output-dir, -d, output directory where the results will be saved\n");
     printf("\t--output-file, -o, output file name where the alignments will be saved\n");
+    printf("\t--match-score, -m, score for matches; default 5.0\n");
+    printf("\t--mismatch-penalty, -x, penalty for mismatches; default -4.0\n");
     printf("\t--gap-open-penalty, -p, penalty for the gap openning: from 0.0 to 100.0\n");
-
     printf("\t--gap-extend-penalty, -e, penalty for the gap extending: from 0.0 to 10.0\n");
     printf("\t--substitution-matrix, -s, substitution score matrix name, for DNA: dnafull, for proteins: blosum50, blosum62, blosum80\n");
     printf("\t--num-threads, -n, number of threads\n");
