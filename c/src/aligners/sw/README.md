@@ -3,7 +3,7 @@ HPG-SW
 
 HPG-SW executable to run the Smith-Waterman algorithm using SSE4.2/AVX2 instrucctions.
 
-BUILDING
+BUILDING  
 Makefile is used as building system to create the **hpg-sw** executable.  
 GCC4.4+ are SSE4.2 or AVX2 are the only requirements.  
 To build the executable 'hpg-sw', download the **features/avx2** branch of the **opencb/hpg-libs** project:  
@@ -25,13 +25,13 @@ For the AVX2 version, compile with:
 The executable **hpg-sw** will be stored in the directory 'bin'.  
 
 
-DOCUMENTATION
+DOCUMENTATION  
 You can find more info about HPG project and bioinfo-libs at:  
 
  http://wiki.opencb.org/projects/hpg/doku.php
 
 
-CONTACT
+CONTACT  
 You can contact any of the following developers:  
  * Joaquín Tárraga (joaquintarraga@gmail.com)
  * Ignacio Medina (igmecas@gmail.com)
