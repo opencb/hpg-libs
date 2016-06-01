@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     free(sse_matrix_t);
     free(sse_tracking_t);
 
-    printf("\n\nDone.\n");
+    printf("Done.\n");
 }
 
 //-------------------------------------------------------------------------
@@ -254,17 +254,21 @@ void run_sse(char *q_filename, char *r_filename,
         //    if (batches == 7) break;
         //break;
     }
+#ifdef TIMING
     double max_sse = 0.0f;
     for (int i = 0; i < num_threads; i++) {
         if (sse_matrix_t[i] + sse_tracking_t[i] > max_sse)
             max_sse = sse_matrix_t[i] + sse_tracking_t[i];
     }
+#endif
+
 #ifdef SW_AVX2
     printf("\nsmith_waterman_mqmr function (AVX2 + OpenMP version)\n");
 #else
     printf("\nsmith_waterman_mqmr function (SSE + OpenMP version)\n");
 #endif
     printf("Aligns %i reads in %0.5f s with %i threads\n", count, sse_t, num_threads);
+#ifdef TIMING
     printf("\nScore matrix creation time:\n");
     for(int i = 0; i < num_threads ; i++) {
         printf("\tThread %i\t%0.5f s\n", i, sse_matrix_t[i]);
@@ -275,6 +279,7 @@ void run_sse(char *q_filename, char *r_filename,
     }
     printf("Total time:\n");
     printf("\tMax. time:\t%0.5f s\n", max_sse);
+#endif
 
     // free memory and close files
     sw_optarg_free(optarg_p);

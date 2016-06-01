@@ -1,30 +1,39 @@
 #CC = icc
 #CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -mavx2 -vec-report1
 
-#CC = gcc
+# compiler parameter
 ifeq ($(COMPILER), intel)
-	CC = icc 
+	CC = icc
+	CCFLAGS = -march=core-avx2 -fast -vec-report1
 else
 	CC = gcc
+	CCFLAGS = -mavx2
 endif
 
 #CC = /opt/intel/bin/icc
 
+# SW version parameter
 SW_VER = SW_VERSION_2
 ifeq ($(SW_VERSION), 1)
     SW_VER = SW_VERSION_1
 endif
 
+# TIMING parameter
+ifeq ($(TIMING), 1)
+    FTIMING = -DTIMING
+endif
+
+# SIMD parameter
 ifeq ($(SIMD), AVX2)
-    CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD) -D$(SW_VER)
+    CFLAGS = -std=c99 -O3 -fopenmp -g $(CCFLAGS) $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
     OBJS = smith_waterman.o sse.o avx2.o macros.o
 else
-    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 -DTIMING -DSW_$(SIMD) -D$(SW_VER)
+    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
     OBJS = smith_waterman.o sse.o macros.o
 endif
 
 INCLUDES = -I .
-LIBS = -lxml2 -lm
+LIBS = -lm
 TEST = test
 
 all: hpg-sw hpg-sw-bench
