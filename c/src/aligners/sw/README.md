@@ -19,6 +19,12 @@ For the SSE4.2 version, compile with:
 For the AVX2 version, compile with:
  $ make SIMD=AVX2
 
+In addition, you can select the implementation version of the Smith-Waterman algorithm by using the paramenter 'SW_VERSION'.
+Some commandlines examples:  
+ $ make SIMD=AVX2 SW_VERSION=1
+ $ make SIMD=AVX2 SW_VERSION=2
+
+
 The executable 'hpg-sw' will be stored in the directory 'bin'.
 
 
