@@ -10,11 +10,16 @@ endif
 
 #CC = /opt/intel/bin/icc
 
+SW_VER = SW_VERSION_2
+ifeq ($(SW_VERSION), 1)
+    SW_VER = SW_VERSION_1
+endif
+
 ifeq ($(SIMD), AVX2)
-    CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD)
+    CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 -DTIMING -DSW_$(SIMD) -D$(SW_VER)
     OBJS = smith_waterman.o sse.o avx2.o macros.o
 else
-    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 -DTIMING -DSW_$(SIMD)
+    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 -DTIMING -DSW_$(SIMD) -D$(SW_VER)
     OBJS = smith_waterman.o sse.o macros.o
 endif
 

@@ -257,12 +257,22 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
+#ifdef SW_VERSION_1
+                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#else
                 avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                              match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
+#endif // SW_VERSION_1
+#else
+#ifdef SW_VERSION_1
+                sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                           optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
                 sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
-#endif
+#endif // SW_VERSION_1
+#endif // SW_AVX2
 
                 //printf("start avx2_matrix (index %i)\n", index);
                 //printf("end avx2_matrix\n");
@@ -315,12 +325,22 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
+#ifdef SW_VERSION_1
+            avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                        optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#else
             avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                          match, mismatch, gap_open, gap_extend, H, F, C, max_score);
+#endif // SW_VERSION_1
+#else
+#ifdef SW_VERSION_1
+            sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                       optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #else
             sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                         match, mismatch, gap_open, gap_extend, H, F, C, max_score);
-#endif
+#endif // SW_VERSION_1
+#endif // SW_AVX2
 
 #ifdef TIMING
             sse_matrix_t[0] += sw_toc(partial_t);
@@ -417,12 +437,22 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
+#ifdef SW_VERSION_1
+                    avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                                optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
+#else
                     avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                  match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
+#endif // SW_VERSION_1
+#else
+#ifdef SW_VERSION_1
+                    sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                               optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
                     sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                 match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
-#endif
+#endif // SW_VERSION_1
+#endif // SW_AVX2
 
 #ifdef TIMING
                     sse_matrix_t[tid] += sw_toc(partial_t);
@@ -472,12 +502,22 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 
 #ifdef SW_AVX2
+#ifdef SW_VERSION_1
+                avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
+#else
                 avx2_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                              match, mismatch, gap_open, gap_extend, H, F, C, max_score);
+#endif // SW_VERSION_1
+#else
+#ifdef SW_VERSION_1
+                sse_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
+                           optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #else
                 sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             match, mismatch, gap_open, gap_extend, H, F, C, max_score);
-#endif
+#endif // SW_VERSION_1
+#endif // SW_AVX2
 
 #ifdef TIMING
                 sse_matrix_t[tid] += sw_toc(partial_t);
