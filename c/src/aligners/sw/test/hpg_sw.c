@@ -197,6 +197,11 @@ void run_sse(char *q_filename, char *r_filename,
              char *out_filename) {
 
     const int max_length = 2048;
+
+    double start = 0.0f, elapsed = 0.0f;
+    double start_read = 0.0f, read = 0.0f;
+    double start_write = 0.0f, write = 0.0f;
+    double start_memory = 0.0f, memory = 0.0f;
     double sse_t = 0.0f, partial_t = 0.0f;
 
     sw_optarg_t *optarg_p = sw_optarg_new(match, mismatch, gap_open, gap_extend, matrix_filename);
@@ -206,17 +211,27 @@ void run_sse(char *q_filename, char *r_filename,
     FILE *r_file = fopen(r_filename, "r");
     FILE *out_file = fopen(out_filename, "w");
 
+    start = sw_tic();
+#ifdef TIMING
+    start_memory = start;
+#endif
     char *q[batch_size], *r[batch_size];
     for (int i = 0; i < batch_size; i++) {
         q[i] = (char *) calloc(max_length, sizeof(char));
         r[i] = (char *) calloc(max_length, sizeof(char));
     }
+#ifdef TIMING
+    memory += sw_toc(start_memory);
+#endif
 
     int count = 0, batches = 0, num_queries;
 
     while (1) {
         num_queries = 0;
 
+#ifdef TIMING
+	start_read = sw_tic();
+#endif
         // read queries
         for (int i = 0; i < batch_size; i++) {
             if (fgets(q[i], max_length, q_file) == NULL) { break; }
@@ -234,9 +249,17 @@ void run_sse(char *q_filename, char *r_filename,
             if (fgets(r[i], max_length, r_file) == NULL) { break; }
             str_trim(r[i]);
         }
+#ifdef TIMING
+	read += sw_toc(start_read);
+#endif
 
-        //printf("num queries = %i, count = %i\n", num_queries, count);
+#ifdef TIMING
+	start_memory = sw_tic();
+#endif
         output_p = sw_multi_output_new(num_queries);
+#ifdef TIMING
+	memory += sw_toc(start_memory);
+#endif
 
         // call smith-waterman
         partial_t = sw_tic();
@@ -244,16 +267,48 @@ void run_sse(char *q_filename, char *r_filename,
         sse_t += sw_toc(partial_t);
 
         // save results
+#ifdef TIMING
+	start_write = sw_tic();
+#endif
         sw_multi_output_save(num_queries, output_p, out_file);
-        //break;
+#ifdef TIMING
+	write += sw_toc(start_write);
+#endif
 
+#ifdef TIMING
+	start_memory = sw_tic();
+#endif
         sw_multi_output_free(output_p);
+#ifdef TIMING
+	memory += sw_toc(start_memory);
+#endif
 
         batches++;
         //printf("%i batches\n", batches);
         //    if (batches == 7) break;
         //break;
     }
+
+#ifdef TIMING
+    start_memory = sw_tic();
+#endif
+    // free memory
+    sw_optarg_free(optarg_p);
+    for (int i = 0; i < batch_size; i++) {
+        free(q[i]);
+        free(r[i]);
+    }
+#ifdef TIMING
+    memory += sw_toc(start_memory);
+#endif
+
+    // close files
+    fclose(q_file);
+    fclose(r_file);
+    fclose(out_file);
+
+    elapsed += sw_toc(start);
+
 #ifdef TIMING
     double max_sse = 0.0f;
     for (int i = 0; i < num_threads; i++) {
@@ -267,31 +322,21 @@ void run_sse(char *q_filename, char *r_filename,
 #else
     printf("\nsmith_waterman_mqmr function (SSE + OpenMP version)\n");
 #endif
-    printf("Aligns %i reads in %0.5f s with %i threads\n", count, sse_t, num_threads);
 #ifdef TIMING
-    printf("\nScore matrix creation time:\n");
+    printf("Thread: <matrix creation time> <backtracing time>\n");
     for(int i = 0; i < num_threads ; i++) {
-        printf("\tThread %i\t%0.5f s\n", i, sse_matrix_t[i]);
+      printf("\tThread %i:\t%0.3fs\t%0.3fs\n", i, sse_matrix_t[i], sse_tracking_t[i]);
     }
-    printf("\nBacktracking time:\n");
-    for(int i = 0; i < num_threads ; i++) {
-        printf("\tThread %i\t%0.5f s\n", i, sse_tracking_t[i]);
-    }
-    printf("Total time:\n");
-    printf("\tMax. time:\t%0.5f s\n", max_sse);
+    printf("\tMax. time: %0.3fs\n", max_sse);
 #endif
-
-    // free memory and close files
-    sw_optarg_free(optarg_p);
-
-    for (int i = 0; i < batch_size; i++) {
-        free(q[i]);
-        free(r[i]);
-    }
-
-    fclose(q_file);
-    fclose(r_file);
-    fclose(out_file);
+#ifdef TIMING
+    printf("Memory mng. time    : %0.3f s\n", memory);
+    printf("Read sequences time : %0.3f s\n", read);
+    printf("Write results time  : %0.3f s\n", write);
+#endif
+    printf("Alignment time      : %0.3f s (2 x %i seqs; %i threads)\n", sse_t, count, num_threads);
+    printf("\n");
+    printf("Total hpg-sw time   : %0.3fs\n", elapsed);
 }
 
 
