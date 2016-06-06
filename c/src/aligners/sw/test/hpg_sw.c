@@ -179,10 +179,17 @@ int main(int argc, char *argv[]) {
     sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
     sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
 
-    // SSE
+#ifdef PIPE
+    // run workflow version 
+    run_sw_pipeline(q_filename, r_filename,
+		    match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
+		    num_threads, sse_out_filename);
+#else
+    // run omp version
     run_sse(q_filename, r_filename,
             match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
             num_threads, sse_out_filename);
+#endif
 
     free(sse_matrix_t);
     free(sse_tracking_t);

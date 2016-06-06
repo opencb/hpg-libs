@@ -8,7 +8,10 @@
 #include "macros.h"
 #include "sse.h"
 #include "smith_waterman.h"
-//#include "avx.h"
+
+#ifdef PIPE
+#include "sw_pipeline.h"
+#endif
 
 void run_sse(char *q_filename, char *r_filename,
 			 float match, float mismatch,
