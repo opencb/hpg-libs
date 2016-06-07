@@ -167,7 +167,7 @@ void sse_matrix2(int num_seqs,
       rr[depth * jj + ii] = ':';
     }
   }
-
+  /*
   __m128i q1, r1;
 
   __m128 match_simd = _mm_set1_ps(match);
@@ -293,7 +293,7 @@ void sse_matrix2(int num_seqs,
     }
   }
   _mm_store_ps(max_score, score_simd);
-
+  */
   // free memory
   _mm_free(qq);
   _mm_free(rr);

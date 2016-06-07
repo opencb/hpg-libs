@@ -13,45 +13,50 @@ endif
 #CC = /opt/intel/bin/icc
 
 # SW version parameter
-SW_VER = SW_VERSION_2
 ifeq ($(SW_VERSION), 1)
-    SW_VER = SW_VERSION_1
+	SW_VER = SW_VERSION_1
+else
+	SW_VER = SW_VERSION_2
 endif
 
 # TIMING parameter
 ifeq ($(TIMING), 1)
-    FTIMING = -DTIMING
+	FTIMING = -DTIMING
 endif
 
-# PIPE parameter
-ifeq ($(PIPE), 1)
-	FPIPE = -DPIPE
-	OPIPE = sw_pipeline.o 
-        OBJPIPE = ../../commons/log.o ../../commons/workflow_scheduler.o ../../commons/string_utils.o ../../containers/array_list.o ../../../../third_party/cprops/*.o 
+# METHOD parameter
+ifeq ($(METHOD), wf)
+	FMETHOD = -DSW_WORKFLOW
+	OMETHOD = sw_workflow.o 
+        OBJMETHOD = ../../commons/log.o ../../commons/workflow_scheduler.o ../../commons/string_utils.o ../../containers/array_list.o ../../../../third_party/cprops/*.o 
 
-	IPIPE = -I ../.. -I ../../../../third_party
+	IMETHOD = -I ../.. -I ../../../../third_party
+else ifeq ($(METHOD), omp)
+	FMETHOD = -DSW_OMP
+	OMETHOD = sw_omp.o 
 endif
 
 # SIMD parameter
 ifeq ($(SIMD), SSE)
-    CFLAGS = -std=gnu99 -O3 -fopenmp -g -msse4.2 $(FTIMING) $(FPIPE) -DSW_$(SIMD) -D$(SW_VER)
-    OBJS = smith_waterman.o sse.o macros.o sw_commons.o $(OPIPE)
+    CFLAGS = -std=gnu99 -O3 -fopenmp -g -msse4.2 $(FTIMING) $(FMETHOD) -DSW_$(SIMD) -D$(SW_VER)
+    OBJS = smith_waterman.o sse.o macros.o sw_commons.o $(OMETHOD)
 else
-    CFLAGS = -std=gnu99 -O3 -fopenmp -g $(CCFLAGS) $(FTIMING) $(FPIPE) -DSW_$(SIMD) -D$(SW_VER)
-    OBJS = smith_waterman.o sse.o avx2.o macros.o sw_commons.o $(OPIPE)
+    SIMD = AVX2
+    CFLAGS = -std=gnu99 -O3 -fopenmp -g $(CCFLAGS) $(FTIMING) $(FMETHOD) -DSW_$(SIMD) -D$(SW_VER)
+    OBJS = smith_waterman.o sse.o avx2.o macros.o sw_commons.o $(OMETHOD)
 endif
 
-INCLUDES = -I . $(IPIPE)
+INCLUDES = -I . $(IMETHOD)
 LIBS = -lm
 TEST = test
 
 all: hpg-sw hpg-sw-bench
 
 hpg-sw: $(OBJS) $(TEST)/hpg_sw.h
-	$(CC) $(CFLAGS) $(OBJS) $(OBJPIPE) $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) $(OBJS) $(OBJMETHOD) $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
 
 hpg-sw-bench: $(OBJS) emboss.o $(TEST)/hpg_sw_bench.h
-	$(CC) $(CFLAGS) $(OBJS) $(OBJPIPE) emboss.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
+	$(CC) $(CFLAGS) $(OBJS) $(OBJMETHOD) emboss.o $(TEST)/hpg_sw_bench.c -o bin/hpg-sw-bench $(INCLUDES) $(LIBS)
 
 macros.o: macros.c macros.h
 	$(CC) $(CFLAGS) -c macros.c $(INCLUDES)
@@ -71,11 +76,11 @@ sw_commons.o: sw_commons.c sw_commons.h
 smith_waterman.o: smith_waterman.c smith_waterman.h
 	$(CC) $(CFLAGS) -c smith_waterman.c $(INCLUDES)
 
-sw_pipeline.o: sw_pipeline.c sw_pipeline.h
-	$(CC) $(CFLAGS) -c sw_pipeline.c $(INCLUDES)
+sw_workflow.o: sw_workflow.c sw_workflow.h
+	$(CC) $(CFLAGS) -c sw_workflow.c $(INCLUDES)
 
-../../commons/workflow_scheduler.o: ../../commons/workflow_scheduler.c ../../commons/workflow_scheduler.h
-	$(CC) $(CFLAGS) -c ../../commons/workflow_scheduler.c $(INCLUDES)
+sw_omp.o: sw_omp.c sw_omp.h
+	$(CC) $(CFLAGS) -c sw_omp.c $(INCLUDES)
 
 clean:
 	-rm -rf main *.o bin/hpg-sw bin/hpg-sw-bench

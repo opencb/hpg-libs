@@ -9,8 +9,12 @@
 #include "sse.h"
 #include "smith_waterman.h"
 
-#ifdef PIPE
-#include "sw_pipeline.h"
+#ifdef SW_WORKFLOW
+#include "sw_workflow.h"
+#endif
+
+#ifdef SW_OMP
+#include "sw_omp.h"
 #endif
 
 void run_sse(char *q_filename, char *r_filename,

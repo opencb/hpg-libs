@@ -31,7 +31,6 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
     }
 
     if (num_threads == 1) {
-
 #ifdef TIMING
         double partial_t;
 #endif // TIMING
@@ -105,10 +104,10 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 sse_matrix_t[0] += sw_toc(partial_t);
 #endif // TIMING
 
-                // tracebacking
 #ifdef TIMING
                 partial_t = sw_tic();
 #endif // TIMING
+                // tracebacking
                 simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                gap_open, gap_extend, H, C, &score_p[index],
                                &output_p->query_map_p[index], (int *)&output_p->query_start_p[index],
@@ -170,10 +169,10 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
             sse_matrix_t[0] += sw_toc(partial_t);
 #endif // TIMING
 
-            // tracebacking
 #ifdef TIMING
             partial_t = sw_tic();
 #endif // TIMING
+            // tracebacking
             simd_traceback(simd_depth, depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                            gap_open, gap_extend, H, C, max_score,
                            &output_p->query_map_p[index], (int *)&output_p->query_start_p[index],
