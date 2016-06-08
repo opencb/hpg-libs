@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
                 {
                         {"query-file",               required_argument, 0, 'q'},
                         {"ref-file",                 required_argument, 0, 'r'},
-                        {"output-dir",               required_argument, 0, 'd'},
-                        {"output-file",              required_argument, 0, 'o'},
+                        {"output-dir",               optional_argument, 0, 'd'},
+                        {"output-file",              optional_argument, 0, 'o'},
                         {"gap-open-penalty",         required_argument, 0, 'p'},
                         {"gap-extend-penalty",       required_argument, 0, 'e'},
                         {"match-score",              required_argument, 0, 'm'},
@@ -127,17 +127,17 @@ int main(int argc, char *argv[]) {
     printf("ref-file = %s\n", r_filename);
 
     if (out_dirname == NULL) {
-        display_usage("\nERROR: Output directory name is missing (option --output-dir or -d)\n");
+      //display_usage("\nERROR: Output directory name is missing (option --output-dir or -d)\n");
     } else if (!file_exists(out_dirname)) {
         printf("\nERROR: Output directory %s does not exist\n", out_dirname);
         exit(-1);
     }
-    printf("output-dir = %s\n", out_dirname);
+    //printf("output-dir = %s\n", out_dirname);
 
-    if (out_filename == NULL) {
-        display_usage("\nERROR: Ouptut file name is missing (option --ouput-file or -o)\n");
-    }
-    printf("output-file = %s\n", out_filename);
+    //    if (out_filename == NULL) {
+    //        display_usage("\nERROR: Ouptut file name is missing (option --ouput-file or -o)\n");
+    //    }
+    //printf("output-file = %s\n", out_filename);
 
     printf("match-penalty = %f\n", match);
     printf("mismatch-penalty = %f\n", mismatch);
@@ -171,10 +171,14 @@ int main(int argc, char *argv[]) {
     }
     printf("reads-per-batch = %i\n", batch_size);
 
-    char sse_out_filename[2048];
-    sprintf(sse_out_filename, "%s/%s", out_dirname, out_filename);
-
-    printf("out filename (full path) = %s\n", sse_out_filename);
+    char *sse_out_filename = NULL;
+    if (out_filename == NULL) {
+      printf("ATENTION: Missing output filename,runnig Smith-Waterman and backtracking for timing purposes\n");
+    } else {
+      sse_out_filename = (char *) malloc(2048 * sizeof(char));
+      sprintf(sse_out_filename, "%s/%s", out_dirname, out_filename);
+      printf("out filename (full path) = %s\n", sse_out_filename);
+    }
 
     sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
     sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
@@ -190,6 +194,9 @@ int main(int argc, char *argv[]) {
        match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
        num_threads, sse_out_filename);
 
+    if (out_filename) {
+      free(sse_out_filename);
+    }
     free(sse_matrix_t);
     free(sse_tracking_t);
 

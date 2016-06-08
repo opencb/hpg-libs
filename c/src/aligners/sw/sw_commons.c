@@ -178,4 +178,39 @@ void sw_multi_output_save(int num_alignments, sw_multi_output_t* output_p, FILE 
 }
 
 //------------------------------------------------------------------------------------
+
+int sw_multi_output_string(int num_alignments, sw_multi_output_t* output_p, char *buf) {
+  int total, len, identity, gaps;
+  total = 0;
+
+  for(int i = 0; i < num_alignments; i++) {
+    gaps = 0;
+    identity = 0;
+    len = strlen(output_p->query_map_p[i]);
+
+    total += sprintf(buf + total, "Query: %s\tStart at %i\n", output_p->query_map_p[i], output_p->query_start_p[i]);
+    total += sprintf(buf + total,"       ");
+    for(int j = 0; j < len; j++) {
+      if (output_p->query_map_p[i][j] == '-' || output_p->ref_map_p[i][j] == '-') {
+	gaps++;
+      }
+      if (output_p->query_map_p[i][j] == output_p->ref_map_p[i][j]) {
+	total += sprintf(buf + total, "|");
+	identity++;
+      } else {
+	total += sprintf(buf + total, "x");
+      }
+    }
+    total += sprintf(buf + total, "\n");
+    total += sprintf(buf + total, "Ref. : %s\tStart at %i\n", output_p->ref_map_p[i], output_p->ref_start_p[i]);
+    
+    total += sprintf(buf + total, "Score: %.2f\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+		     output_p->score_p[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+    
+    total += sprintf(buf + total, "\n");
+  }
+  return total;
+}
+
+//------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
