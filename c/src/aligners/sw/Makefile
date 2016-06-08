@@ -4,7 +4,7 @@
 # compiler parameter
 ifeq ($(COMPILER), intel)
 	CC = icc
-	CCFLAGS = -march=core-avx2 -fast -vec-report1
+	CCFLAGS = -march=core-avx2 -ipo -no-prec-div
 else
 	CC = gcc
 	CCFLAGS = -mavx2
