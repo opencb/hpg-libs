@@ -179,10 +179,16 @@ int main(int argc, char *argv[]) {
     sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
     sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
 
-    // SSE
-    run_sse(q_filename, r_filename,
-            match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
-            num_threads, sse_out_filename);
+#ifdef SW_OMP
+    // original
+    run_sw_omp
+#else
+    // original
+    run_sw
+#endif
+      (q_filename, r_filename,
+       match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
+       num_threads, sse_out_filename);
 
     free(sse_matrix_t);
     free(sse_tracking_t);
@@ -191,10 +197,14 @@ int main(int argc, char *argv[]) {
 }
 
 //-------------------------------------------------------------------------
-void run_sse(char *q_filename, char *r_filename,
-             float match, float mismatch, float gap_open, float gap_extend,
-             char *matrix_filename, int batch_size, int num_threads,
-             char *out_filename) {
+void run_sw(char *q_filename, char *r_filename,
+	    float match, float mismatch, float gap_open, float gap_extend,
+	    char *matrix_filename, int batch_size, int num_threads,
+	    char *out_filename) {
+
+  printf("------------------------------------------\n");
+  printf("Running function %s\n", __FUNCTION__);
+  printf("------------------------------------------\n");
 
     const int max_length = 2048;
 
