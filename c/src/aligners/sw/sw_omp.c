@@ -43,11 +43,11 @@ void run_sw_omp(char *q_filename, char *r_filename,
 
 #ifdef TIMING
   int batches[num_threads];
-  double max_sw_back = 0.0f;
+  double max_sw_back = 0.0f, max_convert = 0.0f, max_memory = 0.0f;
   double start_read[num_threads], read[num_threads];
   double start_write[num_threads], write[num_threads];
   double start_memory[num_threads], memory[num_threads];
-  double start_format[num_threads], format[num_threads];
+  double start_convert[num_threads], convert[num_threads];
   double start_sw_back[num_threads], sw_back[num_threads];
 #endif
 
@@ -62,7 +62,7 @@ void run_sw_omp(char *q_filename, char *r_filename,
 
     batches[tid] = 0;
     read[tid] = 0;
-    format[tid] = 0;
+    convert[tid] = 0;
     write[tid] = 0;
     memory[tid] = 0;
     sw_back[tid] = 0;
@@ -136,12 +136,12 @@ void run_sw_omp(char *q_filename, char *r_filename,
 
       if (out_file) {
 #ifdef TIMING
-        start_format[tid] = sw_tic();
+        start_convert[tid] = sw_tic();
 #endif
         buffer[0] = '\0';
         buffer_size = sw_multi_output_string(num_queries, output_p, buffer);
 #ifdef TIMING
-        format[tid] += sw_toc(start_format[tid]);
+        convert[tid] += sw_toc(start_convert[tid]);
 #endif
 
         #pragma omp critical
@@ -189,8 +189,9 @@ void run_sw_omp(char *q_filename, char *r_filename,
 
 #ifdef TIMING
     for(int i = 0 ; i < num_threads; i++) {
-      if (sw_back[i] > max_sw_back)
-        max_sw_back = sw_back[i];
+      if (sw_back[i] > max_sw_back) max_sw_back = sw_back[i];
+      if (convert[i] > max_convert) max_convert = convert[i];
+      if (memory[i] > max_memory) max_memory = memory[i];
     }
 #endif
 
@@ -208,16 +209,18 @@ void run_sw_omp(char *q_filename, char *r_filename,
 
 #ifdef TIMING
   double batches_total = 0, read_total = 0, write_total = 0;
-  printf("Thread: <batches> <matrix + backtracing> <matrix> <backtracking> <read> <format> <write> <memory>\n");
+  printf("Thread: <batches> <matrix + backtracing> <matrix> <backtracking> <read> <convert> <write> <memory>\n");
   for(int i = 0; i < num_threads ; i++) {
-    printf("\tThread_%i\t%i\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\n", i, batches[i], sw_back[i], sse_matrix_t[i], sse_tracking_t[i], read[i], format[i], write[i], memory[i]);
+    printf("\tThread_%i\t%i\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\n", i, batches[i], sw_back[i], sse_matrix_t[i], sse_tracking_t[i], read[i], convert[i], write[i], memory[i]);
     batches_total += batches[i];
     read_total += read[i];
     write_total += write[i];
   }
-  printf("Max. SW + backtracking : %0.3f\n", max_sw_back);
-  printf("Total reading time     : %0.3f\n", read_total);
-  printf("Total writing time     : %0.3f\n", write_total);
+  printf("Total reading time         : %0.3f\n", read_total);
+  printf("Max. matrix + backtracking : %0.3f\n", max_sw_back);
+  printf("Max. memory management time: %0.3f\n", max_memory);
+  printf("Max. conversion time       : %0.3f\n", max_convert);
+  printf("Total writing time         : %0.3f\n", write_total);
 
   //    printf("Alignment time      : %0.3f s (%i threads)\n", sw_back, num_threads);
 #endif
