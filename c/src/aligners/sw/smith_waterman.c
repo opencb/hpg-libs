@@ -31,6 +31,8 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
     }
 
     if (num_threads == 1) {
+        int tid = omp_get_thread_num();
+
 #ifdef TIMING
         double partial_t;
 #endif // TIMING
@@ -101,7 +103,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 //printf("end avx2_matrix\n");
 
 #ifdef TIMING
-                sse_matrix_t[0] += sw_toc(partial_t);
+                sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
 #ifdef TIMING
@@ -114,7 +116,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                                &output_p->ref_map_p[index], (int *)&output_p->ref_start_p[index], alig_lens,
                                q_aux, r_aux);
 #ifdef TIMING
-                sse_tracking_t[0] += sw_toc(partial_t);
+                sse_tracking_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
                 depth = 0;
@@ -166,7 +168,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // SW_AVX2
 
 #ifdef TIMING
-            sse_matrix_t[0] += sw_toc(partial_t);
+            sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
 #ifdef TIMING
@@ -179,7 +181,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                            &output_p->ref_map_p[index], (int *)&output_p->ref_start_p[index], alig_lens,
                            q_aux, r_aux);
 #ifdef TIMING
-            sse_tracking_t[0] += sw_toc(partial_t);
+            sse_tracking_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
             for (unsigned int i = 0; i < depth; i++) {
@@ -406,6 +408,8 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 
     if (num_threads == 1) {
 
+        int tid = omp_get_thread_num();
+
         char *q_aux = NULL, *r_aux = NULL;
         int depth, aux_size = 0, H_size = 0, F_size = 0, max_q_len = 0, max_r_len = ref_len;
         char *q[simd_depth], *r[simd_depth];
@@ -449,7 +453,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                            optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #endif
 #ifdef TIMING
-                sse_matrix_t[0] += sw_toc(partial_t);
+                sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
                 // tracebacking
@@ -462,7 +466,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                                &output_p->ref_map_p[index], (int *)&output_p->ref_start_p[index], alig_lens,
                                q_aux, r_aux);
 #ifdef TIMING
-                sse_tracking_t[0] += sw_toc(partial_t);
+                sse_tracking_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
                 depth = 0;
@@ -504,7 +508,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #endif
 
 #ifdef TIMING
-            sse_matrix_t[0] += sw_toc(partial_t);
+            sse_matrix_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
             // tracebacking
@@ -517,7 +521,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                            &output_p->ref_map_p[index], (int *)&output_p->ref_start_p[index], alig_lens,
                            q_aux, r_aux);
 #ifdef TIMING
-            sse_tracking_t[0] += sw_toc(partial_t);
+            sse_tracking_t[tid] += sw_toc(partial_t);
 #endif // TIMING
 
             for (unsigned int i = 0; i < depth; i++) {

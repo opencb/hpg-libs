@@ -5,6 +5,10 @@
 
 #include "sw_omp.h"
 
+#ifdef TIMING
+extern double *sse_matrix_t, *sse_tracking_t;
+#endif // TIMING
+
 //====================================================================
 // O M P     F O R      H P G - S W
 //====================================================================
@@ -197,28 +201,28 @@ void run_sw_omp(char *q_filename, char *r_filename,
   }
 
 #ifdef SW_AVX2
-  printf("AVX2\n");
+  printf("AVX2 (time in seconds)\n");
 #else
-  printf("SSE\n");
+  printf("SSE (time in seconds)\n");
 #endif
 
 #ifdef TIMING
   double batches_total = 0, read_total = 0, write_total = 0;
-  printf("Thread: <batches> <matrix + backtracing time> <read> <format> <write> <memory>\n");
+  printf("Thread: <batches> <matrix + backtracing> <matrix> <backtracking> <read> <format> <write> <memory>\n");
   for(int i = 0; i < num_threads ; i++) {
-    printf("\tThread %i:\t%i\t%0.3fs\t%0.3fs\t%0.3fs\t%0.3fs\t%0.3fs\n", i, batches[i], sw_back[i], read[i], format[i], write[i], memory[i]);
+    printf("\tThread_%i\t%i\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\n", i, batches[i], sw_back[i], sse_matrix_t[i], sse_tracking_t[i], read[i], format[i], write[i], memory[i]);
     batches_total += batches[i];
     read_total += read[i];
     write_total += write[i];
   }
-  printf("Max. SW + backtracking : %0.3fs\n", max_sw_back);
-  printf("Total reading time     : %0.3f s\n", read_total);
-  printf("Total writing time     : %0.3f s\n", write_total);
+  printf("Max. SW + backtracking : %0.3f\n", max_sw_back);
+  printf("Total reading time     : %0.3f\n", read_total);
+  printf("Total writing time     : %0.3f\n", write_total);
 
   //    printf("Alignment time      : %0.3f s (%i threads)\n", sw_back, num_threads);
 #endif
     printf("\n");
-    printf("Total hpg-sw time   : %0.3fs\n", elapsed);
+    printf("Total hpg-sw time   : %0.3f\n", elapsed);
 }
 
 //------------------------------------------------------------------------------------
