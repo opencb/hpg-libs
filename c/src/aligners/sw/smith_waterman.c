@@ -258,7 +258,9 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 	sse_tracking_t[0] += sw_toc(partial_t);
 #endif // TIMING
 	
-	depth = 0;
+          depth = 0;
+          max_q_len = 0;
+          max_r_len = 0;
       }
     }
 
@@ -395,6 +397,9 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #endif // TIMING
 	    
 	    depth = 0;
+        max_q_len = 0;
+        max_r_len = 0;
+
 	  }
 	}
 	
@@ -460,7 +465,8 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries, 
 			 sw_optarg_t *optarg_p, unsigned int num_threads, 
 			 sw_multi_output_t *output_p) {
-  
+
+    double partial_t;
   const unsigned int simd_depth = 4;
 
   if (output_p == NULL) {
@@ -490,6 +496,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
     float *score_p = output_p->score_p;
 
     depth = 0;
+
     for (unsigned int i = 0; i < num_queries; i++) {
 
       len = strlen(query_p[i]);
@@ -534,6 +541,9 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #endif // TIMING
 	
 	depth = 0;
+    max_q_len = 0;
+    max_r_len = 0;
+
       }
     }
 
@@ -665,6 +675,8 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #endif // TIMING
 	    
 	    depth = 0;
+        max_q_len = 0;
+        max_r_len = 0;
 	  }
 	}
 	

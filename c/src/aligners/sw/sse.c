@@ -17,7 +17,7 @@ void sse_matrix(int num_seqs,
   __m128 h_simd, e_simd, f_simd, diagonal_simd;
   __m128 temp_simd, subst_simd;
 
-  __m128i zeroi   = _mm_set_epi32(0, 0, 0, 0);
+  __m128i zeroi = _mm_set_epi32(0, 0, 0, 0);
 
   __m128 score_simd = _mm_setzero_ps();
   __m128 zero_simd = _mm_setzero_ps();
