@@ -39,7 +39,7 @@ if compiler == 'intel':
 	hpg_c_env['LIBS'] += ['irc']
 	hpg_c_env['LINKFLAGS'] += ['-openmp']
 else:
-	hpg_c_env['CFLAGS'] += ' -fopenmp '
+	hpg_c_env['CFLAGS'] += ' -msse4.2 -fopenmp '
 	hpg_c_env['LINKFLAGS'] += ['-fopenmp']
 
 if debug == 1:
@@ -75,7 +75,7 @@ if compiler == 'intel':
 	hpg_cpp_env['LIBS'] += ['irc']
 	hpg_cpp_env['LINKFLAGS'] += ['-openmp']
 else:
-	hpg_cpp_env['CFLAGS'] += ' -fopenmp '
+	hpg_cpp_env['CFLAGS'] += ' -msse4.2 -fopenmp '
 	hpg_cpp_env['LINKFLAGS'] += ['-fopenmp']
 
 if debug == 1:

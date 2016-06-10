@@ -7,6 +7,7 @@
 #include <omp.h>
 
 #include "sse.h"
+#include "avx2.h"
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -24,6 +25,8 @@ typedef float subst_matrix_t[128][128];
  * score matrix.
  */
 typedef struct sw_optarg {
+  float match;   /**< Score for match. */
+  float mismatch; /**< Penalty for mismatch. */
   float gap_open;   /**< Penalty for gap openning. */
   float gap_extend; /**< Penalty for gap extending. */
   char *subst_matrix_name; /**< Substitution score matrix name. */
@@ -42,7 +45,8 @@ typedef struct sw_optarg {
  * Constructor function that allocates memory for
  * the Smith-Waterman algorithm parameters.
  */
-sw_optarg_t* sw_optarg_new(float gap_open, float gap_extend, char *subst_matrix_name);
+sw_optarg_t* sw_optarg_new(float match, float mismatch,
+                           float gap_open, float gap_extend, char *subst_matrix_name);
 
 //------------------------------------------------------------------------------------
 
