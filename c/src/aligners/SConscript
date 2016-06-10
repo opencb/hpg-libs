@@ -6,7 +6,6 @@ Import('env', 'compiler', 'debug')
 aligners_env = env.Clone()
 aligners_env['objects'] = []
 
-
 # Targets
 aligners = ['bwt', 'sw']
 

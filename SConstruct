@@ -6,6 +6,7 @@ import os
 #Compiler configure
 debug = int(ARGUMENTS.get('debug', '0'))
 compiler = ARGUMENTS.get('compiler', 'gcc')
+simd = ARGUMENTS.get('simd', 'avx2')
 
 #Paths
 system_include = '/usr/include'
@@ -35,12 +36,18 @@ if os.environ.has_key('LIBRARY_PATH'):
         hpg_c_env.Append(LIBPATH=[dir])
 
 if compiler == 'intel':
+   if simd == 'sse':
 	hpg_c_env['CFLAGS'] += ' -msse4.2 -openmp '
-	hpg_c_env['LIBS'] += ['irc']
-	hpg_c_env['LINKFLAGS'] += ['-openmp']
+   else:
+	hpg_c_env['CFLAGS'] += ' -march=core-avx2 -ipo -no-prec-div -openmp '
+   hpg_c_env['LIBS'] += ['irc']
+   hpg_c_env['LINKFLAGS'] += ['-openmp']
 else:
+   if simd == 'sse':
 	hpg_c_env['CFLAGS'] += ' -msse4.2 -fopenmp '
-	hpg_c_env['LINKFLAGS'] += ['-fopenmp']
+   else:
+	hpg_c_env['CFLAGS'] += ' -mavx2 -fopenmp '
+   hpg_c_env['LINKFLAGS'] += ['-fopenmp']
 
 if debug == 1:
     hpg_c_env['CFLAGS'] += ' -O0 -g'

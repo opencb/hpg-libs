@@ -13,7 +13,7 @@ extern double *sse_matrix_t, *sse_tracking_t;
 void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                          sw_optarg_t *optarg_p, unsigned int num_threads,
                          sw_multi_output_t *output_p) {
-#ifdef SW_AVX2
+#ifdef __AVX2__
     const unsigned int simd_depth = 8;
 #else
     const unsigned int simd_depth = 4;
@@ -81,7 +81,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
 #ifdef SW_VERSION_1
                 avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
@@ -97,7 +97,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #endif // SW_VERSION_1
-#endif // SW_AVX2
+#endif // __AVX2__
 
                 //printf("start avx2_matrix (index %i)\n", index);
                 //printf("end avx2_matrix\n");
@@ -148,7 +148,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
             partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
 #ifdef SW_VERSION_1
             avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                         optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
@@ -164,7 +164,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
             sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                         match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #endif // SW_VERSION_1
-#endif // SW_AVX2
+#endif // __AVX2__
 
 #ifdef TIMING
             sse_matrix_t[tid] += sw_toc(partial_t);
@@ -260,7 +260,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                     partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
 #ifdef SW_VERSION_1
                     avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                 optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
@@ -276,7 +276,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                     sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                 match, mismatch, gap_open, gap_extend, H, F, C, &score_p[index]);
 #endif // SW_VERSION_1
-#endif // SW_AVX2
+#endif // __AVX2__
 
 #ifdef TIMING
                     sse_matrix_t[tid] += sw_toc(partial_t);
@@ -325,7 +325,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
 #ifdef SW_VERSION_1
                 avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
@@ -341,7 +341,7 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
                 sse_matrix2(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             match, mismatch, gap_open, gap_extend, H, F, C, max_score);
 #endif // SW_VERSION_1
-#endif // SW_AVX2
+#endif // __AVX2__
 
 #ifdef TIMING
                 sse_matrix_t[tid] += sw_toc(partial_t);
@@ -383,7 +383,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                          sw_optarg_t *optarg_p, unsigned int num_threads,
                          sw_multi_output_t *output_p) {
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
     const unsigned int simd_depth = 8;
 #else
     const unsigned int simd_depth = 4;
@@ -444,7 +444,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
                 partial_t = sw_tic();
 #endif // TIMING
-#ifdef SW_AVX2
+#ifdef __AVX2__
                 avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
@@ -498,7 +498,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
             partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
             avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                         optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #else
@@ -591,7 +591,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
 #ifdef TIMING
                     partial_t = sw_tic();
 #endif // TIMING
-#ifdef SW_AVX2
+#ifdef __AVX2__
                     avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                                 optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, &score_p[index]);
 #else
@@ -645,7 +645,7 @@ void smith_waterman_mqsr(char **query_p, char *ref_p, unsigned int num_queries,
                 partial_t = sw_tic();
 #endif // TIMING
 
-#ifdef SW_AVX2
+#ifdef __AVX2__
                 avx2_matrix(depth, q, q_lens, max_q_len, r, r_lens, max_r_len,
                             optarg_p->subst_matrix, gap_open, gap_extend, H, F, C, max_score);
 #else
