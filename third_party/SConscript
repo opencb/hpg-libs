@@ -52,11 +52,32 @@ third_party_c_objs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', '
 
 # we don't compile samtools and hts ourselves, delegate in their makefiles
 # that generate samtools/libbam.a and htslib/libhts.a
-if clean:
-   os.system("cd htslib/ && make clean && cd ../samtools/ && make clean")
-else:
-   os.system("cd .. && git submodule init && git submodule update && cd third_party/htslib/ && git checkout master && make && cd ../samtools/ && git checkout master && make && cd ../")
+#if clean:
+#   os.system("cd htslib/ && make clean && cd ../samtools/ && make clean")
+#else:
+#   os.system("cd .. && git submodule init && git submodule update && cd third_party/htslib/ && git checkout master && make && cd ../samtools/ && git checkout master && make && cd ../")
+
+samtoolsenv = hpg_c_env.Clone()
+samtoolsenv['CPPPATH'] += [os.getcwd() + '/htslib']
 hpg_c_env['CPPPATH'] += [os.getcwd() + '/htslib/']
+
+third_party_c_objs += samtoolsenv.Object(['htslib/sam.c', 'htslib/hfile.c', 'htslib/bgzf.c',         \
+		      			  'htslib/kfunc.c', 'htslib/knetfile.c', 'htslib/kstring.c', \
+					  'htslib/bgzf.c', 'htslib/faidx.c', 'htslib/hfile.c',       \
+					  'htslib/hfile_net.c', 'htslib/hts.c', 'htslib/md5.c',      \
+					  'htslib/regidx.c', 'htslib/synced_bcf_reader.c',           \
+					  'htslib/vcf_sweep.c', 'htslib/tbx.c', 'htslib/vcf.c',      \
+					  'htslib/vcfutils.c', 'htslib/cram/cram_codecs.c',          \
+					  'htslib/cram/cram_decode.c', 'htslib/cram/cram_encode.c',  \
+					  'htslib/cram/cram_external.c', 'htslib/cram/cram_index.c', \
+					  'htslib/cram/cram_io.c', 'htslib/cram/cram_samtools.c',    \
+					  'htslib/cram/cram_stats.c', 'htslib/cram/files.c',         \
+					  'htslib/cram/mFILE.c', 'htslib/cram/open_trace_file.c',    \
+					  'htslib/cram/pooled_alloc.c', 'htslib/cram/rANS_static.c', \
+					  'htslib/cram/sam_header.c', 'htslib/cram/string_alloc.c',  \
+					  'htslib/cram/thread_pool.c', 'htslib/cram/vlen.c',         \
+					  'htslib/cram/zfio.c',                                      \
+					  'samtools/bam.c', 'samtools/sam_opts.c', 'samtools/bam_sort.c'])
 
 # return all objects
 hpg_c_env['objects'] += third_party_c_objs
