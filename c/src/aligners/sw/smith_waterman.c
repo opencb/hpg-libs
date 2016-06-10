@@ -118,7 +118,6 @@ void smith_waterman_mqmr(char **query_p, char **ref_p, unsigned int num_queries,
 #ifdef TIMING
                 sse_tracking_t[tid] += sw_toc(partial_t);
 #endif // TIMING
-
                 depth = 0;
                 max_q_len = 0;
                 max_r_len = 0;
