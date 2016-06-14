@@ -4,10 +4,10 @@ import sys
 
 Import('hpg_c_env', 'hpg_cpp_env', 'compiler', 'debug')
 
-clean = 0
-for opt in sys.argv:
-  if opt == "-c":
-     clean = 1
+#clean = 0
+#for opt in sys.argv:
+#  if opt == "-c":
+#     clean = 1
 
 third_party_c_objs = []
 third_party_cpp_objs = []
@@ -58,6 +58,10 @@ third_party_c_objs += cpropsenv.Object(['cprops/avl.c', 'cprops/collection.c', '
 #   os.system("cd .. && git submodule init && git submodule update && cd third_party/htslib/ && git checkout master && make && cd ../samtools/ && git checkout master && make && cd ../")
 
 samtoolsenv = hpg_c_env.Clone()
+if debug == 1:
+   samtoolsenv['CFLAGS'] = ' -g -Wall '
+else:
+   samtoolsenv['CFLAGS'] = ' -g -Wall -O2 '
 samtoolsenv['CPPPATH'] += [os.getcwd() + '/htslib']
 hpg_c_env['CPPPATH'] += [os.getcwd() + '/htslib/']
 
@@ -67,9 +71,9 @@ third_party_c_objs += samtoolsenv.Object(['htslib/sam.c', 'htslib/hfile.c', 'hts
 					  'htslib/hfile_net.c', 'htslib/hts.c', 'htslib/md5.c',      \
 					  'htslib/regidx.c', 'htslib/synced_bcf_reader.c',           \
 					  'htslib/vcf_sweep.c', 'htslib/tbx.c', 'htslib/vcf.c',      \
+					  'htslib/cram/cram_external.c', 'htslib/cram/cram_index.c', \
 					  'htslib/vcfutils.c', 'htslib/cram/cram_codecs.c',          \
 					  'htslib/cram/cram_decode.c', 'htslib/cram/cram_encode.c',  \
-					  'htslib/cram/cram_external.c', 'htslib/cram/cram_index.c', \
 					  'htslib/cram/cram_io.c', 'htslib/cram/cram_samtools.c',    \
 					  'htslib/cram/cram_stats.c', 'htslib/cram/files.c',         \
 					  'htslib/cram/mFILE.c', 'htslib/cram/open_trace_file.c',    \
