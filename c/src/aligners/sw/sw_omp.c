@@ -60,12 +60,14 @@ void run_sw_omp(char *q_filename, char *r_filename,
     int buffer_size;
     char *buffer = (char *) malloc(batch_size * 4096);
 
+#ifdef TIMING
     batches[tid] = 0;
     read[tid] = 0;
     convert[tid] = 0;
     write[tid] = 0;
     memory[tid] = 0;
     sw_back[tid] = 0;
+#endif // TIMING
 
     #pragma omp critical
     {
@@ -167,7 +169,9 @@ void run_sw_omp(char *q_filename, char *r_filename,
       memory[tid] += sw_toc(start_memory[tid]);
 #endif
 
+#ifdef TIMING
       batches[tid]++;
+#endif // TIMING
   }
 
 #ifdef TIMING

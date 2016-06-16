@@ -1,16 +1,4 @@
-#CC = icc
-#CFLAGS = -std=c99 -O3 -openmp -Wall -Wno-missing-declarations -fast -mavx2 -vec-report1
-
-# compiler parameter
-ifeq ($(COMPILER), intel)
-	CC = icc
-	CCFLAGS = -march=core-avx2 -ipo -no-prec-div
-else
-	CC = gcc
-	CCFLAGS = -mavx2
-endif
-
-#CC = /opt/intel/bin/icc
+OBJS = smith_waterman.o sse.o avx2.o avx512.o macros.o sw_omp.o sw_commons.o
 
 # SW version parameter
 SW_VER = SW_VERSION_2
@@ -23,18 +11,27 @@ ifeq ($(TIMING), 1)
     FTIMING = -DTIMING
 endif
 
-# METHOD parameter
-ifeq ($(METHOD), OMP)
-    FMETHOD = -DSW_OMP
-endif
-
-# SIMD parameter
-ifeq ($(SIMD), AVX2)
-    CFLAGS = -std=c99 -O3 -fopenmp -g $(CCFLAGS) $(FTIMING) $(FMETHOD) -DSW_$(SIMD) -D$(SW_VER)
-    OBJS = smith_waterman.o sse.o avx2.o macros.o sw_omp.o sw_commons.o
+# compiler parameter
+ifeq ($(COMPILER), intel)
+	CC = icc
+	# SIMD parameter
+	ifeq ($(SIMD), AVX512)
+	    CFLAGS = -std=c99 -O3 -fopenmp -g -axCORE-AVX512 $(FTIMING) -D__AVX512__ -DSW_$(SIMD) -D$(SW_VER)
+	else
+		ifeq ($(SIMD), AVX2)
+		    CFLAGS = -std=c99 -O3 -fopenmp -g -march=core-avx2 -ipo -no-prec-div $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
+		else
+		    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
+		endif
+	endif
 else
-    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 $(FTIMING) $(FMETHOD) -DSW_$(SIMD) -D$(SW_VER)
-    OBJS = smith_waterman.o sse.o macros.o sw_omp.o sw_commons.o
+	CC = gcc
+	# SIMD parameter
+	ifeq ($(SIMD), AVX2)
+	    CFLAGS = -std=c99 -O3 -fopenmp -g -mavx2 $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
+	else
+	    CFLAGS = -std=c99 -O3 -fopenmp -g -msse4.2 $(FTIMING) -DSW_$(SIMD) -D$(SW_VER)
+	endif
 endif
 
 INCLUDES = -I .
@@ -63,6 +60,9 @@ sse.o: sse.c sse.h
 
 avx2.o: avx2.c avx2.h
 	$(CC) $(CFLAGS) -c avx2.c $(INCLUDES)
+
+avx512.o: avx512.c avx512.h
+	$(CC) $(CFLAGS) -c avx512.c $(INCLUDES)
 
 smith_waterman.o: smith_waterman.c smith_waterman.h
 	$(CC) $(CFLAGS) -c smith_waterman.c $(INCLUDES)

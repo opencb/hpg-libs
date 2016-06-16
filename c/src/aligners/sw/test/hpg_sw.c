@@ -183,16 +183,10 @@ int main(int argc, char *argv[]) {
     sse_matrix_t = (double *) calloc(num_threads, sizeof(double));
     sse_tracking_t = (double *) calloc(num_threads, sizeof(double));
 
-#ifdef SW_OMP
-    // original
-    run_sw_omp
-#else
-    // original
-    run_sw
-#endif
-      (q_filename, r_filename,
-       match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
-       num_threads, sse_out_filename);
+    // run_sw (was the original call)
+    run_sw_omp(q_filename, r_filename,
+	       match, mismatch, gap_open, gap_extend, subst_matrix_filename, batch_size,
+	       num_threads, sse_out_filename);
 
     if (out_filename) {
       free(sse_out_filename);

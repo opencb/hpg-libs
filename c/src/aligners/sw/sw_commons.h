@@ -7,6 +7,8 @@
 #include <immintrin.h>
 #include <omp.h>
 
+#include "macros.h"
+
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
@@ -114,6 +116,7 @@ void sw_multi_output_free(sw_multi_output_t* output_p);
  * into the given file
  */
 void sw_multi_output_save(int num_alignments, sw_multi_output_t* output_p, FILE *file_p);
+int sw_multi_output_string(int num_alignments, sw_multi_output_t* output_p, char *buf);
 
 //------------------------------------------------------------------------------------
 

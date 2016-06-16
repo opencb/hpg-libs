@@ -10,9 +10,7 @@
 #include "smith_waterman.h"
 //#include "avx.h"
 
-#ifdef SW_OMP
 #include "sw_omp.h"
-#endif
 
 void run_sw(char *q_filename, char *r_filename,
 	    float match, float mismatch,

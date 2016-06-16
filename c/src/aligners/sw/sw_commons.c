@@ -1,5 +1,8 @@
 #include "sw_commons.h"
 
+extern const unsigned int simd_depth;
+extern const unsigned int aligned_mem;
+
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
@@ -111,7 +114,7 @@ sw_multi_output_t* sw_multi_output_new(unsigned int num_queries) {
     output_p->ref_start_p = (unsigned int*) calloc(num_queries, sizeof(unsigned int));
 
     //output_p->score_p = (float*) calloc(num_queries, sizeof(float));
-    output_p->score_p = (float *) _mm_malloc(num_queries * sizeof(float), 32);
+    output_p->score_p = (float *) _mm_malloc(num_queries * sizeof(float), aligned_mem);
 
     return output_p;
 }
