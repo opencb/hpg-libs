@@ -328,11 +328,16 @@ void run_sw(char *q_filename, char *r_filename,
     }
 #endif
 
-#ifdef SW_AVX2
-    printf("\nsmith_waterman_mqmr function (AVX2 + OpenMP version)\n");
+#if defined (SW_AVX512) || defined (__AVX512__)
+    printf("AVX512 (time in seconds)\n");
 #else
-    printf("\nsmith_waterman_mqmr function (SSE + OpenMP version)\n");
+#if defined (SW_AVX2) || defined (__AVX2__)
+  printf("AVX2 (time in seconds)\n");
+#else
+  printf("SSE (time in seconds)\n");
 #endif
+#endif
+
 #ifdef TIMING
     printf("Thread: <matrix creation time> <backtracing time>\n");
     for(int i = 0; i < num_threads ; i++) {
