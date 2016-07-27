@@ -9,6 +9,25 @@
 
 #include "macros.h"
 
+
+#ifdef TIMING
+extern double *sse_matrix_t, *sse_tracking_t;
+#endif // TIMING
+
+#ifdef __AVX512__
+#define SIMD_DEPTH 16
+#define SIMD_ALIGNED 64
+#else
+#ifdef __AVX2__
+#define SIMD_DEPTH 8
+#define SIMD_ALIGNED 32
+#else
+#define SIMD_DEPTH 4
+#define SIMD_ALIGNED 16
+#endif
+#endif
+
+
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 

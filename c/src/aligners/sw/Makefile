@@ -1,4 +1,4 @@
-OBJS = smith_waterman.o sse.o avx2.o avx512.o macros.o sw_omp.o sw_commons.o
+OBJS = smith_waterman.o sw_omp.o sw_f32.o sse.o avx2.o avx512.o macros.o sw_commons.o sw_commons_f32.o
 
 # SW version parameter
 SW_VER = SW_VERSION_2
@@ -52,6 +52,9 @@ macros.o: macros.c macros.h
 sw_commons.o: sw_commons.c sw_commons.h
 	$(CC) $(CFLAGS) -c sw_commons.c $(INCLUDES)
 
+sw_commons_f32.o: sw_commons_f32.c sw_commons_f32.h
+	$(CC) $(CFLAGS) -c sw_commons_f32.c $(INCLUDES)
+
 emboss.o: emboss.c emboss.h
 	$(CC) $(CFLAGS) -c emboss.c $(INCLUDES)
 
@@ -61,11 +64,20 @@ sse.o: sse.c sse.h
 avx2.o: avx2.c avx2.h
 	$(CC) $(CFLAGS) -c avx2.c $(INCLUDES)
 
+avx2_i16.o: avx2_i16.c avx2_i16.h
+	$(CC) $(CFLAGS) -c avx2_i16.c $(INCLUDES)
+
 avx512.o: avx512.c avx512.h
 	$(CC) $(CFLAGS) -c avx512.c $(INCLUDES)
 
 smith_waterman.o: smith_waterman.c smith_waterman.h
 	$(CC) $(CFLAGS) -c smith_waterman.c $(INCLUDES)
+
+sw_i16.o: sw_i16.c sw_i16.h
+	$(CC) $(CFLAGS) -c sw_i16.c $(INCLUDES)
+
+sw_f32.o: sw_f32.c sw_f32.h
+	$(CC) $(CFLAGS) -c sw_f32.c $(INCLUDES)
 
 sw_omp.o: sw_omp.c sw_omp.h
 	$(CC) $(CFLAGS) -c sw_omp.c $(INCLUDES)

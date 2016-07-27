@@ -2,6 +2,7 @@
 #include "macros.h"
 #include "sw_commons.h"
 #include "smith_waterman.h"
+#include "sw_f32.h"
 
 #include "sw_omp.h"
 
@@ -55,6 +56,8 @@ void run_sw_omp(char *q_filename, char *r_filename,
     sw_optarg_t *optarg_p;
     sw_multi_output_t *output_p;
     int tid = omp_get_thread_num();
+
+    sw_mem_f32_t *mem = sw_mem_f32_new();
 
     int buffer_size;
     char *buffer = (char *) malloc(batch_size * 4096);
@@ -130,7 +133,8 @@ void run_sw_omp(char *q_filename, char *r_filename,
 #ifdef TIMING
       start_sw_back[tid] = sw_tic();
 #endif
-      smith_waterman_mqmr(q, r, num_queries, optarg_p, 1, output_p);
+      sw_mqmr_f32(q, r, num_queries, optarg_p, output_p, mem);
+      //smith_waterman_mqmr(q, r, num_queries, optarg_p, 1, output_p);
 #ifdef TIMING
       sw_back[tid] += sw_toc(start_sw_back[tid]);
 #endif
@@ -182,6 +186,7 @@ void run_sw_omp(char *q_filename, char *r_filename,
       free(q[i]);
       free(r[i]);
     }
+    sw_mem_f32_free(mem);
 #ifdef TIMING
     memory[tid] += sw_toc(start_memory[tid]);
 #endif
