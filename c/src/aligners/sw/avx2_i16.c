@@ -1,104 +1,22 @@
-#include "sw_i16.h"
+#ifdef __AVX2_I16__
+#include "avx2_i16.h"
 
 //-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
 
-void sw_mqmr_i16(char **query, char **ref, unsigned int num_queries,
-		 sw_optarg_t *optarg, sw_multi_output_t *output,
-		 sw_mem_i16_t *mem) {
-
-  if (output == NULL) {
-    printf("Error: output buffer is null.\n");
-    exit(-1);
-  }
-  if (output->num_queries < num_queries) {
-    printf("Error: num. sequencias (%i) and output buffer length (%i) mismatch !\n",
-	   num_queries, output->num_queries);
-    exit(-1);
-  }
-  
-  int tid = omp_get_thread_num();
-
-#ifdef TIMING
-  double partial_t;
-#endif // TIMING
-
-  //  char *q_aux = NULL, *r_aux = NULL;
-  //  int depth, aux_size = 0, H_size = 0, F_size = 0, max_q_len = 0, max_r_len = 0;
-  //  char *q[SIMD_DEPTH], *r[SIMD_DEPTH];
-  //  int len, index, q_lens[SIMD_DEPTH], r_lens[SIMD_DEPTH], alig_lens[SIMD_DEPTH];
-  //  float *H = NULL, *F = NULL;
-  //  int *C = NULL;
-  int alig_lens[SIMD_DEPTH];
-  
-  short match = (short) optarg->match;
-  short mismatch = (short) optarg->mismatch;
-  short gap_open = (short) optarg->gap_open;
-  short gap_extend = (short) optarg->gap_extend;
-  short *score = (short*) output->score_p;
-  
-  //printf("num queries = %i\n", num_queries);
-  //for(int k = 0; k < 8; k++) printf("%0.2f ", score_p[k]);
-  //printf("\n");
-  
-  int num_seqs;
-  for(int i = 0; i < num_queries; i += SIMD_DEPTH) {
-    num_seqs = num_queries - i;
-    if (num_seqs > SIMD_DEPTH) num_seqs = SIMD_DEPTH; 
-    //    printf("after sw_mem_i16_new(): num_seqs = %i\n", num_seqs);
-    sw_mem_i16_alloc(&query[i], &ref[i], num_seqs, mem);
-
-    //    printf("-----> after alloc\n");
-
-    // generating score matrix
-#ifdef TIMING
-    partial_t = sw_tic();
-#endif // TIMING
-      
-    matrix_avx2_i16(num_seqs, mem->qq, mem->q_lens, mem->max_q_len, 
-		    mem->rr, mem->r_lens, mem->max_r_len,
-		    match, mismatch, gap_open, gap_extend, 
-		    mem->H, mem->F, mem->C, &score[i]);
-      
-    //printf("start avx2_matrix (index %i)\n", index);
-    //printf("end avx2_matrix\n");
-    
-#ifdef TIMING
-    sse_matrix_t[tid] += sw_toc(partial_t);
-#endif // TIMING
-    
-#ifdef TIMING
-    partial_t = sw_tic();
-#endif // TIMING
-    // backtracking
-    backtracking_i16(SIMD_DEPTH, num_seqs, 
-		     mem->q, mem->q_lens, mem->max_q_len, 
-		     mem->r, mem->r_lens, mem->max_r_len,
-		     gap_open, gap_extend, 
-		     mem->H, mem->C, &score[i],
-		     &output->query_map_p[i], (int *)&output->query_start_p[i],
-		     &output->ref_map_p[i], (int *)&output->ref_start_p[i], 
-		     alig_lens,
-		     mem->q_aux, mem->r_aux);
-#ifdef TIMING
-    sse_tracking_t[tid] += sw_toc(partial_t);
-#endif // TIMING
-  }
-}
-
-//------------------------------------------------------------------------------------
-
-void matrix_avx2_i16(int num_seqs,
-		     short *qq, int *q_len, int max_q_len,
-		     short *rr, int *r_len, int max_r_len,
+void avx2_matrix_i16(int num_seqs,
+		     short *qq, int max_q_len,
+		     short *rr, int max_r_len,
 		     short match, short mismatch, short gap_open, short gap_extend,
 		     short *H, short *F, short *C, short *max_score) {
+
+    const int depth = 16;
+
     __m256i q1, r1;
 
     __m256i match_simd = _mm256_set1_epi16(match);
     __m256i mismatch_simd = _mm256_set1_epi16(mismatch);
 
-    __m256i h_simd, e_simd, f_simd, diagonal_simd;
+    __m256i h_simd, e_simd, f_simd, diagonal_simd, mask;
     __m256i temp_simd, subst_simd, subst_simd1;
 
     __m256i zeroi = _mm256_setzero_si256();
@@ -109,12 +27,12 @@ void matrix_avx2_i16(int num_seqs,
     __m256i gap_open_simd = _mm256_set1_epi16(gap_open);
     __m256i gap_extend_simd = _mm256_set1_epi16(gap_extend);
 
-    __m256i mask, max_de, max_fz;
+    __m256i max_de, max_fz;
     __m256i cmp_de, cmp_fz, cmp_de_fz;
     __m256i c;
 
     int offset, idx, j_depth;
-    int q_len_depth = SIMD_DEPTH * max_q_len;
+    int q_len_depth = depth * max_q_len;
 
     h_simd = zero_simd;
     e_simd = zero_simd;
@@ -122,7 +40,7 @@ void matrix_avx2_i16(int num_seqs,
     // initial loop
     r1 = _mm256_load_si256((__m256i *) rr);
     for (int j = 0; j < max_q_len; j++) {
-        j_depth = SIMD_DEPTH * j;
+        j_depth = depth * j;
 
         q1 = _mm256_load_si256((__m256i *) (qq + j_depth));
 
@@ -132,70 +50,35 @@ void matrix_avx2_i16(int num_seqs,
 
         // diagonal value: match or mismatch
 	mask = _mm256_cmpeq_epi16(q1, r1);
-        subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), 
-				     _mm256_and_si256(mask, match_simd));
+        subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), _mm256_and_si256(mask, match_simd));
         diagonal_simd = _mm256_add_epi16(zero_simd, subst_simd);
 
-        cmp_de = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(diagonal_simd, e_simd), 
-						  _mm256_cmpgt_epi16(diagonal_simd, e_simd)), 
-				  one_simd);
-
-	//	printf("%c%c|%c%c\n", 
-	//      ((int *)&q1)[0], ((int *)&r1)[0], 
-//	       ((int *)&q1)[1], ((int *)&r1)[1]);
-//	printf("mask=%i|%i, subst=%i|%i\n", 
-//	       ((short *) &mask)[0], ((short *) &mask)[1], 
-//	       ((short *) &subst_simd)[0], ((short *) &subst_simd)[1]);
-//	printf("d=%i|%i, e=%i|%i, one=%i, cmp_de = %i|%i\n", 
-//	       ((short *) &diagonal_simd)[0], ((short *) &diagonal_simd)[1], 
-//	       ((short *) &e_simd)[0], ((short *) &e_simd)[1],
-//	       ((short *) &one_simd)[0], 
-//	       ((short *) &cmp_de)[0], ((short *) &cmp_de)[1]);
+        cmp_de = _mm256_min_epi16(_mm256_cmp_epi16_mask(diagonal_simd, e_simd, _CMP_GE_OQ), one_simd);
         max_de = _mm256_max_epi16(diagonal_simd, e_simd);
 
         // up value: gap in query
         f_simd = _mm256_max_epi16(_mm256_sub_epi16(zero_simd, gap_extend_simd),
 				  _mm256_sub_epi16(zero_simd, gap_open_simd));
 
-        cmp_fz = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(f_simd, zero_simd), 
-						  _mm256_cmpgt_epi16(f_simd, zero_simd)),
-				  one_simd);
-	//	printf("f=%i, z=%i, one=%i, cmp_fz = %i\n", 
-	//	       ((short *) &f_simd)[0], ((short *) &zero_simd)[0],
-	//	       ((short *) &one_simd)[0], ((short *) &cmp_fz)[0]);
+        cmp_fz = _mm256_min_epi16(_mm256_cmp_epi16_mask(f_simd, zero_simd, _CMP_GE_OQ), one_simd);
         max_fz = _mm256_max_epi16(f_simd, zero_simd);
 
         // get max. value and save it
-        cmp_de_fz = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(max_de, max_fz), 
-						     _mm256_cmpgt_epi16(max_de, max_fz)), 
-				     one_simd);
-	//	printf("max_de=%i, max_fz=%i, one=%i, cmp_de_fz = %i\n", 
-	//	       ((short *) &max_de)[0], ((short *) &max_fz)[0],
-	//	       ((short *) &one_simd)[0], ((short *) &cmp_de_fz)[0]);
+        cmp_de_fz = _mm256_min_epi16(_mm256_cmp_epi16_mask(max_de, max_fz, _CMP_GE_OQ), one_simd);
         h_simd = _mm256_max_epi16(max_de, max_fz);
 
         score_simd = _mm256_max_epi16(score_simd, h_simd);
 
         // compass (save left, diagonal, up or zero?)
-        c = _mm256_slli_epi16(_mm256_or_si256(zeroi, _mm256_abs_epi16(cmp_de)), 1);
-        c = _mm256_slli_epi16(_mm256_or_si256(c, _mm256_abs_epi16(cmp_fz)), 1);
-        c = _mm256_or_si256(c, _mm256_abs_epi16(cmp_de_fz));
+        c = _mm256_slli_epi16(_mm256_or_si256(zeroi, cmp_de), 1);
+        c = _mm256_slli_epi16(_mm256_or_si256(c, cmp_fz), 1);
+        c = _mm256_or_si256(c, cmp_de_fz);
 
         // update matrices
-        _mm256_store_si256((__m256i *) &H[j_depth], h_simd);
-        _mm256_store_si256((__m256i *) &F[j_depth], f_simd);
-        _mm256_store_si256((__m256i *) &C[j_depth], c);
-
-//	printf("score:%c%c|%c%c/%i|%i\n", 
-//	       ((int *)&q1)[0], ((int *)&r1)[0], 
-//	       ((int *)&q1)[1], ((int *)&r1)[1], 
-//	       H[j_depth], H[j_depth+1]);
-	//printf("%i\t", H[j_depth]);
-	//printf("\tC = %i\n", C[j_depth]);
+        _mm256_store_si256(&H[j_depth], h_simd);
+        _mm256_store_si256(&F[j_depth], f_simd);
+        _mm256_store_si256(&C[j_depth], c);
     }
-  //  printf("\n");
-
-    //    exit(-1);
 
     // main loop
     for (int i = 1; i < max_r_len; i++) {
@@ -206,9 +89,9 @@ void matrix_avx2_i16(int num_seqs,
 
         idx = i * q_len_depth;
 
-        r1 = _mm256_load_si256((__m256i *) (rr + SIMD_DEPTH * i));
+        r1 = _mm256_load_si256((__m256i *) (rr + depth * i));
         for (int j = 0; j < max_q_len; j++) {
-            j_depth = SIMD_DEPTH * j;
+            j_depth = depth * j;
             offset = idx + j_depth;
 
             // left value: gap in reference
@@ -221,63 +104,55 @@ void matrix_avx2_i16(int num_seqs,
 	    subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), _mm256_and_si256(mask, match_simd));
             diagonal_simd = _mm256_add_epi16(temp_simd, subst_simd);
 
-	    cmp_de = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(diagonal_simd, e_simd), 
-						  _mm256_cmpgt_epi16(diagonal_simd, e_simd)), 
-				      one_simd);
+            cmp_de = _mm256_min_epi16(_mm256_cmp_epi16_mask(diagonal_simd, e_simd, _CMP_GE_OQ), one_simd);
             max_de = _mm256_max_epi16(diagonal_simd, e_simd);
 
             // up value: gap in query
-            temp_simd = _mm256_load_si256((__m256i *) &H[offset - q_len_depth]);
+            temp_simd = _mm256_load_epi16(&H[offset - q_len_depth]);
 
-            f_simd = _mm256_load_si256((__m256i *) &F[j_depth]);
+            f_simd = _mm256_load_epi16(&F[j_depth]);
             f_simd = _mm256_max_epi16(_mm256_sub_epi16(f_simd, gap_extend_simd),
 				      _mm256_sub_epi16(temp_simd, gap_open_simd));
 
-	    cmp_fz = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(f_simd, zero_simd), 
-						      _mm256_cmpgt_epi16(f_simd, zero_simd)),
-				      one_simd);
+            cmp_fz = _mm256_min_epi16(_mm256_cmp_epi16_mask(f_simd, zero_simd, _CMP_GE_OQ), one_simd);
             max_fz = _mm256_max_epi16(f_simd, zero_simd);
 
             // get max. value
-	    cmp_de_fz = _mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(max_de, max_fz), 
-							 _mm256_cmpgt_epi16(max_de, max_fz)), 
-					 one_simd);
+            cmp_de_fz = _mm256_min_epi16(_mm256_cmp_epi16_mask(max_de, max_fz, _CMP_GE_OQ), one_simd);
             h_simd = _mm256_max_epi16(max_de, max_fz);
 
             score_simd = _mm256_max_epi16(score_simd, h_simd);
 
             // compass (save left, diagonal, up or zero?)
-	    c = _mm256_slli_epi16(_mm256_or_si256(zeroi, _mm256_abs_epi16(cmp_de)), 1);
-	    c = _mm256_slli_epi16(_mm256_or_si256(c, _mm256_abs_epi16(cmp_fz)), 1);
-	    c = _mm256_or_si256(c, _mm256_abs_epi16(cmp_de_fz));
+            c = _mm256_slli_epi16(_mm256_or_si256(zeroi, cmp_de), 1);
+            c = _mm256_slli_epi16(_mm256_or_si256(c, cmp_fz), 1);
+            c = _mm256_or_si256(c, cmp_de_fz);
 
             // update matrices
-            _mm256_store_si256((__m256i *) &H[offset], h_simd);
-            _mm256_store_si256((__m256i *) &F[j_depth], f_simd);
-            _mm256_store_si256((__m256i *) &C[offset], c);
+            _mm256_store_si256(&H[offset], h_simd);
+            _mm256_store_si256(&F[j_depth], f_simd);
+            _mm256_store_si256(&C[offset], c);
 
-	    //printf("%i\t", C[offset]);
-//	    printf("%i|%i\t", H[offset], H[offset+1]);
         }
-//	printf("\n");
     }
 
     // return back max scores
-    _mm256_store_si256((__m256i *) max_score, score_simd);
+    _mm256_store_si256(max_score, score_simd);
+
 }
 
 //------------------------------------------------------------------------
 
-void backtracking_i16(int depth, int num_seqs,
-		      char **q, int *q_len, int max_q_len,
-		      char **r, int *r_len, int max_r_len,
-		      short gap_open, short gap_extend,
-		      short *H, short *C,
-		      short *max_score,
-		      char **q_alig, int *q_start,
-		      char **r_alig, int *r_start,
-		      int *len_alig,
-		      char *q_aux, char *r_aux) {
+void simd_traceback_i16(int depth, int num_seqs,
+			char **q, int *q_len, int max_q_len,
+			char **r, int *r_len, int max_r_len,
+			short gap_open, short gap_extend,
+			short *H, short *C,
+			short *max_score,
+			char **q_alig, int *q_start,
+			char **r_alig, int *r_start,
+			int *len_alig,
+			char *q_aux, char *r_aux) {
 
     char *qq, *qq_alig;
     char *rr, *rr_alig;
@@ -291,7 +166,7 @@ void backtracking_i16(int depth, int num_seqs,
     int qq_len, rr_len;
     int len = 0;
     char c;
-    short score;
+    float score;
 
     /*
     //max_len = max_q_len * max_r_len;
@@ -308,7 +183,9 @@ void backtracking_i16(int depth, int num_seqs,
         qq_len = q_len[i];
         rr_len = r_len[i];
 
-        find_position_i16(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
+        //    printf("%i of %i\n", i, num_seqs);
+        simd_find_position_i16(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
+        //printf("index %i: kk = %i, jj = %i\n", i, kk, jj);
 
         len = 0;
         //    while ((c = C[(jj * max_q_len * 4) + (kk * 4) + i])) {
@@ -436,6 +313,8 @@ void backtracking_i16(int depth, int num_seqs,
         r_alig[i] = rr_alig;
 
         len_alig[i] = len;
+        //    printf("rev. index %i\tq = %s\n", i, qq_alig);
+        //    printf("rev. index %i\tr = %s\n", i, rr_alig);
     }
     /*
     printf("free %i...\n", max_len);
@@ -448,9 +327,9 @@ void backtracking_i16(int depth, int num_seqs,
 
 //-------------------------------------------------------------------------
 
-void find_position_i16(int depth, int index, char *q, int q_len, char *r, int r_len,
-		       short *H, int cols, int rows, short score,
-		       int *q_pos, int *r_pos) {
+void simd_find_position_i16(int depth, int index, char *q, int q_len, char *r, int r_len,
+			    short *H, int cols, int rows, short score,
+			    int *q_pos, int *r_pos) {
     *r_pos = 0;
     *q_pos = 0;
 
@@ -476,4 +355,5 @@ void find_position_i16(int depth, int index, char *q, int q_len, char *r, int r_
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
+#endif // __AVX2_I16__
 

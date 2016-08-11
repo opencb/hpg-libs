@@ -2,7 +2,11 @@
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
+
+//#ifdef TEST_SCALAR
 int emboss_cnt = 0;
+//#endif
+
 extern double emboss_matrix_t, emboss_tracking_t;
 
 float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend, 
@@ -24,12 +28,17 @@ float sw_emboss(char* seq_a, char* seq_b, float gapopen, float gapextend,
   score = AlignPathCalcSW(seq_a, seq_b, len_a, len_b, gapopen, gapextend, path, compass);
   *matrix_time += sw_toc(partial_t);
 
-  //char filename[200];
-  //sprintf(filename, "/tmp/emboss-%i.score", emboss_cnt);
-  //save_float_matrix(path, len_a+1, len_b+1, seq_b, len_b, seq_a, len_a, 0, 1, filename);
-  //sprintf(filename, "/tmp/emboss-%i.compass", emboss_cnt);
-  //  save_int_matrix(compass, seq_b, len_b, seq_a, len_a, 0, 1, filename);
-  //emboss_cnt++;
+  //#ifdef TEST_SCALAR
+  char filename[200];
+  sprintf(filename, "/tmp/emboss-%i.%0.2f.score.matrix", emboss_cnt, score);
+  save_float_matrix(path, len_b, len_a, seq_b, len_b, seq_a, len_a, 0, 1, filename);
+  sprintf(filename, "/tmp/emboss-%i.%0.2f.scores", emboss_cnt, score);
+  for(int i=0; i<total; i++) { printf("%0.2f\n", path[i]); }
+  save_float_matrix(path, len_a+1, len_b+1, seq_b, len_b, seq_a, len_a, 0, 1, filename);
+  sprintf(filename, "/tmp/emboss-%i.compass.matrix", emboss_cnt);
+  save_int_matrix(compass, seq_b, len_b, seq_a, len_a, 0, 1, filename);
+  emboss_cnt++;
+  //#endif
 
 
   partial_t = sw_tic();

@@ -173,9 +173,19 @@ void sw_multi_output_save(int num_alignments, sw_multi_output_t* output_p, FILE 
         fprintf(file_p, "\n");
         fprintf(file_p, "Ref. : %s\tStart at %i\n", output_p->ref_map_p[i], output_p->ref_start_p[i]);
 
-        fprintf(file_p, "Score: %.2f\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
-                output_p->score_p[i], len, identity * 100.0f / len, gaps * 100.0f / len);
 
+#ifdef __AVX2_I16__
+        fprintf(file_p, "Score: %i\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+                ((short *)output_p->score_p)[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+#else
+#ifdef __AVX2_I8__
+        fprintf(file_p, "Score: %i\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+                ((char *)output_p->score_p)[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+#else
+	fprintf(file_p, "Score: %.2f\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+	       output_p->score_p[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+#endif
+#endif
         fprintf(file_p, "\n");
     }
 }
@@ -207,9 +217,18 @@ int sw_multi_output_string(int num_alignments, sw_multi_output_t* output_p, char
     total += sprintf(buf + total, "\n");
     total += sprintf(buf + total, "Ref. : %s\tStart at %i\n", output_p->ref_map_p[i], output_p->ref_start_p[i]);
     
+#ifdef __AVX2_I16__
+    total += sprintf(buf + total, "Score: %i\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+		     ((short *)output_p->score_p)[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+#else
+#ifdef __AVX2_I8__
+    total += sprintf(buf + total, "Score: %i\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
+		     ((char *)output_p->score_p)[i], len, identity * 100.0f / len, gaps * 100.0f / len);
+#else
     total += sprintf(buf + total, "Score: %.2f\tLength: %i\tIdentity: %.2f\tGaps: %.2f\n",
 		     output_p->score_p[i], len, identity * 100.0f / len, gaps * 100.0f / len);
-    
+#endif    
+#endif    
     total += sprintf(buf + total, "\n");
   }
   return total;

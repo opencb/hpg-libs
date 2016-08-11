@@ -3,6 +3,10 @@
 #include "sw_commons.h"
 #include "smith_waterman.h"
 #include "sw_f32.h"
+#include "sw_i32.h"
+#include "sw_i16.h"
+#include "sw_i8.h"
+#include "sw.h"
 
 #include "sw_omp.h"
 
@@ -57,7 +61,23 @@ void run_sw_omp(char *q_filename, char *r_filename,
     sw_multi_output_t *output_p;
     int tid = omp_get_thread_num();
 
+    sw_mem_t *mem = sw_mem_new();
+
+    /*
+#ifdef __AVX2_I32__
+    sw_mem_i32_t *mem = sw_mem_i32_new();
+#else
+#ifdef __AVX2_I16__
+    sw_mem_i16_t *mem = sw_mem_i16_new();
+#else
+#ifdef __AVX2_I8__
+    sw_mem_i8_t *mem = sw_mem_i8_new();
+#else
     sw_mem_f32_t *mem = sw_mem_f32_new();
+#endif
+#endif
+#endif
+    */
 
     int buffer_size;
     char *buffer = (char *) malloc(batch_size * 4096);
@@ -133,7 +153,23 @@ void run_sw_omp(char *q_filename, char *r_filename,
 #ifdef TIMING
       start_sw_back[tid] = sw_tic();
 #endif
+
+      sw_mqmr(q, r, num_queries, optarg_p, output_p, mem);
+      /*
+#ifdef __AVX2_I32__
+      sw_mqmr_i32(q, r, num_queries, optarg_p, output_p, mem);
+#else
+#ifdef __AVX2_I16__
+      sw_mqmr_i16(q, r, num_queries, optarg_p, output_p, mem);
+#else
+#ifdef __AVX2_I8__
+      sw_mqmr_i8(q, r, num_queries, optarg_p, output_p, mem);
+#else
       sw_mqmr_f32(q, r, num_queries, optarg_p, output_p, mem);
+#endif
+#endif
+#endif
+      */
       //smith_waterman_mqmr(q, r, num_queries, optarg_p, 1, output_p);
 #ifdef TIMING
       sw_back[tid] += sw_toc(start_sw_back[tid]);
@@ -175,18 +211,35 @@ void run_sw_omp(char *q_filename, char *r_filename,
 #ifdef TIMING
       batches[tid]++;
 #endif // TIMING
-  }
+    }
 
 #ifdef TIMING
     start_memory[tid] = sw_tic();
 #endif
     // free memory
+    free(buffer);
     sw_optarg_free(optarg_p);
     for (int i = 0; i < batch_size; i++) {
       free(q[i]);
       free(r[i]);
     }
+/*
+#ifdef __AVX2_I32__
+    sw_mem_i32_free(mem);
+#else
+#ifdef __AVX2_I16__
+    sw_mem_i16_free(mem);
+#else
+#ifdef __AVX2_I8__
+    sw_mem_i8_free(mem);
+#else
     sw_mem_f32_free(mem);
+#endif
+#endif
+#endif
+*/
+    sw_mem_free(mem);
+
 #ifdef TIMING
     memory[tid] += sw_toc(start_memory[tid]);
 #endif

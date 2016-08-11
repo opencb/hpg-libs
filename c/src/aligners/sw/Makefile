@@ -1,4 +1,4 @@
-OBJS = smith_waterman.o sw_omp.o sw_f32.o sse.o avx2.o avx512.o macros.o sw_commons.o sw_commons_f32.o
+OBJS = smith_waterman.o sw_omp.o sw.o sw_f32.o sw_i32.o sw_i16.o sw_i8.o sse.o avx2.o avx512.o macros.o sw_commons.o sw_commons_f32.o sw_commons_i32.o sw_commons_i16.o sw_commons_i8.o
 
 # SW version parameter
 SW_VER = SW_VERSION_2
@@ -38,7 +38,12 @@ INCLUDES = -I .
 LIBS = -lm
 TEST = test
 
-all: hpg-sw hpg-sw-bench
+override CFLAGS += $(IFLAGS)
+
+all: hpg-sw hpg-sw-bench test-scalar
+
+test-scalar: $(OBJS) emboss.o
+	$(CC) $(CFLAGS) -DTEST_SCALAR $(OBJS) emboss.o $(TEST)/test_scalar.c -o bin/test-scalar $(INCLUDES) $(LIBS)
 
 hpg-sw: $(OBJS) $(TEST)/hpg_sw.h
 	$(CC) $(CFLAGS) $(OBJS) $(TEST)/hpg_sw.c -o bin/hpg-sw $(INCLUDES) $(LIBS)
@@ -54,6 +59,15 @@ sw_commons.o: sw_commons.c sw_commons.h
 
 sw_commons_f32.o: sw_commons_f32.c sw_commons_f32.h
 	$(CC) $(CFLAGS) -c sw_commons_f32.c $(INCLUDES)
+
+sw_commons_i32.o: sw_commons_i32.c sw_commons_i32.h
+	$(CC) $(CFLAGS) -c sw_commons_i32.c $(INCLUDES)
+
+sw_commons_i16.o: sw_commons_i16.c sw_commons_i16.h
+	$(CC) $(CFLAGS) -c sw_commons_i16.c $(INCLUDES)
+
+sw_commons_i8.o: sw_commons_i8.c sw_commons_i8.h
+	$(CC) $(CFLAGS) -c sw_commons_i8.c $(INCLUDES)
 
 emboss.o: emboss.c emboss.h
 	$(CC) $(CFLAGS) -c emboss.c $(INCLUDES)
@@ -73,8 +87,17 @@ avx512.o: avx512.c avx512.h
 smith_waterman.o: smith_waterman.c smith_waterman.h
 	$(CC) $(CFLAGS) -c smith_waterman.c $(INCLUDES)
 
+sw.o: sw.c sw.h
+	$(CC) $(CFLAGS) -c sw.c $(INCLUDES)
+
+sw_i32.o: sw_i32.c sw_i32.h
+	$(CC) $(CFLAGS) -c sw_i32.c $(INCLUDES)
+
 sw_i16.o: sw_i16.c sw_i16.h
 	$(CC) $(CFLAGS) -c sw_i16.c $(INCLUDES)
+
+sw_i8.o: sw_i8.c sw_i8.h
+	$(CC) $(CFLAGS) -c sw_i8.c $(INCLUDES)
 
 sw_f32.o: sw_f32.c sw_f32.h
 	$(CC) $(CFLAGS) -c sw_f32.c $(INCLUDES)

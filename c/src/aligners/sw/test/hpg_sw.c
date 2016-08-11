@@ -2,65 +2,23 @@
 
 //-------------------------------------------------------------------------
 
-void test0() {
-  short qq[16], rr[16];
-  qq[0] = 1; rr[0] = 1;
-  qq[1] = 1; rr[1] = 1;
-  qq[2] = 0; rr[2] = 1;
-  qq[3] = 0; rr[3] = 1;
-  qq[4] = 1; rr[4] = 1;
-  qq[5] = 1; rr[5] = 1;
-  qq[6] = 1; rr[6] = 1;
-  qq[7] = 0; rr[7] = 1;
-  qq[8] = 0; rr[8] = 1;
-  qq[9] = 0; rr[9] = 1;
-  qq[10] = 1; rr[10] = 1;
-  qq[11] = 1; rr[11] = 1;
-  qq[12] = 1; rr[12] = 1;
-  qq[13] = 1; rr[13] = 1;
-  qq[14] = 0; rr[14] = 1;
-  qq[15] = 0; rr[15] = 1;
-
-  short match = 10;
-  short mismatch = 1;
-
-  short *tmp1, *tmp2, *tmp3;
-
-  __m256i zero_simd = _mm256_setzero_si256();
-  __m256i match_simd = _mm256_set1_epi16(match);
-  __m256i mismatch_simd = _mm256_set1_epi16(mismatch);
-
-  __m256i q1 = _mm256_load_si256((__m256i *) qq);
-  __m256i r1 = _mm256_load_si256((__m256i *) rr);
-
-  __m256i mask = _mm256_cmpeq_epi16(q1, r1);
-  tmp1 = (short *) &mask;
-
-  __m256i subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), _mm256_and_si256(mask, match_simd));
-  tmp2 = (short *) &subst_simd;
-
-  __m256i diagonal_simd = _mm256_add_epi16(zero_simd, subst_simd);
-  tmp3 = (short *) &diagonal_simd;
-
-  for(int i=0; i<16; i++) { printf("%u vs %u -> %u -> %u -> %u\n", qq[i], rr[i], tmp1[i], tmp2[i], tmp3[i]); }
-}
-
-
-//-------------------------------------------------------------------------
-
-
 double *sse_matrix_t, *sse_tracking_t;
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
-void test();
+
+void test0();
+void test1();
+void test2();
 
 // hpg-sw -q query_filename -r ref_filename -o output_filename -p gap_open_penalty -e gap_extend_penalty -s substitution_score_matrix -n number_of_threads -b number_of_reads_per_batch
 
 int main(int argc, char *argv[]) {
 
   //  test0();
-  //  exit(-1);
+  //  test1();
+  //test2();
+
 
     int c;
     char *q_filename = NULL, *r_filename = NULL;
@@ -225,7 +183,7 @@ int main(int argc, char *argv[]) {
 
     char *sse_out_filename = NULL;
     if (out_filename == NULL) {
-      printf("ATENTION: Missing output filename,runnig Smith-Waterman and backtracking for timing purposes\n");
+      printf("ATTENTION: Missing output filename,runnig Smith-Waterman and backtracking for timing purposes\n");
     } else {
       sse_out_filename = (char *) malloc(2048 * sizeof(char));
       sprintf(sse_out_filename, "%s/%s", out_dirname, out_filename);
@@ -439,6 +397,75 @@ int file_exists(const char *filename) {
     }
     return 0;
 }
+
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+
+void test0() {
+  short qq[16], rr[16];
+  qq[0] = 1; rr[0] = 1;
+  qq[1] = 1; rr[1] = 1;
+  qq[2] = 0; rr[2] = 1;
+  qq[3] = 0; rr[3] = 1;
+  qq[4] = 1; rr[4] = 1;
+  qq[5] = 1; rr[5] = 1;
+  qq[6] = 1; rr[6] = 1;
+  qq[7] = 0; rr[7] = 1;
+  qq[8] = 0; rr[8] = 1;
+  qq[9] = 0; rr[9] = 1;
+  qq[10] = 1; rr[10] = 1;
+  qq[11] = 1; rr[11] = 1;
+  qq[12] = 1; rr[12] = 1;
+  qq[13] = 1; rr[13] = 1;
+  qq[14] = 0; rr[14] = 1;
+  qq[15] = 0; rr[15] = 1;
+
+  short match = 10;
+  short mismatch = 1;
+
+  short *tmp1, *tmp2, *tmp3;
+
+  __m256i zero_simd = _mm256_setzero_si256();
+  __m256i match_simd = _mm256_set1_epi16(match);
+  __m256i mismatch_simd = _mm256_set1_epi16(mismatch);
+
+  __m256i q1 = _mm256_load_si256((__m256i *) qq);
+  __m256i r1 = _mm256_load_si256((__m256i *) rr);
+
+  __m256i mask = _mm256_cmpeq_epi16(q1, r1);
+  tmp1 = (short *) &mask;
+
+  __m256i subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), _mm256_and_si256(mask, match_simd));
+  tmp2 = (short *) &subst_simd;
+
+  __m256i diagonal_simd = _mm256_add_epi16(zero_simd, subst_simd);
+  tmp3 = (short *) &diagonal_simd;
+
+  for(int i=0; i<16; i++) { printf("%u vs %u -> %u -> %u -> %u\n", qq[i], rr[i], tmp1[i], tmp2[i], tmp3[i]); }
+
+  exit(-1);
+}
+
+//-------------------------------------------------------------------------
+
+void test1() {
+
+  __m256i cmp_de, diagonal_simd = _mm256_set1_epi16(5);
+  __m256i e_simd = _mm256_set1_epi16(-2);
+  __m256i one_simd = _mm256_set1_epi16(1);
+
+  cmp_de = _mm256_abs_epi16(_mm256_min_epi16(_mm256_or_si256(_mm256_cmpeq_epi16(diagonal_simd, e_simd), 
+							      _mm256_cmpgt_epi16(diagonal_simd, e_simd)), 
+					      one_simd));
+
+  printf("d=%i, e=%i, one=%i, cmp_de = %i\n", 
+	 ((short *) &diagonal_simd)[0], ((short *) &e_simd)[0],
+	 ((short *) &one_simd)[0], ((short *) &cmp_de)[0]);
+  exit(-1);
+}
+
+//-------------------------------------------------------------------------
+
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------

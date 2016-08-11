@@ -1,11 +1,11 @@
-#include "sw_f32.h"
+#include "sw_i8.h"
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 
-void sw_mqmr_f32(char **query, char **ref, unsigned int num_queries,
+void sw_mqmr_i8(char **query, char **ref, unsigned int num_queries,
 		 sw_optarg_t *optarg, sw_multi_output_t *output,
-		 sw_mem_f32_t *mem) {
+		 sw_mem_i8_t *mem) {
 
   if (output == NULL) {
     printf("Error: output buffer is null.\n");
@@ -31,22 +31,22 @@ void sw_mqmr_f32(char **query, char **ref, unsigned int num_queries,
   //  int *C = NULL;
   int alig_lens[SIMD_DEPTH];
   
-  float match = optarg->match;
-  float mismatch = optarg->mismatch;
-  float gap_open = optarg->gap_open;
-  float gap_extend = optarg->gap_extend;
-  float *score = output->score_p;
+  char match = (char) optarg->match;
+  char mismatch = (char) optarg->mismatch;
+  char gap_open = (char) optarg->gap_open;
+  char gap_extend = (char) optarg->gap_extend;
+  char *score = (char*) output->score_p;
   
   //printf("num queries = %i\n", num_queries);
   //for(int k = 0; k < 8; k++) printf("%0.2f ", score_p[k]);
   //printf("\n");
   
   int num_seqs;
-  for(int i = 0; i < num_queries; i += SIMD_DEPTH) {
+  for(int i = 0; i < num_queries; i += SIMD_DEPTH_32) {
     num_seqs = num_queries - i;
-    if (num_seqs > SIMD_DEPTH) num_seqs = SIMD_DEPTH; 
-    //    printf("after sw_mem_f32_new(): num_seqs = %i\n", num_seqs);
-    sw_mem_f32_alloc(&query[i], &ref[i], num_seqs, mem);
+    if (num_seqs > SIMD_DEPTH_32) num_seqs = SIMD_DEPTH_32; 
+    //    printf("after sw_mem_i8_new(): num_seqs = %i\n", num_seqs);
+    sw_mem_i8_alloc(&query[i], &ref[i], num_seqs, mem);
 
     //    printf("-----> after alloc\n");
 
@@ -55,15 +55,10 @@ void sw_mqmr_f32(char **query, char **ref, unsigned int num_queries,
     partial_t = sw_tic();
 #endif // TIMING
       
-#ifdef __AVX2__
-    matrix_avx2_f32(num_seqs, mem->qq, mem->q_lens, mem->max_q_len, 
+    matrix_avx2_i8(num_seqs, mem->qq, mem->q_lens, mem->max_q_len, 
 		    mem->rr, mem->r_lens, mem->max_r_len,
 		    match, mismatch, gap_open, gap_extend, 
 		    mem->H, mem->F, mem->C, &score[i]);
-#else
-    printf("Only 32-bit float AVX2 is implemented!");
-    exit(-1);
-#endif // __AVX2__
       
     //printf("start avx2_matrix (index %i)\n", index);
     //printf("end avx2_matrix\n");
@@ -76,7 +71,7 @@ void sw_mqmr_f32(char **query, char **ref, unsigned int num_queries,
     partial_t = sw_tic();
 #endif // TIMING
     // backtracking
-    backtracking_f32(SIMD_DEPTH, num_seqs, 
+    backtracking_i8(SIMD_DEPTH_32, num_seqs, 
 		     mem->q, mem->q_lens, mem->max_q_len, 
 		     mem->r, mem->r_lens, mem->max_r_len,
 		     gap_open, gap_extend, 
@@ -93,33 +88,33 @@ void sw_mqmr_f32(char **query, char **ref, unsigned int num_queries,
 
 //------------------------------------------------------------------------------------
 
-void matrix_avx2_f32(int num_seqs,
-		     int *qq, int *q_len, int max_q_len,
-		     int *rr, int *r_len, int max_r_len,
-		     float match, float mismatch, float gap_open, float gap_extend,
-		     float *H, float *F, int *C, float *max_score) {
+void matrix_avx2_i8(int num_seqs,
+		     char *qq, int *q_len, int max_q_len,
+		     char *rr, int *r_len, int max_r_len,
+		     char match, char mismatch, char gap_open, char gap_extend,
+		     char *H, char *F, char *C, char *max_score) {
     __m256i q1, r1;
 
-    __m256 match_simd = _mm256_set1_ps(match);
-    __m256 mismatch_simd = _mm256_set1_ps(mismatch);
+    __m256i match_simd = _mm256_set1_epi8(match);
+    __m256i mismatch_simd = _mm256_set1_epi8(mismatch);
 
-    __m256 h_simd, e_simd, f_simd, diagonal_simd;
-    __m256 temp_simd, subst_simd, subst_simd1;
+    __m256i h_simd, e_simd, f_simd, diagonal_simd;
+    __m256i temp_simd, subst_simd, subst_simd1;
 
     __m256i zeroi = _mm256_setzero_si256();
 
-    __m256 score_simd = _mm256_setzero_ps();
-    __m256 zero_simd = _mm256_setzero_ps();
-    __m256 one_simd = _mm256_set1_ps(1);
-    __m256 gap_open_simd = _mm256_set1_ps(gap_open);
-    __m256 gap_extend_simd = _mm256_set1_ps(gap_extend);
+    __m256i score_simd = _mm256_setzero_si256();
+    __m256i zero_simd = _mm256_setzero_si256();
+    __m256i one_simd = _mm256_set1_epi8(1);
+    __m256i gap_open_simd = _mm256_set1_epi8(gap_open);
+    __m256i gap_extend_simd = _mm256_set1_epi8(gap_extend);
 
-    __m256 max_de, max_fz;
-    __m256 cmp_de, cmp_fz, cmp_de_fz;
+    __m256i mask, max_de, max_fz;
+    __m256i cmp_de, cmp_fz, cmp_de_fz;
     __m256i c;
 
     int offset, idx, j_depth;
-    int q_len_depth = SIMD_DEPTH * max_q_len;
+    int q_len_depth = SIMD_DEPTH_32 * max_q_len;
 
     h_simd = zero_simd;
     e_simd = zero_simd;
@@ -127,57 +122,81 @@ void matrix_avx2_f32(int num_seqs,
     // initial loop
     r1 = _mm256_load_si256((__m256i *) rr);
     for (int j = 0; j < max_q_len; j++) {
-        j_depth = SIMD_DEPTH * j;
+        j_depth = SIMD_DEPTH_32 * j;
 
         q1 = _mm256_load_si256((__m256i *) (qq + j_depth));
 
         // left value: gap in reference
-        e_simd = _mm256_max_ps(_mm256_sub_ps(e_simd, gap_extend_simd),
-                               _mm256_sub_ps(h_simd, gap_open_simd));
+        e_simd = _mm256_max_epi8(_mm256_sub_epi8(e_simd, gap_extend_simd),
+				  _mm256_sub_epi8(h_simd, gap_open_simd));
 
         // diagonal value: match or mismatch
-        subst_simd = _mm256_blendv_ps(mismatch_simd, match_simd, _mm256_castsi256_ps(_mm256_cmpeq_epi32(q1, r1)));
-        diagonal_simd = _mm256_add_ps(zero_simd, subst_simd);
+	mask = _mm256_cmpeq_epi8(q1, r1);
+        subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), 
+				     _mm256_and_si256(mask, match_simd));
+        diagonal_simd = _mm256_add_epi8(zero_simd, subst_simd);
 
-        cmp_de = _mm256_min_ps(_mm256_cmp_ps(diagonal_simd, e_simd, _CMP_GE_OQ), one_simd);
-	//	printf("d=%0.2f, e=%0.2f, one=%0.2f, cmp_de = %0.2f\n", 
-	//	       ((float *) &diagonal_simd)[0], ((float *) &e_simd)[0],
-	//	       ((float *) &one_simd)[0], ((float *) &cmp_de)[0]);
-        max_de = _mm256_max_ps(diagonal_simd, e_simd);
+        cmp_de = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(diagonal_simd, e_simd), 
+						  _mm256_cmpgt_epi8(diagonal_simd, e_simd)), 
+				  one_simd);
+
+	printf("depth = %i\n", SIMD_DEPTH_32);
+	printf("%c%c|%c%c\n", 
+	      ((int *)&q1)[0], ((int *)&r1)[0], 
+	       ((int *)&q1)[1], ((int *)&r1)[1]);
+	printf("mask=%i|%i, subst=%i|%i\n", 
+	       ((char *) &mask)[0], ((char *) &mask)[1], 
+	       ((char *) &subst_simd)[0], ((char *) &subst_simd)[1]);
+	printf("d=%i|%i, e=%i|%i, one=%i, cmp_de = %i|%i\n", 
+	       ((char *) &diagonal_simd)[0], ((char *) &diagonal_simd)[1], 
+	       ((char *) &e_simd)[0], ((char *) &e_simd)[1],
+	       ((char *) &one_simd)[0], 
+	       ((char *) &cmp_de)[0], ((char *) &cmp_de)[1]);
+
+	exit(-1);
+        max_de = _mm256_max_epi8(diagonal_simd, e_simd);
 
         // up value: gap in query
-        f_simd = _mm256_max_ps(_mm256_sub_ps(zero_simd, gap_extend_simd),
-                               _mm256_sub_ps(zero_simd, gap_open_simd));
+        f_simd = _mm256_max_epi8(_mm256_sub_epi8(zero_simd, gap_extend_simd),
+				  _mm256_sub_epi8(zero_simd, gap_open_simd));
 
-        cmp_fz = _mm256_min_ps(_mm256_cmp_ps(f_simd, zero_simd, _CMP_GE_OQ), one_simd);
-	//	printf("f=%0.2f, z=%0.2f, one=%0.2f, cmp_fz = %0.2f\n", 
-	//	       ((float *) &f_simd)[0], ((float *) &zero_simd)[0],
-	//	       ((float *) &one_simd)[0], ((float *) &cmp_fz)[0]);
-        max_fz = _mm256_max_ps(f_simd, zero_simd);
+        cmp_fz = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(f_simd, zero_simd), 
+						  _mm256_cmpgt_epi8(f_simd, zero_simd)),
+				  one_simd);
+	//	printf("f=%i, z=%i, one=%i, cmp_fz = %i\n", 
+	//	       ((char *) &f_simd)[0], ((char *) &zero_simd)[0],
+	//	       ((char *) &one_simd)[0], ((char *) &cmp_fz)[0]);
+        max_fz = _mm256_max_epi8(f_simd, zero_simd);
 
         // get max. value and save it
-        cmp_de_fz = _mm256_min_ps(_mm256_cmp_ps(max_de, max_fz, _CMP_GE_OQ), one_simd);
-	//	printf("max_de=%0.2f, max_fz=%0.2f, one=%0.2f, cmp_de_fz = %0.2f\n", 
-	//	       ((float *) &max_de)[0], ((float *) &max_fz)[0],
-	//	       ((float *) &one_simd)[0], ((float *) &cmp_de_fz)[0]);
-        h_simd = _mm256_max_ps(max_de, max_fz);
+        cmp_de_fz = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(max_de, max_fz), 
+						     _mm256_cmpgt_epi8(max_de, max_fz)), 
+				     one_simd);
+	//	printf("max_de=%i, max_fz=%i, one=%i, cmp_de_fz = %i\n", 
+	//	       ((char *) &max_de)[0], ((char *) &max_fz)[0],
+	//	       ((char *) &one_simd)[0], ((char *) &cmp_de_fz)[0]);
+        h_simd = _mm256_max_epi8(max_de, max_fz);
 
-        score_simd = _mm256_max_ps(score_simd, h_simd);
+        score_simd = _mm256_max_epi8(score_simd, h_simd);
 
         // compass (save left, diagonal, up or zero?)
-        c = _mm256_slli_epi32(_mm256_or_si256(zeroi, _mm256_cvtps_epi32(cmp_de)), 1);
-        c = _mm256_slli_epi32(_mm256_or_si256(c, _mm256_cvtps_epi32(cmp_fz)), 1);
-        c = _mm256_or_si256(c, _mm256_cvtps_epi32(cmp_de_fz));
+        c = _mm256_slli_epi8(_mm256_or_si256(zeroi, _mm256_abs_epi8(cmp_de)), 1);
+        c = _mm256_slli_epi8(_mm256_or_si256(c, _mm256_abs_epi8(cmp_fz)), 1);
+        c = _mm256_or_si256(c, _mm256_abs_epi8(cmp_de_fz));
 
         // update matrices
-        _mm256_store_ps(&H[j_depth], h_simd);
-        _mm256_store_ps(&F[j_depth], f_simd);
-        _mm256_store_si256((__m256i *)&C[j_depth], c);
+        _mm256_store_si256((__m256i *) &H[j_depth], h_simd);
+        _mm256_store_si256((__m256i *) &F[j_depth], f_simd);
+        _mm256_store_si256((__m256i *) &C[j_depth], c);
 
+//	printf("score:%c%c|%c%c/%i|%i\n", 
+//	       ((int *)&q1)[0], ((int *)&r1)[0], 
+//	       ((int *)&q1)[1], ((int *)&r1)[1], 
+//	       H[j_depth], H[j_depth+1]);
+	//printf("%i\t", H[j_depth]);
 	//printf("\tC = %i\n", C[j_depth]);
-	//	printf("%0.2f|%0.2f\t", H[j_depth], H[j_depth+1]);
     }
-    //    printf("\n");
+  //  printf("\n");
 
     //    exit(-1);
 
@@ -190,66 +209,74 @@ void matrix_avx2_f32(int num_seqs,
 
         idx = i * q_len_depth;
 
-        r1 = _mm256_load_si256((__m256i *) (rr + SIMD_DEPTH * i));
+        r1 = _mm256_load_si256((__m256i *) (rr + SIMD_DEPTH_32 * i));
         for (int j = 0; j < max_q_len; j++) {
-            j_depth = SIMD_DEPTH * j;
+            j_depth = SIMD_DEPTH_32 * j;
             offset = idx + j_depth;
 
             // left value: gap in reference
-            e_simd = _mm256_max_ps(_mm256_sub_ps(e_simd, gap_extend_simd),
-                                   _mm256_sub_ps(h_simd, gap_open_simd));
+            e_simd = _mm256_max_epi8(_mm256_sub_epi8(e_simd, gap_extend_simd),
+				      _mm256_sub_epi8(h_simd, gap_open_simd));
 
             // diagonal value: match or mismatch
             q1 = _mm256_load_si256((__m256i *) (qq + j_depth));
-            subst_simd = _mm256_blendv_ps(mismatch_simd, match_simd, _mm256_castsi256_ps(_mm256_cmpeq_epi32(q1, r1)));
-            diagonal_simd = _mm256_add_ps(temp_simd, subst_simd);
+	    mask = _mm256_cmpeq_epi8(q1, r1);
+	    subst_simd = _mm256_or_si256(_mm256_andnot_si256(mask, mismatch_simd), _mm256_and_si256(mask, match_simd));
+            diagonal_simd = _mm256_add_epi8(temp_simd, subst_simd);
 
-            cmp_de = _mm256_min_ps(_mm256_cmp_ps(diagonal_simd, e_simd, _CMP_GE_OQ), one_simd);
-            max_de = _mm256_max_ps(diagonal_simd, e_simd);
+	    cmp_de = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(diagonal_simd, e_simd), 
+						  _mm256_cmpgt_epi8(diagonal_simd, e_simd)), 
+				      one_simd);
+            max_de = _mm256_max_epi8(diagonal_simd, e_simd);
 
             // up value: gap in query
-            temp_simd = _mm256_load_ps(&H[offset - q_len_depth]);
+            temp_simd = _mm256_load_si256((__m256i *) &H[offset - q_len_depth]);
 
-            f_simd = _mm256_load_ps(&F[j_depth]);
-            f_simd = _mm256_max_ps(_mm256_sub_ps(f_simd, gap_extend_simd),
-                                   _mm256_sub_ps(temp_simd, gap_open_simd));
+            f_simd = _mm256_load_si256((__m256i *) &F[j_depth]);
+            f_simd = _mm256_max_epi8(_mm256_sub_epi8(f_simd, gap_extend_simd),
+				      _mm256_sub_epi8(temp_simd, gap_open_simd));
 
-            cmp_fz = _mm256_min_ps(_mm256_cmp_ps(f_simd, zero_simd, _CMP_GE_OQ), one_simd);
-            max_fz = _mm256_max_ps(f_simd, zero_simd);
+	    cmp_fz = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(f_simd, zero_simd), 
+						      _mm256_cmpgt_epi8(f_simd, zero_simd)),
+				      one_simd);
+            max_fz = _mm256_max_epi8(f_simd, zero_simd);
 
             // get max. value
-            cmp_de_fz = _mm256_min_ps(_mm256_cmp_ps(max_de, max_fz, _CMP_GE_OQ), one_simd);
-            h_simd = _mm256_max_ps(max_de, max_fz);
+	    cmp_de_fz = _mm256_min_epi8(_mm256_or_si256(_mm256_cmpeq_epi8(max_de, max_fz), 
+							 _mm256_cmpgt_epi8(max_de, max_fz)), 
+					 one_simd);
+            h_simd = _mm256_max_epi8(max_de, max_fz);
 
-            score_simd = _mm256_max_ps(score_simd, h_simd);
+            score_simd = _mm256_max_epi8(score_simd, h_simd);
 
             // compass (save left, diagonal, up or zero?)
-            c = _mm256_slli_epi32(_mm256_or_si256(zeroi, _mm256_cvtps_epi32(cmp_de)), 1);
-            c = _mm256_slli_epi32(_mm256_or_si256(c, _mm256_cvtps_epi32(cmp_fz)), 1);
-            c = _mm256_or_si256(c, _mm256_cvtps_epi32(cmp_de_fz));
+	    c = _mm256_slli_epi8(_mm256_or_si256(zeroi, _mm256_abs_epi8(cmp_de)), 1);
+	    c = _mm256_slli_epi8(_mm256_or_si256(c, _mm256_abs_epi8(cmp_fz)), 1);
+	    c = _mm256_or_si256(c, _mm256_abs_epi8(cmp_de_fz));
 
             // update matrices
-            _mm256_store_ps(&H[offset], h_simd);
-            _mm256_store_ps(&F[j_depth], f_simd);
-            _mm256_store_si256((__m256i *)&C[offset], c);
+            _mm256_store_si256((__m256i *) &H[offset], h_simd);
+            _mm256_store_si256((__m256i *) &F[j_depth], f_simd);
+            _mm256_store_si256((__m256i *) &C[offset], c);
 
-	    //	    printf("%0.2f|%0.2f\t", H[offset], H[offset+1]);
+	    //printf("%i\t", C[offset]);
+//	    printf("%i|%i\t", H[offset], H[offset+1]);
         }
-	//	printf("\n");
+//	printf("\n");
     }
 
     // return back max scores
-    _mm256_store_ps(max_score, score_simd);
+    _mm256_store_si256((__m256i *) max_score, score_simd);
 }
 
 //------------------------------------------------------------------------
 
-void backtracking_f32(int depth, int num_seqs,
+void backtracking_i8(int depth, int num_seqs,
 		      char **q, int *q_len, int max_q_len,
 		      char **r, int *r_len, int max_r_len,
-		      float gap_open, float gap_extend,
-		      float *H, int *C,
-		      float *max_score,
+		      char gap_open, char gap_extend,
+		      char *H, char *C,
+		      char *max_score,
 		      char **q_alig, int *q_start,
 		      char **r_alig, int *r_start,
 		      int *len_alig,
@@ -267,7 +294,7 @@ void backtracking_f32(int depth, int num_seqs,
     int qq_len, rr_len;
     int len = 0;
     char c;
-    float score;
+    char score;
 
     /*
     //max_len = max_q_len * max_r_len;
@@ -284,9 +311,7 @@ void backtracking_f32(int depth, int num_seqs,
         qq_len = q_len[i];
         rr_len = r_len[i];
 
-        //    printf("%i of %i\n", i, num_seqs);
-        find_position_f32(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
-        //printf("index %i: kk = %i, jj = %i\n", i, kk, jj);
+        find_position_i8(depth, i, qq, qq_len, rr, rr_len, H, max_q_len, max_r_len, max_score[i], &kk, &jj);
 
         len = 0;
         //    while ((c = C[(jj * max_q_len * 4) + (kk * 4) + i])) {
@@ -414,8 +439,6 @@ void backtracking_f32(int depth, int num_seqs,
         r_alig[i] = rr_alig;
 
         len_alig[i] = len;
-        //    printf("rev. index %i\tq = %s\n", i, qq_alig);
-        //    printf("rev. index %i\tr = %s\n", i, rr_alig);
     }
     /*
     printf("free %i...\n", max_len);
@@ -428,9 +451,9 @@ void backtracking_f32(int depth, int num_seqs,
 
 //-------------------------------------------------------------------------
 
-void find_position_f32(int depth, int index, char *q, int q_len, char *r, int r_len,
-		       float *H, int cols, int rows, float score,
-		       int *q_pos, int *r_pos) {
+void find_position_i8(int depth, int index, char *q, int q_len, char *r, int r_len,
+		      char *H, int cols, int rows, char score,
+		      int *q_pos, int *r_pos) {
     *r_pos = 0;
     *q_pos = 0;
 
