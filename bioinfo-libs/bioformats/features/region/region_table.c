@@ -60,7 +60,8 @@ region_table_t *new_region_table_from_ws(const char *url, const char *species, c
     
     // Initialize structure
     region_table_t *table = (region_table_t*) malloc (sizeof(region_table_t));
-    table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
+    //table->ordering = get_chromosome_order(url, species, version, &num_chromosomes);
+    table->ordering = 0;
     table->max_chromosomes = num_chromosomes;
     table->chunks = kh_init(stats_chunks);
     table->is_ready = 0;
@@ -509,9 +510,10 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
             const char *strand = (char *)sqlite3_column_text(query_stmt, 3);
             const char *type = (char *)sqlite3_column_text(query_stmt, 4);
             
-            region_t *region = region_new(strdup(chromosome), start, end,
-                                          strand ? strdup(strand) : NULL, 
-                                          type ? strdup(type) : NULL);
+	    region_t *region = NULL;
+            //region_t *region = region_new(strdup(chromosome), start, end,
+            //                              strand ? strdup(strand) : NULL, 
+	    //                             type ? strdup(type) : NULL);
             array_list_insert(region, regions_in_chromosome);
         } while (sqlite3_step(query_stmt) == SQLITE_ROW);
     } else {
@@ -526,9 +528,10 @@ array_list_t *get_chromosome(const char *key, region_table_t *table) {
                 const char *strand = (char *)sqlite3_column_text(query_stmt, 3);
                 const char *type = (char *)sqlite3_column_text(query_stmt, 4);
                 
-                region_t *region = region_new(strdup(chromosome), start, end,
-                                              strand ? strdup(strand) : NULL, 
-                                              type ? strdup(type) : NULL);
+		region_t *region = NULL;
+                //region_t *region = region_new(strdup(chromosome), start, end,
+                //                              strand ? strdup(strand) : NULL, 
+                //                              type ? strdup(type) : NULL);
                 array_list_insert(region, regions_in_chromosome);
             } while (sqlite3_step(query_stmt) == SQLITE_ROW);
         } else {

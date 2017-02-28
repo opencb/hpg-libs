@@ -34,7 +34,7 @@ region_table_t *parse_regions(char *input_regions, int as_positions, const char 
             }
         }
         
-        regions[i] = region_new(chromosome, start_position, end_position, NULL, NULL);
+        regions[i] = NULL;//region_new(chromosome, start_position, end_position, NULL, NULL);
         
         LOG_DEBUG_F("region '%s:%u-%u'\n", regions[i]->chromosome, regions[i]->start_position, regions[i]->end_position);
     }
@@ -94,10 +94,10 @@ region_table_t *parse_regions_from_gff_file(char *filename, const char *url, con
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
-                                                  record->start, record->end,
-                                                  record->strand ? strndup(&record->strand, 1) : NULL, 
-                                                  record->feature ? strndup(record->feature, record->feature_len) : NULL);
+                    region_t *region = NULL;//region_new(strndup(record->sequence, record->sequence_len), 
+                                            //      record->start, record->end,
+                                            //      record->strand ? strndup(&record->strand, 1) : NULL, 
+                                            //      record->feature ? strndup(record->feature, record->feature_len) : NULL);
                     
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
@@ -180,9 +180,9 @@ region_table_t *parse_regions_from_bed_file(char *filename, const char *url, con
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
-                                                  record->start, record->end, strndup(&record->strand, 1),
-                                                  NULL);
+                    region_t *region = NULL;//region_new(strndup(record->sequence, record->sequence_len), 
+                                            //      record->start, record->end, strndup(&record->strand, 1),
+                                            //      NULL);
                     
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
@@ -321,10 +321,10 @@ int region_table_parse_from_gff_file(char *filename, region_table_t *regions_tab
                 for (int i = 0; i < batch->records->size; i++) {
                     record = batch->records->items[i];
                     
-                    region_t *region = region_new(strndup(record->sequence, record->sequence_len), 
-                                                  record->start, record->end,
-                                                  record->strand ? strndup(&record->strand, 1) : NULL, 
-                                                  record->feature ? strndup(record->feature, record->feature_len) : NULL);
+                    region_t *region = NULL;//region_new(strndup(record->sequence, record->sequence_len), 
+                                            //      record->start, record->end,
+                                            //      record->strand ? strndup(&record->strand, 1) : NULL, 
+                                            //      record->feature ? strndup(record->feature, record->feature_len) : NULL);
                     
                     LOG_DEBUG_F("region '%s:%u-%u'\n", region->chromosome, region->start_position, region->end_position);
                     
