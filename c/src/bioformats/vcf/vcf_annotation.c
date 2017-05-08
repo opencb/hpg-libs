@@ -105,17 +105,14 @@ char *get_annotation_quality_by_depth(vcf_record_t *record, int dp, int *output_
     int len = 0;
     
     if (record->quality < 0) {
-        strncat(result, "QD=.;", 1);
-        len = 5;
+        strncat(result, "QD=.", 4);
     } else if (record->quality > 0) {
-        sprintf(result, "QD=%.3f;", record->quality / dp);
-        len = strlen(result);
+        sprintf(result, "QD=%.3f", record->quality / dp);
     } else {
-        strncat(result, "QD=0.000;", 1);
-        len = 5;
+        strncat(result, "QD=0.000", 8);
     }
     
-    *output_len = len;
+    *output_len = strlen(result);
     return result;
 }
 
