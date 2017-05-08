@@ -1,9 +1,9 @@
 
-#line 1 "vcf.ragel"
+#line 1 "c/src/bioformats/vcf/vcf.ragel"
 #include "vcf_reader.h"
 
 
-#line 7 "vcf_ragel.c"
+#line 7 "c/src/bioformats/vcf/vcf_ragel.c"
 static const int vcf_start = 141;
 static const int vcf_first_final = 141;
 static const int vcf_error = 0;
@@ -11,7 +11,7 @@ static const int vcf_error = 0;
 static const int vcf_en_main = 141;
 
 
-#line 328 "vcf.ragel"
+#line 330 "c/src/bioformats/vcf/vcf.ragel"
 
 
 
@@ -29,12 +29,12 @@ int run_vcf_parser(char *p, char *pe, size_t batch_size, vcf_file_t *file, vcf_r
 //     printf("ragel - batch text = '%.*s'\n", 50, status->current_batch->text);
 
     
-#line 33 "vcf_ragel.c"
+#line 33 "c/src/bioformats/vcf/vcf_ragel.c"
 	{
 	cs = vcf_start;
 	}
 
-#line 38 "vcf_ragel.c"
+#line 38 "c/src/bioformats/vcf/vcf_ragel.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -58,108 +58,108 @@ case 141:
 		goto tr177;
 	goto tr55;
 tr55:
-#line 107 "vcf.ragel"
+#line 107 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
 tr58:
-#line 122 "vcf.ragel"
+#line 122 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
 tr62:
-#line 135 "vcf.ragel"
+#line 135 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr66:
-#line 148 "vcf.ragel"
+tr67:
+#line 148 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr70:
-#line 177 "vcf.ragel"
+tr71:
+#line 177 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr80:
-#line 196 "vcf.ragel"
+tr81:
+#line 196 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr84:
-#line 209 "vcf.ragel"
+tr85:
+#line 209 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr89:
-#line 222 "vcf.ragel"
+tr90:
+#line 222 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr92:
-#line 235 "vcf.ragel"
+tr93:
+#line 235 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr97:
-#line 248 "vcf.ragel"
+tr98:
+#line 248 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
-tr99:
-#line 235 "vcf.ragel"
+tr100:
+#line 235 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
-#line 248 "vcf.ragel"
+#line 248 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	goto st0;
 tr168:
-#line 25 "vcf.ragel"
+#line 25 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %d (%s): Error in file format\n", lines, file->filename);
     }
 	goto st0;
-#line 149 "vcf_ragel.c"
+#line 149 "c/src/bioformats/vcf/vcf_ragel.c"
 st0:
 cs = 0;
 	goto _out;
 tr170:
-#line 21 "vcf.ragel"
+#line 21 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_file_format(ts, p-ts, file);
     }
-#line 12 "vcf.ragel"
+#line 12 "c/src/bioformats/vcf/vcf.ragel"
 	{
         lines++;
 //        LOG_INFO_F("lines read = %d\n", lines);
     }
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -169,7 +169,7 @@ tr170:
             add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
-#line 33 "vcf.ragel"
+#line 33 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_header_entry(status->current_header_entry, file);
     }
@@ -178,7 +178,7 @@ st142:
 	if ( ++p == pe )
 		goto _test_eof142;
 case 142:
-#line 182 "vcf_ragel.c"
+#line 182 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st142;
 		case 35: goto tr178;
@@ -196,7 +196,7 @@ case 142:
 		goto tr177;
 	goto tr55;
 tr178:
-#line 29 "vcf.ragel"
+#line 29 "c/src/bioformats/vcf/vcf.ragel"
 	{
         status->current_header_entry = vcf_header_entry_new();
     }
@@ -205,7 +205,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 209 "vcf_ragel.c"
+#line 209 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st2;
 		case 67: goto st5;
@@ -237,7 +237,7 @@ case 2:
 		goto tr4;
 	goto st0;
 tr3:
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -246,14 +246,14 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 250 "vcf_ragel.c"
+#line 250 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 10 )
 		goto tr5;
 	if ( 32 <= (*p) && (*p) <= 126 )
 		goto st3;
 	goto st0;
 tr5:
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -263,11 +263,11 @@ tr5:
             add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
-#line 33 "vcf.ragel"
+#line 33 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_header_entry(status->current_header_entry, file);
     }
-#line 12 "vcf.ragel"
+#line 12 "c/src/bioformats/vcf/vcf.ragel"
 	{
         lines++;
 //        LOG_INFO_F("lines read = %d\n", lines);
@@ -277,7 +277,7 @@ st143:
 	if ( ++p == pe )
 		goto _test_eof143;
 case 143:
-#line 281 "vcf_ragel.c"
+#line 281 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st144;
 		case 35: goto tr178;
@@ -630,7 +630,7 @@ case 48:
 		goto st49;
 	goto st0;
 tr52:
-#line 67 "vcf.ragel"
+#line 67 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_sample_name(ts, p-ts, file);
     }
@@ -639,12 +639,12 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 643 "vcf_ragel.c"
+#line 643 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( 32 <= (*p) && (*p) <= 126 )
 		goto tr51;
 	goto st0;
 tr51:
-#line 63 "vcf.ragel"
+#line 63 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -653,7 +653,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 657 "vcf_ragel.c"
+#line 657 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr52;
 		case 10: goto tr53;
@@ -662,11 +662,11 @@ case 50:
 		goto st50;
 	goto st0;
 tr53:
-#line 67 "vcf.ragel"
+#line 67 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_sample_name(ts, p-ts, file);
     }
-#line 12 "vcf.ragel"
+#line 12 "c/src/bioformats/vcf/vcf.ragel"
 	{
         lines++;
 //        LOG_INFO_F("lines read = %d\n", lines);
@@ -676,7 +676,7 @@ st145:
 	if ( ++p == pe )
 		goto _test_eof145;
 case 145:
-#line 680 "vcf_ragel.c"
+#line 680 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st145;
 		case 44: goto tr177;
@@ -693,11 +693,11 @@ case 145:
 		goto tr177;
 	goto tr55;
 tr177:
-#line 71 "vcf.ragel"
+#line 71 "c/src/bioformats/vcf/vcf.ragel"
 	{
         status->current_record = vcf_record_new();
     }
-#line 99 "vcf.ragel"
+#line 99 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -706,7 +706,7 @@ st51:
 	if ( ++p == pe )
 		goto _test_eof51;
 case 51:
-#line 710 "vcf_ragel.c"
+#line 710 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr56;
 		case 44: goto st51;
@@ -723,7 +723,7 @@ case 51:
 		goto st51;
 	goto tr55;
 tr56:
-#line 103 "vcf.ragel"
+#line 103 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_chromosome(ts, p-ts, status->current_record);
     }
@@ -732,12 +732,12 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 736 "vcf_ragel.c"
+#line 736 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr59;
 	goto tr58;
 tr59:
-#line 112 "vcf.ragel"
+#line 112 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -746,14 +746,14 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 750 "vcf_ragel.c"
+#line 750 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 9 )
 		goto tr60;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st53;
 	goto tr58;
 tr60:
-#line 116 "vcf.ragel"
+#line 116 "c/src/bioformats/vcf/vcf.ragel"
 	{
         char *field = strndup(ts, p-ts);
         set_vcf_record_position(atol(field), status->current_record);
@@ -764,22 +764,15 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 768 "vcf_ragel.c"
-	switch( (*p) ) {
-		case 46: goto tr63;
-		case 95: goto tr64;
-	}
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr64;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr64;
-	} else
-		goto tr64;
+#line 768 "c/src/bioformats/vcf/vcf_ragel.c"
+	if ( (*p) > 58 ) {
+		if ( 60 <= (*p) && (*p) <= 126 )
+			goto tr63;
+	} else if ( (*p) >= 33 )
+		goto tr63;
 	goto tr62;
 tr63:
-#line 127 "vcf.ragel"
+#line 127 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -788,12 +781,16 @@ st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-#line 792 "vcf_ragel.c"
-	if ( (*p) == 9 )
-		goto tr65;
+#line 785 "c/src/bioformats/vcf/vcf_ragel.c"
+	switch( (*p) ) {
+		case 9: goto tr64;
+		case 59: goto st121;
+	}
+	if ( 33 <= (*p) && (*p) <= 126 )
+		goto st55;
 	goto tr62;
-tr65:
-#line 131 "vcf.ragel"
+tr64:
+#line 131 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_id(ts, p-ts, status->current_record);
     }
@@ -802,17 +799,22 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 806 "vcf_ragel.c"
+#line 803 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 65: goto tr67;
-		case 67: goto tr67;
-		case 71: goto tr67;
-		case 78: goto tr67;
-		case 84: goto tr67;
+		case 65: goto tr68;
+		case 67: goto tr68;
+		case 71: goto tr68;
+		case 78: goto tr68;
+		case 84: goto tr68;
+		case 97: goto tr68;
+		case 99: goto tr68;
+		case 103: goto tr68;
+		case 110: goto tr68;
+		case 116: goto tr68;
 	}
-	goto tr66;
-tr67:
-#line 140 "vcf.ragel"
+	goto tr67;
+tr68:
+#line 140 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -821,18 +823,23 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 825 "vcf_ragel.c"
+#line 827 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr68;
+		case 9: goto tr69;
 		case 65: goto st57;
 		case 67: goto st57;
 		case 71: goto st57;
 		case 78: goto st57;
 		case 84: goto st57;
+		case 97: goto st57;
+		case 99: goto st57;
+		case 103: goto st57;
+		case 110: goto st57;
+		case 116: goto st57;
 	}
-	goto tr66;
-tr68:
-#line 144 "vcf.ragel"
+	goto tr67;
+tr69:
+#line 144 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_reference(ts, p-ts, status->current_record);
     }
@@ -841,22 +848,27 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 845 "vcf_ragel.c"
+#line 852 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 46: goto tr71;
-		case 48: goto tr72;
-		case 60: goto tr73;
-		case 65: goto tr74;
-		case 67: goto tr74;
-		case 71: goto tr74;
-		case 78: goto tr74;
-		case 84: goto tr74;
-		case 91: goto tr75;
-		case 93: goto tr76;
+		case 46: goto tr72;
+		case 48: goto tr73;
+		case 60: goto tr74;
+		case 65: goto tr75;
+		case 67: goto tr75;
+		case 71: goto tr75;
+		case 78: goto tr75;
+		case 84: goto tr75;
+		case 91: goto tr76;
+		case 93: goto tr77;
+		case 97: goto tr75;
+		case 99: goto tr75;
+		case 103: goto tr75;
+		case 110: goto tr75;
+		case 116: goto tr75;
 	}
-	goto tr70;
-tr71:
-#line 153 "vcf.ragel"
+	goto tr71;
+tr72:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -865,9 +877,9 @@ st59:
 	if ( ++p == pe )
 		goto _test_eof59;
 case 59:
-#line 869 "vcf_ragel.c"
+#line 881 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr77;
+		case 9: goto tr78;
 		case 44: goto st76;
 		case 46: goto st59;
 		case 65: goto st59;
@@ -875,14 +887,19 @@ case 59:
 		case 71: goto st59;
 		case 78: goto st59;
 		case 84: goto st59;
+		case 97: goto st59;
+		case 99: goto st59;
+		case 103: goto st59;
+		case 110: goto st59;
+		case 116: goto st59;
 	}
-	goto tr70;
-tr77:
-#line 165 "vcf.ragel"
+	goto tr71;
+tr78:
+#line 165 "c/src/bioformats/vcf/vcf.ragel"
 	{ 
         set_vcf_record_type(VARIANT_SNV, status->current_record);
     }
-#line 157 "vcf.ragel"
+#line 157 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (!strncmp("0", ts, 1)) {
             set_vcf_record_alternate(".", 1, status->current_record);
@@ -891,12 +908,12 @@ tr77:
         }
     }
 	goto st60;
-tr113:
-#line 169 "vcf.ragel"
+tr114:
+#line 169 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_type(VARIANT_INDEL, status->current_record);
     }
-#line 157 "vcf.ragel"
+#line 157 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (!strncmp("0", ts, 1)) {
             set_vcf_record_alternate(".", 1, status->current_record);
@@ -905,12 +922,12 @@ tr113:
         }
     }
 	goto st60;
-tr137:
-#line 173 "vcf.ragel"
+tr138:
+#line 173 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_type(VARIANT_SV, status->current_record);
     }
-#line 157 "vcf.ragel"
+#line 157 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (!strncmp("0", ts, 1)) {
             set_vcf_record_alternate(".", 1, status->current_record);
@@ -923,14 +940,14 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 927 "vcf_ragel.c"
+#line 944 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 46 )
-		goto tr81;
-	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr82;
-	goto tr80;
-tr81:
-#line 182 "vcf.ragel"
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto tr83;
+	goto tr81;
+tr82:
+#line 182 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -939,12 +956,12 @@ st61:
 	if ( ++p == pe )
 		goto _test_eof61;
 case 61:
-#line 943 "vcf_ragel.c"
+#line 960 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 9 )
-		goto tr83;
-	goto tr80;
-tr83:
-#line 186 "vcf.ragel"
+		goto tr84;
+	goto tr81;
+tr84:
+#line 186 "c/src/bioformats/vcf/vcf.ragel"
 	{
         float quality = -1.0f;
         if (strncmp(".", ts, 1) != 0) {
@@ -959,23 +976,23 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 963 "vcf_ragel.c"
+#line 980 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 44: goto tr85;
-		case 46: goto tr85;
-		case 95: goto tr85;
+		case 44: goto tr86;
+		case 46: goto tr86;
+		case 95: goto tr86;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr85;
+			goto tr86;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr85;
+			goto tr86;
 	} else
-		goto tr85;
-	goto tr84;
-tr85:
-#line 201 "vcf.ragel"
+		goto tr86;
+	goto tr85;
+tr86:
+#line 201 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -984,9 +1001,9 @@ st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-#line 988 "vcf_ragel.c"
+#line 1005 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr86;
+		case 9: goto tr87;
 		case 44: goto st63;
 		case 46: goto st63;
 		case 59: goto st72;
@@ -1000,9 +1017,9 @@ case 63:
 			goto st63;
 	} else
 		goto st63;
-	goto tr84;
-tr86:
-#line 205 "vcf.ragel"
+	goto tr85;
+tr87:
+#line 205 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_filter(ts, p-ts, status->current_record);
     }
@@ -1011,22 +1028,22 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 1015 "vcf_ragel.c"
+#line 1032 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 46: goto tr90;
-		case 95: goto tr91;
+		case 46: goto tr91;
+		case 95: goto tr92;
 	}
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr91;
+			goto tr92;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr91;
+			goto tr92;
 	} else
-		goto tr91;
-	goto tr89;
-tr90:
-#line 214 "vcf.ragel"
+		goto tr92;
+	goto tr90;
+tr91:
+#line 214 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1035,16 +1052,16 @@ st146:
 	if ( ++p == pe )
 		goto _test_eof146;
 case 146:
-#line 1039 "vcf_ragel.c"
+#line 1056 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr182;
 		case 10: goto tr183;
 		case 59: goto st70;
 		case 61: goto st71;
 	}
-	goto tr89;
+	goto tr90;
 tr182:
-#line 218 "vcf.ragel"
+#line 218 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_info(ts, p-ts, status->current_record);
     }
@@ -1053,18 +1070,18 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 1057 "vcf_ragel.c"
+#line 1074 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) < 65 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr93;
+			goto tr94;
 	} else if ( (*p) > 90 ) {
 		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr93;
+			goto tr94;
 	} else
-		goto tr93;
-	goto tr92;
-tr93:
-#line 227 "vcf.ragel"
+		goto tr94;
+	goto tr93;
+tr94:
+#line 227 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1073,9 +1090,9 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 1077 "vcf_ragel.c"
+#line 1094 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr94;
+		case 9: goto tr95;
 		case 58: goto st69;
 	}
 	if ( (*p) < 65 ) {
@@ -1086,9 +1103,9 @@ case 66:
 			goto st66;
 	} else
 		goto st66;
-	goto tr92;
-tr94:
-#line 231 "vcf.ragel"
+	goto tr93;
+tr95:
+#line 231 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_format(ts, p-ts, status->current_record);
     }
@@ -1097,12 +1114,12 @@ st67:
 	if ( ++p == pe )
 		goto _test_eof67;
 case 67:
-#line 1101 "vcf_ragel.c"
+#line 1118 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( 33 <= (*p) && (*p) <= 126 )
-		goto tr98;
-	goto tr97;
-tr98:
-#line 240 "vcf.ragel"
+		goto tr99;
+	goto tr98;
+tr99:
+#line 240 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1111,26 +1128,26 @@ st147:
 	if ( ++p == pe )
 		goto _test_eof147;
 case 147:
-#line 1115 "vcf_ragel.c"
+#line 1132 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr186;
 		case 10: goto tr187;
 	}
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto st147;
-	goto tr97;
+	goto tr98;
 tr186:
-#line 244 "vcf.ragel"
+#line 244 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
 	goto st68;
 tr189:
-#line 231 "vcf.ragel"
+#line 231 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_format(ts, p-ts, status->current_record);
     }
-#line 244 "vcf.ragel"
+#line 244 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
@@ -1139,34 +1156,34 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 1143 "vcf_ragel.c"
+#line 1160 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) < 65 ) {
 		if ( (*p) < 48 ) {
 			if ( 33 <= (*p) && (*p) <= 47 )
-				goto tr98;
+				goto tr99;
 		} else if ( (*p) > 57 ) {
 			if ( 58 <= (*p) && (*p) <= 64 )
-				goto tr98;
+				goto tr99;
 		} else
-			goto tr100;
+			goto tr101;
 	} else if ( (*p) > 90 ) {
 		if ( (*p) < 97 ) {
 			if ( 91 <= (*p) && (*p) <= 96 )
-				goto tr98;
+				goto tr99;
 		} else if ( (*p) > 122 ) {
 			if ( 123 <= (*p) && (*p) <= 126 )
-				goto tr98;
+				goto tr99;
 		} else
-			goto tr100;
+			goto tr101;
 	} else
-		goto tr100;
-	goto tr99;
-tr100:
-#line 227 "vcf.ragel"
+		goto tr101;
+	goto tr100;
+tr101:
+#line 227 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
-#line 240 "vcf.ragel"
+#line 240 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1175,7 +1192,7 @@ st148:
 	if ( ++p == pe )
 		goto _test_eof148;
 case 148:
-#line 1179 "vcf_ragel.c"
+#line 1196 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr189;
 		case 10: goto tr187;
@@ -1201,13 +1218,13 @@ case 148:
 			goto st148;
 	} else
 		goto st148;
-	goto tr99;
+	goto tr100;
 tr183:
-#line 218 "vcf.ragel"
+#line 218 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_info(ts, p-ts, status->current_record);
     }
-#line 75 "vcf.ragel"
+#line 75 "c/src/bioformats/vcf/vcf.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
@@ -1231,18 +1248,18 @@ tr183:
         status->num_samples = 0;
         
     }
-#line 12 "vcf.ragel"
+#line 12 "c/src/bioformats/vcf/vcf.ragel"
 	{
         lines++;
 //        LOG_INFO_F("lines read = %d\n", lines);
     }
 	goto st149;
 tr187:
-#line 244 "vcf.ragel"
+#line 244 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
-#line 75 "vcf.ragel"
+#line 75 "c/src/bioformats/vcf/vcf.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
@@ -1266,7 +1283,7 @@ tr187:
         status->num_samples = 0;
         
     }
-#line 12 "vcf.ragel"
+#line 12 "c/src/bioformats/vcf/vcf.ragel"
 	{
         lines++;
 //        LOG_INFO_F("lines read = %d\n", lines);
@@ -1276,7 +1293,7 @@ st149:
 	if ( ++p == pe )
 		goto _test_eof149;
 case 149:
-#line 1280 "vcf_ragel.c"
+#line 1297 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto st150;
 		case 44: goto tr177;
@@ -1327,7 +1344,7 @@ case 151:
 			goto st148;
 	} else
 		goto st148;
-	goto tr99;
+	goto tr100;
 st69:
 	if ( ++p == pe )
 		goto _test_eof69;
@@ -1340,7 +1357,7 @@ case 69:
 			goto st66;
 	} else
 		goto st66;
-	goto tr92;
+	goto tr93;
 st70:
 	if ( ++p == pe )
 		goto _test_eof70;
@@ -1357,9 +1374,9 @@ case 70:
 			goto st152;
 	} else
 		goto st152;
-	goto tr89;
-tr91:
-#line 214 "vcf.ragel"
+	goto tr90;
+tr92:
+#line 214 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1368,7 +1385,7 @@ st152:
 	if ( ++p == pe )
 		goto _test_eof152;
 case 152:
-#line 1372 "vcf_ragel.c"
+#line 1389 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 9: goto tr182;
 		case 10: goto tr183;
@@ -1384,14 +1401,14 @@ case 152:
 			goto st152;
 	} else
 		goto st152;
-	goto tr89;
+	goto tr90;
 st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto st153;
-	goto tr89;
+	goto tr90;
 st153:
 	if ( ++p == pe )
 		goto _test_eof153;
@@ -1402,7 +1419,7 @@ case 153:
 	}
 	if ( 33 <= (*p) && (*p) <= 126 )
 		goto st153;
-	goto tr89;
+	goto tr90;
 st72:
 	if ( ++p == pe )
 		goto _test_eof72;
@@ -1420,9 +1437,9 @@ case 72:
 			goto st63;
 	} else
 		goto st63;
-	goto tr84;
-tr82:
-#line 182 "vcf.ragel"
+	goto tr85;
+tr83:
+#line 182 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1431,30 +1448,30 @@ st73:
 	if ( ++p == pe )
 		goto _test_eof73;
 case 73:
-#line 1435 "vcf_ragel.c"
+#line 1452 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr83;
+		case 9: goto tr84;
 		case 46: goto st74;
 	}
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st73;
-	goto tr80;
+	goto tr81;
 st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st75;
-	goto tr80;
+	goto tr81;
 st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
 	if ( (*p) == 9 )
-		goto tr83;
+		goto tr84;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st75;
-	goto tr80;
+	goto tr81;
 st76:
 	if ( ++p == pe )
 		goto _test_eof76;
@@ -1466,10 +1483,15 @@ case 76:
 		case 71: goto st59;
 		case 78: goto st59;
 		case 84: goto st59;
+		case 97: goto st59;
+		case 99: goto st59;
+		case 103: goto st59;
+		case 110: goto st59;
+		case 116: goto st59;
 	}
-	goto tr70;
-tr72:
-#line 153 "vcf.ragel"
+	goto tr71;
+tr73:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1478,12 +1500,12 @@ st77:
 	if ( ++p == pe )
 		goto _test_eof77;
 case 77:
-#line 1482 "vcf_ragel.c"
+#line 1504 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 9 )
-		goto tr77;
-	goto tr70;
-tr73:
-#line 153 "vcf.ragel"
+		goto tr78;
+	goto tr71;
+tr74:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1492,41 +1514,41 @@ st78:
 	if ( ++p == pe )
 		goto _test_eof78;
 case 78:
-#line 1496 "vcf_ragel.c"
+#line 1518 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 67: goto st79;
 		case 68: goto st83;
 		case 73: goto st99;
 	}
-	goto tr70;
+	goto tr71;
 st79:
 	if ( ++p == pe )
 		goto _test_eof79;
 case 79:
 	if ( (*p) == 78 )
 		goto st80;
-	goto tr70;
+	goto tr71;
 st80:
 	if ( ++p == pe )
 		goto _test_eof80;
 case 80:
 	if ( (*p) == 86 )
 		goto st81;
-	goto tr70;
+	goto tr71;
 st81:
 	if ( ++p == pe )
 		goto _test_eof81;
 case 81:
 	if ( (*p) == 62 )
 		goto st82;
-	goto tr70;
+	goto tr71;
 st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
 	if ( (*p) == 9 )
-		goto tr113;
-	goto tr70;
+		goto tr114;
+	goto tr71;
 st83:
 	if ( ++p == pe )
 		goto _test_eof83;
@@ -1535,14 +1557,14 @@ case 83:
 		case 69: goto st84;
 		case 85: goto st91;
 	}
-	goto tr70;
+	goto tr71;
 st84:
 	if ( ++p == pe )
 		goto _test_eof84;
 case 84:
 	if ( (*p) == 76 )
 		goto st85;
-	goto tr70;
+	goto tr71;
 st85:
 	if ( ++p == pe )
 		goto _test_eof85;
@@ -1551,28 +1573,28 @@ case 85:
 		case 58: goto st86;
 		case 62: goto st82;
 	}
-	goto tr70;
+	goto tr71;
 st86:
 	if ( ++p == pe )
 		goto _test_eof86;
 case 86:
 	if ( (*p) == 77 )
 		goto st87;
-	goto tr70;
+	goto tr71;
 st87:
 	if ( ++p == pe )
 		goto _test_eof87;
 case 87:
 	if ( (*p) == 69 )
 		goto st88;
-	goto tr70;
+	goto tr71;
 st88:
 	if ( ++p == pe )
 		goto _test_eof88;
 case 88:
 	if ( (*p) == 58 )
 		goto st89;
-	goto tr70;
+	goto tr71;
 st89:
 	if ( ++p == pe )
 		goto _test_eof89;
@@ -1585,7 +1607,7 @@ case 89:
 			goto st90;
 	} else
 		goto st90;
-	goto tr70;
+	goto tr71;
 st90:
 	if ( ++p == pe )
 		goto _test_eof90;
@@ -1600,14 +1622,14 @@ case 90:
 			goto st90;
 	} else
 		goto st90;
-	goto tr70;
+	goto tr71;
 st91:
 	if ( ++p == pe )
 		goto _test_eof91;
 case 91:
 	if ( (*p) == 80 )
 		goto st92;
-	goto tr70;
+	goto tr71;
 st92:
 	if ( ++p == pe )
 		goto _test_eof92;
@@ -1616,56 +1638,56 @@ case 92:
 		case 58: goto st93;
 		case 62: goto st82;
 	}
-	goto tr70;
+	goto tr71;
 st93:
 	if ( ++p == pe )
 		goto _test_eof93;
 case 93:
 	if ( (*p) == 84 )
 		goto st94;
-	goto tr70;
+	goto tr71;
 st94:
 	if ( ++p == pe )
 		goto _test_eof94;
 case 94:
 	if ( (*p) == 65 )
 		goto st95;
-	goto tr70;
+	goto tr71;
 st95:
 	if ( ++p == pe )
 		goto _test_eof95;
 case 95:
 	if ( (*p) == 78 )
 		goto st96;
-	goto tr70;
+	goto tr71;
 st96:
 	if ( ++p == pe )
 		goto _test_eof96;
 case 96:
 	if ( (*p) == 68 )
 		goto st97;
-	goto tr70;
+	goto tr71;
 st97:
 	if ( ++p == pe )
 		goto _test_eof97;
 case 97:
 	if ( (*p) == 69 )
 		goto st98;
-	goto tr70;
+	goto tr71;
 st98:
 	if ( ++p == pe )
 		goto _test_eof98;
 case 98:
 	if ( (*p) == 77 )
 		goto st81;
-	goto tr70;
+	goto tr71;
 st99:
 	if ( ++p == pe )
 		goto _test_eof99;
 case 99:
 	if ( (*p) == 78 )
 		goto st100;
-	goto tr70;
+	goto tr71;
 st100:
 	if ( ++p == pe )
 		goto _test_eof100;
@@ -1674,9 +1696,9 @@ case 100:
 		case 83: goto st85;
 		case 86: goto st81;
 	}
-	goto tr70;
-tr74:
-#line 153 "vcf.ragel"
+	goto tr71;
+tr75:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1685,9 +1707,9 @@ st101:
 	if ( ++p == pe )
 		goto _test_eof101;
 case 101:
-#line 1689 "vcf_ragel.c"
+#line 1711 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
-		case 9: goto tr77;
+		case 9: goto tr78;
 		case 44: goto st76;
 		case 46: goto st59;
 		case 65: goto st101;
@@ -1697,8 +1719,13 @@ case 101:
 		case 84: goto st101;
 		case 91: goto st102;
 		case 93: goto st107;
+		case 97: goto st101;
+		case 99: goto st101;
+		case 103: goto st101;
+		case 110: goto st101;
+		case 116: goto st101;
 	}
-	goto tr70;
+	goto tr71;
 st102:
 	if ( ++p == pe )
 		goto _test_eof102;
@@ -1716,7 +1743,7 @@ case 102:
 			goto st103;
 	} else
 		goto st103;
-	goto tr70;
+	goto tr71;
 st103:
 	if ( ++p == pe )
 		goto _test_eof103;
@@ -1735,14 +1762,14 @@ case 103:
 			goto st103;
 	} else
 		goto st103;
-	goto tr70;
+	goto tr71;
 st104:
 	if ( ++p == pe )
 		goto _test_eof104;
 case 104:
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st105;
-	goto tr70;
+	goto tr71;
 st105:
 	if ( ++p == pe )
 		goto _test_eof105;
@@ -1751,14 +1778,14 @@ case 105:
 		goto st106;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st105;
-	goto tr70;
+	goto tr71;
 st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
 	if ( (*p) == 9 )
-		goto tr137;
-	goto tr70;
+		goto tr138;
+	goto tr71;
 st107:
 	if ( ++p == pe )
 		goto _test_eof107;
@@ -1776,7 +1803,7 @@ case 107:
 			goto st108;
 	} else
 		goto st108;
-	goto tr70;
+	goto tr71;
 st108:
 	if ( ++p == pe )
 		goto _test_eof108;
@@ -1795,14 +1822,14 @@ case 108:
 			goto st108;
 	} else
 		goto st108;
-	goto tr70;
+	goto tr71;
 st109:
 	if ( ++p == pe )
 		goto _test_eof109;
 case 109:
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st110;
-	goto tr70;
+	goto tr71;
 st110:
 	if ( ++p == pe )
 		goto _test_eof110;
@@ -1811,9 +1838,9 @@ case 110:
 		goto st106;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st110;
-	goto tr70;
-tr75:
-#line 153 "vcf.ragel"
+	goto tr71;
+tr76:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1822,7 +1849,7 @@ st111:
 	if ( ++p == pe )
 		goto _test_eof111;
 case 111:
-#line 1826 "vcf_ragel.c"
+#line 1853 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 44: goto st112;
 		case 46: goto st112;
@@ -1836,7 +1863,7 @@ case 111:
 			goto st112;
 	} else
 		goto st112;
-	goto tr70;
+	goto tr71;
 st112:
 	if ( ++p == pe )
 		goto _test_eof112;
@@ -1855,14 +1882,14 @@ case 112:
 			goto st112;
 	} else
 		goto st112;
-	goto tr70;
+	goto tr71;
 st113:
 	if ( ++p == pe )
 		goto _test_eof113;
 case 113:
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st114;
-	goto tr70;
+	goto tr71;
 st114:
 	if ( ++p == pe )
 		goto _test_eof114;
@@ -1871,7 +1898,7 @@ case 114:
 		goto st115;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st114;
-	goto tr70;
+	goto tr71;
 st115:
 	if ( ++p == pe )
 		goto _test_eof115;
@@ -1882,23 +1909,33 @@ case 115:
 		case 71: goto st116;
 		case 78: goto st116;
 		case 84: goto st116;
+		case 97: goto st116;
+		case 99: goto st116;
+		case 103: goto st116;
+		case 110: goto st116;
+		case 116: goto st116;
 	}
-	goto tr70;
+	goto tr71;
 st116:
 	if ( ++p == pe )
 		goto _test_eof116;
 case 116:
 	switch( (*p) ) {
-		case 9: goto tr137;
+		case 9: goto tr138;
 		case 65: goto st116;
 		case 67: goto st116;
 		case 71: goto st116;
 		case 78: goto st116;
 		case 84: goto st116;
+		case 97: goto st116;
+		case 99: goto st116;
+		case 103: goto st116;
+		case 110: goto st116;
+		case 116: goto st116;
 	}
-	goto tr70;
-tr76:
-#line 153 "vcf.ragel"
+	goto tr71;
+tr77:
+#line 153 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1907,7 +1944,7 @@ st117:
 	if ( ++p == pe )
 		goto _test_eof117;
 case 117:
-#line 1911 "vcf_ragel.c"
+#line 1948 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 44: goto st118;
 		case 46: goto st118;
@@ -1921,7 +1958,7 @@ case 117:
 			goto st118;
 	} else
 		goto st118;
-	goto tr70;
+	goto tr71;
 st118:
 	if ( ++p == pe )
 		goto _test_eof118;
@@ -1940,14 +1977,14 @@ case 118:
 			goto st118;
 	} else
 		goto st118;
-	goto tr70;
+	goto tr71;
 st119:
 	if ( ++p == pe )
 		goto _test_eof119;
 case 119:
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st120;
-	goto tr70;
+	goto tr71;
 st120:
 	if ( ++p == pe )
 		goto _test_eof120;
@@ -1956,37 +1993,23 @@ case 120:
 		goto st115;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st120;
-	goto tr70;
-tr64:
-#line 127 "vcf.ragel"
-	{
-        ts = p;
-    }
-	goto st121;
+	goto tr71;
 st121:
 	if ( ++p == pe )
 		goto _test_eof121;
 case 121:
-#line 1971 "vcf_ragel.c"
-	switch( (*p) ) {
-		case 9: goto tr65;
-		case 95: goto st121;
-	}
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto st121;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st121;
-	} else
-		goto st121;
+	if ( (*p) > 58 ) {
+		if ( 60 <= (*p) && (*p) <= 126 )
+			goto st55;
+	} else if ( (*p) >= 33 )
+		goto st55;
 	goto tr62;
 tr4:
-#line 41 "vcf.ragel"
+#line 41 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -1995,7 +2018,7 @@ st122:
 	if ( ++p == pe )
 		goto _test_eof122;
 case 122:
-#line 1999 "vcf_ragel.c"
+#line 2022 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr151;
@@ -2022,7 +2045,7 @@ case 122:
 		goto st122;
 	goto st0;
 tr151:
-#line 45 "vcf.ragel"
+#line 45 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_header_entry_name(ts, p-ts, status->current_header_entry);
     }
@@ -2031,14 +2054,14 @@ st123:
 	if ( ++p == pe )
 		goto _test_eof123;
 case 123:
-#line 2035 "vcf_ragel.c"
+#line 2058 "c/src/bioformats/vcf/vcf_ragel.c"
 	if ( (*p) == 10 )
 		goto tr5;
 	if ( 32 <= (*p) && (*p) <= 126 )
 		goto tr152;
 	goto st0;
 tr152:
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -2047,7 +2070,7 @@ st124:
 	if ( ++p == pe )
 		goto _test_eof124;
 case 124:
-#line 2051 "vcf_ragel.c"
+#line 2074 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr154;
@@ -2056,7 +2079,7 @@ case 124:
 		goto st124;
 	goto st0;
 tr154:
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -2068,7 +2091,7 @@ tr154:
     }
 	goto st125;
 tr155:
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -2078,7 +2101,7 @@ tr155:
             add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -2087,7 +2110,7 @@ st125:
 	if ( ++p == pe )
 		goto _test_eof125;
 case 125:
-#line 2091 "vcf_ragel.c"
+#line 2114 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 44: goto tr155;
@@ -2096,7 +2119,7 @@ case 125:
 		goto tr152;
 	goto st0;
 tr176:
-#line 29 "vcf.ragel"
+#line 29 "c/src/bioformats/vcf/vcf.ragel"
 	{
         status->current_header_entry = vcf_header_entry_new();
     }
@@ -2105,7 +2128,7 @@ st126:
 	if ( ++p == pe )
 		goto _test_eof126;
 case 126:
-#line 2109 "vcf_ragel.c"
+#line 2132 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st127;
 		case 67: goto st5;
@@ -2139,11 +2162,11 @@ case 127:
 		goto tr4;
 	goto st0;
 tr157:
-#line 41 "vcf.ragel"
+#line 41 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -2152,7 +2175,7 @@ st128:
 	if ( ++p == pe )
 		goto _test_eof128;
 case 128:
-#line 2156 "vcf_ragel.c"
+#line 2179 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 61: goto tr151;
@@ -2449,7 +2472,7 @@ case 137:
 		goto st122;
 	goto st0;
 tr167:
-#line 45 "vcf.ragel"
+#line 45 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_header_entry_name(ts, p-ts, status->current_header_entry);
     }
@@ -2458,7 +2481,7 @@ st138:
 	if ( ++p == pe )
 		goto _test_eof138;
 case 138:
-#line 2462 "vcf_ragel.c"
+#line 2485 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr5;
 		case 32: goto tr152;
@@ -2467,17 +2490,17 @@ case 138:
 		goto tr169;
 	goto tr168;
 tr173:
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
 	goto st139;
 tr169:
-#line 17 "vcf.ragel"
+#line 17 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -2486,7 +2509,7 @@ st139:
 	if ( ++p == pe )
 		goto _test_eof139;
 case 139:
-#line 2490 "vcf_ragel.c"
+#line 2513 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr170;
 		case 32: goto st124;
@@ -2496,7 +2519,7 @@ case 139:
 		goto st139;
 	goto tr168;
 tr172:
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -2508,7 +2531,7 @@ tr172:
     }
 	goto st140;
 tr174:
-#line 53 "vcf.ragel"
+#line 53 "c/src/bioformats/vcf/vcf.ragel"
 	{
         if (*ts == '<') {
             add_vcf_header_entry_value(ts+1, p-ts-1, status->current_header_entry);
@@ -2518,7 +2541,7 @@ tr174:
             add_vcf_header_entry_value(ts, p-ts, status->current_header_entry);
         }
     }
-#line 49 "vcf.ragel"
+#line 49 "c/src/bioformats/vcf/vcf.ragel"
 	{
         ts = p;
     }
@@ -2527,7 +2550,7 @@ st140:
 	if ( ++p == pe )
 		goto _test_eof140;
 case 140:
-#line 2531 "vcf_ragel.c"
+#line 2554 "c/src/bioformats/vcf/vcf_ragel.c"
 	switch( (*p) ) {
 		case 10: goto tr170;
 		case 32: goto tr152;
@@ -2697,13 +2720,13 @@ case 140:
 	case 138: 
 	case 139: 
 	case 140: 
-#line 25 "vcf.ragel"
+#line 25 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %d (%s): Error in file format\n", lines, file->filename);
     }
 	break;
 	case 51: 
-#line 107 "vcf.ragel"
+#line 107 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'chromosome' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2711,7 +2734,7 @@ case 140:
 	break;
 	case 52: 
 	case 53: 
-#line 122 "vcf.ragel"
+#line 122 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'position' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2720,7 +2743,7 @@ case 140:
 	case 54: 
 	case 55: 
 	case 121: 
-#line 135 "vcf.ragel"
+#line 135 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'id' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2728,7 +2751,7 @@ case 140:
 	break;
 	case 56: 
 	case 57: 
-#line 148 "vcf.ragel"
+#line 148 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'reference' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2781,7 +2804,7 @@ case 140:
 	case 118: 
 	case 119: 
 	case 120: 
-#line 177 "vcf.ragel"
+#line 177 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'alternate' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2792,7 +2815,7 @@ case 140:
 	case 73: 
 	case 74: 
 	case 75: 
-#line 196 "vcf.ragel"
+#line 196 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'quality' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2801,7 +2824,7 @@ case 140:
 	case 62: 
 	case 63: 
 	case 72: 
-#line 209 "vcf.ragel"
+#line 209 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'filter' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2810,7 +2833,7 @@ case 140:
 	case 64: 
 	case 70: 
 	case 71: 
-#line 222 "vcf.ragel"
+#line 222 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'info' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2819,14 +2842,14 @@ case 140:
 	case 65: 
 	case 66: 
 	case 69: 
-#line 235 "vcf.ragel"
+#line 235 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
 	break;
 	case 67: 
-#line 248 "vcf.ragel"
+#line 248 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2835,11 +2858,11 @@ case 140:
 	case 146: 
 	case 152: 
 	case 153: 
-#line 218 "vcf.ragel"
+#line 218 "c/src/bioformats/vcf/vcf.ragel"
 	{
         set_vcf_record_info(ts, p-ts, status->current_record);
     }
-#line 75 "vcf.ragel"
+#line 75 "c/src/bioformats/vcf/vcf.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
@@ -2865,12 +2888,12 @@ case 140:
     }
 	break;
 	case 68: 
-#line 235 "vcf.ragel"
+#line 235 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in 'format' field\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
     }
-#line 248 "vcf.ragel"
+#line 248 "c/src/bioformats/vcf/vcf.ragel"
 	{
         LOG_ERROR_F("Line %zu (%s): Error in sample\n", status->num_batches * batch_size + status->num_records, file->filename);
         vcf_record_free(status->current_record);
@@ -2879,11 +2902,11 @@ case 140:
 	case 147: 
 	case 148: 
 	case 151: 
-#line 244 "vcf.ragel"
+#line 244 "c/src/bioformats/vcf/vcf.ragel"
 	{
         add_vcf_record_sample(ts, p-ts, status->current_record);
     }
-#line 75 "vcf.ragel"
+#line 75 "c/src/bioformats/vcf/vcf.ragel"
 	{
         // If batch is full, add to the list of batches and create a new, empty one
         if (batch_size > 0 && status->current_batch->records->size == batch_size)
@@ -2908,14 +2931,14 @@ case 140:
         
     }
 	break;
-#line 2912 "vcf_ragel.c"
+#line 2935 "c/src/bioformats/vcf/vcf_ragel.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 347 "vcf.ragel"
+#line 349 "c/src/bioformats/vcf/vcf.ragel"
 
     
     if (!vcf_batch_is_empty(status->current_batch)) {
@@ -2927,8 +2950,8 @@ case 140:
 
 //     printf("final state should be a minimum of %d, was %d\n",  %%{ write first_final; }%%, cs);
     return cs < 
-#line 2931 "vcf_ragel.c"
+#line 2954 "c/src/bioformats/vcf/vcf_ragel.c"
 141
-#line 357 "vcf.ragel"
+#line 359 "c/src/bioformats/vcf/vcf.ragel"
 ;
 }

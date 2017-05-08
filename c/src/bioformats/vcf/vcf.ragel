@@ -255,7 +255,7 @@
     #################################################
 
     number      = (digit)+ ("." (digit)+)? ;    # Integer or floating-point number
-    bases       = ("A" | "C" | "G" | "T" | "N")+ ;
+    bases       = ("A" | "C" | "G" | "T" | "N" | "a" | "c" | "t" | "g" | "n" )+ ;
     identifier  = (alnum)+ ;
 
     # File format
@@ -276,8 +276,13 @@
 
     # Records
     record_chrom    = (alnum | "_" | "." | "," )+ ;
+
     record_pos  = (digit)+ ;
-    record_id   = (alnum | "_")+ | "." ;
+
+    ## ID must be a (list of) string with no white-spaces or semi-colons
+    record_id_value = (print - (space | ";"))+ ;
+    record_id       = record_id_value (";" record_id_value)*  | "." ;
+
     record_ref  = bases ;
 
     record_alt_snv = ((bases | ".") ("," (bases | "."))* )+ | "0";
